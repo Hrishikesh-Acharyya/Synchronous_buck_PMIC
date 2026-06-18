@@ -1,0 +1,12 @@
+# Ignore local virtual environment
+env/
+__pycache__/
+*.pyc
+
+# Ignore private environment variables
+.env
+
+# Ignore scraped artifacts and logs
+datasheets/
+*.xlsx
+*.csv

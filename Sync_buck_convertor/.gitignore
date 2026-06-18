@@ -1,0 +1,18 @@
+# Ignore Altium auto-generated backups and outputs
+History/
+Project Outputs*/
+__Previews/
+
+# Ignore local validation logs and report files
+*.Annotation
+*.Logs
+*.Warning
+*.ERR
+*.OutputDriven
+*.Rpt
+
+# Ignore temporary lock files
+*.~*
+*.Bak*
+*.SchDoc.Zip
+*.PcbDoc.Zip

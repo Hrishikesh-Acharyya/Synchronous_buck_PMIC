@@ -1,0 +1,8 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# VS Code workspace files
+.vscode/
+*.code-workspace
