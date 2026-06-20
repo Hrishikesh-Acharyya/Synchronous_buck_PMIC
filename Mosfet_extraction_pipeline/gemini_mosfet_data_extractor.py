@@ -16,7 +16,7 @@ DOWNLOAD_FOLDER = "datasheets"
 
 # 1. Gather all available API keys for the rotation engine
 API_KEYS = []
-for i in range(22, 32):  # Adjust the range as needed
+for i in range(31, 42):  # Adjust the range as needed
     key_name = f"GEMINI_API_KEY_MOSFET_SCRAPPER_{i}" if i >= 3 else "GEMINI_API_KEY"
     key = os.getenv(key_name)
     if key:
