@@ -8,20 +8,35 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# --- Configuration ---
+# --- Configuration & Initialization ---
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY_MOSFET_SCRAPPER_2")
 
 MASTER_EXCEL = "mosfet_urls.xlsx"
-DOWNLOAD_FOLDER = "./datasheets"
+DOWNLOAD_FOLDER = "datasheets"
 
-if not API_KEY:
-    raise ValueError("GEMINI_API_KEY is missing from your .env file!")
+# 1. Gather all available API keys for the rotation engine
+API_KEYS = []
+for i in range(1, 11):
+    key_name = f"GEMINI_API_KEY_MOSFET_SCRAPPER_{i}" if i >= 3 else "GEMINI_API_KEY"
+    key = os.getenv(key_name)
+    if key:
+        API_KEYS.append(key)
 
-# Initialize the new Google GenAI Client
-client = genai.Client(api_key=API_KEY)
+if not API_KEYS:
+    raise ValueError("ERROR: No valid GEMINI_API_KEY variables found in your .env configuration!")
 
-# --- The Honest Data Schema ---
+print(f"✅ Key Rotation Engine initialized with {len(API_KEYS)} active keys.")
+current_key_index = 0
+
+def get_rotated_client():
+    """Cycles through the keys sequentially and returns a fresh genai client."""
+    global current_key_index
+    selected_key = API_KEYS[current_key_index]
+    client = genai.Client(api_key=selected_key)
+    current_key_index = (current_key_index + 1) % len(API_KEYS)
+    return client
+
+# --- The Structured Output Schema ---
 class MosfetSpecifications(BaseModel):
     Manufacturer: str = Field(description="The name of the component manufacturer.")
     Part_Number: str = Field(description="The exact Manufacturer Part Number (MPN).")
@@ -38,16 +53,16 @@ class MosfetSpecifications(BaseModel):
     Qg_total_nC: float = Field(description="Total Gate Charge (Qg) typical value in nanocoulombs (nC).")
     Qgd_gate_drain_nC: float = Field(description="Gate-to-Drain 'Miller' Charge (Qgd) typical value in nC.")
     
-    Qgs_total_nC: Optional[float] = Field(description="Total Gate-to-Source charge (Qgs). If the datasheet breaks it into pre/post (Qgs1/Qgs2) and does NOT provide a total, return null.")
-    Qgs1_pre_thresh_nC: Optional[float] = Field(description="Pre-threshold charge (Qgs1). If the datasheet ONLY gives total Qgs, return null. Do not fake this data.")
-    Qgs2_post_thresh_nC: Optional[float] = Field(description="Post-threshold charge (Qgs2). If the datasheet ONLY gives total Qgs, return null. Do not fake this data.")
+    Qgs_total_nC: Optional[float] = Field(description="Total Gate-to-Source charge (Qgs). If broken into pre/post without a total, return null.")
+    Qgs1_pre_thresh_nC: Optional[float] = Field(description="Pre-threshold charge (Qgs1). If ONLY total Qgs is given, return null.")
+    Qgs2_post_thresh_nC: Optional[float] = Field(description="Post-threshold charge (Qgs2). If ONLY total Qgs is given, return null.")
     
     Qsw_switching_nC: float = Field(description="Switching charge (Qsw). If not explicitly listed, calculate using fallback math.")
     Qg_Qsw_ratio: float = Field(description="The calculated ratio of Total Gate Charge (Qg) divided by Switching Charge (Qsw).")
     
     Vsd_body_diode_Volts: float = Field(description="Source-Drain Diode Forward Voltage maximum value in Volts.")
 
-# --- THE ULTIMATE EXPERT PROMPT ---
+# --- The Expert Prompt ---
 GEMINI_PROMPT = """
 You are a highly precise power electronics engineer. Analyze this MOSFET datasheet and extract the exact specifications requested.
 
@@ -67,25 +82,60 @@ CRITICAL RULES FOR DATA SINCERITY & MANUFACTURER QUIRKS:
 6. Diode Nomenclature: Look for 'Diode Forward Voltage', 'Source-Drain Voltage', 'VSD'. For Renesas, look for 'VF(S-D)'. For Toshiba, look for 'VDSF'. Extract the maximum or typical value.
 """
 
-def process_datasheet(file_path):
-    max_retries = 3
-    base_wait_time = 60 # Wait 60 seconds if we hit a rate limit
+# --- The Main Execution Pipeline ---
+def run_extraction_pipeline():
+    if not os.path.exists(MASTER_EXCEL):
+        raise FileNotFoundError(f"Could not find target master spreadsheet: '{MASTER_EXCEL}'")
+        
+    df = pd.read_excel(MASTER_EXCEL)
     
-    for attempt in range(max_retries):
-        try:
-            # Upload via the new SDK
-            datasheet_file = client.files.upload(file=file_path, config={'mime_type': 'application/pdf'})
+    # Ensure all target columns from the schema exist in the DataFrame
+    target_columns = list(MosfetSpecifications.model_fields.keys())
+    for col in target_columns:
+        if col not in df.columns:
+            df[col] = pd.NA
+
+    total_rows = len(df)
+    print("🚀 Starting deep extraction processing run...")
+
+    for index, row in df.iterrows():
+        part_num = str(row['Part_Number']).strip()
+        
+        # Checkpoint Shield: Skip if we already successfully extracted data for this row
+        if pd.notna(row.get('Test_Vgs_Volts')) and str(row.get('Test_Vgs_Volts')).strip() != "":
+            continue
             
-            # Wait for backend processing if necessary
-            file_info = client.files.get(name=datasheet_file.name)
+        print(f"[{index+1}/{total_rows}] Analyzing {part_num}...")
+        
+        # Build file path
+        safe_name = "".join(c for c in part_num if c.isalnum() or c in ('-', '_')).rstrip()
+        pdf_path = os.path.join(DOWNLOAD_FOLDER, f"{safe_name}.pdf")
+        
+        if not os.path.exists(pdf_path):
+            print(f"  ⚠️ PDF missing for {part_num}. Skipping.")
+            continue
+            
+        # Get a freshly rotated client to distribute token load
+        client = get_rotated_client()
+        uploaded_file = None
+            
+        try:
+            # 1. Upload the PDF
+            uploaded_file = client.files.upload(file=pdf_path, config={'mime_type': 'application/pdf'})
+            
+            # 2. Wait for Google's servers to process the document
+            file_info = client.files.get(name=uploaded_file.name)
             while file_info.state.name == "PROCESSING":
                 time.sleep(2)
-                file_info = client.files.get(name=datasheet_file.name)
+                file_info = client.files.get(name=uploaded_file.name)
                 
-            # Call the model using the stable 1.5-flash-002 endpoint
+            if file_info.state.name == "FAILED":
+                raise Exception("Google file processing failed on server side.")
+
+            # 3. Generate structured content
             response = client.models.generate_content(
                 model='gemini-flash-latest',
-                contents=[datasheet_file, GEMINI_PROMPT],
+                contents=[uploaded_file, GEMINI_PROMPT],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=MosfetSpecifications,
@@ -93,75 +143,45 @@ def process_datasheet(file_path):
                 )
             )
             
-            # Clean up Google's servers to prevent storage bloat
-            client.files.delete(name=datasheet_file.name)
-            return json.loads(response.text)
-            
-        except Exception as e:
-            error_message = str(e)
-            # If the file uploaded successfully before the crash, try to delete it so we don't leak storage
-            try:
-                client.files.delete(name=datasheet_file.name)
-            except:
-                pass
-                
-            if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
-                print(f"  ⚠️ Rate limit hit. Pausing extraction for {base_wait_time} seconds (Attempt {attempt + 1}/{max_retries})...")
-                time.sleep(base_wait_time)
-                # Increase the wait time for the next attempt just in case
-                base_wait_time *= 2 
-            else:
-                print(f"  ❌ Fatal Error processing PDF: {error_message}")
-                return None
-                
-    print("  ❌ Max retries exceeded due to rate limits. Skipping this component.")
-    return None
-
-def run_extraction_pipeline():
-    print(f"Loading Master Matrix: {MASTER_EXCEL}")
-    df = pd.read_excel(MASTER_EXCEL)
-    
-    target_columns = list(MosfetSpecifications.model_fields.keys())
-    for col in target_columns:
-        if col not in df.columns:
-            df[col] = pd.NA
-            
-    total_rows = len(df)
-    processed_count = 0
-    
-    print("Beginning Deep Extraction Loop...")
-    for index, row in df.iterrows():
-        part_num = str(row['Part_Number'])
-        
-        if pd.notna(row.get('Test_Vgs_Volts')) and str(row.get('Test_Vgs_Volts')).strip() != "":
-            continue
-            
-        safe_name = "".join(c for c in part_num if c.isalnum() or c in ('-', '_')).rstrip()
-        file_path = os.path.join(DOWNLOAD_FOLDER, f"{safe_name}.pdf")
-        
-        if not os.path.exists(file_path):
-            print(f"[{index+1}/{total_rows}] ⚠️ PDF missing for {part_num}. Skipping.")
-            continue
-            
-        print(f"[{index+1}/{total_rows}] Analyzing {part_num}...")
-        extracted_data = process_datasheet(file_path)
-        
-        if extracted_data:
+            # 4. Map the JSON response directly into the Pandas DataFrame
+            extracted_data = json.loads(response.text)
             for key, value in extracted_data.items():
                 df.at[index, key] = value
                 
-            processed_count += 1
             is_logic = extracted_data.get('Logic_Level')
             test_v = extracted_data.get('Test_Vgs_Volts')
-            print(f"  -> Success: Logic Level={is_logic} | Test Vgs={test_v}V | Rds(on)={extracted_data.get('Rds_on_max_mOhm')}mΩ")
+            rds_on = extracted_data.get('Rds_on_max_mOhm')
+            print(f"  -> Success: Logic={is_logic} | Vgs={test_v}V | Rds(on)={rds_on}mΩ")
+
+        except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                print("  ⚠️ Rate limit hit across rotation. Pausing for 60s...")
+                time.sleep(60)
+            else:
+                print(f"  ❌ Error processing {part_num}: {error_msg}")
+        finally:
+            # Clean up the cloud storage bucket so we don't hit the 20GB limit
+            if uploaded_file:
+                try:
+                    client.files.delete(name=uploaded_file.name)
+                except:
+                    pass
             
-            if processed_count % 5 == 0:
+        # 5. IMMEDIATE SAVE PROTOCOL (Runs after every single MOSFET)
+        saved = False
+        while not saved:
+            try:
                 df.to_excel(MASTER_EXCEL, index=False)
-                
-        time.sleep(5) 
-        
-    df.to_excel(MASTER_EXCEL, index=False)
-    print("\n Extraction Pipeline Complete! Master Excel file updated.")
+                saved = True
+            except PermissionError:
+                print(f"  🚨 ALERT: Cannot write to disk! Close '{MASTER_EXCEL}' immediately. Retrying in 5s...")
+                time.sleep(5)
+
+        # Padding between API calls
+        time.sleep(1)
+
+    print("\n✅ Extraction Pipeline Complete! All datasheets processed.")
 
 if __name__ == "__main__":
     run_extraction_pipeline()
