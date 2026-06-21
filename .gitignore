@@ -6,3 +6,5 @@ Desktop.ini
 # VS Code workspace files
 .vscode/
 *.code-workspace
+
+/literature_review
