@@ -1,0 +1,88 @@
+CERN Open Hardware Licence Version 2 - Permissive
+
+Copyright (c) [year] [copyright-holder]
+
+Preamble
+
+The following terms apply to any reproduction of this licence, and to any
+hardware design (including documentation), or other material provided under
+this licence (the "Material").
+
+Definitions
+
+"Design" means the files, documents, text, and other material necessary to
+reproduce or manufacture the hardware. "Source" means files containing the
+foundational design into which changes can readily and fully be made, such as
+editable CAD/schematic files, PCB layout source, design files, bill of
+materials, and test and build scripts. "Documentation" means explanatory
+material accompanying the Design. "You" and "your" mean the person or entity
+exercising rights under this licence.
+
+1. Licence Grant
+
+Subject to the terms and conditions of this licence, the copyright holder
+hereby grants to You a worldwide, royalty-free, non-exclusive, perpetual
+licence to copy, modify, and distribute the Design, in Source or in Object
+form, and to authorise others to do so.
+
+2. Obligations
+
+If You distribute the Design in Source form, You must include a copy of this
+licence. If You distribute the Design in Object form (such as exported
+manufacturing files or physical products), You must include a prominent
+physical or electronic notice that the Design is licensed under the CERN
+Open Hardware Licence Version 2 - Permissive, and provide a pointer to where
+the Source can be obtained (for example, a URL).
+
+You are not required to apply this licence to designs that You develop that do
+not incorporate or derive from the Design.
+
+3. Patent Rights
+
+The licence grants no rights under patent law beyond those necessarily
+incidental to exercising the rights granted in this licence. If You grant
+patent rights to a third party relating to the Design, those patent rights do
+not terminate this licence.
+
+4. Trademarks
+
+This licence does not grant any rights in the trademarks, service marks, or
+trade names of the copyright holder.
+
+5. Warranty and Liability
+
+The Design is provided "as is" and to the extent permitted by law the
+copyright holder and licensors disclaim all warranties, express or implied,
+including but not limited to merchantability and fitness for a particular
+purpose. In no event shall the copyright holder be liable for any claim,
+damages or other liability arising from, out of or in connection with the
+Design or the use or other dealings in the Design.
+
+6. Termination
+
+Your rights under this licence will terminate automatically if You fail to
+comply with the terms of this licence and do not cure such failure within a
+reasonable time after becoming aware of it.
+
+7. Other Rights
+
+This licence does not affect any rights You may have under applicable law.
+
+8. Compatibility
+
+If You redistribute the Design under another licence that is compatible with
+this licence, the terms of that other licence apply to your distribution.
+
+9. Jurisdiction
+
+This licence is governed by the law of the copyright holder's jurisdiction,
+without regard to conflicts of law principles.
+
+---
+
+Notes for users
+
+- SPDX identifier: CERN-OHL-P-2.0
+- This is the permissive variant of the CERN Open Hardware Licence version 2.
+- Replace the placeholder copyright line at the top with your own name and
+  year before distributing.
