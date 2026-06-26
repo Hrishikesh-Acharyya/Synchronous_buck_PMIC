@@ -1,6 +1,6 @@
 CERN Open Hardware Licence Version 2 - Permissive
 
-Copyright (c) [year] [copyright-holder]
+Copyright (c) 2026 Hrishikesh Acharyya
 
 Preamble
 
@@ -84,5 +84,5 @@ Notes for users
 
 - SPDX identifier: CERN-OHL-P-2.0
 - This is the permissive variant of the CERN Open Hardware Licence version 2.
-- Replace the placeholder copyright line at the top with your own name and
-  year before distributing.
+- The copyright line above has been filled in; replace it if you want a different
+  year or holder before distributing.
