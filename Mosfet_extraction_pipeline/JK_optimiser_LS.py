@@ -54,7 +54,7 @@ def main():
     df_valid['Ratio_num'] = df_valid[col_ratio].apply(extract_number)
     df_valid['Vsd_num'] = df_valid[col_vsd].apply(extract_number)
     
-    # BULLETPROOF FILTER
+    # FILTER
     df_valid = df_valid[
         (df_valid['Rds_num'] > 0) & 
         (df_valid['Qsw_num'] > 0) & 
@@ -127,10 +127,10 @@ def main():
     matrix_df.to_excel(output_file, index=False)
     print(f"Matrix Complete! Saved {len(master_records)} ranked data points to: {output_file}")
     
-    # Quick Terminal Output for the 350kHz slice
-    print("\n--- SNEAK PEEK: The 350 kHz Slice ---")
-    slice_350 = matrix_df[matrix_df['Frequency_kHz'] == 350.0]
-    for idx, row in slice_350.iterrows():
+    # Quick Terminal Output for the 450kHz slice
+    print("\n--- SNEAK PEEK: The 450 kHz Slice ---")
+    slice_450 = matrix_df[matrix_df['Frequency_kHz'] == 450.0]
+    for idx, row in slice_450.iterrows():
         print(f"#{row['Rank']}: {row['Part_Number']} | Loss: {row['Total_Loss_W']:.3f} W | Driver Heat: {row['LS_Driver_Heat_W']:.3f} W | Vfd: {row['V_fd_Volts']}V")
 
 if __name__ == "__main__":

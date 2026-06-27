@@ -52,7 +52,7 @@ def main():
     df_valid['Qg_num']  = df_valid[col_qg].apply(extract_number)
     df_valid['Ratio_num'] = df_valid[col_ratio].apply(extract_number)
     
-    # BULLETPROOF FILTER
+    # FILTER
     # If the ratio is missing, we drop the part to avoid false optimizations
     df_valid = df_valid[
         (df_valid['Rds_num'] > 0) & 
@@ -80,7 +80,7 @@ def main():
             qg  = row['Qg_num']
             ratio = row['Ratio_num']
             
-            # The Full J Equation utilizing your pre-extracted ratio(for LM5106). Uncomment to use the LM5106 equation.
+            # The Full J Equation utilizing  pre-extracted ratio(for LM5106). Uncomment to use the LM5106 equation.
             #J_HS = 1e-9 * ((V_IN * I_OUT / I_DRIVE) + (ratio * V_DRIVE)) * freq
 
             # The Full J Equation utilizing asymmetric drive currents for the UCC27282. This is the recommended equation for the UCC27282. Comment this out if you want to use the LM5106 equation.
@@ -120,10 +120,10 @@ def main():
     matrix_df.to_excel(output_file, index=False)
     print(f"Matrix Complete! Saved {len(master_records)} ranked data points to: {output_file}")
     
-    # Quick Terminal Output for the 350kHz slice
-    print("\n--- SNEAK PEEK: The 350 kHz Slice ---")
-    slice_350 = matrix_df[matrix_df['Frequency_kHz'] == 350.0]
-    for idx, row in slice_350.iterrows():
+    # Quick Terminal Output for the 450kHz slice
+    print("\n--- SNEAK PEEK: The 450 kHz Slice ---")
+    slice_450 = matrix_df[matrix_df['Frequency_kHz'] == 450.0]
+    for idx, row in slice_450.iterrows():
         print(f"#{row['Rank']}: {row['Part_Number']} | Loss: {row['Total_Loss_W']:.3f} W | Driver Heat: {row['HS_Driver_Heat_W']:.3f} W")
 
 if __name__ == "__main__":
