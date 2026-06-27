@@ -1,6 +1,6 @@
 LTspice 26.0.1 for Windows
-Circuit: E:\Sync_Buck_convertor\simulations\compensator.net
-Start Time: Sat Jun 27 16:39:32 2026
+Circuit: E:\Sync_Buck_convertor\simulations\compensator_and_plant.net
+Start Time: Sat Jun 27 17:15:45 2026
 solver = Normal
 Maximum thread count: 8
 tnom = 27
@@ -12,9 +12,9 @@ C1: Increased Cpar to 2.777e-11
 C2: Increased Cpar to 2.777e-11
 C3: Increased Cpar to 2.777e-11
 Direct Newton iteration succeeded in finding operating point.
-Total elapsed time: 0.103 seconds.
+Total elapsed time: 0.341 seconds.
 
 Files loaded:
-E:\Sync_Buck_convertor\simulations\compensator.net
+E:\Sync_Buck_convertor\simulations\compensator_and_plant.net
 C:\Users\User\AppData\Local\LTspice\lib\sub\UniversalOpAmp1.lib
 

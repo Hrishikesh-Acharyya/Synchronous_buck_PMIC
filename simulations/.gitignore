@@ -1,0 +1,17 @@
+# SPICE Models (Proprietary IP)
+*.lib
+*.mod
+*.cir
+*.LIB
+*.MOD
+*.CIR
+
+# LTspice Simulation Data (Prevents repo bloat)
+*.raw
+*.op.raw
+*.log
+*.fft
+
+# LTspice Backup/Temp files
+*.bak
+*.swp
