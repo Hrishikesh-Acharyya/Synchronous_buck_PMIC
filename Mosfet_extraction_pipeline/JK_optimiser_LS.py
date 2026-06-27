@@ -4,7 +4,7 @@ import re
 
 # --- CONFIGURATION ---
 input_file = 'cleaned_mosfets.xlsx'
-output_file = 'low_side_frequency_matrix.xlsx'
+output_file = 'low_side_frequency_matrix_UCC27282.xlsx'
 
 col_status = 'Validation_Status'
 col_part   = 'Part_Number'
@@ -14,13 +14,23 @@ col_qsw    = 'Qsw_switching_nC'
 col_qg     = 'Qg_total_nC' 
 col_ratio  = 'Qg_Qsw_ratio' 
 col_vsd    = 'Vsd_body_diode_Volts' 
-# System Parameters
-V_IN = 21.0
+
+# System Parameters for LM5106. Uncomment this and comment out the other set if you want to use LM5106 parameters.
+# V_IN = 22.0
+# V_OUT = 5.0
+# I_OUT = 5.0
+# I_PP = 1.5       
+# V_DRIVE = 10.0   
+# I_DRIVE = 1.2   
+
+# System Parameters for UCC27282. Uncomment this and comment out the other set if you want to use UCC27282 parameters.
+V_IN = 22.0
 V_OUT = 5.0
 I_OUT = 5.0
 I_PP = 1.5       
 V_DRIVE = 10.0   
-I_DRIVE = 1.2    
+I_SOURCE = 2.5   # UCC27282 Peak Source Current
+I_SINK = 3.5     # UCC27282 Peak Sink Current
 
 def extract_number(val):
     if pd.isna(val): return 0.0
@@ -75,8 +85,12 @@ def main():
             # Use the real datasheet Vsd, fallback to 0.8V ONLY if missing
             v_fd = row['Vsd_num'] if row['Vsd_num'] > 0 else 0.8
             
-            # THE CORRECTED LOW-SIDE J EQUATION
-            J_LS = 1e-9 * (((v_fd * I_OUT) / I_DRIVE) + (ratio * V_DRIVE)) * freq
+            # THE  LOW-SIDE J EQUATION for LM5106. Uncomment this and comment the other set if you want to use LM5106 parameters. 
+            #J_LS = 1e-9 * (((v_fd * I_OUT) / I_DRIVE) + (ratio * V_DRIVE)) * freq
+
+            
+            # THE  LOW-SIDE J EQUATION (Asymmetric Drive) for UCC27282
+            J_LS = 1e-9 * ((0.5 * v_fd * I_OUT * ((1/I_SOURCE) + (1/I_SINK))) + (ratio * V_DRIVE)) * freq
             
             total_loss = (K_LS * rds) + (J_LS * qsw)
             
