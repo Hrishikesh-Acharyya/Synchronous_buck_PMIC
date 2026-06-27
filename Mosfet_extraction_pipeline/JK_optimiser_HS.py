@@ -3,8 +3,8 @@ import numpy as np
 import re
 
 # --- CONFIGURATION ---
-input_file = 'cleaned_mosfets.xlsx'
-output_file = 'High_side_frequency_optimization_matrix_UCC27282.xlsx'
+input_file = 'excel_sheets/cleaned_mosfets.xlsx'
+output_file = 'excel_sheets/High_side_frequency_optimization_matrix_UCC27282.xlsx'
 
 col_status = 'Validation_Status'
 col_part   = 'Part_Number'

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 MOUSER_API_KEY = os.getenv("MOUSER_SEARCH_API_KEY")
 
-OUTPUT_EXCEL = "mosfet_urls.xlsx"
+OUTPUT_EXCEL = "excel_sheets/mosfet_urls.xlsx"
 DOWNLOAD_FOLDER = "./datasheets"
 
 # --- Expanded Search Space ---

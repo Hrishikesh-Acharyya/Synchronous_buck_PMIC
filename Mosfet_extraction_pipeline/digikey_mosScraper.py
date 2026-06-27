@@ -9,7 +9,7 @@ load_dotenv()
 CLIENT_ID = os.getenv("DIGIKEY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("DIGIKEY_CLIENT_SECRET")
 
-OUTPUT_EXCEL = "mosfet_urls.xlsx"
+OUTPUT_EXCEL = "excel_sheets/mosfet_urls.xlsx"
 DOWNLOAD_FOLDER = "./datasheets"
 
 # --- Expanded Search Space (Hand-Solderable + Reflow 5x6mm Packages) ---

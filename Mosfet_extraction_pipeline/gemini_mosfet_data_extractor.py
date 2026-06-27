@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 # --- Configuration & Initialization ---
 load_dotenv()
 
-MASTER_EXCEL = "mosfet_urls.xlsx"
+MASTER_EXCEL = "excel_sheets/mosfet_urls.xlsx"
 DOWNLOAD_FOLDER = "datasheets"
 
 # 1. Gather all available API keys for the rotation engine

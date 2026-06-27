@@ -2,8 +2,8 @@ import pandas as pd
 import re
 
 # --- CONFIGURATION ---
-input_file = 'mosfet_urls.xlsx'
-output_file = 'cleaned_mosfets.xlsx'
+input_file = 'excel_sheets/mosfet_urls.xlsx'
+output_file = 'excel_sheets/cleaned_mosfets.xlsx'
 
 # Exact column headers based on your image and list
 col_vdss = 'V_dss_Volts' 
