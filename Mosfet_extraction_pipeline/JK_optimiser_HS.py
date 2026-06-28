@@ -4,7 +4,7 @@ import re
 
 # --- CONFIGURATION ---
 input_file = 'excel_sheets/cleaned_mosfets.xlsx'
-output_file = 'excel_sheets/High_side_frequency_optimization_matrix_UCC27282.xlsx'
+output_file = 'excel_sheets/High_side_frequency_optimization_matrix__LM5106.xlsx'
 
 col_status = 'Validation_Status'
 col_part   = 'Part_Number'
@@ -15,21 +15,22 @@ col_qg     = 'Qg_total_nC'
 col_ratio  = 'Qg_Qsw_ratio' 
 
 # System Parameters for LM5106. Uncomment this and comment out the other set if you want to use LM5106 parameters.
-# V_IN = 22.0
-# V_OUT = 5.0
-# I_OUT = 5.0
-# I_PP = 1.5       
-# V_DRIVE = 10.0   
-# I_DRIVE = 1.2   
-
-# System Parameters for UCC27282. Uncomment this and comment out the other set if you want to use UCC27282 parameters.
 V_IN = 22.0
 V_OUT = 5.0
 I_OUT = 5.0
 I_PP = 1.5       
 V_DRIVE = 10.0   
-I_SOURCE = 2.5   # UCC27282 Peak Source Current
-I_SINK = 3.5     # UCC27282 Peak Sink Current
+I_SOURCE = 1.2   # LM5106 Peak Source Current
+I_SINK = 1.8     # LM5106 Peak Sink Current   
+
+# System Parameters for UCC27282. Uncomment this and comment out the other set if you want to use UCC27282 parameters.
+# V_IN = 22.0
+# V_OUT = 5.0
+# I_OUT = 5.0
+# I_PP = 1.5       
+# V_DRIVE = 10.0   
+# I_SOURCE = 2.5   # UCC27282 Peak Source Current
+# I_SINK = 3.5     # UCC27282 Peak Sink Current
 
 def extract_number(val):
     if pd.isna(val): return 0.0
@@ -80,10 +81,8 @@ def main():
             qg  = row['Qg_num']
             ratio = row['Ratio_num']
             
-            # The Full J Equation utilizing  pre-extracted ratio(for LM5106). Uncomment to use the LM5106 equation.
-            #J_HS = 1e-9 * ((V_IN * I_OUT / I_DRIVE) + (ratio * V_DRIVE)) * freq
 
-            # The Full J Equation utilizing asymmetric drive currents for the UCC27282. This is the recommended equation for the UCC27282. Comment this out if you want to use the LM5106 equation.
+            # The Full J Equation utilizing asymmetric drive currents. 
             J_HS = 1e-9 * ((0.5 * V_IN * I_OUT * ((1/I_SOURCE) + (1/I_SINK))) + (ratio * V_DRIVE)) * freq
             
             total_loss = (K_HS * rds) + (J_HS * qsw)

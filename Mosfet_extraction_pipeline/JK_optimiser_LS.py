@@ -4,7 +4,7 @@ import re
 
 # --- CONFIGURATION ---
 input_file = 'excel_sheets/cleaned_mosfets.xlsx'
-output_file = 'excel_sheets/low_side_frequency_matrix_UCC27282.xlsx'
+output_file = 'excel_sheets/low_side_frequency_matrix_LM5106.xlsx'
 
 col_status = 'Validation_Status'
 col_part   = 'Part_Number'
@@ -16,21 +16,22 @@ col_ratio  = 'Qg_Qsw_ratio'
 col_vsd    = 'Vsd_body_diode_Volts' 
 
 # System Parameters for LM5106. Uncomment this and comment out the other set if you want to use LM5106 parameters.
-# V_IN = 22.0
-# V_OUT = 5.0
-# I_OUT = 5.0
-# I_PP = 1.5       
-# V_DRIVE = 10.0   
-# I_DRIVE = 1.2   
-
-# System Parameters for UCC27282. Uncomment this and comment out the other set if you want to use UCC27282 parameters.
 V_IN = 22.0
 V_OUT = 5.0
 I_OUT = 5.0
 I_PP = 1.5       
 V_DRIVE = 10.0   
-I_SOURCE = 2.5   # UCC27282 Peak Source Current
-I_SINK = 3.5     # UCC27282 Peak Sink Current
+I_SOURCE = 1.2   # LM5106 Peak Source Current
+I_SINK = 1.8     # LM5106 Peak Sink Current      
+
+# # System Parameters for UCC27282. Uncomment this and comment out the other set if you want to use UCC27282 parameters.
+# V_IN = 22.0
+# V_OUT = 5.0
+# I_OUT = 5.0
+# I_PP = 1.5       
+# V_DRIVE = 10.0   
+# I_SOURCE = 2.5   # UCC27282 Peak Source Current
+# I_SINK = 3.5     # UCC27282 Peak Sink Current
 
 def extract_number(val):
     if pd.isna(val): return 0.0
@@ -82,19 +83,25 @@ def main():
             qg  = row['Qg_num']
             ratio = row['Ratio_num']
             
+            # --- LOW-SIDE FET PHYSICS (LM5106 Fixed Dead-Time) ---
+            
             # Use the real datasheet Vsd, fallback to 0.8V ONLY if missing
             v_fd = row['Vsd_num'] if row['Vsd_num'] > 0 else 0.8
             
-            # THE  LOW-SIDE J EQUATION for LM5106. Uncomment this and comment the other set if you want to use LM5106 parameters. 
-            #J_LS = 1e-9 * (((v_fd * I_OUT) / I_DRIVE) + (ratio * V_DRIVE)) * freq
-
+            # 1. OHMIC CONDUCTION LOSS (The 'K' Term)
+            conduction_loss = K_LS * rds
             
-            # THE  LOW-SIDE J EQUATION (Asymmetric Drive) for UCC27282
-            J_LS = 1e-9 * ((0.5 * v_fd * I_OUT * ((1/I_SOURCE) + (1/I_SINK))) + (ratio * V_DRIVE)) * freq
+            # 2. DIODE DEAD-TIME LOSS (Replaces the 'J' Term)
+            # The LM5106 Rdt pin forces exactly 50ns rising + 50ns falling dead time.
+            # Loss = V * I * t * f
+            t_deadtime_total = 100e-9 
+            diode_loss = v_fd * I_OUT * t_deadtime_total * freq
             
-            total_loss = (K_LS * rds) + (J_LS * qsw)
+            # 3. TOTAL MOSFET HEAT (What the heatsink sees)
+            total_loss = conduction_loss + diode_loss
             
-            # Driver loss: P = Qg * V_drive * Freq
+            # 4. DRIVER IC HEAT (The battery drain caused by Qg)
+            # P = Qg * V_drive * Freq
             driver_loss_ls = (qg * 1e-9) * V_DRIVE * freq
             
             freq_results.append({
@@ -102,7 +109,7 @@ def main():
                 'Part_Number': part_name,
                 'Total_Loss_W': total_loss,
                 'Rds_on_mOhm': rds,
-                'Qsw_nC': qsw,
+                'Qsw_nC': qsw, # Kept for the dataframe structure, but not used in the loss math!
                 'Qg_nC': qg,
                 'V_fd_Volts': v_fd,
                 'Ratio': ratio,
