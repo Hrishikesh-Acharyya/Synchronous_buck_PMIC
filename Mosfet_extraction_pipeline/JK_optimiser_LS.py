@@ -94,7 +94,8 @@ def main():
             # 2. DIODE DEAD-TIME LOSS (Replaces the 'J' Term)
             # The LM5106 Rdt pin forces exactly 50ns rising + 50ns falling dead time.
             # Loss = V * I * t * f
-            t_deadtime_total = 100e-9 
+            #Worst case dead timing is 200ns total (100ns rising + 100ns falling) for the LM5106 with 10k resistor on Rdt pin. This is a conservative estimate to account for variations in the dead time due to temperature, process, and voltage.
+            t_deadtime_total = 200e-9 
             diode_loss = v_fd * I_OUT * t_deadtime_total * freq
             
             # 3. TOTAL MOSFET HEAT (What the heatsink sees)
