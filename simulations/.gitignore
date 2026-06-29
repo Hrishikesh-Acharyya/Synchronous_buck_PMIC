@@ -5,6 +5,7 @@
 *.LIB
 *.MOD
 *.CIR
+*.asy
 
 # LTspice Simulation Data (Prevents repo bloat)
 *.raw
