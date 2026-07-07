@@ -6,6 +6,7 @@
 *.MOD
 *.CIR
 *.asy
+!CPLD_super.asy
 
 # LTspice Simulation Data (Prevents repo bloat)
 *.raw
