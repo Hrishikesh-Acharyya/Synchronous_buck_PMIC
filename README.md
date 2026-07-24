@@ -1,4 +1,5 @@
-# Synchronous Buck PMIC — 5 V / 5 A, Discrete Control Loop
+# Synchronous Buck PMIC — 5 V / 5 A
+
 
 A synchronous buck power stage and its entire control/protection loop built from discrete components — no single-chip integrated PWM controller. The project covers the full design chain: power stage sizing, a hand-built Type III compensator, a discrete oscillator/PWM generator, gate drive, and six independent protection subsystems, verified through behavioral LTspice simulation and MATLAB loop-shaping.
 
