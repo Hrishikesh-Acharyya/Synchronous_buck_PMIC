@@ -1,8 +1,8 @@
 # Synchronous Buck PMIC — 5 V / 5 A
 
-**A complete discrete-component buck converter design with integrated analog control and protection — no single-chip PWM controller.**
+**A complete discrete-component buck converter design with integrated analog control and protection — no single‑chip PWM controller.**
 
-This project demonstrates the full power electronics design chain: from power-stage topology, through analog compensator design and LTspice verification, to automated component selection and PCB layout. Every subsystem (oscillator, PWM generator, gate driver, protection logic) was designed from first principles.
+This project demonstrates the full power-electronics design chain: from power-stage topology, through analog compensator design and LTspice verification, to automated component selection and PCB layout. The repository contains simulation models, compensator tuning scripts, and a MOSFET selection pipeline.
 
 ---
 
@@ -15,8 +15,16 @@ This project demonstrates the full power electronics design chain: from power-st
 | **Switching frequency** | 450 kHz |
 | **Efficiency** | ~92% at 5 A (22 V input) |
 | **Gate driver** | LM5106 (discrete control logic) |
-| **Control topology** | Voltage-mode, analog Type III compensator |
-| **Protection tiers** | 4 (soft-start, cycle-by-cycle current limiting, hiccup mode, UVLO/OVP/OTP) |
+| **Control topology** | Voltage-mode, analog Type‑III compensator |
+| **Protection tiers** | 4 (soft‑start, cycle‑by‑cycle current limiting, hiccup mode, UVLO/OVP/OTP) |
+
+---
+
+## Note on current development status
+
+PCB layout and CPLD/FPGA digital logic design are next and not yet implemented. The behavioural LTspice model is used for analog verification; higher‑level sequencing (hiccup/state machines, forced‑LS cycles, PGOOD validation) will be migrated to the digital brain (CPLD/FPGA) for deterministic timing and robust sequencing.
+
+> Simulation note: the LTspice runs used for the README are configured on a faster setting to complete a 7 ms simulation in reasonable time; this can smooth very short-lived ringing transients and make traces appear cleaner. The V(out) soft‑start traces shown are representative and stable in the behavioural model — Vout plots appear very clean in these runs, which is explicitly noted below.
 
 ---
 
@@ -25,154 +33,183 @@ This project demonstrates the full power electronics design chain: from power-st
 Integrated PMIC controllers hide everything—oscillators, compensators, current sensing, and fault logic are opaque black boxes. This project reverses that:
 
 ✓ **Understand every block** — oscillator, PWM comparator, error amplifier, gate drive, and protection circuitry  
-✓ **Design for your specs** — Type III compensator tuned across three load extremes (µA, 100 mA, 5 A)  
-✓ **Verify in simulation** — full LTspice behavioral model from oscillator through gate drive  
+✓ **Design for your specs** — Type‑III compensator tuned across three load extremes (µA, 100 mA, 5 A)  
+✓ **Verify in simulation** — full LTspice behavioural model from oscillator through gate drive  
 ✓ **Component selection pipeline** — automated MOSFET ranking against actual drive conditions (V_IN, V_OUT, I_out, switching frequency)  
-✓ **Production-ready** — all protection blocks (SCP/OCP, OVP, UVLO, over-temp) implemented  
+✓ **Production-ready protection plan** — all protection blocks (SCP/OCP, OVP, UVLO, over‑temp) implemented or planned with a safe digital fallback
 
 ---
 
-## System Architecture
+## System Architecture (revised)
 
-The complete control loop is split into functional blocks:
+The complete control loop is split into functional blocks. Key flow notes are called out below the diagram:
 
-```
 INPUT → [Reverse Polarity] → [Power Stage: LS/HS MOSFETs + Inductor + Caps]
-                                    ↓ (V_out, I_sense)
-         [UVLO/OVP] ←– [Feedback Network] ←– [Soft Start]
-              ↓
-    [Oscillator] (450 kHz)
-         ↓
-    [PWM Generator] → [Gate Driver (LM5106)] → [Dead-time Logic]
-         ↑
-  [Type III Compensator] ← [Feedback path]
-         ↑
-  [Protection: Max on-time, Valley current limit, Hiccup, Thermal]
-```
+                                   ↓ (V_out, I_sense)
+        [UVLO/OVP] ←– [Feedback Network] ←– [Soft Start (RC → reference)]
+             ↓
+   [Oscillator] (450 kHz)
+        ↓
+   [PWM Generator] (pristine PWM)
+        ↓
+   [CPLD/FPGA digital brain] — performs protection/state-machine actions (SCP/OCP sequencing, hiccup sequencing, forced LS cycles, etc.)
+        ↓
+   [Gate Driver (LM5106)] → [Dead‑time Logic] → power stage
+        ↑
+   [Type‑III Compensator / Reference Comparator] ← [Feedback path]
+        ↑
+   [Valley Current Detector] ──┐
+                              └─ directly modifies PWM (cycle‑by‑cycle valley limit)
+
+Notes:
+- The valley current detector influences the PWM directly (cycle‑by‑cycle valley limiting), while the pristine PWM is first provided to the digital brain so the CPLD/FPGA can inject higher‑level protection actions (for example: forcing the low‑side MOSFET on for 3–4 cycles on SCP).  
+- The soft‑start RC ramps the comparator/reference (attacks the 2/5 V threshold in the Type‑III reference comparator) to limit inrush during startup.  
+- Hiccup behavior and other higher‑level sequencing are handled exclusively in the digital brain to avoid race conditions in analog behavioural logic.
 
 ### Functional Blocks
 
 - **Oscillator** — 450 kHz timing reference (sawtooth/ramp generator)
-- **PWM Generator** — produces masked PWM signal for gate driver
-- **Type III Compensator** — analog feedback controller (3-pole/2-zero topology)
-- **Gate Driver Stage** — LM5106 high/low-side driver with dead-time insertion and FCCM mode
-- **Soft Start** — controlled ramp-up of V_ref to limit inrush current
-- **SCP/OCP** — valley current limiting via INA181 current-sense amplifier + low-side sense resistor
-- **Hiccup Mode** — RC-accumulator-based shutdown/retry under sustained overcurrent
+- **PWM Generator** — produces the pristine PWM reference; the valley detector and the digital brain both may modify it (valley detector = direct cycle‑by‑cycle action; digital brain = sequenced/state changes)
+- **Type‑III Compensator** — analog feedback controller (3‑pole/2‑zero topology)
+- **Gate Driver Stage** — LM5106 high/low‑side driver with dead‑time insertion and FCCM mode
+- **Soft Start** — controlled ramp of reference to limit inrush; implemented as an RC that modulates the comparator reference (2/5 V node)
+- **SCP/OCP** — valley current limiting via INA181 + low‑side sense resistor; high‑level SCP handling performed by CPLD/FPGA
+- **Hiccup Mode** — implemented and sequenced in the digital brain only (behavioural file's transient hiccup logic will be migrated to digital)
 - **OVP** — output overvoltage latch with PMOS series disconnect
 - **UVLO** — input undervoltage lockout with hysteresis
-- **Over-Temperature Protection** — NTC-based thermal cutoff
+- **Over‑Temperature Protection** — NTC‑based thermal cutoff
 
-Additional schematics break out the reverse-polarity protection front end and debug GPIO/LED indicators.
+Additional schematics break out the reverse‑polarity protection front end and debug GPIO/LED indicators.
 
 ---
 
 ## Control Loop Design & Verification
 
-### Type III Compensator Bode Analysis
+### Type‑III Compensator Bode Analysis
 
-The compensator was tuned in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) by extracting the power-stage plant transfer function and designing a Type III compensator optimized for three load extremes:
-
-**Very Light Load (µA)** | **Light Load (100 mA)** | **Heavy Load (5 A)**
----|---|---
-![Power Stage Plant - µA](simulations/pictures/Very_light_load_uA/Figure1_Power_Stage_Plant_uA_very_Light_Load.png) | ![Power Stage Plant - 100mA](simulations/pictures/Light_loads_100mA/Figure1_Power_Stage_Plant_100mA_Light_Load.png) | ![Power Stage Plant - 5A](simulations/pictures/Heavy_loads_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.png)
-
-#### Compensator Response Across Load Range
-
-**Very Light Load (µA)** | **Light Load (100 mA)** | **Heavy Load (5 A)**
----|---|---
-![Compensator - µA](simulations/pictures/Very_light_load_uA/Figure2_Type_III_Compensator_uA_very_Light_Load.png) | ![Compensator - 100mA](simulations/pictures/Light_loads_100mA/Figure2_Type_III_Compensator_100mA_Light_Load.png) | ![Compensator - 5A](simulations/pictures/Heavy_loads_5A/Figure2_Type_III_Compensator_5A_Heavy_Load.png)
-
-#### Loop Gain & Stability Margins
-
-**Very Light Load (µA)** | **Light Load (100 mA)** | **Heavy Load (5 A)**
----|---|---
-![Loop Gain - µA](simulations/pictures/Very_light_load_uA/Figure3_Loop_Gain_Margins_uA_very_Light_Load.png) | ![Loop Gain - 100mA](simulations/pictures/Light_loads_100mA/Figure3_Loop_Gain_Margins_100mA_Light_Load.png) | ![Loop Gain - 5A](simulations/pictures/Heavy_loads_5A/Figure3_Loop_Gain_Margins_5A_Heavy_Load.png)
-
-The compensator was verified to maintain adequate gain margin (>6 dB) and phase margin (>50°) across all three load extremes—critical since a Type III tuned for only one load point can lose stability badly at others.
-
-#### System Transient Response
-
-**Very Light Load (µA)** | **Light Load (100 mA)** | **Heavy Load (5 A)**
----|---|---
-![Transients - µA](simulations/pictures/Very_light_load_uA/Figure5_System_Transients_uA_very_Light_Load.png) | ![Transients - 100mA](simulations/pictures/Light_loads_100mA/Figure5_System_Transients_100mA_Light_Load.png) | ![Transients - 5A](simulations/pictures/Heavy_loads_5A/Figure5_System_Transients_5A_Heavy_Load.png)
-
-Each plot shows: reference step, control effort, line transient (V_in step), load transient (I_out step), and noise susceptibility across all three load extremes.
+The compensator was tuned in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) by extracting the power‑stage plant transfer function and designing a Type‑III compensator across three load extremes (µA, 100 mA, 5 A). The simulations verify gain and phase margins for all operating points. Bode overlays and loop gain/phase plots are included in `simulations/pictures/`.
 
 ---
 
-## Protection Architecture (Tiered)
+## Protection Architecture (tiered, updated)
 
-A multi-level fault response strategy ensures robustness across short-circuit, overcurrent, and thermal events:
+A multi‑level fault response strategy ensures robustness across short‑circuit, overcurrent, and thermal events:
 
 | Tier | Mechanism | Response |
 |---|---|---|
-| **Tier 1** | Max on-time clamp | Hard upper bound on high-side conduction time (~2 µs) |
-| **Tier 2** | Valley current limiting | Cycle-by-cycle current limit via low-side sense resistor + D flip-flop |
-| **Tier 3** | Hiccup mode | RC-accumulator trips full shutdown/retry cycle under sustained overcurrent |
-| **Tier 4** | Static protection | Input UVLO/OVP, latching output OVP, NTC over-temperature cutoff, reverse-polarity protection |
+| **Tier 1** | Max on‑time clamp | Hard upper bound on high‑side conduction time (~2 µs) |
+| **Tier 2** | Valley current limiting | Cycle‑by‑cycle current limit via low‑side sense + INA181; valley detector directly modulates PWM |
+| **Tier 3** | Hiccup mode (digital) | CPLD/FPGA sequences full shutdown and timed retry under sustained overcurrent |
+| **Tier 4** | Static protection | Input UVLO/OVP, latching output OVP, NTC over‑temperature cutoff, reverse‑polarity protection |
 
-**Key design note:** Valley current sensing uses an INA181 current-sense amplifier and low-side sense resistor. The zero-current detection comparator (TLV3501) required hysteresis feedback to prevent retriggering/chatter around the zero crossing—a significant debugging effort resolved via simulation.
+Design note: All higher‑level digital logic used in the behavioural model (D‑FFs, AND/OR gates implementing SCP/OCP sequencing) will be migrated into the CPLD/FPGA. Moving timing/state machines into the digital domain prevents analog race‑throughs, contention and the risk of thermal drift changing tuned analog gate timings.
 
 ---
 
 ## LTspice Behavioral Model
 
-The full system is simulated in LTspice (`simulations/behavioural_model_complete.asc`) using switch-based MOSFET models. Individual subsystems are also isolated for targeted verification:
+The full system is simulated in LTspice (`simulations/behavioural_model_complete.asc`) using switch‑based MOSFET models. Individual subsystems are also isolated for targeted verification:
 
-- **`behavioural_model_complete.asc`** — oscillator + PWM + compensator + gate drive + protection logic (integrated)
+- **`behavioural_model_complete.asc`** — oscillator + PWM + compensator + gate drive + protection logic (integrated behavioural model)
 - **`behavioural_model_bare.asc`** — minimal control loop for fast simulation
-- **`compensator_and_plant.asc`** — open-loop plant + compensator (tuning reference)
+- **`compensator_and_plant.asc`** — open‑loop plant + compensator (tuning reference)
 - **`oscillator.asc`** — standalone 450 kHz timing reference
 - **`OVP_test.asc`** — output voltage protection latch + PMOS disconnect
 - **`UVLO_protection.asc`** — undervoltage lockout hysteresis behavior
-- **`digital_architecture.asc`** — expanded schematic with reverse-polarity front end and GPIO debug signals
+- **`digital_architecture.asc`** — expanded schematic with reverse‑polarity front end and GPIO debug signals (transitional — most digital sequencing will be replaced by CPLD/FPGA RTL)
 
 ---
 
 ## Automated MOSFET Selection Pipeline
 
-Rather than hand-picking MOSFETs from datasheets, a small Python pipeline narrows a large parts catalog to candidates fitting the LM5106 drive envelope:
+Rather than hand‑picking MOSFETs from datasheets, a small Python pipeline narrows a large parts catalog to candidates fitting the LM5106 drive envelope:
 
 ### Pipeline Stages
 
 1. **`digikey_mosScraper.py` / `mouser_mosScrapper.py`**  
-   Pull candidate MOSFET part numbers and datasheet links from Digi-Key and Mouser APIs → `excel_sheets/mosfet_urls.xlsx`
+   Pull candidate MOSFET part numbers and datasheet links from Digi‑Key and Mouser APIs → `excel_sheets/mosfet_urls.xlsx`
 
 2. **`gemini_mosfet_data_extractor.py`**  
-   Uses Gemini API (with Pydantic-validated structured output + API-key rotation) to extract:
+   Uses Gemini API (with Pydantic‑validated structured output + API‑key rotation) to extract:
    - R_ds(on) @ V_GS, I_D conditions
    - Gate charge (Qg, Qsw)
    - Switching losses
    - Package info
 
-3. **`excel_cleanup.py`**  
-   Normalizes and validates extracted numeric fields
+3. **`excel_cleanup.py`** — normalizes and validates extracted numeric fields
 
-4. **`JK_optimiser_HS.py` / `JK_optimiser_LS.py`**  
-   Scores and ranks candidates for high-side and low-side positions against actual drive conditions:
+4. **`JK_optimiser_HS.py` / `JK_optimiser_LS.py`** — scores and ranks candidates for high‑side and low‑side positions against actual drive conditions:
    - V_IN = 22 V, V_OUT = 5 V, I_out = 5 A @ 450 kHz
    - Metrics: switching losses, conduction losses, thermal, gate drive margin
 
-5. **`check_models.py`**  
-   Utility to verify which Gemini models are available/callable
+5. **`check_models.py`** — verifies which Gemini models are available/callable
 
 ### Output
 
-- **`mosfet_urls.xlsx`** — raw scraped part numbers and datasheet links
-- **`cleaned_mosfets.xlsx`** — extracted and validated parameters
-- **`High_side_frequency_optimization_matrix_*.xlsx`** — ranked HS candidates
+- **`mosfet_urls.xlsx`** — raw scraped part numbers and datasheet links  
+- **`cleaned_mosfets.xlsx`** — extracted and validated parameters  
+- **`High_side_frequency_optimization_matrix_*.xlsx`** — ranked HS candidates  
 - **`low_side_frequency_matrix_*.xlsx`** — ranked LS candidates
 
-### Component Selection
+Emphasis: MOSFET selection is guaranteed by the JK optimisation pipeline which ranks candidates against realistic drive conditions and datasheet‑extracted parameters — therefore individual MOSFET loss breakdown plots are not included in the README; the optimiser and its ranking matrices provide the selection assurances.
 
-Passive components (output capacitors) were similarly datasheet-driven:
+---
 
-![MLCC Capacitor Selection](simulations/pictures/MLCC_cap_selection.png)
+## Component selection — capacitors (updated)
 
-**DC-Bias Derating** | **Temperature Derating**
----|---
-![DC Bias Derating](simulations/pictures/KGM32LR51E476MU_output_cap_47uf_ESR.png) | ![Temp Derating](simulations/pictures/KGM32LR51E476MU_47uf_output_cap_DCDerating.png)
+MLCCs were considered and accurately modelled in the plant using the manufacturer's DC‑bias and temperature derating graphs rather than a single nominal value or a generic photo. The plant model incorporates the measured/declared capacitance vs. DC bias and temperature so the compensator tuning and transient simulation reflect realistic effective capacitance and ESR.
+
+Representative manufacturer graphs used in modelling (in repo):
+- MLCC DC‑bias / capacitance vs Vdc: simulations/pictures/KGM32LR51E476MU_47uf_output_cap_47uf_ESR.png  
+- MLCC temperature / derating curve: simulations/pictures/KGM32LR51E476MU_47uf_output_cap_DCDerating.png
+
+Kyocera's capacitor DC‑bias / derating tool and manufacturer datasheets were used as sources for some MLCC models.
+
+---
+
+## Selected simulations & signals
+
+PCB design and digital logic design are next (not yet implemented). The behavioural LTspice model is used for analog verification; higher‑level sequencing (hiccup/state machines, forced‑LS cycles, PGOOD validation) will be implemented in the CPLD/FPGA and replaced in behavioural files once RTL is available.
+
+Figure numbering corresponds to images in `simulations/pictures/` that are included in this repository.
+
+Figure 1 — Heavy‑load soft‑start / Vout
+- File: simulations/pictures/figure1_heavy_load_vout.png
+- Caption: V(out) during soft‑start into heavy load. Shows controlled RC soft‑start ramp to 5 V (rise ≈ 2 ms in this simulation), limiting inrush while digital validation/PGOOD logic readies. The Vout trace in this run is very clean (see simulation note above).
+
+Figure 2 — Switch‑node waveform
+- File: simulations/pictures/figure2_switch_node.png
+- Caption: Switch node (HS/LS switching) at 450 kHz. Shows HS plateau near VIN, LS interval near 0 V, and negative undershoot during LS turn‑on; used to tune dead‑time, snubbers and PCB power‑loop layout.
+
+Figure 3 — PGOOD (Vout vs PGOOD)
+- File: simulations/pictures/figure3_pgood_vs_vout.png
+- Caption: V(out) (blue) and PGOOD (red). PGOOD asserts after the output crosses the PGOOD threshold and a validation window; PGOOD will be implemented and debounced in CPLD/FPGA logic.
+
+Figure 4 — SCP/OCP behavioural trigger (schematic)
+- File: simulations/pictures/figure4_scp_ocp_trigger.png
+- Caption: INA181 → TLV3501 comparator → D‑FF + gating logic from the behavioural model. Planned change: keep comparator for cycle‑by‑cycle sensing and migrate D‑FFs, counters and sequencing into CPLD/FPGA RTL to avoid analog race conditions and thermal timing drift.
+
+Figure 6 — Soft‑start circuit (schematic)
+- File: simulations/pictures/figure6_soft_start.png
+- Caption: Soft‑start RC/diode + fault NMOS arrangement used in the behavioural model; soft‑start ramps the Type‑III reference (2/5 V node). In the final design the soft‑start reference will be controllable by the digital brain for programmable ramps.
+
+Figure 7 — Type‑III compensator (schematic)
+- File: simulations/pictures/figure7_compensator.png
+- Caption: Type‑III compensator topology used for loop shaping (Cf, Rc, Cc network shown). Bode overlays (all three load cases) are available in simulations/pictures to show gain & phase margins.
+
+Figure 8 — Oscillator (schematic)
+- File: simulations/pictures/figure8_oscillator.png
+- Caption: 450 kHz sawtooth/ramp generator used as the timing reference for PWM. The oscillator output (V_trig) is the timing input to the PWM generator in the behavioural model.
+
+Figure 9 — Plant (schematic)
+- File: simulations/pictures/figure9_plant.png
+- Caption: Power stage and output filter (MOSFETs, L, C) used for plant extraction and compensator tuning.
+
+Figure 10 — OVP circuit (schematic)
+- File: simulations/pictures/figure10_ovp.png
+- Caption: Output overvoltage protection and latching PMOS disconnect. The current schematic includes a manual reset path consideration; latch/reset behaviour will be validated in hardware.
+
+(Per project direction, the RC‑based hiccup behavioural schematic is excluded from README figures because hiccuping will be migrated to the digital brain.)
 
 ---
 
@@ -188,45 +225,22 @@ Passive components (output capacitors) were similarly datasheet-driven:
 
 ```
 Synchronous_buck_PMIC/
-├── Mosfet_extraction_pipeline/          # Automated component sourcing & ranking
-│   ├── digikey_mosScraper.py
-│   ├── mouser_mosScrapper.py
-│   ├── gemini_mosfet_data_extractor.py
-│   ├── excel_cleanup.py
-│   ├── JK_optimiser_HS.py
-│   ├── JK_optimiser_LS.py
-│   ├── check_models.py
-│   └── excel_sheets/
-│       ├── mosfet_urls.xlsx
-│       ├── cleaned_mosfets.xlsx
-│       ├── High_side_frequency_optimization_matrix_LM5106.xlsx
-│       └── low_side_frequency_matrix_LM5106.xlsx
-│
-├── Sync_buck_convertor/                 # Altium project (layout in progress)
+├── Mosfet_extraction_pipeline/
+│   └── ...
+├── Sync_buck_convertor/
 │   └── Sync_buck_convertor.PrjPcb
-│
 ├── simulations/
 │   ├── behavioural_model_complete.asc
-│   ├── behavioural_model_bare.asc
-│   ├── digital_architecture.asc
-│   ├── compensator_and_plant.asc
-│   ├── oscillator.asc
-│   ├── OVP_test.asc
-│   ├── UVLO_protection.asc
-│   │
-│   ├── MATLAB_code/
-│   │   └── Compensator_tuner_results_and_interpretations.m
-│   │
+│   ├── ...
 │   └── pictures/
-│       ├── Heavy_loads_5A/              # 5 plots each (plant, comp, loop gain, overlay, transients)
+│       ├── Heavy_loads_5A/
 │       ├── Light_loads_100mA/
 │       ├── Very_light_load_uA/
 │       ├── MLCC_cap_selection.png
 │       ├── MLCC_temp_derating_curve.png
 │       └── [component datasheets & derating curves]
-│
-├── LICENSE                              # MIT (code / scripts)
-├── LICENSE-CERN-OHL-P-2.0.txt           # CERN-OHL-P (hardware design)
+├── LICENSE
+├── LICENSE-CERN-OHL-P-2.0.txt
 └── CONTRIBUTING.md
 ```
 
@@ -234,43 +248,20 @@ Synchronous_buck_PMIC/
 
 ## Design Tools & Methodology
 
-- **LTspice** — behavioral simulation, compensator tuning verification, protection circuit validation
-- **MATLAB** — plant transfer function extraction, Type III compensator design, Bode/transient analysis
-- **Altium Designer** — schematic capture, PCB layout, design rule checking
+- **LTspice** — behavioral simulation, compensator tuning verification, protection circuit validation  
+- **MATLAB** — plant transfer function extraction, Type‑III compensator design, Bode/transient analysis  
+- **Altium Designer** — schematic capture, PCB layout, design rule checking  
 - **Python** — MOSFET data extraction pipeline, Excel automation, component optimization scripts
 
 ---
 
-## Key Design Insights
+## Key Design Insights (condensed)
 
-### Compensator Tuning Across Load Extremes
-
-A Type III compensator must be optimized not just at nominal load but across the entire operating range. This design includes:
-
-- **µA loading** — very light load; tests regulator quiescent losses and loop stability at high loop gain
-- **100 mA loading** — intermediate; tests compromises between light and heavy load response
-- **5 A loading** — full rated load; tests phase margin and transient recovery
-
-Each load case is independently tuned to maintain >6 dB gain margin and >50° phase margin. The system overlay plots show all three responses together for visual margin verification.
-
-### Valley Current Sensing
-
-Rather than peak inductor current sensing, valley current sensing (measuring the minimum inductor current each cycle) enables:
-
-- Accurate cycle-by-cycle current limiting even with inductor DCR variation
-- Natural integration of overcurrent detection into the PWM feedback path
-- Reduced component count vs. separate peak-current comparators
-
-The zero-current detection comparator (TLV3501) required significant hysteresis tuning in simulation to prevent oscillation near the zero-current transition.
-
-### Gate Driver Considerations
-
-The LM5106 was selected for:
-
-- Robust high/low-side bootstrapping
-- Programmable dead-time
-- Wide V_IN range tolerance (10.8–22 V maps cleanly to LM5106 specs)
-- Discrete control flexibility around the driver without additional level shifters
+- Compensator tuning uses three load cases (µA, 100 mA, 5 A) and ensures adequate gain/phase margins across the range.  
+- Valley current sensing is used for cycle‑by‑cycle current limiting and directly modifies PWM to clamp current.  
+- Digital sequencing (CPLD/FPGA) is used for higher‑level protection (SCP/OCP sequencing, hiccuping) to avoid race conditions and analog timing drift.  
+- MOSFETs were selected using the JK optimisation pipeline which ranks candidates using datasheet parameters and drive‑condition scoring; this provides the selection guarantees for HS/LS devices.  
+- LM5106 was selected for robust gate drive, programmable dead‑time, and compatibility with the input range.
 
 ---
 
@@ -282,22 +273,17 @@ This repository is a **static portfolio archive**. Issues reporting critical err
 
 ## License
 
-- **Code** (Python, MATLAB, test scripts): **MIT License** — see `LICENSE`
-- **Hardware** (schematics, PCB layout): **CERN-OHL-P v2** — see `LICENSE-CERN-OHL-P-2.0.txt`
-
-Both are in the repository root.
+- **Code** (Python, MATLAB, test scripts): **MIT License** — see `LICENSE`  
+- **Hardware** (schematics, PCB layout): **CERN‑OHL‑P v2** — see `LICENSE-CERN-OHL-P-2.0.txt`
 
 ---
 
-## Next Steps / Open Questions
+## Future Work / Open Questions (explicit)
 
-Design notes and open questions are tracked as annotations directly in the LTspice schematics. Key areas for future work:
+- Provide ZCD (zero‑current detection) and FCCM/DEM switching functionality (mode switching between forced continuous/conduction mode and discontinuous/edge mode). This is planned as a next milestone and will be implemented in the digital domain (CPLD/FPGA) so the switching logic can be deterministic across temperature and process variation.  
+- Move all timing/state protection logic from the analog behavioural model into CPLD/FPGA RTL (D‑FFs, AND/OR gates, counters) to prevent race‑through, contention, and thermal drift affecting tuned timings.  
+- PCB layout parasitic optimization (gate drive loop inductance, power plane integrity).  
+- Thermal modeling and experimental validation (MOSFET junction temperature prediction under various load profiles) — not yet available and planned as the next step after preliminary PCB layout is matured.  
+- Experimental validation — hardware bring‑up and measured efficiency curves.
 
-- **DEM/ZCD-based mode switching** — planned but not yet active; would enable discontinuous/boundary-conduction mode for light-load efficiency
-- **PCB layout parasitic optimization** — gate drive loop inductance, power plane integrity
-- **Thermal modeling** — MOSFET junction temperature prediction under various load profiles
-- **Experimental validation** — hardware bring-up and measured efficiency curves
-
----
-
-**For questions or to discuss the design, feel free to open an issue. Enjoy the project!**
+For questions or to discuss the design, feel free to open an issue. Enjoy the project!
