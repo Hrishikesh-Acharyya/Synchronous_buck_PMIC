@@ -40,8 +40,6 @@ A separate, expanded schematic (`simulations/digital_arhcitecture.asc`) breaks t
 3. **Tier 3 — Hiccup mode**: RC-accumulator trips a full shutdown/retry cycle under sustained overcurrent
 4. Input UVLO/OVP, reverse polarity protection, latching output OVP and NTC over-temperature protection.
 
-Design notes and open questions are tracked directly as annotations in the schematics — e.g. the tradeoffs around using a dedicated UVLO comparator IC vs. a discrete zener-based solution, and why a dedicated ZCD chip was preferred over a discrete implementation (a delayed zero-cross detector causes catastrophic switch-node spikes and can't easily generate the required reference levels).
-
 ## Control loop design
 
 The compensator was tuned in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) by extracting the plant transfer function from the power stage, designing a Type III compensator, and computing loop gain `T(s) = G(s)·C(s)` across the full load range:
