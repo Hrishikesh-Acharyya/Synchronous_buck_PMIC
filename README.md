@@ -69,28 +69,15 @@ INPUT → [Reverse Polarity] → [Power Stage: HS/LS MOSFETs + L + C]
 
 ### Type III Compensator Synthesis
 
-The compensator was designed in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) using power-stage plant extraction and classical control synthesis. It maintains adequate gain and phase margins across all three representative load conditions.
+The compensator was designed in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) using power-stage plant extraction and classical control synthesis. It maintains adequate gain and phase margins across all three representative load conditions—critical since a Type III optimized at only nominal load can lose stability at light or heavy load extremes.
 
----
+#### Power Stage Plant Analysis
 
-## Simulation Results
+| Very Light Load (µA) | Light Load (100 mA) | Nominal Load (5 A) |
+|---|---|---|
+| ![Power Stage Plant - µA](simulations/pictures/Very_light_load_uA/Figure1_Power_Stage_Plant_uA_very_Light_Load.png) | ![Power Stage Plant - 100mA](simulations/pictures/Light_loads_100mA/Figure1_Power_Stage_Plant_100mA_Light_Load.png) | ![Power Stage Plant - 5A](simulations/pictures/Heavy_loads_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.png) |
 
-### Control Loop Bode & Transient Analysis
-
-LTspice behavioral simulations validate multi-load stability across three representative operating points:
-
-#### Power Stage Plant Response
-
-**Very Light Load (µA)**  
-[View PDF](simulations/graphs_or_pdfs/heavy_load_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.pdf)
-
-**Light Load (100 mA)**  
-[View PDF](simulations/graphs_or_pdfs/light_load_100mA/)
-
-**Nominal Load (5 A)**  
-[View PDF](simulations/graphs_or_pdfs/heavy_load_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.pdf)
-
-**Plant gain, poles, and zeros extracted via MATLAB transfer function analysis. Critical for compensator design tuning.**
+**Plant gain, poles, and zeros extracted via MATLAB transfer function analysis. Critical for compensator design tuning across all three load points.**
 
 #### Compensator Frequency Response
 
@@ -106,7 +93,7 @@ LTspice behavioral simulations validate multi-load stability across three repres
 |---|---|---|
 | ![Loop Gain - µA](simulations/pictures/Very_light_load_uA/Figure3_Loop_Gain_Margins_uA_very_Light_Load.png) | ![Loop Gain - 100mA](simulations/pictures/Light_loads_100mA/Figure3_Loop_Gain_Margins_100mA_Light_Load.png) | ![Loop Gain - 5A](simulations/pictures/Heavy_loads_5A/Figure3_Loop_Gain_Margins_5A_Heavy_Load.png) |
 
-**Loop gain (T(jω)) showing >6 dB gain margin and >50° phase margin at all three load conditions. Multi-load optimization ensures stability across the full operating range.**
+**Loop gain (T(jω)) showing >6 dB gain margin and >50° phase margin at all three load conditions. Multi-load optimization ensures robustness and stable transient response across the full operating range.**
 
 #### System Overlay Comparison
 
@@ -122,27 +109,33 @@ LTspice behavioral simulations validate multi-load stability across three repres
 |---|---|---|
 | ![Transients - µA](simulations/pictures/Very_light_load_uA/Figure5_System_Transients_uA_very_Light_Load.png) | ![Transients - 100mA](simulations/pictures/Light_loads_100mA/Figure5_System_Transients_100mA_Light_Load.png) | ![Transients - 5A](simulations/pictures/Heavy_loads_5A/Figure5_System_Transients_5A_Heavy_Load.png) |
 
-**System transient response showing: reference step tracking, control effort (compensator output), line disturbance recovery (V_in step), load transient rejection (I_out step), and noise susceptibility. Validates stability and response speed across all three load extremes.**
+**System transient response showing: reference step tracking, control effort (compensator output), line disturbance recovery (V_in step), load transient rejection (I_out step), and noise susceptibility across all three load extremes.**
 
-### Converter Waveforms
+---
 
-#### Output Voltage
+## Converter Waveforms
+
+### LTspice Behavioral Simulation Results
+
+The complete system is modeled in LTspice using switch-based MOSFET abstractions and behavioral voltage/current sources. The following waveforms demonstrate the synthesized converter performance:
+
+#### Output Voltage Regulation
 
 ![Output Voltage Waveform](simulations/graphs_or_pdfs/vout_heavy_load.png)
 
-**Clean 5 V output with minimal ripple and smooth transient response. Output voltage settles within regulation band and stabilizes at nominal load.**
+**Clean 5 V output with minimal ripple and smooth transient response. Output voltage settles within regulation band during soft-start and stabilizes at steady-state.**
 
-#### Switch Node Voltage
+#### Switch Node Switching Dynamics
 
 ![Switch Node Voltage](simulations/graphs_or_pdfs/switch_node.png)
 
-**Synchronous switching between high-side (22 V) and low-side (0 V) at 450 kHz. Dead-time insertion prevents shoot-through during switching transitions.**
+**Synchronous switching between high-side (22 V) and low-side (0 V) at 450 kHz. Dead-time insertion (shown as voltage slew between rail-to-rail) prevents destructive shoot-through current between high-side and low-side MOSFETs.**
 
 #### Power Good Signal
 
-![Power Good Circuit](simulations/graphs_or_pdfs/pgood_working.png)
+![Power Good Indicator](simulations/graphs_or_pdfs/pgood_working.png)
 
-**Output valid signal derived from soft-start ramp. Indicates when output has settled within regulation band and is safe for downstream circuits.**
+**Output valid signal derived from soft-start ramp control voltage. Indicates when output has settled within regulation band and is safe for downstream circuits to operate.**
 
 ---
 
@@ -240,7 +233,7 @@ A multi-tier fault response strategy ensures safe operation across fault scenari
 
 ---
 
-## LTspice Behavioral Simulation
+## LTspice Behavioral Simulation Models
 
 The complete system is modeled in LTspice using switch-based MOSFET abstractions and behavioral voltage/current sources:
 
@@ -364,10 +357,10 @@ Synchronous_buck_PMIC/
 │   │   ├── MLCC_cap_selection.png
 │   │   └── MLCC_temp_derating_curve.png
 │   │
-│   └── graphs_or_pdfs/                  # LTspice simulation waveforms and PDFs
-│       ├── heavy_load_5A/               # 5 PDF plots at 5 A load
-│       ├── light_load_100mA/            # 5 PDF plots at 100 mA load
-│       ├── very_light_load_uA/          # 5 PDF plots at µA load
+│   └── graphs_or_pdfs/                  # LTspice simulation waveforms and analysis plots
+│       ├── heavy_load_5A/               # 5 PDF analysis plots at 5 A load
+│       ├── light_load_100mA/            # 5 PDF analysis plots at 100 mA load
+│       ├── very_light_load_uA/          # 5 PDF analysis plots at µA load
 │       ├── vout_heavy_load.png          # Output voltage waveform
 │       ├── switch_node.png              # Switch node voltage waveform
 │       └── pgood_working.png            # Power good signal waveform
