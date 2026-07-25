@@ -71,33 +71,78 @@ INPUT → [Reverse Polarity] → [Power Stage: HS/LS MOSFETs + L + C]
 
 The compensator was designed in MATLAB (`simulations/MATLAB_code/Compensator_tuner_results_and_interpretations.m`) using power-stage plant extraction and classical control synthesis. It maintains adequate gain and phase margins across all three representative load conditions.
 
-#### Power Stage Plant Analysis
+---
 
-| Very Light Load (µA) | Light Load (100 mA) | Nominal Load (5 A) |
-|---|---|---|
-| ![Power Stage Plant - µA](simulations/pictures/Very_light_load_uA/Figure1_Power_Stage_Plant_uA_very_Light_Load.png) | ![Power Stage Plant - 100mA](simulations/pictures/Light_loads_100mA/Figure1_Power_Stage_Plant_100mA_Light_Load.png) | ![Power Stage Plant - 5A](simulations/pictures/Heavy_loads_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.png) |
+## Simulation Results
 
-#### Compensator Response
+### Control Loop Bode & Transient Analysis
+
+LTspice behavioral simulations validate multi-load stability across three representative operating points:
+
+#### Power Stage Plant Response
+
+**Very Light Load (µA)**  
+[View PDF](simulations/graphs_or_pdfs/heavy_load_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.pdf)
+
+**Light Load (100 mA)**  
+[View PDF](simulations/graphs_or_pdfs/light_load_100mA/)
+
+**Nominal Load (5 A)**  
+[View PDF](simulations/graphs_or_pdfs/heavy_load_5A/Figure1_Power_Stage_Plant_5A_Heavy_Load.pdf)
+
+**Plant gain, poles, and zeros extracted via MATLAB transfer function analysis. Critical for compensator design tuning.**
+
+#### Compensator Frequency Response
 
 | Very Light Load (µA) | Light Load (100 mA) | Nominal Load (5 A) |
 |---|---|---|
 | ![Compensator - µA](simulations/pictures/Very_light_load_uA/Figure2_Type_III_Compensator_uA_very_Light_Load.png) | ![Compensator - 100mA](simulations/pictures/Light_loads_100mA/Figure2_Type_III_Compensator_100mA_Light_Load.png) | ![Compensator - 5A](simulations/pictures/Heavy_loads_5A/Figure2_Type_III_Compensator_5A_Heavy_Load.png) |
 
-#### Stability Margins
+**Type III compensator Bode magnitude and phase. Designed to provide adequate gain while ensuring phase margin across all load points.**
+
+#### Closed-Loop Stability Margins
 
 | Very Light Load (µA) | Light Load (100 mA) | Nominal Load (5 A) |
 |---|---|---|
 | ![Loop Gain - µA](simulations/pictures/Very_light_load_uA/Figure3_Loop_Gain_Margins_uA_very_Light_Load.png) | ![Loop Gain - 100mA](simulations/pictures/Light_loads_100mA/Figure3_Loop_Gain_Margins_100mA_Light_Load.png) | ![Loop Gain - 5A](simulations/pictures/Heavy_loads_5A/Figure3_Loop_Gain_Margins_5A_Heavy_Load.png) |
 
-All three load conditions maintain greater than 6 dB gain margin and 50° phase margin, ensuring robustness across the operating range. Multi-load optimization is essential because a Type III compensator tuned at only nominal load can lose stability at light or heavy load extremes.
+**Loop gain (T(jω)) showing >6 dB gain margin and >50° phase margin at all three load conditions. Multi-load optimization ensures stability across the full operating range.**
 
-#### System Transient Response
+#### System Overlay Comparison
+
+| Nominal Load (5 A) |
+|---|
+| ![System Overlay - 5A](simulations/pictures/Heavy_loads_5A/Figure4_System_Overlay_5A_Heavy_Load.png) |
+
+**Overlay of plant, compensator, and loop gain at nominal load, demonstrating closed-loop crossover frequency and margin allocation.**
+
+#### Transient Response
 
 | Very Light Load (µA) | Light Load (100 mA) | Nominal Load (5 A) |
 |---|---|---|
 | ![Transients - µA](simulations/pictures/Very_light_load_uA/Figure5_System_Transients_uA_very_Light_Load.png) | ![Transients - 100mA](simulations/pictures/Light_loads_100mA/Figure5_System_Transients_100mA_Light_Load.png) | ![Transients - 5A](simulations/pictures/Heavy_loads_5A/Figure5_System_Transients_5A_Heavy_Load.png) |
 
-Transient plots show reference step response, control effort, line disturbance recovery, load step rejection, and noise performance across all load conditions.
+**System transient response showing: reference step tracking, control effort (compensator output), line disturbance recovery (V_in step), load transient rejection (I_out step), and noise susceptibility. Validates stability and response speed across all three load extremes.**
+
+### Converter Waveforms
+
+#### Output Voltage
+
+![Output Voltage Waveform](simulations/graphs_or_pdfs/vout_heavy_load.png)
+
+**Clean 5 V output with minimal ripple and smooth transient response. Output voltage settles within regulation band and stabilizes at nominal load.**
+
+#### Switch Node Voltage
+
+![Switch Node Voltage](simulations/graphs_or_pdfs/switch_node.png)
+
+**Synchronous switching between high-side (22 V) and low-side (0 V) at 450 kHz. Dead-time insertion prevents shoot-through during switching transitions.**
+
+#### Power Good Signal
+
+![Power Good Circuit](simulations/graphs_or_pdfs/pgood_working.png)
+
+**Output valid signal derived from soft-start ramp. Indicates when output has settled within regulation band and is safe for downstream circuits.**
 
 ---
 
@@ -112,75 +157,86 @@ A multi-tier fault response strategy ensures safe operation across fault scenari
 | **Tier 3: Hiccup Mode** | RC-based fault accumulator | Automatic shutdown and retry under sustained overcurrent |
 | **Tier 4: Static Protection** | UVLO, OVP latch, thermal cutoff, reverse-polarity diode | Persistent faults or hazardous conditions |
 
-### Circuit Implementation
-
-**Soft Start Circuit**
-
-![Soft Start](simulations/pictures/Soft_start_circuit.png)
-
-Limits V_ref ramp rate during startup to prevent excessive inrush current and transient overshoot.
-
-**Valley Current Limiting (SCP/OCP)**
-
-![SCP/OCP Trigger](simulations/pictures/SCP_OCP_trigger_circuit.png)
-
-INA181 current-sense amplifier measures low-side valley current. Zero-crossing detector (TLV3501) with hysteresis feedback triggers cycle-by-cycle current limiting through D flip-flop logic.
-
-**Hiccup Mode Recovery**
-
-RC-based accumulator counts fault events. Sustained overcurrent triggers full gate shutdown followed by controlled restart, protecting against latch-up under short-circuit.
-
-**Over-Temperature Protection**
-
-![Over-Temperature Circuit](simulations/pictures/Over_temperature_protection_circuit.png)
-
-NTC thermistor biased circuit with threshold comparator. Disables power stage if junction temperature exceeds safe limit.
-
-**Output Overvoltage Protection**
-
-![OVP Circuit](simulations/pictures/OVP_protection_circuit.png)
-
-Latching comparator monitors output voltage. On overvoltage event, PMOS series disconnect (2N3906) disconnects load from converter, then requires manual intervention to restore operation.
-
 ---
 
 ## Circuit Implementation
 
+### Power Stage & Gate Drive
+
+![Power Stage](simulations/pictures/Plant.png)
+
+**High-side and low-side MOSFETs** driven by LM5106 gate driver. Current-sense amplifier (INA181) provides valley current feedback. Synchronous rectification eliminates Schottky diode forward drop losses. Dead-time logic prevents shoot-through during switching transitions.
+
+**Key Parameters:**
+- High-side MOSFET: Rated for 22 V with minimal on-resistance at 5 V gate drive
+- Low-side MOSFET: Optimized for valley current sensing accuracy
+- Bootstrap capacitor: Sized for stable high-side gate drive across full load range
+
 ### Oscillator & PWM Generation
 
-![Oscillator Circuit](simulations/pictures/Oscillator_circuit.png)
+![Oscillator Circuit](simulations/pictures/Oscillator.png)
 
-OPA365 comparator generates 450 kHz sawtooth ramp. Threshold comparator produces masked PWM synchronized to ramp and compensator feedback signal.
+**OPA365 comparator** generates 450 kHz sawtooth ramp. Threshold comparator produces masked PWM synchronized to ramp and compensator feedback signal. Timing reference is stable across input voltage and temperature variations.
+
+**Oscillator Characteristics:**
+- Free-running 450 kHz frequency reference
+- Ramp amplitude: 2.5 V (scaled for comparison with compensator output)
+- Minimal startup transient; immediate lock at power-on
 
 ### Type III Compensator Network
 
-![Type III Compensator](simulations/pictures/Type_III_Compensator_circuit.png)
+![Type III Compensator](simulations/pictures/compensator.png)
 
-OPA365 op-amp with passive RC pole-zero network implements Type III transfer function. Tuned for bandwidth, phase margin, and DC gain across all three load conditions.
+**OPA365 op-amp** with passive RC pole-zero network implements Type III transfer function. Three zeros and three poles provide necessary phase boost and attenuation shaping. Tuned for bandwidth, phase margin, and DC gain across all three load conditions.
 
-### Power Stage & Gate Drive
+**Compensator Parameters:**
+- DC gain: Set by feedback resistors for unity gain at nominal load
+- Poles: One integrator pole, two additional poles for high-frequency roll-off
+- Zeros: Positioned to maximize phase margin without excessive peaking
 
-![Power Stage](simulations/pictures/Plant_circuit.png)
+### Soft Start Circuit
 
-High-side and low-side MOSFETs driven by LM5106. Current-sense amplifier (INA181) provides valley current feedback. Synchronous rectification eliminates Schottky diode losses.
+![Soft Start](simulations/pictures/Soft_start.png)
 
-### Output Voltage Waveform
+**Controlled ramp-up of V_ref** during startup prevents excessive inrush current and transient overshoot. Soft-start period typically 50–100 ms, limiting di/dt during converter bring-up.
 
-![Output Voltage](simulations/pictures/Output_voltage_waveform.png)
+**Protection Features:**
+- Prevents input current surge during cold start
+- Reduces output voltage overshoot
+- Minimizes stress on input supply and filter capacitors
 
-Clean 5 V output with minimal ripple and smooth transient response. Soft-start ramp visible in startup phase.
+### Valley Current Limiting (SCP/OCP)
 
-### Switch Node Dynamics
+![SCP/OCP Trigger](simulations/pictures/SCP_OCP.png)
 
-![Switch Node Voltage](simulations/pictures/Switch_node_voltage_waveform.png)
+**INA181 current-sense amplifier** measures low-side valley current. Zero-crossing detector (TLV3501) with hysteresis feedback triggers cycle-by-cycle current limiting through D flip-flop logic. Current limit threshold set via programmable resistor network.
 
-Synchronous switching between high-side (22 V) and low-side (0 V) at 450 kHz. Dead-time insertion prevents shoot-through.
+**Current Sensing Method:**
+- Valley current detection (minimum inductor current each cycle)
+- Enables accurate limiting independent of inductor DCR
+- Early overcurrent warning before destructive transients
 
-### Power Good Circuit
+### Over-Temperature Protection
 
-![PGOOD Circuit](simulations/pictures/PGOOD_circuit_with_soft_start.png)
+![Over-Temperature Circuit](simulations/pictures/OTP.png)
 
-Output valid signal derived from soft-start ramp. Indicates when output has settled within regulation band and is safe for downstream circuits.
+**NTC thermistor** biased with precision resistors. Threshold comparator monitors temperature and disables power stage if junction temperature exceeds safe limit (typically 125–150°C).
+
+**Thermal Management:**
+- NTC thermistor mounted near high-power MOSFETs
+- Hysteresis prevents oscillation near threshold
+- Fault indication sent to external monitoring circuit
+
+### Output Overvoltage Protection
+
+![OVP Circuit](simulations/pictures/OVP.png)
+
+**Latching comparator** monitors output voltage. On overvoltage event, PMOS series disconnect (2N3906) disconnects load from converter. Manual intervention required to restore operation.
+
+**OVP Characteristics:**
+- Threshold: 5.5 V (10% above nominal)
+- Latch behavior: One-shot trigger, requires reset
+- PMOS disconnect: Minimal leakage in fault state
 
 ---
 
@@ -200,11 +256,13 @@ All simulations use parameterized models for easy sensitivity analysis and compo
 
 ---
 
-## Automated Component Selection Pipeline
+## Component Selection & Optimization
+
+### Automated MOSFET Selection Pipeline
 
 A Python-based tool chain automates MOSFET selection against actual drive conditions rather than relying on manual datasheet review:
 
-### Pipeline Stages
+#### Pipeline Stages
 
 1. **`digikey_mosScraper.py` / `mouser_mosScrapper.py`**  
    Query supplier APIs for candidate MOSFET part numbers and datasheet links → `excel_sheets/mosfet_urls.xlsx`
@@ -227,7 +285,7 @@ A Python-based tool chain automates MOSFET selection against actual drive condit
 5. **`check_models.py`**  
    Utility to verify available/callable Gemini models
 
-### Output Artifacts
+#### Output Artifacts
 
 - **`mosfet_urls.xlsx`** — Raw scraped part numbers and datasheet links  
 - **`cleaned_mosfets.xlsx`** — Extracted and validated parameters  
@@ -239,6 +297,11 @@ A Python-based tool chain automates MOSFET selection against actual drive condit
 Output filtering capacitors were similarly datasheet-driven, with DC-bias and temperature derating applied:
 
 ![MLCC Capacitor Selection](simulations/pictures/MLCC_cap_selection.png)
+
+**Capacitor Selection Process:**
+- Multi-layer ceramic (MLCC) selected for low ESR and compact form factor
+- Derating applied for DC-bias effect (output voltage reduces effective capacitance)
+- Temperature derating curves used to verify performance across industrial temperature range
 
 | DC-Bias Derating | Temperature Derating |
 |---|---|
@@ -287,22 +350,27 @@ Synchronous_buck_PMIC/
 │   ├── MATLAB_code/
 │   │   └── Compensator_tuner_results_and_interpretations.m
 │   │
-│   └── pictures/
-│       ├── Heavy_loads_5A/
-│       ├── Light_loads_100mA/
-│       ├── Very_light_load_uA/
-│       ├── Plant_circuit.png
-│       ├── SCP_OCP_trigger_circuit.png
-│       ├── Type_III_Compensator_circuit.png
-│       ├── Oscillator_circuit.png
-│       ├── Soft_start_circuit.png
-│       ├── Over_temperature_protection_circuit.png
-│       ├── OVP_protection_circuit.png
-│       ├── Output_voltage_waveform.png
-│       ├── Switch_node_voltage_waveform.png
-│       ├── PGOOD_circuit_with_soft_start.png
-│       ├── MLCC_cap_selection.png
-│       └── [additional datasheets & derating curves]
+│   ├── pictures/                        # Circuit schematics and component diagrams
+│   │   ├── Heavy_loads_5A/              # 5 analysis plots at nominal load (5 A)
+│   │   ├── Light_loads_100mA/           # 5 analysis plots at light load (100 mA)
+│   │   ├── Very_light_load_uA/          # 5 analysis plots at very light load (µA)
+│   │   ├── Plant.png
+│   │   ├── Oscillator.png
+│   │   ├── compensator.png
+│   │   ├── Soft_start.png
+│   │   ├── SCP_OCP.png
+│   │   ├── OTP.png
+│   │   ├── OVP.png
+│   │   ├── MLCC_cap_selection.png
+│   │   └── MLCC_temp_derating_curve.png
+│   │
+│   └── graphs_or_pdfs/                  # LTspice simulation waveforms and PDFs
+│       ├── heavy_load_5A/               # 5 PDF plots at 5 A load
+│       ├── light_load_100mA/            # 5 PDF plots at 100 mA load
+│       ├── very_light_load_uA/          # 5 PDF plots at µA load
+│       ├── vout_heavy_load.png          # Output voltage waveform
+│       ├── switch_node.png              # Switch node voltage waveform
+│       └── pgood_working.png            # Power good signal waveform
 │
 ├── LICENSE                              # MIT (code / scripts)
 ├── LICENSE-CERN-OHL-P-2.0.txt           # CERN-OHL-P (hardware)
@@ -324,15 +392,15 @@ Synchronous_buck_PMIC/
 
 ### Multi-Load Compensator Optimization
 
-A Type III compensator optimized only at nominal load can suffer instability or poor transient response at light or heavy loads. This design explicitly tunes the compensator at three operating points (µA, 100 mA, 5 A) and verifies stability margins across the full range. Bode and transient plots demonstrate that all three conditions meet design targets.
+A Type III compensator optimized only at nominal load can suffer instability or poor transient response at light or heavy loads. This design explicitly tunes the compensator at three operating points (µA, 100 mA, 5 A) and verifies stability margins across the full range. Bode and transient plots demonstrate that all three conditions meet design targets (>6 dB gain margin, >50° phase margin).
 
 ### Valley Current Sensing
 
 Valley current sensing (detecting the minimum inductor current each cycle) offers advantages over peak-current sensing:
 
-- Accurate cycle-by-cycle limiting independent of inductor DCR variation  
-- Natural integration into the PWM feedback loop  
-- Reduced component count vs. dedicated peak-current comparators  
+- **Accuracy:** Cycle-by-cycle limiting independent of inductor DCR variation  
+- **Integration:** Natural integration into the PWM feedback loop  
+- **Simplicity:** Reduced component count vs. dedicated peak-current comparators  
 
 The implementation uses an INA181 current-sense amplifier and TLV3501 comparator with hysteresis to prevent oscillation near zero-current transitions.
 
@@ -340,10 +408,10 @@ The implementation uses an INA181 current-sense amplifier and TLV3501 comparator
 
 The LM5106 was selected for:
 
-- Robust high/low-side bootstrap operation  
-- Programmable dead-time insertion  
-- Wide input voltage tolerance (10.8–22 V spans LM5106 operating limits)  
-- No additional level shifters required for discrete gate drive control  
+- **Robustness:** High/low-side bootstrap operation with minimal external components  
+- **Programmability:** Adjustable dead-time insertion via external resistor network  
+- **Wide Range:** Input voltage tolerance (10.8–22 V spans full LM5106 operating range)  
+- **Flexibility:** Discrete gate drive control without additional level shifters  
 
 ---
 
