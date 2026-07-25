@@ -1,5 +1,7 @@
 # Synchronous Buck PMIC — 5 V / 5 A
 
+Designed a synchronous buck PMIC from scratch including a gate driver module, a Type‑III compensator and a PWM generator circuit.
+
 Synchronous 5 V / 5 A buck converter with discrete analog control and automated MOSFET selection; PCB and digital control (CPLD/FPGA) are pending.
 
 A discrete synchronous buck converter design with analog control and tiered protection. The project includes power-stage topology, analog compensator design, LTspice verification, and an automated component selection pipeline.
@@ -23,6 +25,8 @@ A discrete synchronous buck converter design with analog control and tiered prot
 ## Current development status
 
 PCB layout and digital control (CPLD/FPGA) are planned and not yet implemented. The LTspice behavioural model is used for analog verification; higher-level sequencing (hiccup/state machines, forced low-side cycles, PGOOD validation) will be implemented in the digital domain for deterministic timing and robust sequencing.
+
+Valley current detection, hiccup sequencing and soft‑start control are currently implemented in the analog behavioural LTspice model for verification; these functions will be migrated to the CPLD/FPGA digital controller in a future revision.
 
 Note: the LTspice simulations used to generate the repository plots trade simulation runtime for time resolution. Very short-duration switching ringing can be reduced by the chosen time-step settings; steady-state and soft-start behaviour remain representative for design decisions.
 
@@ -49,8 +53,8 @@ The control loop is organised into the following functional blocks:
 - Static protections: UVLO, OVP, thermal cutoff
 
 Architecture notes:
-- The pristine PWM is presented to the digital controller for high-level sequencing (for example: forced low-side cycles during severe faults). The valley current detector remains an analog, cycle-by-cycle clamp on PWM output for immediate current limiting.
-- Soft-start is implemented as an analog ramp affecting the comparator reference; in later revisions the ramp will be controllable by the digital controller.
+- The pristine PWM is presented to the digital controller for high-level sequencing (for example: forced low-side cycles during severe faults). The valley current detector currently operates in the analog behavioural model as a cycle-by-cycle clamp; it will be retained as a fast current-limiting input but the sequencing and stateful behaviour will be moved to the digital controller.
+- Soft-start is implemented in the behavioural simulations as an analog ramp affecting the comparator reference; this will be controllable by the digital controller in later revisions.
 - Hiccup and other sequencing functions are intended to run in the digital controller to avoid timing race conditions and thermal drift in analog logic.
 
 ---
