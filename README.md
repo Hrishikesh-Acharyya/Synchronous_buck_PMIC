@@ -160,10 +160,6 @@ A multi-tier fault response strategy ensures safe operation across fault scenari
 
 **High-side and low-side MOSFETs** driven by LM5106 gate driver. Current-sense amplifier (INA181) provides valley current feedback. Synchronous rectification eliminates Schottky diode forward drop losses. Dead-time logic prevents shoot-through during switching transitions.
 
-**Key Parameters:**
-- High-side MOSFET: Rated for 22 V with minimal on-resistance at 5 V gate drive
-- Low-side MOSFET: Optimized for valley current sensing accuracy
-- Bootstrap capacitor: Sized for stable high-side gate drive across full load range
 
 ### Oscillator & PWM Generation
 
@@ -173,7 +169,7 @@ A multi-tier fault response strategy ensures safe operation across fault scenari
 
 **Oscillator Characteristics:**
 - Free-running 450 kHz frequency reference
-- Ramp amplitude: 2.5 V (scaled for comparison with compensator output)
+- Ramp amplitude: 4V
 - Minimal startup transient; immediate lock at power-on
 
 ### Type III Compensator Network
@@ -243,7 +239,7 @@ The complete system is modeled in LTspice using switch-based MOSFET abstractions
 - **`oscillator.asc`** — Standalone 450 kHz timing reference  
 - **`OVP_test.asc`** — Overvoltage protection latch and PMOS disconnect behavior  
 - **`UVLO_protection.asc`** — Input undervoltage lockout hysteresis model  
-- **`digital_architecture.asc`** — Expanded schematic with reverse-polarity front-end and GPIO signals  
+- **`digital_architecture.asc`** — Overview of what final circuit might look like after migrating some circuits to the digital brain and using digital logic for decision making and fault handling. 
 
 All simulations use parameterized models for easy sensitivity analysis and component optimization.
 
@@ -273,9 +269,9 @@ A Python-based tool chain automates MOSFET selection against actual drive condit
 4. **`JK_optimiser_HS.py` / `JK_optimiser_LS.py`**  
    Score and rank candidates for high-side and low-side positions:
    - Drive conditions: V_IN = 22 V, V_OUT = 5 V, I_out = 5 A @ 450 kHz  
-   - Metrics: switching losses, conduction losses, thermal margin, gate drive headroom  
+   - Metrics: Uses JK optimization method which creates an objective function out of switching losses, conduction losses, thermal margin, gate drive headroom.  
 
-5. **`check_models.py`**  
+6. **`check_models.py`**  
    Utility to verify available/callable Gemini models
 
 #### Output Artifacts
@@ -288,8 +284,6 @@ A Python-based tool chain automates MOSFET selection against actual drive condit
 ### Passive Component Selection
 
 Output filtering capacitors were similarly datasheet-driven, with DC-bias and temperature derating applied:
-
-![MLCC Capacitor Selection](simulations/pictures/MLCC_cap_selection.png)
 
 **Capacitor Selection Process:**
 - Multi-layer ceramic (MLCC) selected for low ESR and compact form factor
@@ -306,7 +300,7 @@ Output filtering capacitors were similarly datasheet-driven, with DC-bias and te
 
 `Sync_buck_convertor/Sync_buck_convertor.PrjPcb` is the Altium Designer project containing schematic and PCB layout.
 
-**Note:** Detailed board files are excluded from version control to maintain design confidentiality. Layout documentation will be published separately.
+**Note:** Work on designing the PCB is not done yet.
 
 ---
 
