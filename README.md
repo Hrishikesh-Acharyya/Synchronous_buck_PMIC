@@ -1,5 +1,7 @@
 # Synchronous Buck PMIC — 5 V / 5 A
 
+Synchronous 5 V / 5 A buck converter with discrete analog control and automated MOSFET selection; PCB and digital control (CPLD/FPGA) are pending.
+
 A discrete synchronous buck converter design with analog control and tiered protection. The project includes power-stage topology, analog compensator design, LTspice verification, and an automated component selection pipeline.
 
 ---
