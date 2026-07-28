@@ -9,8 +9,6 @@ LINE Normal -224 -48 -240 -48
 LINE Normal -224 0 -240 0
 LINE Normal -224 48 -240 48
 LINE Normal -128 -160 -128 -176
-LINE Normal 48 -160 48 -176
-LINE Normal -224 96 -240 96
 LINE Normal -48 -160 -48 -176
 LINE Normal 144 0 160 0
 LINE Normal -64 128 -64 144
@@ -26,8 +24,6 @@ TEXT -208 -48 Left 1 OVP_trig
 TEXT -208 0 Left 1 OTP_trig
 TEXT -208 48 Left 1 UVLO_trig
 TEXT -128 -144 VRight 1 En
-TEXT 48 -144 VRight 1 Duty_ctrl
-TEXT -208 96 Left 1 ZCD
 TEXT -48 -144 VRight 1 PWM_out
 TEXT 128 0 Right 1 Fault_LED
 TEXT -64 112 VLeft 1 I2C_SDA
@@ -59,12 +55,6 @@ PINATTR SpiceOrder 8
 PIN -128 -176 NONE 8
 PINATTR PinName En
 PINATTR SpiceOrder 9
-PIN 48 -176 NONE 8
-PINATTR PinName Duty_ctrl
-PINATTR SpiceOrder 10
-PIN -240 96 NONE 8
-PINATTR PinName ZCD
-PINATTR SpiceOrder 11
 PIN -48 -176 NONE 8
 PINATTR PinName PWM_out
 PINATTR SpiceOrder 12
