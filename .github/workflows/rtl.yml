@@ -1,0 +1,51 @@
+# Lint and simulation for the CPLD supervisor RTL.
+#
+# Runs on pull requests and on pushes to main. The testbench calls $fatal on a
+# failed check, so the job result is taken from the process exit status rather
+# than from log output.
+
+name: RTL
+
+# push is restricted to main; with a wildcard branch filter both triggers fire
+# on a pull request branch and the same commit is built twice.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  supervisor:
+    name: supervisor FSM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog and Verilator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends iverilog verilator
+
+      - name: Report tool versions
+        run: |
+          iverilog -V | head -1
+          verilator --version
+
+      # Lint precedes simulation: width mismatches, inferred latches and
+      # unused signals can pass simulation without being flagged.
+      - name: Lint the RTL
+        run: make -C sim lint
+
+      - name: Run the self-checking testbench
+        run: make -C sim sim
+
+      # Retained on failure so a run that fails only under CI can be compared
+      # against a local waveform.
+      - name: Upload waveform
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supervisor-vcd
+          path: sim/supervisor.vcd
+          if-no-files-found: ignore

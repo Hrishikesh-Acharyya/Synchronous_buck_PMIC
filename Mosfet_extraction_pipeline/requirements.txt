@@ -1,0 +1,18 @@
+# MOSFET extraction & optimisation pipeline
+# Install:  pip install -r requirements.txt
+# Python 3.9+ (typing.Optional syntax used in the Pydantic models)
+
+# Data handling / Excel I/O
+pandas>=2.0
+numpy>=1.24
+openpyxl>=3.1          # engine behind pandas read_excel/to_excel for .xlsx
+
+# Supplier API scraping (DigiKey + Mouser REST endpoints)
+requests>=2.31
+
+# Gemini structured datasheet extraction
+google-genai>=1.0      # provides `from google import genai`
+pydantic>=2.0          # schema-validated extraction output
+
+# Local secret loading
+python-dotenv>=1.0
