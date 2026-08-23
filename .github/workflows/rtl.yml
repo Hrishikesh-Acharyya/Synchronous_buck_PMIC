@@ -12,9 +12,12 @@
 
 name: RTL
 
+# push is limited to main so that work on a PR branch runs once, not twice.
+# With `branches: ['**']` both triggers fire on the same commit and GitHub
+# starts two identical jobs.
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
 
 jobs:
