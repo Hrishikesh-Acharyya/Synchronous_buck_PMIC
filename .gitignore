@@ -8,3 +8,7 @@ Desktop.ini
 *.code-workspace
 
 /literature_review
+# RTL simulation artifacts
+*.vcd
+*.fst
+sim/supervisor_tb

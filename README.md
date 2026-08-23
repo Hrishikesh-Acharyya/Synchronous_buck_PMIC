@@ -327,11 +327,48 @@ The analog comparators stay — they are the fast path. The CPLD consumes their 
 
 The result is one latch with two trip sources and one observer: analog speed where it matters, digital judgement where it matters, and no second disconnect path to keep consistent.
 
-### Status
+### Supervisory state machine
 
-**RTL is in development.** The supervisor source is not yet in this repository — it currently lives in an EDA Playground scratch session and is being brought in, along with self-checking testbenches, under `rtl/` and `tb/`.
+`rtl/supervisor.v` implements the sequencing and fault-arbitration FSM — plain Verilog-2001, portable across CPLD vendor toolchains. Four states:
 
-Once the RTL lands, this section will carry the state-machine diagram, the fault-priority table, the register map, and simulation results.
+| State | Power stage | Leaves when |
+|---|---|---|
+| `S_OFF` | disabled | `g_en` high and no fault asserted |
+| `S_SS` | enabled, ramping | `SS_done` → `S_RUN`; fault window → `S_HICCUP` |
+| `S_RUN` | enabled, regulating | `window_trip` → `S_HICCUP`; any fault → `S_OFF` |
+| `S_HICCUP` | disabled | unconditionally → `S_SS` (retry always re-ramps) |
+
+Any of `OTP`, `UVLO`, `latch_state`, `latch_assert`, or `~g_en` forces `S_OFF` from every state.
+
+**Retry always re-ramps.** `S_HICCUP` returns to `S_SS`, never directly to `S_RUN`. A converter that re-enables at full duty into an unresolved fault is how a hiccup mode becomes a destructive oscillation.
+
+`en` is driven from a combinational block gated by the fault inputs directly, so a trip pulls the gate drive low without waiting for a clock edge.
+
+### Verification
+
+`tb/supervisor_tb.sv` is a self-checking testbench: every check is counted, the run ends with a `PASS`/`FAIL` verdict, and a failure calls `$fatal` so the exit status is non-zero and CI notices.
+
+```bash
+cd sim && make        # build + run; exit 0 = all checks passed
+make wave             # run, then open the VCD
+make lint             # Verilator lint pass
+```
+
+20 checks across eight groups: reset, soft-start hold, hiccup retry, fault-window entry, `latch_assert` from every state, each individual fault from `S_RUN`, start-up inhibit from `S_OFF`, and the combinational `en` path.
+
+Two of those groups are **regression tests for bugs found during bring-up**, kept deliberately:
+
+- **Soft-start was being bypassed.** The `S_SS` branch fell through to `S_RUN` when the ramp was *not* done, so the FSM left soft-start after exactly one clock regardless of `SS_done` — the inrush ramp was never awaited. The test now holds `SS_done` low for five clocks and asserts the FSM stays put.
+- **`latch_assert` was only checked in `S_HICCUP`.** Asserted during `S_RUN` it left the FSM in `S_RUN` with `en` forced low by the output gate, and on release the converter re-enabled at full duty with no soft-start. State and output disagreed.
+
+Both were invisible to the original testbench, which reported seven passes on the broken design. That is the argument for the counted-and-fatal structure above.
+
+### Still open
+
+- **Input synchronisers.** Every fault input arrives from an analog comparator with no relationship to the CPLD clock. Sampling them directly into the FSM risks metastability, and lets two bits of one decision disagree for a cycle. Two flip-flops per input fixes it; not yet implemented.
+- `SS_done`, `window_trip`, `window_trip_SS`, and `latch_assert` are inputs today — the soft-start counter, fault-window shift register, and strike counter that generate them are the next modules.
+- `PGOOD`, `PWM_out`, `Fault_LED`, `Osc_in`, and the I²C register interface are on the `CPLD_super` symbol but not yet in RTL; `latch_out` is the symbol's name for the CPLD-driven latch trip.
+- Target device not yet fixed, so no synthesis or fitting results.
 
 ---
 
@@ -483,6 +520,15 @@ Synchronous_buck_PMIC/
 │       ├── High_side_frequency_optimization_matrix_UCC27282.xlsx
 │       └── low_side_frequency_matrix_UCC27282.xlsx
 │
+├── rtl/                                 # CPLD supervisor RTL (Verilog-2001)
+│   └── supervisor.v                     # sequencing + fault arbitration FSM
+│
+├── tb/
+│   └── supervisor_tb.sv                 # self-checking testbench (19 checks)
+│
+├── sim/
+│   └── Makefile                         # make | make wave | make lint
+│
 ├── Sync_buck_convertor/                 # Altium PCB project (layout not started)
 │   └── Sync_buck_convertor.PrjPcb
 │
@@ -537,6 +583,7 @@ Synchronous_buck_PMIC/
 - **MATLAB** — Plant transfer function analysis, Type III compensator synthesis, Bode and transient analysis  
 - **Altium Designer** — Schematic capture, PCB layout, DRC, and design rule enforcement  
 - **Python** — MOSFET data extraction pipeline, Excel automation, component optimization, and ranking algorithms  
+- **Icarus Verilog + Verilator** — CPLD supervisor simulation and lint; GTKWave for waveforms  
 
 ---
 
