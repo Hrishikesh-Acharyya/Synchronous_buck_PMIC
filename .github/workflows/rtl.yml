@@ -1,0 +1,55 @@
+# Runs the CPLD supervisor testbench on every push and pull request.
+#
+# GitHub gives this job a fresh Ubuntu machine, checks out the repo, installs
+# the two simulators, and runs the same `make` targets you run locally. There
+# is nothing to remember and nothing to click -- the tick or cross appears on
+# the commit and on the PR by itself.
+#
+# The verdict comes from the exit status, not from the log text. The testbench
+# calls $fatal on failure, so a failing check exits non-zero and this job goes
+# red. A testbench that printed FAIL but exited 0 would show green here, which
+# is exactly the trap worth avoiding.
+
+name: RTL
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  supervisor:
+    name: supervisor FSM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog and Verilator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends iverilog verilator
+
+      - name: Report tool versions
+        run: |
+          iverilog -V | head -1
+          verilator --version
+
+      # Lint first: it catches width mismatches, inferred latches and unused
+      # signals that a simulation can pass straight through without noticing.
+      - name: Lint the RTL
+        run: make -C sim lint
+
+      - name: Run the self-checking testbench
+        run: make -C sim sim
+
+      # Keeps the waveform from the CI run downloadable from the job page,
+      # which is useful when something fails here but passes on your machine.
+      - name: Upload waveform
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supervisor-vcd
+          path: sim/supervisor.vcd
+          if-no-files-found: ignore

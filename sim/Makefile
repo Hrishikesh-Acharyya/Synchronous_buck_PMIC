@@ -31,10 +31,15 @@ sim: $(OUT)
 wave: sim
 	$(VIEWER) $(VCD) &
 
+# Note the if/else rather than `cmd && verilator ... || echo`: with the &&/||
+# form, a real lint failure falls through to the echo and make still exits 0,
+# which silently disarms this target in CI.
 lint:
-	@command -v verilator >/dev/null 2>&1 \
-	  && verilator --lint-only -Wall $(RTL) --top-module supervisor \
-	  || echo "verilator not installed - skipping lint"
+	@if command -v verilator >/dev/null 2>&1; then \
+	  verilator --lint-only -Wall $(RTL) --top-module supervisor; \
+	else \
+	  echo "verilator not installed - skipping lint"; \
+	fi
 
 clean:
 	rm -f $(OUT) $(VCD)
