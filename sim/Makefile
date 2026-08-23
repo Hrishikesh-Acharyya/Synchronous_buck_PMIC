@@ -1,12 +1,12 @@
-# CPLD supervisor - simulation
+# Simulation and lint for the CPLD supervisor.
 #
-#   make            build + run the self-checking testbench
-#   make wave       run, then open the VCD in GTKWave (or surfer)
-#   make lint       Verilator lint pass (if installed)
-#   make clean
+#   make        build and run the self-checking testbench
+#   make wave   run, then open the waveform
+#   make lint   Verilator lint pass
+#   make clean  remove build outputs
 #
-# Exit status is the verdict: 0 = all checks passed, non-zero = failure.
-# Suitable for CI as-is.
+# The testbench calls $fatal on a failed check, so a non-zero exit status
+# indicates failure. Suitable for use as a CI step without log parsing.
 
 IVERILOG ?= iverilog
 VVP      ?= vvp
@@ -14,7 +14,7 @@ VIEWER   ?= gtkwave
 
 RTL  := ../rtl/supervisor.v
 TB   := ../tb/supervisor_tb.sv
-OUT  := supervisor_tb
+OUT  := supervisor_tb.vvp
 VCD  := supervisor.vcd
 
 .PHONY: all sim wave lint clean
@@ -25,15 +25,14 @@ $(OUT): $(RTL) $(TB)
 	$(IVERILOG) -g2012 -Wall -o $(OUT) $(RTL) $(TB)
 
 sim: $(OUT)
-	@mkdir -p .
-	./$(OUT)
+	$(VVP) $(OUT)
 
 wave: sim
 	$(VIEWER) $(VCD) &
 
-# Note the if/else rather than `cmd && verilator ... || echo`: with the &&/||
-# form, a real lint failure falls through to the echo and make still exits 0,
-# which silently disarms this target in CI.
+# Uses if/else rather than `command -v verilator && verilator ... || echo`:
+# in the latter form a lint failure falls through to the fallback branch and
+# make still exits 0, masking the error.
 lint:
 	@if command -v verilator >/dev/null 2>&1; then \
 	  verilator --lint-only -Wall $(RTL) --top-module supervisor; \

@@ -2,11 +2,9 @@
 //=============================================================================
 // Self-checking testbench for the supervisor FSM.
 //
-// "Self-checking" means three things beyond printing PASS:
-//   1. every check is counted,
-//   2. the run ends with one clear verdict line,
-//   3. a failure calls $fatal, so the exit status is non-zero and a script
-//      or CI job notices without anyone reading the log.
+// Checks are counted, the run ends with a single verdict line, and a failed
+// check calls $fatal so the exit status reports the result without requiring
+// log parsing.
 //
 // Build and run:   cd sim && make
 //=============================================================================
@@ -18,7 +16,6 @@ module supervisor_tb;
     reg window_trip, window_trip_SS, latch_assert;
     wire en;
 
-    // Counters are what make it self-checking.
     integer checks = 0;
     integer errors = 0;
 
@@ -39,8 +36,8 @@ module supervisor_tb;
         end
     endtask
 
-    // Check state AND en. Your original used else-if, which meant a wrong
-    // state hid a wrong en - only the first problem was ever reported.
+    // Reports the first mismatch of either state or en, so a state failure
+    // and an output failure are distinguishable in the log.
     task check;
         input [1:0]     exp_state;
         input           exp_en;
@@ -73,7 +70,7 @@ module supervisor_tb;
         end
     endtask
 
-    // Walk to S_RUN the legitimate way: enable, then finish the ramp.
+    // Drives the normal start-up sequence: enable, then complete the ramp.
     task goto_run;
         begin
             g_en = 1;    tick;
@@ -95,11 +92,8 @@ module supervisor_tb;
         g_en = 1; tick;
         check(dut.S_SS,  1'b1, "S_OFF -> S_SS on g_en");
 
-        // ------------------------------------------------------------------
-        // Regression test for bug 1. The old code's last else in S_SS went to
-        // S_RUN, so soft start lasted exactly one clock no matter what
-        // SS_done said. Holding SS_done low for several clocks catches it.
-        // ------------------------------------------------------------------
+        // Regression: S_SS must remain active across multiple clocks while
+        // SS_done is low, not advance after a single clock.
         $display("\n[2] soft start must HOLD until SS_done");
         do_reset;
         g_en = 1; SS_done = 0; tick;
@@ -123,12 +117,9 @@ module supervisor_tb;
         check(dut.S_HICCUP, 1'b0, "S_SS -> S_HICCUP on window_trip_SS");
         window_trip_SS = 0;
 
-        // ------------------------------------------------------------------
-        // Regression test for bug 2. latch_assert used to be checked only in
-        // S_HICCUP, so asserting it in S_RUN left the FSM in S_RUN with en
-        // forced low by the output gate - and on release en went straight
-        // back high at full duty, skipping soft start entirely.
-        // ------------------------------------------------------------------
+        // Regression: latch_assert must move the FSM to S_OFF from every
+        // state, so that release re-enters soft start rather than resuming
+        // S_RUN at full duty.
         $display("\n[5] latch_assert must stop the FSM from every state");
         do_reset; goto_run;
         latch_assert = 1; tick;
@@ -162,8 +153,7 @@ module supervisor_tb;
         do_reset; g_en = 1; latch_assert = 1; tick;
         check(dut.S_OFF, 1'b0, "latch_assert blocks start up");
 
-        // en is driven by a combinational always block, so it should fall as
-        // soon as a fault appears - without waiting for the next clock edge.
+        // en is combinational, so a fault must gate it without a clock edge.
         $display("\n[8] en drops without waiting for a clock edge");
         do_reset; goto_run;
         checks = checks + 1;
@@ -187,7 +177,7 @@ module supervisor_tb;
         end
     end
 
-    // If a bug makes the FSM hang, fail instead of running forever.
+    // Bounds the run so a non-advancing FSM fails rather than hanging.
     initial begin
         #100000;
         $display("RESULT: FAIL - timeout");

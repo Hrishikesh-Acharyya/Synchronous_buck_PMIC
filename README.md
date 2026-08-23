@@ -62,8 +62,10 @@ The protection and sequencing blocks in that last row are the ones migrating int
 **Valley Current Limiting** — INA181 current-sense amplifier with low-side sense resistor and zero-crossing detector  
 **Hiccup Mode** — RC-based shutdown and automatic retry under sustained fault conditions  
 **Output Overvoltage Protection** — latching comparator with PMOS series disconnect  
-**Input Undervoltage Lockout** — hysteresis-based gate shutdown below minimum input threshold (built into the system schematics; see the `INPUT_UVLO` block in `digital_architecture.asc`)  
+**Input Undervoltage Lockout** — hysteresis-based gate shutdown below minimum input threshold  
 **Thermal Protection** — NTC thermistor-based cutoff at safe operating limits  
+
+All blocks are implemented in the LTspice schematics under `simulations/`.
 
 ---
 
@@ -315,7 +317,7 @@ The analog comparators stay — they are the fast path. The CPLD consumes their 
 | `latch_out` | CPLD-driven trip into the shared protection latch |
 | `latch_stat` | Latch state read back into the CPLD |
 
-> Roles above are read off the schematic symbol. Pin directions and widths get fixed once the RTL port list is settled.
+> Pin directions and widths are fixed once the RTL port list is settled.
 
 ### The shared protection latch
 
@@ -356,12 +358,7 @@ make lint             # Verilator lint pass
 
 20 checks across eight groups: reset, soft-start hold, hiccup retry, fault-window entry, `latch_assert` from every state, each individual fault from `S_RUN`, start-up inhibit from `S_OFF`, and the combinational `en` path.
 
-Two of those groups are **regression tests for bugs found during bring-up**, kept deliberately:
-
-- **Soft-start was being bypassed.** The `S_SS` branch fell through to `S_RUN` when the ramp was *not* done, so the FSM left soft-start after exactly one clock regardless of `SS_done` — the inrush ramp was never awaited. The test now holds `SS_done` low for five clocks and asserts the FSM stays put.
-- **`latch_assert` was only checked in `S_HICCUP`.** Asserted during `S_RUN` it left the FSM in `S_RUN` with `en` forced low by the output gate, and on release the converter re-enabled at full duty with no soft-start. State and output disagreed.
-
-Both were invisible to the original testbench, which reported seven passes on the broken design. That is the argument for the counted-and-fatal structure above.
+Groups `[2]` and `[5]` are regression tests for two bugs found during bring-up: soft-start exiting after one clock instead of holding for `SS_done`, and `latch_assert` being evaluated only in `S_HICCUP`. Both passed an earlier testbench that checked transitions without checking that states hold.
 
 ### Still open
 

@@ -31,8 +31,8 @@ module supervisor (input clk,
           S_OFF: next_state = (g_en&~latch_state&~OTP&~UVLO&~latch_assert)?S_SS:S_OFF; 
 /*
 Go to next state only when g_en is high, npt latched and no OTP Fault. Otherwise stay as S_OFF is  default
-FIX: added ~latch_assert. If the strike counter has latched us off, we must not
-start up again just because the latch has not been read back yet.
+Start-up is additionally inhibited by latch_assert, so a strike-latched part
+cannot restart before the latch is read back on latch_state.
  */
           
           S_SS: begin
@@ -50,12 +50,9 @@ if Soft starting completed then go to S_RUN
 if too many faults during soft start(shift register check) then go to HICCUP
 We dont worry about OVP as any latching is immediately seen by latch_state
 
-FIX 1: the last else was S_RUN. That meant "soft start is NOT done and nothing
-is wrong -> go to RUN anyway", so S_SS only ever lasted one clock and the ramp
-was never actually waited for. It must stay in S_SS until SS_done.
-
-FIX 2: added latch_assert to the shutdown condition above. It was only tested
-in S_HICCUP, so a strike latch during soft start did not stop the FSM.
+The final else holds in S_SS rather than advancing: soft start must remain
+active until SS_done, otherwise the state lasts a single clock and the ramp
+is never awaited.
 */
           end
           
@@ -73,10 +70,9 @@ If g_en pulled low or latch on or OTP, then go back to S_OFF
 If window tripped then go to hiccuping
 No other faults then it should stay in S_RUN
 
-FIX 2: added latch_assert here too. Without it, asserting latch_assert while
-running left the FSM sitting in S_RUN with en forced low by the output gate
-below. When latch_assert released, en went straight back high at full duty
-with no soft start. State and output disagreed.
+latch_assert is included so that state and output agree: the output gate below
+already forces en low on latch_assert, and without the state change the FSM
+would remain in S_RUN and re-enable at full duty when latch_assert released.
 */
           end
           
