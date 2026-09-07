@@ -1,3 +1,9 @@
+
+
+--Work in progres--
+
+
+
 # Synchronous Buck PMIC — 5 V / 5 A Converter
 
 **A complete discrete-component synchronous buck converter with integrated analog control architecture and comprehensive protection — demonstrating full-stack power electronics design from specification through simulation and component selection.**
