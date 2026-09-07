@@ -12,7 +12,7 @@ IVERILOG ?= iverilog
 VVP      ?= vvp
 VIEWER   ?= gtkwave
 
-RTL  := ../rtl/supervisor.v
+RTL  := ../rtl/supervisor.sv
 TB   := ../tb/supervisor_tb.sv
 OUT  := supervisor_tb.vvp
 VCD  := supervisor.vcd

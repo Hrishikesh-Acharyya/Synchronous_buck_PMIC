@@ -1,20 +1,21 @@
-module supervisor (input clk,
-                   input SS_done,
-                   input rst_n,
-                   input g_en,
-                   input latch_state,
-                   input OTP,
-                   input window_trip_SS,
-                   input window_trip,
-                   input latch_assert,
-                   input UVLO,
-                   output reg en);
+module supervisor (input logic clk,
+                   input logic SS_done,
+                   input logic rst_n,
+                   input logic g_en,
+                   input logic latch_state,
+                   input logic OTP,
+                   input logic window_trip_SS,
+                   input logic window_trip,
+                   input logic latch_assert,
+                   input logic UVLO,
+                   output logic en);
   
-  reg [1:0] state,next_state;
-  reg en_from_state;
-  localparam S_OFF = 2'b0,S_SS = 2'b1, S_RUN = 2'b10, S_HICCUP = 2'b11;
   
-  always @(posedge clk or negedge rst_n) begin
+  logic en_from_state;
+  typedef enum logic [1:0] {S_OFF=2'b00,S_SS=2'b01,S_RUN=2'b10,S_HICCUP=2'b11} state_t;
+  state_t state, next_state;
+  
+  always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n)
         state <= S_OFF;
     else
@@ -22,11 +23,11 @@ module supervisor (input clk,
 	end
   
   
-  always @(*)
+  always_comb
     begin
       next_state = state;
       
-        case(state)
+        unique case(state)
           
           S_OFF: next_state = (g_en&~latch_state&~OTP&~UVLO&~latch_assert)?S_SS:S_OFF; 
 /*
@@ -88,7 +89,8 @@ would remain in S_RUN and re-enable at full duty when latch_assert released.
             
 /*
 if g_en pulled low or OTP event or latch pulled then go back to S_OFF
-or if due to this hiccup state, strike was fulfilled then assert latch and go back to S_OFF
+or if due to th
+is hiccup state, strike was fulfilled then assert latch and go back to S_OFF
 If all good, go back to S_SS not S_OFF as no point in staying there and wasting a cycle
 */
           end   
@@ -102,8 +104,8 @@ illegeal states turn the PMIC off.
  
 
 
-always @(*)
-    case (state)
+always_comb 
+    unique case (state)
         S_OFF:    en_from_state = 1'b0;
         S_SS:     en_from_state = 1'b1;
         S_RUN:    en_from_state = 1'b1;
@@ -111,7 +113,7 @@ always @(*)
         default:  en_from_state = 1'b0;
     endcase
 
-always @(*)
+always_comb
     en = en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
       
               
