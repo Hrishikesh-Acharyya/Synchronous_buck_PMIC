@@ -29,18 +29,12 @@ module supervisor (input logic clk,
       
         unique case(state)
           
-				S_OFF: begin
-					if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert)
-						next_state = S_SS;
-					else
-						next_state = S_OFF;
+          S_OFF: next_state = (g_en&~latch_state&~OTP&~UVLO&~latch_assert)?S_SS:S_OFF; 
 /*
-Go to next state only when g_en is high, not latched and no OTP fault.
-Otherwise stay in S_OFF. Start-up is additionally inhibited by latch_assert,
-so a strike-latched part cannot restart before the latch is read back on
-latch_state.
-*/
-			end
+Go to next state only when g_en is high, npt latched and no OTP Fault. Otherwise stay as S_OFF is  default
+Start-up is additionally inhibited by latch_assert, so a strike-latched part
+cannot restart before the latch is read back on latch_state.
+ */
           
           S_SS: begin
             if(~g_en|OTP|latch_state|UVLO|latch_assert)
