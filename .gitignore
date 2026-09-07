@@ -45,3 +45,6 @@ sim/obj_dir/
 sim/work/
 sim/transcript
 sim/*.wlf
+
+# Editor and tool backup files, anywhere in the tree
+*.bak
