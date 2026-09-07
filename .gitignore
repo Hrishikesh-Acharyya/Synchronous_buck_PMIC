@@ -12,3 +12,36 @@ Desktop.ini
 *.vcd
 *.fst
 sim/supervisor_tb
+
+
+# ---------------------------------------------------------------------------
+# Quartus Prime build artifacts
+# Only .qpf, .qsf and .sdc are tracked; everything else regenerates on compile.
+# ---------------------------------------------------------------------------
+quartus/db/
+quartus/incremental_db/
+quartus/output_files/
+quartus/simulation/
+quartus/greybox_tmp/
+quartus/.qsys_edit/
+quartus/*.qws
+quartus/*.rpt
+quartus/*.summary
+quartus/*.pin
+quartus/*.sof
+quartus/*.pof
+quartus/*.jdi
+quartus/*.qdf
+quartus/*.done
+quartus/*.smsg
+quartus/*.bak
+quartus/*.qar
+quartus/*.sopcinfo
+
+# Simulation outputs
+sim/*.out
+sim/*.vcd
+sim/obj_dir/
+sim/work/
+sim/transcript
+sim/*.wlf
