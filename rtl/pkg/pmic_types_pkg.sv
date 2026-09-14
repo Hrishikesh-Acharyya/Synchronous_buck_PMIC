@@ -49,3 +49,4 @@ package pmic_types_pkg;
     parameter int MAX_STRIKES = 3;
 
 endpackage
+
