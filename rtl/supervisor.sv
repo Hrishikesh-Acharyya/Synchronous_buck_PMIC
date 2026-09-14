@@ -10,9 +10,9 @@ module supervisor (input logic clk,
                    input logic UVLO,
                    output logic en);
   
+  import pmic_types_pkg::*;
   
   logic en_from_state;
-  typedef enum logic [1:0] {S_OFF=2'b00,S_SS=2'b01,S_RUN=2'b10,S_HICCUP=2'b11} state_t;
   state_t state, next_state;
   
   always_ff @(posedge clk or negedge rst_n) begin
@@ -45,16 +45,19 @@ latch_state.
           S_SS: begin
             if(~g_en|OTP|latch_state|UVLO|latch_assert)
               next_state = S_OFF;
-            else if ( SS_done)
-              next_state = S_RUN;
+
             else if (window_trip_SS)
               next_state = S_HICCUP;
+
+            else if ( SS_done)
+              next_state = S_RUN;
+            
             else
               next_state = S_SS;
 /*
 if g_en is pulled low, or OTP or latched state goes high go back to S_OFF. 
-if Soft starting completed then go to S_RUN
 if too many faults during soft start(shift register check) then go to HICCUP
+if Soft starting completed then go to S_RUN
 We dont worry about OVP as any latching is immediately seen by latch_state
 
 The final else holds in S_SS rather than advancing: soft start must remain
@@ -82,10 +85,7 @@ already forces en low on latch_assert, and without the state change the FSM
 would remain in S_RUN and re-enable at full duty when latch_assert released.
 */
           end
-          
-          
-          
-          
+			 
           S_HICCUP: begin
             if(~g_en|latch_state|OTP|latch_assert|UVLO)
               next_state = S_OFF;
