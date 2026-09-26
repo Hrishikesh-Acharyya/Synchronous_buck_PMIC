@@ -17,7 +17,11 @@
 `default_nettype none
 
 module soft_start #(
-    // MIN_ON_COUNTS: starting on-time ceiling in clk counts (~11% duty). Based on dead timing delay of LM5105 gate driver spec sheet
+    // MIN_ON_COUNTS: starting on-time ceiling in clk counts. Set to 12
+    // (~10.8% commanded) rather than a value near zero because the LM5106's
+    // asymmetric propagation delays at RDT=10k shrink every gate pulse by
+    // ~83 ns typical / ~128 ns worst case; below ~9 counts the pulse can
+    // vanish entirely before it reaches the gate. Revisit if RDT changes.
     parameter int MIN_ON_COUNTS   = 12,
     // MAX_ON_COUNTS: final on-time ceiling in clk counts (~75% duty)
     parameter int MAX_ON_COUNTS   = 83,

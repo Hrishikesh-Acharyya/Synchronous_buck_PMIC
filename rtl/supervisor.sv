@@ -8,7 +8,9 @@ module supervisor (input logic clk,
                    input logic window_trip,
                    input logic latch_assert,
                    input logic UVLO,
-                   output logic en);
+                   output logic en
+                   output logic ss_active,
+                   output logic run_active);
   
   import pmic_types_pkg::*;
   
@@ -118,6 +120,9 @@ always_comb
         S_HICCUP: en_from_state = 1'b0;
         default:  en_from_state = 1'b0;
     endcase
+
+always_comb ss_active  = (state == S_SS);
+always_comb run_active = (state == S_RUN);
 
 always_comb
     en = en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
