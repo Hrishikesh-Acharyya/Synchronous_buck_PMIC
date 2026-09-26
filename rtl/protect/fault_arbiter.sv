@@ -28,14 +28,14 @@ module fault_arbiter #(
     // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
     parameter int TRIP_SS        = 28
 ) (
-    input   logic clk,
-    input   logic rst_n,
-    input   logic pwm_sync,        // synchronised raw PWM, for the cycle boundary
-    input   logic cp_sync,         // synchronised current-protection flag (CP_trig)
-    input   logic ss_active,       // high only while the supervisor is in S_SS
-    input   logic run_active,      // high only while the supervisor is in S_RUN
-    output  logic window_trip,     // fault window exceeded while running
-    output  logic window_trip_SS   // fault window exceeded during soft start
+    input  logic clk,
+    input  logic rst_n,
+    input  logic pwm_sync,        // synchronised raw PWM, for the cycle boundary
+    input  logic cp_sync,         // synchronised current-protection flag (CP_trig)
+    input  logic ss_active,       // high only while the supervisor is in S_SS
+    input  logic run_active,      // high only while the supervisor is in S_RUN
+    output logic window_trip,     // fault window exceeded while running
+    output logic window_trip_SS   // fault window exceeded during soft start
 );
 
     // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
