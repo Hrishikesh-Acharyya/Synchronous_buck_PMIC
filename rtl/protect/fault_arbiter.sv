@@ -150,3 +150,4 @@ module fault_arbiter #(
 endmodule
 
 `default_nettype wire
+

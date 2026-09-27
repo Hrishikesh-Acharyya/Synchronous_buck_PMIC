@@ -102,3 +102,4 @@ module hiccup_timer #(
 endmodule
 
 `default_nettype wire
+

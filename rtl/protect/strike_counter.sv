@@ -155,3 +155,4 @@ module strike_counter #(
 endmodule
 
 `default_nettype wire
+

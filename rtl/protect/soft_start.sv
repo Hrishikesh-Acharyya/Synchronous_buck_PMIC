@@ -136,3 +136,4 @@ module soft_start #(
 endmodule
 
 `default_nettype wire
+

@@ -46,3 +46,4 @@ module input_sync #(
 endmodule
 
 `default_nettype wire
+
