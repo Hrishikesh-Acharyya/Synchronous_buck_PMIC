@@ -36,6 +36,8 @@ module supervisor_tb;
     logic latch_state, OTP, latch_assert, UVLO; //Fault signals
     logic en; //output enable signal of DUT
     logic window_trip_SS, window_trip; //window trip Hiccup signals
+    logic hiccup_done;
+    logic ss_active, run_active, hiccup_active;
 
     // checks_run: Number of checks run in the testbench
     int checks_run = 0; 
@@ -61,7 +63,11 @@ module supervisor_tb;
         .UVLO(UVLO),
         .en(en),
         .window_trip_SS(window_trip_SS),
-        .window_trip(window_trip)
+        .window_trip(window_trip),
+        .hiccup_active(hiccup_active),
+        .hiccup_done(hiccup_done),
+        .ss_active(ss_active),
+        .run_active(run_active)
     );
 
     /*
@@ -78,8 +84,10 @@ module supervisor_tb;
         output g_en, SS_done;
         output OTP, UVLO, latch_state, latch_assert;
         output window_trip, window_trip_SS;
+        output hiccup_done;
 
         input  en;
+        input ss_active, run_active, hiccup_active;
     endclocking
 
     /*
@@ -148,6 +156,7 @@ module supervisor_tb;
         cb.latch_assert <= 1'b0;
         cb.window_trip <= 1'b0;
         cb.window_trip_SS <= 1'b0;
+        cb.hiccup_done<= 1'b0;
 
         rst_n = 1'b0;
         tick(2);
@@ -241,10 +250,14 @@ module supervisor_tb;
         cb.window_trip <= 1'b1;
         tick(1);
         check(S_HICCUP,1'b0, "S_RUN -> S_HICCUP on window_trip");
-        cb.window_trip <= 1'b0;
+        cb.window_trip <= 1'b0;        
         cb.SS_done <= 1'b0;
+        tick(5);
+        check(S_HICCUP, 1'b0, "S_HICCUP holds while hiccup_done low");
+        cb.hiccup_done <= 1'b1;
         tick(1);
-        check(S_SS, 1'b1, "S_HICCUP -> S_SS (retry re-ramps)");
+        check(S_SS, 1'b1, "S_HICCUP -> S_SS once hiccup_done");
+        cb.hiccup_done <= 1'b0;
         ////////////////////////////////////////////////////////
 
 
@@ -259,8 +272,12 @@ module supervisor_tb;
         check(S_HICCUP, 1'b0, "S_SS -> S_HICCUP on window_trip_SS");
         cb.window_trip_SS <= 1'b0;
         cb.SS_done <= 1'b0;
+        tick(5);
+        check(S_HICCUP, 1'b0, "S_HICCUP holds while hiccup_done low");
+        cb.hiccup_done <= 1'b1;
         tick(1);
-        check(S_SS, 1'b1, "S_HICCUP -> S_SS (retry re-ramps)");
+        check(S_SS, 1'b1, "S_HICCUP -> S_SS once hiccup_done");
+        cb.hiccup_done <= 1'b0;
         ////////////////////////////////////////////////////////
 
 
@@ -303,6 +320,16 @@ module supervisor_tb;
         cb.SS_done      <= 1'b0;
         tick(1);
         check(S_SS, 1'b1, "release from hiccup trip re-enters S_SS");
+
+        do_reset(); 
+        goto_run();
+        cb.window_trip <= 1'b1; tick(1);
+        cb.window_trip <= 1'b0;
+        cb.hiccup_done <= 1'b1;
+        cb.latch_assert <= 1'b1;
+        tick(1);
+        check(S_OFF, 1'b0, "latch_assert takes priority over hiccup_done");
+        cb.hiccup_done <= 1'b0; cb.latch_assert <= 1'b0;
 
         ////////////////////////////////////////////////////////
 
