@@ -94,22 +94,19 @@ module supervisor (input logic clk,
             
      end
 			 
-          /*
-          if g_en pulled low or OTP event or latch pulled then go back to S_OFF
-          or if due to th
-          is hiccup state, strike was fulfilled then assert latch and go back to S_OFF
-          If all good, go back to S_SS not S_OFF as no point in staying there and wasting a cycle
+          /* If g_en pulled low, OTP, latch_state or latch_assert, go back to S_OFF.
+          Otherwise hold in S_HICCUP until hiccup_done: the cool-down must actually
+          elapse before a retry.
           */
+
           S_HICCUP: begin
+
             if(~g_en|latch_state|OTP|latch_assert|UVLO)
               next_state = S_OFF;
             else if (hiccup_done)
               next_state = S_SS;
             else
               next_state = S_HICCUP;
-
-            
-            
 
           end   
       
