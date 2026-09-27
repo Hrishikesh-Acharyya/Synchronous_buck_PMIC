@@ -1,8 +1,11 @@
-# Lint and simulation for the CPLD supervisor RTL.
+# Lint for the CPLD supervisor RTL.
 #
-# Runs on pull requests and on pushes to main. The testbench calls $fatal on a
-# failed check, so the job result is taken from the process exit status rather
-# than from log output.
+# Runs on pull requests and on pushes to main.
+#
+# Lint only. The testbench uses clocking blocks and ##() cycle delays:
+# Icarus 12.0 does not support clocking blocks, and Verilator 5.020 takes an
+# internal fault on ##() inside an automatic task. ModelSim handles both, so
+# `make -C sim sim` is a local step and is deliberately not run here.
 
 name: RTL
 
@@ -14,38 +17,24 @@ on:
   pull_request:
 
 jobs:
-  supervisor:
-    name: supervisor FSM
+  lint:
+    name: RTL lint
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Install Icarus Verilog and Verilator
+      - name: Install Verilator
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends iverilog verilator
+          sudo apt-get install -y --no-install-recommends verilator
 
-      - name: Report tool versions
-        run: |
-          iverilog -V | head -1
-          verilator --version
+      - name: Report tool version
+        run: verilator --version
 
-      # Lint precedes simulation: width mismatches, inferred latches and
-      # unused signals can pass simulation without being flagged.
+      # Each module is linted as its own top. Port width mismatches between
+      # modules are not caught until pmic_top exists to elaborate them
+      # together.
       - name: Lint the RTL
         run: make -C sim lint
-
-      - name: Run the self-checking testbench
-        run: make -C sim sim
-
-      # Retained on failure so a run that fails only under CI can be compared
-      # against a local waveform.
-      - name: Upload waveform
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: supervisor-vcd
-          path: sim/supervisor.vcd
-          if-no-files-found: ignore
