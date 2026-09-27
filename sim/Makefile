@@ -17,14 +17,14 @@ VIEWER    ?= gtkwave
 
 # Package first: it defines state_t, which supervisor imports.
 RTL := ../rtl/pkg/pmic_types_pkg.sv \
-       ../rtl/clk_rst/reset_sync.sv \
+       ../rtl/clk_rst/rst_sync.sv \
        ../rtl/inputs/input_sync.sv \
        ../rtl/protect/soft_start.sv \
        ../rtl/protect/pwm_mask.sv \
        ../rtl/protect/fault_arbiter.sv \
        ../rtl/protect/hiccup_timer.sv \
        ../rtl/protect/strike_counter.sv \
-       ../rtl/status/pgood_gen.sv \
+       ../rtl/status/pgood.sv \
        ../rtl/supervisor.sv
 
 TB  := ../tb/supervisor_tb.sv
