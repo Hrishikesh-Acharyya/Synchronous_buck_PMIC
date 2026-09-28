@@ -1,14 +1,15 @@
-module supervisor (input logic clk,
-                   input logic SS_done,
-                   input logic rst_n,
-                   input logic g_en,
-                   input logic latch_state,
-                   input logic OTP,
-                   input logic window_trip_SS,
-                   input logic window_trip,
-                   input logic latch_assert,
-                   input logic UVLO,
-                   input logic hiccup_done,
+module supervisor (input  logic clk,
+                   input  logic SS_done,
+                   input  logic rst_n,
+                   input  logic latch_state,
+                   input  logic OTP,
+                   input  logic window_trip_SS,
+                   input  logic window_trip,
+                   input  logic latch_assert,
+                   input  logic UVLO,
+                   input  logic hiccup_done,
+                   input  logic en_SW,
+                   input  logic i2c_enable,
                    output logic en,
                    output logic ss_active,
                    output logic run_active,
@@ -18,6 +19,9 @@ module supervisor (input logic clk,
   
   logic en_from_state;
   state_t state, next_state;
+  //The enabled derived via i2c signal from MCU and the physical on/off switch. 
+  logic g_en;
+  assign g_en = i2c_enable & en_SW;
   
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n)
@@ -134,7 +138,7 @@ always_comb hiccup_active = (state == S_HICCUP);
 
 
 always_comb
-    en = en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
+    en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
       
               
         

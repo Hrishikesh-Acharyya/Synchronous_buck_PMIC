@@ -18,7 +18,7 @@ LINE Normal 112 -160 112 -176
 LINE Normal 32 -160 32 -176
 RECTANGLE Normal 142 126 -222 -158
 TEXT -119 -16 Left 2 CPLD supervisor
-TEXT -32 112 VLeft 1 G_En
+TEXT -32 112 VLeft 1 En_Switch
 TEXT 0 112 VLeft 1 PGOOD
 TEXT 128 80 Right 1 Clk_Ext
 TEXT 128 -48 Right 1 Osc_in
