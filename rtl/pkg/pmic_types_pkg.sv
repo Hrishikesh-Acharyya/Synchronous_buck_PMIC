@@ -193,3 +193,4 @@ package pmic_types_pkg;
 endpackage
 
 `default_nettype wire
+

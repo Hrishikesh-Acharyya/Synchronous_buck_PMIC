@@ -118,7 +118,7 @@ module strike_counter #(
     if (strike_level == MAX_STRIKES-1) latch_assert <= 1'b1;
     end
 
-    else if (clean_counter == 2**CLEAN_RUN_CYCLES-1) begin
+    else if (clean_counter == 2**CLEAN_RUN_W-1) begin
       strike_level <= '0;
     end
 
@@ -148,14 +148,14 @@ module strike_counter #(
     // only rst_n is in the sensitivity list, so run_active and pgood_comp
     // cannot share that branch without making synthesis infer them as
     // asynchronous resets too.
-    
+
     else if (!run_active || window_trip) begin  
       clean_counter <= 0;
     end
 
     else if(pwm_fall)
 
-      if(clean_counter == 2**CLEAN_RUN_CYCLES-1) begin
+      if(clean_counter == 2**CLEAN_RUN_W-1) begin
         clean_counter <= clean_counter;
       end
       else
