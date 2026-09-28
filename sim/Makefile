@@ -25,17 +25,16 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
        ../rtl/protect/hiccup_timer.sv \
        ../rtl/protect/strike_counter.sv \
        ../rtl/status/pgood_gen.sv \
-       ../rtl/supervisor.sv
+       ../rtl/supervisor.sv \
+       ../rtl/pmic_top.sv
 
 TB  := ../tb/supervisor_tb.sv
 VCD := supervisor.vcd
 
-# Each module is linted as its own top, since there is no pmic_top yet to
-# elaborate them together. Collapse to a single --top-module pmic_top once
-# that exists - that is also the only way port width mismatches between
-# modules get caught.
-LINT_TOPS := supervisor reset_sync input_sync soft_start pwm_mask \
-             fault_arbiter hiccup_timer strike_counter pgood_gen
+# Single top: elaborating the whole hierarchy is the only way port width
+# mismatches between modules get caught.
+LINT_TOPS := pmic_top
+
 
 # WIDTHEXPAND: benign zero-extension of 1-bit operands into wider counters
 #              and of int parameters into sized comparisons. TODO: size the

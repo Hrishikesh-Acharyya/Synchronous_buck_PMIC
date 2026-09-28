@@ -153,6 +153,16 @@ module pmic_top (
                             );
 
 
+    /*
+    PWM_out is not gated by En in logic. En drives the LM5106 enable pin,
+    which holds both gate outputs low regardless of what the PWM input is
+    doing, so a second gate here would be a second shutdown path to keep
+    consistent. latch_out is driven straight from strike_counter's
+    latch_assert and is also read back by the supervisor.
+    */
+
+
 endmodule
 
 `default_nettype wire
+
