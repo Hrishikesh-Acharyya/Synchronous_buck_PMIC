@@ -17,18 +17,16 @@
 `default_nettype none
 
 module soft_start #(
-    // MIN_ON_COUNTS: starting on-time ceiling in clk counts. Set to 12
-    // (~10.8% commanded) rather than a value near zero because the LM5106's
-    // asymmetric propagation delays at RDT=10k shrink every gate pulse by
-    // ~83 ns typical / ~128 ns worst case; below ~9 counts the pulse can
-    // vanish entirely before it reaches the gate. Revisit if RDT changes.
-    parameter int MIN_ON_COUNTS   = 12,
-    // MAX_ON_COUNTS: final on-time ceiling in clk counts (~75% duty)
-    parameter int MAX_ON_COUNTS   = 83,
+    
+    // MIN_ON_COUNTS: starting on-time ceiling in clk counts
+    parameter int MIN_ON_COUNTS   = pmic_types_pkg::MIN_ON_COUNTS,
+    // MAX_ON_COUNTS: final on-time ceiling in clk counts
+    parameter int MAX_ON_COUNTS   = pmic_types_pkg::MAX_ON_COUNTS,
     // CYCLES_PER_STEP: switching cycles held at each ceiling before widening
-    parameter int CYCLES_PER_STEP = 16,
+    parameter int CYCLES_PER_STEP = 16,                         
     // ON_TIME_W: width of the on-time ceiling bus
-    parameter int ON_TIME_W       = $clog2(MAX_ON_COUNTS+1)
+    parameter int ON_TIME_W       = pmic_types_pkg::ON_TIME_W
+    
 ) (
     input  logic                 clk,
     input  logic                 rst_n,

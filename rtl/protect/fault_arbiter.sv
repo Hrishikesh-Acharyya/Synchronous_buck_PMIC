@@ -19,14 +19,16 @@
 `default_nettype none
 
 module fault_arbiter #(
+    
     // WINDOW_RUN: trailing switching cycles examined while in S_RUN
-    parameter int WINDOW_RUN     = 16,
+    parameter int WINDOW_RUN = pmic_types_pkg::WINDOW_RUN,
     // TRIP_RUN: faulted cycles within WINDOW_RUN that assert window_trip
-    parameter int TRIP_RUN       = 12,
+    parameter int TRIP_RUN   = pmic_types_pkg::TRIP_RUN,
     // WINDOW_SS: trailing switching cycles examined while in S_SS
-    parameter int WINDOW_SS      = 32,
+    parameter int WINDOW_SS  = pmic_types_pkg::WINDOW_SS,
     // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
-    parameter int TRIP_SS        = 28
+    parameter int TRIP_SS    = pmic_types_pkg::TRIP_SS
+    
 ) (
     input  logic clk,
     input  logic rst_n,

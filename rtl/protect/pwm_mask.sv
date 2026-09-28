@@ -23,7 +23,7 @@
 
 module pwm_mask #(
     // ON_TIME_W: width of the on-time ceiling bus, must match soft_start
-    parameter int ON_TIME_W = 7
+    parameter int ON_TIME_W = pmic_types_pkg::ON_TIME_W
 ) (
     input  logic                 clk,
     input  logic                 rst_n,

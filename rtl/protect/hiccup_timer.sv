@@ -16,12 +16,13 @@
 `default_nettype none
 
 module hiccup_timer #(
-    // BASE_CLKS: cool-down for strike level 0, in clk counts (5 ms at 50 MHz)
-    parameter int BASE_CLKS   = 250_000,
+
+    // BASE_CLKS: cool-down for strike level 0
+    parameter int BASE_CLKS = pmic_types_pkg::HICCUP_BASE_CLKS,
     // STRIKE_W: width of the strike level input
-    parameter int STRIKE_W    = 2,
+    parameter int STRIKE_W  = pmic_types_pkg::STRIKE_W,
     // TIMER_W: width of the cool-down counter, sized for the longest interval
-    parameter int TIMER_W = $clog2((BASE_CLKS << (2**STRIKE_W - 1)) + 1)
+    parameter int TIMER_W   = pmic_types_pkg::HICCUP_TIMER_W
 
 ) (
     input   logic                clk,

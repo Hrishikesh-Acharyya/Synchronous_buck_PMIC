@@ -18,13 +18,14 @@
 `default_nettype none
 
 module strike_counter #(
+  
     // MAX_STRIKES: hiccup retries permitted before the latch is asserted
-    parameter int MAX_STRIKES     = 3,
-    // CLEAN_RUN_CYCLES: fault-free switching cycles in S_RUN that clear the
-    //                   strike count. 2**19 cycles is about 1.17 s at 450 kHz
-    parameter int CLEAN_RUN_CYCLES = 19,
-    // STRIKE_W: width of the strike level bus, must match hiccup_timer
-    parameter int STRIKE_W        = 2
+    parameter int MAX_STRIKES = pmic_types_pkg::MAX_STRIKES,
+    // CLEAN_RUN_W: fault-free switching cycle counter width;
+    parameter int CLEAN_RUN_W = pmic_types_pkg::CLEAN_RUN_W, 
+    // STRIKE_W: width of the strike level bus, must match hiccup_timer    
+    parameter int STRIKE_W    = pmic_types_pkg::STRIKE_W
+
 ) (
     input  logic                clk,
     input  logic                rst_n,
@@ -45,7 +46,7 @@ module strike_counter #(
     // pwm_fall: one-clk pulse marking the end of a switching cycle
     logic pwm_fall;
     // clean_counter: consecutive fault-free switching cycles in S_RUN
-    logic [CLEAN_RUN_CYCLES-1:0] clean_counter;
+    logic [CLEAN_RUN_W-1:0] clean_counter;
 
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -139,7 +140,11 @@ module strike_counter #(
     repeatedly.
     */
 
-    if(!rst_n || !run_active || window_trip) begin
+    if(!rst_n) begin
+      clean_counter <= 0;
+    end
+
+    else if (!run_active || window_trip) begin  //split from rst branch to enable synthesis
       clean_counter <= 0;
     end
 

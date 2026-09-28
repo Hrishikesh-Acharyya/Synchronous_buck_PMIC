@@ -20,9 +20,8 @@
 `default_nettype none
 
 module pgood_gen #(
-    // PGOOD_DELAY_W: width of the qualifying counter. 2**12 switching cycles
-    //                is about 9.1 ms at 450 kHz
-    parameter int PGOOD_DELAY_W = 12
+    // PGOOD_DELAY_W: width of the qualifying counter.
+    parameter int PGOOD_DELAY_W = pmic_types_pkg::PGOOD_DELAY_W
 ) (
     input  logic clk,
     input  logic rst_n,
@@ -90,8 +89,13 @@ module pgood_gen #(
     so this counter can never miss a dip that PGOOD has already responded to.
     */
 
-    if(!rst_n || !run_active ||  !pgood_comp)
+    if(!rst_n) begin
       qualify_counter <= 0;
+    end
+
+    else if ( || !run_active ||  !pgood_comp) begin  //split to enable synthesis
+      qualify_counter <= 0
+    end
 
     else if(pwm_fall) begin
 
