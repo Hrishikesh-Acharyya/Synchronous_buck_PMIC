@@ -1,12 +1,12 @@
 # SPICE Models (Proprietary IP)
-*.lib
-*.mod
-*.cir
-*.LIB
-*.MOD
-*.CIR
-*.asy
-!CPLD_super.asy
+# .lib
+# .mod
+# .cir
+# *.LIB
+# *.MOD
+# .CIR
+# *.asy
+# !CPLD_super.asy
 
 # LTspice Simulation Data (Prevents repo bloat)
 *.raw
