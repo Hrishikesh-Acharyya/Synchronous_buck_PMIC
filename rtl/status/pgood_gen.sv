@@ -93,8 +93,12 @@ module pgood_gen #(
       qualify_counter <= 0;
     end
 
-    else if (!run_active ||  !pgood_comp) begin  //split to enable synthesis
-      qualify_counter <= 0
+    // Synchronous clear, kept separate from the asynchronous rst_n branch:
+    // only rst_n is in the sensitivity list, so run_active and pgood_comp
+    // cannot share that branch without making synthesis infer them as
+    // asynchronous resets too.
+    else if (!run_active ||  !pgood_comp) begin  
+      qualify_counter <= 0;
     end
 
     else if(pwm_fall) begin
