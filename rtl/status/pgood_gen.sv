@@ -93,7 +93,7 @@ module pgood_gen #(
       qualify_counter <= 0;
     end
 
-    else if ( || !run_active ||  !pgood_comp) begin  //split to enable synthesis
+    else if (!run_active ||  !pgood_comp) begin  //split to enable synthesis
       qualify_counter <= 0
     end
 
