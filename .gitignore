@@ -48,3 +48,5 @@ sim/*.wlf
 
 # Editor and tool backup files, anywhere in the tree
 *.bak
+# Local Vivado projects (regenerate from fpga/ + rtl/)
+vivado/
