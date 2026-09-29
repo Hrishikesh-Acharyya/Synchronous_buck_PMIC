@@ -23,11 +23,11 @@ module pgood_gen #(
     // PGOOD_DELAY_W: width of the qualifying counter.
     parameter int PGOOD_DELAY_W = pmic_types_pkg::PGOOD_DELAY_W
 ) (
-    input  logic clk,
-    input  logic rst_n,
-    input  logic pwm_sync,     // synchronised raw PWM, for the cycle boundary
-    input  logic pgood_comp,   // synchronised output comparator, high when the rail is above threshold
-    input  logic run_active,   // high only while the supervisor is in S_RUN
+    input  wire logic clk,
+    input  wire logic rst_n,
+    input  wire logic pwm_sync,     // synchronised raw PWM, for the cycle boundary
+    input  wire logic pgood_comp,   // synchronised output comparator, high when the rail is above threshold
+    input  wire logic run_active,   // high only while the supervisor is in S_RUN
     output logic PGOOD         // power good, to the supply changeover and telemetry
 );
 

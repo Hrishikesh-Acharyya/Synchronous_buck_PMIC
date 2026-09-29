@@ -23,9 +23,9 @@ module input_sync #(
     //              until a real reading proves otherwise.
     parameter logic RESET_VALUE = 1'b0
 ) (
-    input  logic clk,
-    input  logic rst_n,
-    input  logic async_in,
+    input  wire logic clk,
+    input  wire logic rst_n,
+    input  wire logic async_in,
     output logic sync_out
 );
 

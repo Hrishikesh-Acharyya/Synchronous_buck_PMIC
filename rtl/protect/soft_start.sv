@@ -28,11 +28,11 @@ module soft_start #(
     parameter int ON_TIME_W       = pmic_types_pkg::ON_TIME_W
     
 ) (
-    input  logic                 clk,
-    input  logic                 rst_n,
-    input  logic                 pwm_sync,       // synchronised raw PWM from the analog modulator
-    input  logic                 ss_active,      // high only while the supervisor is in S_SS
-    input  logic                 run_active,     // high only while the supervisor is in S_RUN
+    input  wire logic                 clk,
+    input  wire logic                 rst_n,
+    input  wire logic                 pwm_sync,       // synchronised raw PWM from the analog modulator
+    input  wire logic                 ss_active,      // high only while the supervisor is in S_SS
+    input  wire logic                 run_active,     // high only while the supervisor is in S_RUN
     output logic [ON_TIME_W-1:0] max_on_counts,  // on-time ceiling count handed to pwm_mask
     output logic                 SS_done         // ramp has reached MAX_ON_COUNTS
 );

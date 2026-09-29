@@ -25,10 +25,10 @@ module hiccup_timer #(
     parameter int TIMER_W   = pmic_types_pkg::HICCUP_TIMER_W
 
 ) (
-    input   logic                clk,
-    input   logic                rst_n,
-    input   logic                hiccup_active,  // high only while the supervisor is in S_HICCUP
-    input   logic [STRIKE_W-1:0] strike_level,   // strikes accumulated so far
+    input   wire logic                clk,
+    input   wire logic                rst_n,
+    input   wire logic                hiccup_active,  // high only while the supervisor is in S_HICCUP
+    input   wire logic [STRIKE_W-1:0] strike_level,   // strikes accumulated so far
     output  logic                hiccup_done     // cool-down interval has elapsed
 );
 

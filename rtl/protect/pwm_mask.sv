@@ -25,10 +25,10 @@ module pwm_mask #(
     // ON_TIME_W: width of the on-time ceiling bus, must match soft_start
     parameter int ON_TIME_W = pmic_types_pkg::ON_TIME_W
 ) (
-    input  logic                 clk,
-    input  logic                 rst_n,
-    input  logic                 pwm_sync,       // synchronised raw PWM from the analog modulator
-    input  logic [ON_TIME_W-1:0] max_on_counts,  // on-time ceiling count from soft_start
+    input  wire logic                 clk,
+    input  wire logic                 rst_n,
+    input  wire logic                 pwm_sync,       // synchronised raw PWM from the analog modulator
+    input  wire logic [ON_TIME_W-1:0] max_on_counts,  // on-time ceiling count from soft_start
     output logic                 pwm_out         // truncated PWM to the gate driver
 );
 

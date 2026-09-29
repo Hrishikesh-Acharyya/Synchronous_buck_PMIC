@@ -15,8 +15,8 @@
 `default_nettype none
 
 module reset_sync (
-    input  logic clk,
-    input  logic rst_n_enter,
+    input  wire logic clk,
+    input  wire logic rst_n_enter,
     output logic rst_n_exit
 );
 

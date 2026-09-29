@@ -30,12 +30,12 @@ module fault_arbiter #(
     parameter int TRIP_SS    = pmic_types_pkg::TRIP_SS
     
 ) (
-    input  logic clk,
-    input  logic rst_n,
-    input  logic pwm_sync,        // synchronised raw PWM, for the cycle boundary
-    input  logic cp_sync,         // synchronised current-protection flag (CP_trig)
-    input  logic ss_active,       // high only while the supervisor is in S_SS
-    input  logic run_active,      // high only while the supervisor is in S_RUN
+    input  wire logic clk,
+    input  wire logic rst_n,
+    input  wire logic pwm_sync,        // synchronised raw PWM, for the cycle boundary
+    input  wire logic cp_sync,         // synchronised current-protection flag (CP_trig)
+    input  wire logic ss_active,       // high only while the supervisor is in S_SS
+    input  wire logic run_active,      // high only while the supervisor is in S_RUN
     output logic window_trip,     // fault window exceeded while running
     output logic window_trip_SS   // fault window exceeded during soft start
 );

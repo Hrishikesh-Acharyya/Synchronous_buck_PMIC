@@ -21,17 +21,17 @@
 
 module pmic_top (
     // ---- clock and reset ----
-    input  logic clk,          // Clk_Ext, 50 MHz external oscillator
-    input  logic rst_n_pin,    // asynchronous external reset, active low
+    input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
+    input  wire logic rst_n_pin,    // asynchronous external reset, active low
 
     // ---- asynchronous inputs from the analog side ----
-    input  logic Osc_in,       // Master_PWM from the analog modulator
-    input  logic CP_trig,      // valley-current comparator
-    input  logic OTP_trig,     // over-temperature comparator
-    input  logic UVLO_trig,    // input undervoltage lockout comparator
-    input  logic latch_stat,   // SCR protection latch, read back
-    input  logic PGOOD_comp,   // output rail comparator
-    input  logic en_from_switch,
+    input  wire logic Osc_in,       // Master_PWM from the analog modulator
+    input  wire logic CP_trig,      // valley-current comparator
+    input  wire logic OTP_trig,     // over-temperature comparator
+    input  wire logic UVLO_trig,    // input undervoltage lockout comparator
+    input  wire logic latch_stat,   // SCR protection latch, read back
+    input  wire logic PGOOD_comp,   // output rail comparator
+    input  wire logic en_from_switch,
 
     // ---- outputs ----
     output logic PWM_out,      // masked PWM to the LM5106 IN pin
