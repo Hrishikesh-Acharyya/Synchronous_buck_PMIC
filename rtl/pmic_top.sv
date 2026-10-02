@@ -93,8 +93,8 @@ module pmic_top (
     u_en_from_switch_db (.clk(clk), .rst_n(rst_n),
                              .flag_in(en_from_switch_sync),
                              .flag_out(en_from_switch_sync_db));
-    input_debounce u_otp_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));
-    input_debounce u_uvlo_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));
+    input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));
+    input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));
     input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));
 
 

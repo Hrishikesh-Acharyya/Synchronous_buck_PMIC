@@ -63,11 +63,13 @@ module input_debounce #(
     localparam int CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS) ? ASSERT_CLKS
                                                           : RELEASE_CLKS;
 
+    // CNT_W: width of the counter and the target compare
+    localparam int CNT_W = $clog2(CNT_MAX+1);
     // disagree_counter: clocks for which flag_in has disagreed with flag_out
-    logic [$clog2(CNT_MAX+1)-1:0] disagree_counter;
+    logic [CNT_W-1:0] disagree_counter;
     // target_clks: qualification time for the pending transition, chosen by
     //              the direction flag_in is trying to move flag_out
-    logic [$clog2(CNT_MAX+1)-1:0] target_clks;
+    logic [CNT_W-1:0] target_clks;
 
     always_comb begin
     /*
@@ -80,7 +82,7 @@ module input_debounce #(
     a single compare rather than duplicating the counter per direction.
     */
 
-    target_clks = flag_in ? ASSERT_CLKS : RELEASE_CLKS;
+    target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
 
     end
 

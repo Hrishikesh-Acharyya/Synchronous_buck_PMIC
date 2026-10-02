@@ -19,6 +19,7 @@ VIEWER    ?= gtkwave
 RTL := ../rtl/pkg/pmic_types_pkg.sv \
        ../rtl/clk_rst/reset_sync.sv \
        ../rtl/inputs/input_sync.sv \
+			 ../rtl/inputs/input_debounce.sv \
        ../rtl/protect/soft_start.sv \
        ../rtl/protect/pwm_mask.sv \
        ../rtl/protect/fault_arbiter.sv \
