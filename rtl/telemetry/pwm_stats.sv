@@ -2,15 +2,34 @@
 
 # Filename:         pwm_stats.sv
 
-# File Description: This module provides the duty cycle of the input pwm 
-#                   from the analog oscillator. It measures the period first
-#                   as the oscillator may drift from the nominal 111.1 clock ticks
-#                   and hence provide error on duty cycle telemetry.
-#                   
-#                   Duty cycle data arrives one cycle late as period can be ascertained
-#                   only after the period is over!!
+# File Description: Telemetry for the incoming PWM from the analog
+#                   modulator. Measures the length of each switching period
+#                   in clk counts and the length of the high phase within
+#                   it, and exports both for the previous complete period.
 #
+#                   The period is measured rather than assumed because the
+#                   analog oscillator drifts from its nominal 111.1 clk
+#                   ticks with temperature and component tolerance. Duty
+#                   referenced to the nominal period would carry that drift
+#                   straight into the error, and since duty times a known
+#                   Vin infers Vout, the drift would appear as an output
+#                   voltage error with no ADC in the loop to catch it.
 #
+#                   Exports raw clock counts rather than a computed duty
+#                   cycle. A variable-denominator divide costs a few
+#                   hundred LEs and will not close timing at 50 MHz in one
+#                   cycle, and the reading MCU divides for free. The raw
+#                   period also doubles as switching-frequency telemetry,
+#                   which a quotient would discard.
+#
+#                   Both outputs describe the previous complete period and
+#                   are captured from the same counter run, so they are
+#                   always consistent with each other. Data is therefore one
+#                   switching cycle old: the period is only known once it
+#                   has ended.
+#
+#                   Telemetry only. Drives no control path and takes no part
+#                   in any protection timing.
 
 # Global variables: None
 
@@ -18,29 +37,33 @@
 
 `default_nettype none
 
-module pwm_stats (input  logic clk,
-                  input  logic rst_n,
-                  input  logic pwm_sync, // synchronised raw PWM
-                  output int  duty       // duty cycle data
-                  );
+module pwm_stats #(
 
-// CNT_W: Width of the countr used to count number of periods. 
+// CNT_W: Width of the counter used to count number of periods. 
 //        Derives base value from the nominal duty count defined in pmic_packages + 1 bit extra
 //        to account for oscillator drift
 //        @TODO: Check if extra bit required or not
-localparam CNT_W = $clog2(pmic_types_pkg::CLKS_PER_SW + 1)+ 1; 
+parameter int CNT_W = $clog2(pmic_types_pkg::CLKS_PER_SW + 1)+ 1
+
+) (input  wire logic clk,
+                  input  wire logic rst_n,
+                  //synchronised raw PWM
+                  input  wire logic pwm_sync,          
+                  //duty_count: keeps track of number of clock ticks the PWM was high for
+                  output logic [CNT_W-1:0] duty_count, 
+                  //prev_period: Stores the previous period length for calculations
+                  output logic [CNT_W-1:0] prev_period
+                  );
+
 //pwm_fall: Gives idea of when the PWM has fallen for duty cycle measurement
 logic pwm_fall;
 //pwm_rise: Marks the start of the next switching cycle.
 logic pwm_rise;
 //pwm_sync_d: Delayed copy of pwm_sync, used to generate pwm_fall and pwm_rise
 logic pwm_sync_d;
-//duty_count: keeps track of number of clock ticks the PWM was high for
-logic [CNT_W-1:0] duty_count;
-//period_count: keeps track of how many clock ticks one switching cycle took
+//period_counter: keeps track of how many clock ticks one switching cycle took
 logic [CNT_W-1:0] period_counter;
-//prev_period: Stores the previous period length for calculations
-logic [CNT_W-1:0] prev_period;
+
 
 always_ff @(posedge clk or negedge rst_n) begin
   /*
@@ -62,7 +85,7 @@ end
 /*
     Purpose:
     ---
-    The blocks assign values to pwm_fall and pwm_rise. Chekc variable declaration comment
+    The blocks assign values to pwm_fall and pwm_rise. Check variable declaration comment
     for more information on the variables.
 */
 always_comb pwm_fall = pwm_sync_d & ~pwm_sync;
@@ -77,21 +100,29 @@ always_ff @ (posedge clk or negedge rst_n) begin
     Clears and starts the counter on PWM rise, and before clearing the counter
     the old value is read into prev_counter so the data is not lost.
     On pwm_fall, it reads the current period count into duty counts to keep track 
-    of the HS conduction time required for duty cycle calculations.
+    of the HS conduction time, which is exported for the consumer to divide
+
+    
   */
 
   if(!rst_n) begin
     period_counter <= 0;
     duty_count <= 0;
+    prev_period <=0;
   end
 
   else if (pwm_rise) begin
+
     prev_period <= period_counter;
     period_counter <= 0;
+
   end
 
   else if (pwm_fall) begin
+
     duty_count <= period_counter;
+    period_counter <= period_counter  +1;
+
   end
 
   else begin
@@ -100,36 +131,6 @@ always_ff @ (posedge clk or negedge rst_n) begin
 
   end
 
-  always_ff begin
-
-    /*
-    Purpose:
-    ---
-    Does the duty cycle calculation whenever new cycle begins for the old cycle.
-    Explicitly handles the reset case when both duty_count and period_count are 0
-    to prevent a divide by zero error.
-
-    @TODO: duty is defined as integer. It may truncate to 0 in some cases.
-           Native divider is costly in hardware. Either output duty_counts and prev_periods so the
-           downstream MCU may calculate duty itself or write a divider module.
-
-    */
-    
-    if (!rst_n) begin
-      duty <= 0;
-    end
-
-    else if(pwm_rise) begin
-
-      if(!(duty_count == 0 && prev_period == 0)) begin
-
-        duty <= (duty_count * 100)/ prev_period;
-
-      end
-
-    end
-
-    end
 
 endmodule
 
