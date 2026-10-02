@@ -12,6 +12,14 @@
 #                    the analog side is comparator output with no relation to
 #                    clk, and no submodule sees a raw pin. Each asynchronous
 #                    input is synchronised once and the result distributed.
+#
+#                    OTP, UVLO, latch_stat and the enable switch pass
+#                    through input_debounce between the synchroniser and
+#                    the supervisor. CP_trig does not: fault_arbiter's
+#                    rolling window already provides the duration filter.
+#                    PGOOD_comp does not either: pgood_gen's deassert is
+#                    immediate by design so the rail hands back before the
+#                    output collapses.
 
 # Global variables: None
 
@@ -31,13 +39,14 @@ module pmic_top (
     input  wire logic UVLO_trig,    // input undervoltage lockout comparator
     input  wire logic latch_stat,   // SCR protection latch, read back
     input  wire logic PGOOD_comp,   // output rail comparator
-    input  wire logic en_from_switch,
+    input  wire logic en_from_switch, //Hardware switch input, driven by user physically
 
     // ---- outputs ----
     output logic PWM_out,      // masked PWM to the LM5106 IN pin
     output logic En,           // LM5106 enable driven by the supervisor FSM
     output logic PGOOD,        // supply changeover and telemetry
-    output logic latch_out     // CPLD-driven trip into the shared latch
+    output logic latch_out,    // CPLD-driven trip into the shared latch
+    output logic switch_supply // NPN drive for the housekeeping rail changeover
 );
 
     import pmic_types_pkg::*;
@@ -45,6 +54,10 @@ module pmic_top (
     // ---- reset synchronization----
     logic rst_n;
     reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));
+
+    // --- switch supply from HV LDO to buck for housekeeping
+
+   
 
     // ---- synchronised copies of the asynchronous inputs ----
     logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
@@ -64,6 +77,27 @@ module pmic_top (
     //input_sync u_i2c_enable_sync (.clk(clk), .rst_n(rst_n), .async_in(i2c_enable), .sync_out(i2c_enable_sync));
     input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
 
+    //-- debounced inputs--//
+     logic en_from_switch_sync_db;
+     logic OTP_sync_db;
+     logic UVLO_sync_db;
+     logic latch_stat_sync_db;
+
+    // ============================================================
+    // Input debouncers
+    // ============================================================
+
+    input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),
+                     .RELEASE_CLKS(ms_to_clks(20)),
+                     .RESET_VALUE (1'b0))
+    u_en_from_switch_db (.clk(clk), .rst_n(rst_n),
+                             .flag_in(en_from_switch_sync),
+                             .flag_out(en_from_switch_sync_db));
+    input_debounce u_otp_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));
+    input_debounce u_uvlo_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));
+    input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));
+
+
     // ---- inter-module signals ----
 
     logic ss_active, run_active, hiccup_active, hiccup_done, SS_done;
@@ -79,14 +113,14 @@ module pmic_top (
     supervisor u_supervisor ( .clk(clk),
                             .SS_done(SS_done),
                             .rst_n(rst_n),
-                            .en_SW(en_from_switch_sync),
+                            .en_SW(en_from_switch_sync_db),
                             .i2c_enable(i2c_enable_sync),
-                            .latch_state(latch_stat_sync),
-                            .OTP(OTP_sync),
+                            .latch_state(latch_stat_sync_db),
+                            .OTP(OTP_sync_db),
                             .window_trip_SS(window_trip_SS),
                             .window_trip(window_trip),
                             .latch_assert(latch_out),
-                            .UVLO(UVLO_sync),
+                            .UVLO(UVLO_sync_db),
                             .hiccup_done(hiccup_done),
                             .en(En),
                             .ss_active(ss_active),
@@ -151,6 +185,26 @@ module pmic_top (
                             .run_active(run_active),
                             .PGOOD(PGOOD)
                             );
+
+     /*
+    switch_supply carries the same value as PGOOD but is a separate pin
+    because the two have different electrical jobs. PGOOD is telemetry,
+    driven into a high-impedance input. switch_supply sources base current
+    into the NPN that pulls the P-FET gate down, so it carries real
+    current and is the pin whose drive strength and series resistor
+    matter. Keeping them separate also keeps the changeover's switching
+    noise off the telemetry net.
+
+    The deassert is immediate, inherited from pgood_gen. No delay is added
+    here because the supervisor cannot observe how far the rail has
+    actually sagged - PGOOD_comp is a window comparator and reports only
+    in or out, so a droop and a collapse are indistinguishable. Handing
+    back at the first sign is the only assumption that is safe in both
+    cases, and it hands back while the buck output is still above the HV
+    LDO setpoint, so the node is carried by the body diode until the
+    Schottky picks up rather than waiting on the LDO loop.
+    */
+    assign switch_supply = PGOOD;
 
 
     /*

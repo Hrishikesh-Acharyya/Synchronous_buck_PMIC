@@ -167,6 +167,20 @@ package pmic_types_pkg;
     localparam int PGOOD_DELAY_W      = $clog2(PGOOD_DELAY_CYCLES + 1);
 
 
+
+    // ============================================================
+    // Debounce parameters
+    // ============================================================
+
+    // DEBOUNCE_ASSERT_CLKS: clocks a flag must hold high continuously
+    //                       before the debounced output asserts
+    localparam int DEBOUNCE_ASSERT_CLKS  = ms_to_clks(1);
+    // DEBOUNCE_RELEASE_CLKS: clocks a flag must hold low continuously
+    //                        before the debounced output releases
+    localparam int DEBOUNCE_RELEASE_CLKS = ms_to_clks(1) / 5;   // 200 us
+
+
+
     // ============================================================
     // Supervisor FSM states
     // ============================================================

@@ -20,7 +20,7 @@ RECTANGLE Normal 142 126 -222 -158
 TEXT -119 -16 Left 2 CPLD supervisor
 TEXT -32 112 VLeft 1 En_Switch
 TEXT 0 112 VLeft 1 PGOOD
-TEXT 128 80 Right 1 Clk_Ext
+TEXT 128 80 Right 1 Clk
 TEXT 128 -48 Right 1 Osc_in
 TEXT -208 -96 Left 1 CP_trig
 TEXT -208 -48 Left 1 OVP_trig
