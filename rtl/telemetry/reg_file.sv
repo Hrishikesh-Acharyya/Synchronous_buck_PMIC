@@ -356,9 +356,9 @@ module reg_file
       // firmware can tell "armed" from "disabled".
 
       ADDR_CONTROL      : rdata = {6'b0, disable_armed, spi_enable};
-      ADDR_WRITE_KEY    : rdata = {7'B0, unlock_armed};
+      ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
       ADDR_LOG_INDEX    : rdata = 8'(log_index);
-      ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed}
+      ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
 
 
       // ---- threshold readback: what is IN EFFECT, post-clamp ----
@@ -435,77 +435,77 @@ module reg_file
           ADDR_TRIP_RUN: begin
 
             temp_trip_run <= wdata;
-            temp_dirty[0] <= 1'b1
+            temp_dirty[0] <= 1'b1;
 
           end
 
           ADDR_TRIP_SS: begin
 
             temp_trip_ss <= wdata;
-            temp_dirty[1] <= 1'b1
+            temp_dirty[1] <= 1'b1;
 
           end
 
           ADDR_MAX_STRIKES: begin
 
             temp_max_strk <= wdata;
-            temp_dirty[2] <= 1'b1
+            temp_dirty[2] <= 1'b1;
 
           end
 
           ADDR_MAX_ON: begin
 
             temp_max_on <= wdata;
-            temp_dirty[3] <= 1'b1
+            temp_dirty[3] <= 1'b1;
 
           end
 
           ADDR_HICCUP_0: begin
 
             temp_hiccup_0 <= wdata;
-            temp_dirty[4] <= 1'b1
+            temp_dirty[4] <= 1'b1;
 
           end
 
           ADDR_HICCUP_1: begin
 
             temp_hiccup_1 <= wdata;
-            temp_dirty[5] <= 1'b1
+            temp_dirty[5] <= 1'b1;
 
           end
 
           ADDR_HICCUP_2: begin
 
             temp_hiccup_2 <= wdata;
-            temp_dirty[6] <= 1'b1
+            temp_dirty[6] <= 1'b1;
 
           end
 
           ADDR_CYC_PER_STEP: begin
 
             temp_cyc_step <= wdata;
-            temp_dirty[7] <= 1'b1
+            temp_dirty[7] <= 1'b1;
 
           end
 
           ADDR_CLEAN_RUN_0: begin
 
             temp_clean_0 <= wdata;
-            temp_dirty[8] <= 1'b1
+            temp_dirty[8] <= 1'b1;
 
           end
 
           ADDR_CLEAN_RUN_1: begin
 
             temp_clean_1 <= wdata;
-            temp_dirty[9] <= 1'b1
+            temp_dirty[9] <= 1'b1;
 
           end
 
           ADDR_CLEAN_RUN_2: begin
 
             temp_clean_2 <= wdata;
-            temp_dirty[10] <= 1'b1
+            temp_dirty[10] <= 1'b1;
 
           end
 
