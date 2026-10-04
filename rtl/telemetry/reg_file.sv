@@ -311,7 +311,7 @@ module reg_file
 
 
     // ==================================================================
-    // BLOCK 1 - read multiplexer
+    // read multiplexer
     // ==================================================================
     always_comb begin
     /*
@@ -395,7 +395,7 @@ module reg_file
 
 
     // ==================================================================
-    // BLOCK 2 - write temp accumulation
+    // write temp accumulation
     // ==================================================================
     always_ff @(posedge clk or negedge rst_n) begin
 
@@ -548,7 +548,7 @@ module reg_file
     always_comb off_ok = (sup_state == S_OFF);
 
     // ==================================================================
-    // BLOCK 3 - commit and clamp
+    // commit and clamp
     // ==================================================================
     always_ff @(posedge clk or negedge rst_n) begin
     /*
@@ -638,7 +638,7 @@ module reg_file
 
 
     // ==================================================================
-    // BLOCK 4 - control register, keys and arm expiry
+    // control register, keys and arm expiry
     // ==================================================================
     always_ff @(posedge clk or negedge rst_n) begin
     /*

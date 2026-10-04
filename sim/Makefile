@@ -28,6 +28,7 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
        ../rtl/status/pgood_gen.sv \
 			 ../rtl/telemetry/pwm_stats.sv \
 			 ../rtl/telemetry/reg_file.sv \
+			 ../rtl/telemetry/spi_slave.sv \
        ../rtl/supervisor.sv \
        ../rtl/pmic_top.sv
 
