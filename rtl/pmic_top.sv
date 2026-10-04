@@ -32,6 +32,11 @@ module pmic_top (
     input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
     input  wire logic rst_n_pin,    // asynchronous external reset, active low
 
+    //---SPI pins
+    input  wire logic SCK,
+    input  wire logic CS_n,
+    inout  wire logic SDIO,          //3 wire SPI
+
     // ---- asynchronous inputs from the analog side ----
     input  wire logic Osc_in,       // Master_PWM from the analog modulator
     input  wire logic CP_trig,      // valley-current comparator
@@ -51,27 +56,7 @@ module pmic_top (
 
     import pmic_types_pkg::*;
 
-    // ---- writable-register values ----
-    // Driven from the package defaults until reg_file lands. Each of these
-    // becomes a reg_file output; the package value then becomes that
-    // register's reset value rather than a constant.
-    //@TODO: Delete once reg_file properly exists
 
-    logic [TRIP_W-1:0]        trip_run;
-    logic [TRIP_W-1:0]        trip_ss;
-    logic [STRIKE_W-1:0]      max_strikes;
-    logic [ON_TIME_W-1:0]     max_on_limit;
-    logic [HICCUP_BASE_W-1:0] hiccup_base;
-    logic [CYC_STEP_W-1:0]    cycles_per_step;
-    logic [CLEAN_RUN_W-1:0]   clean_run_target;
-
-    assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
-    assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
-    assign max_strikes      = STRIKE_W'(MAX_STRIKES_DEFAULT);
-    assign max_on_limit     = ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
-    assign hiccup_base      = HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
-    assign cycles_per_step  = CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
-    assign clean_run_target = CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
 
     // ---- reset synchronization----
     logic rst_n;
@@ -83,8 +68,7 @@ module pmic_top (
 
     // ---- synchronised copies of the asynchronous inputs ----
     logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
-    logic spi_enable_sync;
-    assign spi_enable_sync = 1'b1; // For now, tie the SPI enable to high. This can be changed later when SPI is implemented.
+
 
     // ============================================================
     // Input synchronisers
@@ -97,6 +81,36 @@ module pmic_top (
     input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync (.clk(clk), .rst_n(rst_n), .async_in(latch_stat), .sync_out(latch_stat_sync));
     input_sync u_pgood_comp_sync(.clk(clk), .rst_n(rst_n), .async_in(PGOOD_comp), .sync_out(PGOOD_comp_sync));
     input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
+    
+
+    // ---- SPI bus, synchronised then filtered ----
+    // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
+    //                  SDIO shifts the data relative to the clock it is sampled
+    //                  against, which is worse than no filtering at all.
+    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
+
+    logic sck_sync,  cs_n_sync,  sdio_sync;
+    logic sck_filt,  cs_n_filt,  sdio_filt;
+
+    // ============================================================
+    // SPI bus conditioning
+    // ============================================================
+    // Reset values are each line's IDLE level: CS idles high, Mode 0 SCK idles low,
+    // SDIO idles released and reads low through the pull-down. Resetting to the wrong
+    // level manufactures an edge on the first clock after reset.
+
+    
+
+    input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
+    input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
+    input_sync                      u_sdio_sync (.clk(clk), .rst_n(rst_n), .async_in(SDIO), .sync_out(sdio_sync));
+
+    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_sck_filt  (.clk(clk), .rst_n(rst_n), .raw_in(sck_sync),  .filt_out(sck_filt));
+    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
+        u_cs_filt   (.clk(clk), .rst_n(rst_n), .raw_in(cs_n_sync), .filt_out(cs_n_filt));
+    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_sdio_filt (.clk(clk), .rst_n(rst_n), .raw_in(sdio_sync), .filt_out(sdio_filt));
 
     //-- debounced inputs--//
      logic en_from_switch_sync_db;
@@ -125,15 +139,40 @@ module pmic_top (
     logic window_trip, window_trip_SS;
     logic [STRIKE_W-1:0]strike_level;
     logic [ON_TIME_W-1:0] max_on_counts;
+    logic [CNT_W-1:0] duty_count;
+    logic [CNT_W-1:0] prev_period;
 
-    /* verilator lint_off UNUSEDSIGNAL */
-    // Driven here, consumed by reg_file. Unused until that module lands.
+    
+    // Driven here, consumed by reg_file. 
     state_t sup_state;
     logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
     logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss;
     logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
-    /* verilator lint_on UNUSEDSIGNAL */
     
+
+   
+
+    // ---- host access port between spi_slave and reg_file ----
+    logic [6:0] spi_addr;
+    logic       spi_wr_en;
+    logic [7:0] spi_wdata;
+    logic [7:0] spi_rdata;
+    logic       spi_rd_first;
+    logic       spi_integrity_ok;
+    logic       spi_abort;
+    logic       sdio_out, sdio_oe;
+
+
+    // ---- reg_file control outputs ----
+    logic                     spi_enable;
+    logic [TRIP_W-1:0]        trip_run;
+    logic [TRIP_W-1:0]        trip_ss;
+    logic [STRIKE_W-1:0]      max_strikes;
+    logic [ON_TIME_W-1:0]     max_on_limit;
+    logic [HICCUP_BASE_W-1:0] hiccup_base;
+    logic [CYC_STEP_W-1:0]    cycles_per_step;
+    logic [CLEAN_RUN_W-1:0]   clean_run_target;
+
     logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -167,7 +206,7 @@ module pmic_top (
                             .SS_done(SS_done),
                             .rst_n(rst_n),
                             .en_SW(en_from_switch_sync_db),
-                            .spi_enable(spi_enable_sync),
+                            .spi_enable(spi_enable),
                             .latch_state(latch_stat_sync_db),
                             .OTP(OTP_sync_db),
                             .window_trip_SS(window_trip_SS),
@@ -238,6 +277,78 @@ module pmic_top (
                             );
 
     // ============================================================
+    // Host interface
+    // ============================================================
+    /*
+    The SDIO tri-state lives HERE and nowhere else, so Verilator, ModelSim and the
+    hardware all see the same behaviour. spi_slave exposes sdio_out and sdio_oe and
+    never touches a bidirectional net itself.
+    */
+    assign SDIO = sdio_oe ? sdio_out : 1'bz;
+
+    spi_slave u_spi_slave ( .clk(clk),
+                            .rst_n(rst_n),
+                            .sck(sck_filt),
+                            .cs_n(cs_n_filt),
+                            .sdio_in(sdio_filt),
+                            .sdio_out(sdio_out),
+                            .sdio_oe(sdio_oe),
+                            .addr(spi_addr),
+                            .wr_en(spi_wr_en),
+                            .wdata(spi_wdata),
+                            .rdata(spi_rdata),
+                            .rd_first(spi_rd_first),
+                            .integrity_ok(spi_integrity_ok),
+                            .abort(spi_abort)
+                            );
+
+    reg_file u_reg_file ( .clk(clk),
+                          .rst_n(rst_n),
+
+                          // host access port
+                          .addr(spi_addr),
+                          .wr_en(spi_wr_en),
+                          .wdata(spi_wdata),
+                          .rdata(spi_rdata),
+                          .rd_first(spi_rd_first),
+                          .integrity_OK(spi_integrity_ok),
+                          .abort(spi_abort),
+
+                          // status in - debounced copies, so telemetry matches what
+                          // the supervisor is actually acting on
+                          .sup_state(sup_state),
+                          .pgood(PGOOD),
+                          .latch_state(latch_stat_sync_db),
+                          .en_switch(en_from_switch_sync_db),
+                          .en_switch_rise(en_switch_rise),
+                          .cp_state(CP_sync),
+                          .otp_state(OTP_sync_db),
+                          .uvlo_state(UVLO_sync_db),
+                          .strike_level(strike_level),
+                          .duty_count(duty_count),          
+                          .prev_period(prev_period),         
+                          .fault_count_run(fault_count_run),
+                          .fault_count_ss(fault_count_ss),
+
+                          // @TODO not built - CAPABILITY_VAL reports them absent
+                          .peak_fault_run('0),
+                          .cycle_count('0),
+                          .bus_err_count('0),
+                          .log_entry('0),
+                          .log_index(),
+
+                          // control out
+                          .spi_enable(spi_enable),
+                          .trip_run(trip_run),
+                          .trip_ss(trip_ss),
+                          .max_strikes(max_strikes),
+                          .max_on_limit(max_on_limit),
+                          .hiccup_base(hiccup_base),
+                          .cycles_per_step(cycles_per_step),
+                          .clean_run_target(clean_run_target)
+                          );
+
+    // ============================================================
     // Status
     // ============================================================
 
@@ -247,6 +358,19 @@ module pmic_top (
                             .pgood_comp(PGOOD_comp_sync),
                             .run_active(run_active),
                             .PGOOD(PGOOD)
+                            );
+
+        /*
+    Telemetry only. pwm_stats drives no control path and takes no part in any
+    protection timing, so it runs unconditionally from the synchronised PWM rather
+    than being gated on any supervisor state - duty and period are as interesting
+    during a fault as during normal running.
+    */
+    pwm_stats u_pwm_stats ( .clk(clk),
+                            .rst_n(rst_n),
+                            .pwm_sync(Osc_sync),
+                            .duty_count(duty_count),
+                            .prev_period(prev_period)
                             );
 
      /*

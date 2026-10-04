@@ -111,7 +111,7 @@ module reg_file
      // hiccup_base: strike-level-0 cool-down in clk counts, not milliseconds
     output logic [HICCUP_BASE_W-1:0] hiccup_base,
     // cycles_per_step: switching cycles per soft-start ramp step
-    output logic [CYC_PER_STEP_W-1:0]               cycles_per_step,
+    output logic [CYC_STEP_W-1:0]               cycles_per_step,
     // clean_run_target: fault-free switching cycles in S_RUN that clear the
     //                   strike count
     output logic [CLEAN_RUN_W-1:0]   clean_run_target  
@@ -284,7 +284,7 @@ module reg_file
        function automatic logic [CYC_STEP_W-1:0] clamp_cyc_step (input logic [7:0] input_cyc_step);
 
         if      (input_cyc_step < 8'd1)                       clamp_cyc_step = CYC_STEP_W'(1);
-        else if (input_cyc_step > 8'(CYCL_PER_STEP_MAX))    clamp_cyc_step = CYC_STEP_W'(CYCLES_PER_STEP_MAX);
+        else if (input_cyc_step > 8'(CYCLES_PER_STEP_MAX))    clamp_cyc_step = CYC_STEP_W'(CYCLES_PER_STEP_MAX);
         else                                                  clamp_cyc_step = input_cyc_step[CYC_STEP_W-1:0];
        endfunction
 
