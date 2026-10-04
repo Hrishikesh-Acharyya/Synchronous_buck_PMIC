@@ -19,8 +19,8 @@
 
 module strike_counter #(
   
-    // MAX_STRIKES: hiccup retries permitted before the latch is asserted
-    parameter int MAX_STRIKES = pmic_types_pkg::MAX_STRIKES,
+    
+
     // CLEAN_RUN_W: fault-free switching cycle counter width;
     parameter int CLEAN_RUN_W = pmic_types_pkg::CLEAN_RUN_W, 
     // STRIKE_W: width of the strike level bus, must match hiccup_timer    
@@ -33,6 +33,8 @@ module strike_counter #(
     input  wire logic                hiccup_active, // high only while the supervisor is in S_HICCUP
     input  wire logic                run_active,    // high only while the supervisor is in S_RUN
     input  wire logic                window_trip,   // running fault window exceeded
+    input  wire logic [STRIKE_W-1:0]    max_strikes, // MAX_STRIKES: hiccup retries permitted before the latch is asserted
+    input  wire logic [CLEAN_RUN_W-1:0] clean_run_target, //How many cycles no strikes
     output logic [STRIKE_W-1:0] strike_level,  // strikes accumulated, sets the cool-down
     output logic                latch_assert   // MAX_STRIKES reached, trip the latch
 );
@@ -115,10 +117,10 @@ module strike_counter #(
     else if (hiccup_entry) begin
       strike_level <= strike_level + 1;
 
-    if (strike_level == MAX_STRIKES-1) latch_assert <= 1'b1;
+    if (strike_level == max_strikes - 1'b1) latch_assert <= 1'b1;
     end
 
-    else if (clean_counter == 2**CLEAN_RUN_W-1) begin
+    else if (clean_counter == clean_run_target) begin
       strike_level <= '0;
     end
 
@@ -155,7 +157,7 @@ module strike_counter #(
 
     else if(pwm_fall)
 
-      if(clean_counter == 2**CLEAN_RUN_W-1) begin
+      if(clean_counter == clean_run_target) begin
         clean_counter <= clean_counter;
       end
       else

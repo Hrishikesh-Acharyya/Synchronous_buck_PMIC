@@ -94,7 +94,7 @@ package pmic_types_pkg;
     //                   never the primary limiter in normal operation.
     localparam int DIGITAL_DUTY_PCT = 75;
     // MAX_ON_COUNTS: on-time ceiling handed to pwm_mask
-    localparam int MAX_ON_COUNTS    = duty_to_counts(DIGITAL_DUTY_PCT);
+    localparam int MAX_ON_COUNTS_DEFAULT    = duty_to_counts(DIGITAL_DUTY_PCT);
     // MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
     //                the driver shrinkage before any of it reaches the gate,
     //                so the floor is the sum of the two figures above - about
@@ -102,28 +102,46 @@ package pmic_types_pkg;
     localparam int MIN_ON_COUNTS    = ns_to_clks(LM5106_SHRINK_NS + MIN_GATE_ON_NS);
     // ON_TIME_W: width of the on-time ceiling bus, shared by soft_start and
     //            pwm_mask. Sized to hold MAX_ON_COUNTS, hence the +1.
-    localparam int ON_TIME_W        = $clog2(MAX_ON_COUNTS + 1);
+    localparam int ON_TIME_W        = $clog2(MAX_ON_COUNTS_DEFAULT + 1);
 
 
     // ============================================================
     // Hiccup and strikes
     // ============================================================
-    // MAX_STRIKES: hiccup retries permitted before latch_assert
-    localparam int MAX_STRIKES      = 3;
+
+    // MAX_STRIKES_DEFAULT: hiccup retries permitted before latch_assert, and
+    //                      the reset value of the writable max_strikes
+    //                      register. Writable DOWNWARD ONLY: raising it would
+    //                      allow more retries into a persistent fault, and
+    //                      would also widen STRIKE_W and HICCUP_TIMER_W, so
+    //                      reg_file saturates upward writes at this value.
+    localparam int MAX_STRIKES_DEFAULT      = 3;
     // STRIKE_W: width of the strike level bus, shared by strike_counter and
     //           hiccup_timer
-    localparam int STRIKE_W         = $clog2(MAX_STRIKES + 1);
-    // HICCUP_BASE_MS: cool-down for strike level 0. Each strike doubles it,
-    //                 so the sequence is 5 / 10 / 20 ms.
+    localparam int STRIKE_W         = $clog2(MAX_STRIKES_DEFAULT + 1);
+     // HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
+    //                 host-writable hiccup_base register. Each strike doubles
+    //                 it, so the default sequence is 5 / 10 / 20 ms.
     localparam int HICCUP_BASE_MS   = 5;
-    // HICCUP_BASE_CLKS: the same interval in clk counts. Clocks, not
+    // HICCUP_BASE_DEFAULT_CLKS: the same interval in clk counts. Clocks, not
     //                   switching cycles: the power stage is off throughout
     //                   S_HICCUP, so there is no PWM to count.
-    localparam int HICCUP_BASE_CLKS = ms_to_clks(HICCUP_BASE_MS);
-    // HICCUP_TIMER_W: width of the cool-down counter, sized for the longest
-    //                 interval actually used - a shift by MAX_STRIKES-1, not
-    //                 by the full range STRIKE_W permits.
-    localparam int HICCUP_TIMER_W   = $clog2((HICCUP_BASE_CLKS << (MAX_STRIKES-1)) + 1);
+    localparam int HICCUP_BASE_DEFAULT_CLKS = ms_to_clks(HICCUP_BASE_MS);
+    // HICCUP_BASE_MIN_CLKS / HICCUP_BASE_MAX_CLKS: the range proved safe at
+    //                   design time. reg_file saturates host writes into this
+    //                   range rather than rejecting them, so no firmware bug
+    //                   can place the cool-down outside it.
+    localparam int HICCUP_BASE_MIN_CLKS = ms_to_clks(1);
+    localparam int HICCUP_BASE_MAX_CLKS = ms_to_clks(20);
+    // HICCUP_BASE_W: width of the writable base register. Sized for the
+    //                largest LEGAL base, not the default.
+    localparam int HICCUP_BASE_W    = $clog2(HICCUP_BASE_MAX_CLKS + 1);
+    // HICCUP_TIMER_W: width of the cool-down counter. Sized for the longest
+    //                 interval the host can command - HICCUP_BASE_MAX_CLKS
+    //                 shifted by MAX_STRIKES_DEFAULT-1, not the default base.
+    //                 Sizing this from the default would let a legal host
+    //                 write overflow the counter and end the cool-down early.
+    localparam int HICCUP_TIMER_W   = $clog2((HICCUP_BASE_MAX_CLKS << (MAX_STRIKES_DEFAULT-1)) + 1);
 
 
     // ============================================================
@@ -136,20 +154,32 @@ package pmic_types_pkg;
     // WINDOW_RUN / TRIP_RUN: trailing switching cycles examined in S_RUN,
     //                        and the faulted count that trips window_trip
     localparam int WINDOW_RUN       = 16;
-    localparam int TRIP_RUN         = 12;
+    localparam int TRIP_RUN_DEFAULT         = 12;
     // WINDOW_SS / TRIP_SS: the same for S_SS, more tolerant
     localparam int WINDOW_SS        = 32;
-    localparam int TRIP_SS          = 28;
+    localparam int TRIP_SS_DEFAULT         = 28;
     // CLEAN_RUN_MS: fault-free time in S_RUN that clears the strike count,
     //               so unrelated transients separated in time cannot
     //               accumulate into a permanent shutdown
     localparam int CLEAN_RUN_MS     = 1000;
-    // CLEAN_RUN_CYCLES: the same interval in switching cycles
+   
+    // CLEAN_RUN_CYCLES: the same interval in switching cycles, and the reset
+    //                   default of the writable clean_run_target register
     localparam int CLEAN_RUN_CYCLES = ms_to_sw_cycles(CLEAN_RUN_MS);
-    // CLEAN_RUN_W: width of the clean-run counter. It saturates at all-ones
-    //              rather than at CLEAN_RUN_CYCLES, so the realised interval
-    //              is 2**CLEAN_RUN_W cycles - about 1.17 s.
+    // CLEAN_RUN_MIN_CYCLES: floor for host writes
+    localparam int CLEAN_RUN_MIN_CYCLES = ms_to_sw_cycles(100);
+    // CLEAN_RUN_W: width of the clean-run counter and of the writable target.
+    //              strike_counter now compares against clean_run_target rather
+    //              than saturating at all-ones, so the realised interval is
+    //              the value written, not 2**CLEAN_RUN_W. At the default this
+    //              is 1.000 s, where the saturating version gave 1.165 s.
     localparam int CLEAN_RUN_W      = $clog2(CLEAN_RUN_CYCLES + 1);
+
+    // TRIP_W: width of the fault-window trip thresholds, now that both are
+    //         host-writable registers rather than parameters. Sized from
+    //         WINDOW_SS, the deeper of the two windows, so one width serves
+    //         both and neither can be truncated by a call-site override.
+    localparam int TRIP_W           = $clog2(WINDOW_SS + 1);
 
 
     // ============================================================
@@ -179,7 +209,24 @@ package pmic_types_pkg;
     //                        before the debounced output releases
     localparam int DEBOUNCE_RELEASE_CLKS = ms_to_clks(1) / 5;   // 200 us
 
+    
+    // ============================================================
+    // PWM_STATS
+    // ============================================================
 
+    // CNT_W: width of a counter that must hold one full switching period in clk counts
+    localparam int CNT_W = $clog2(CLKS_PER_SW + 1) + 1;
+
+
+    // CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
+    //                          the reset value of the writable register
+    localparam int CYCLES_PER_STEP_DEFAULT = 16;
+    // CYCLES_PER_STEP_MAX: ceiling for host writes. cycle_counter in soft_start
+    //                      must be sized for the largest legal value, not the
+    //                      default, or a legal write would truncate it.
+    localparam int CYCLES_PER_STEP_MAX = 64;
+    // CYC_STEP_W: width of the writable register and of soft_start's counter
+    localparam int CYC_STEP_W          = $clog2(CYCLES_PER_STEP_MAX + 1);
 
     // ============================================================
     // Supervisor FSM states

@@ -1,4 +1,5 @@
-module supervisor (input  logic clk,
+module supervisor  import pmic_types_pkg::*;
+                   (input  logic clk,
                    input  wire logic SS_done,
                    input  wire logic rst_n,
                    input  wire logic latch_state,
@@ -9,19 +10,20 @@ module supervisor (input  logic clk,
                    input  wire logic UVLO,
                    input  wire logic hiccup_done,
                    input  wire logic en_SW,
-                   input  wire logic i2c_enable,
+                   input  wire logic spi_enable,
                    output logic en,
                    output logic ss_active,
                    output logic run_active,
-                   output logic hiccup_active);
+                   output logic hiccup_active,
+                   output state_t state_out);
   
-  import pmic_types_pkg::*;
+
   
   logic en_from_state;
   state_t state, next_state;
-  //The enabled derived via i2c signal from MCU and the physical on/off switch. 
+  //The enabled derived via spi signal from MCU and the physical on/off switch. 
   logic g_en;
-  assign g_en = i2c_enable & en_SW;
+  assign g_en = spi_enable & en_SW;
   
   always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n)
@@ -139,6 +141,8 @@ always_comb hiccup_active = (state == S_HICCUP);
 
 always_comb
     en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
+
+always_comb state_out = state; 
       
               
         

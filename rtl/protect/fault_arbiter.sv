@@ -23,12 +23,12 @@ module fault_arbiter #(
     
     // WINDOW_RUN: trailing switching cycles examined while in S_RUN
     parameter int WINDOW_RUN = pmic_types_pkg::WINDOW_RUN,
-    // TRIP_RUN: faulted cycles within WINDOW_RUN that assert window_trip
-    parameter int TRIP_RUN   = pmic_types_pkg::TRIP_RUN,
+  
+   
     // WINDOW_SS: trailing switching cycles examined while in S_SS
     parameter int WINDOW_SS  = pmic_types_pkg::WINDOW_SS,
-    // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
-    parameter int TRIP_SS    = pmic_types_pkg::TRIP_SS,
+   
+   
 
     // BLANK_CLKS: clocks of lookback applied to cp_sync, so the sample
     //             taken at pwm_rise reads the comparator as it was before
@@ -44,8 +44,12 @@ module fault_arbiter #(
     input  wire logic cp_sync,         // synchronised current-protection flag (CP_trig)
     input  wire logic ss_active,       // high only while the supervisor is in S_SS
     input  wire logic run_active,      // high only while the supervisor is in S_RUN
+    input wire logic [pmic_types_pkg::TRIP_W-1:0] trip_run, // TRIP_RUN: faulted cycles within WINDOW_RUN that assert window_trip
+    input wire logic [pmic_types_pkg::TRIP_W-1:0] trip_ss,  // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
     output logic window_trip,     // fault window exceeded while running
-    output logic window_trip_SS   // fault window exceeded during soft start
+    output logic window_trip_SS,   // fault window exceeded during soft start
+    output logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run_out,   // telemetry output
+    output logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss_out    // telemetry output
 );
 
     // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle start
@@ -200,8 +204,10 @@ module fault_arbiter #(
     // Thresholds differ because elevated current during soft start is
     // expected as the output capacitor charges from zero in FCCM, whereas
     // sustained overcurrent in S_RUN is a genuine load fault.
-    always_comb window_trip = fault_count_run >= TRIP_RUN;
-    always_comb window_trip_SS = fault_count_ss>=TRIP_SS;
+    always_comb window_trip = fault_count_run >= trip_run;
+    always_comb window_trip_SS = fault_count_ss>= trip_ss;
+    always_comb fault_count_run_out = fault_count_run;
+    always_comb fault_count_ss_out = fault_count_ss;
 
 endmodule
 

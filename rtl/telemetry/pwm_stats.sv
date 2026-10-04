@@ -43,7 +43,7 @@ module pwm_stats #(
 //        Derives base value from the nominal duty count defined in pmic_packages + 1 bit extra
 //        to account for oscillator drift
 //        @TODO: Check if extra bit required or not
-parameter int CNT_W = $clog2(pmic_types_pkg::CLKS_PER_SW + 1)+ 1
+parameter int CNT_W = pmic_types_pkg::CNT_W
 
 ) (input  wire logic clk,
                   input  wire logic rst_n,

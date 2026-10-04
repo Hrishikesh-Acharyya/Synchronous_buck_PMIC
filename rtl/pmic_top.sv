@@ -51,6 +51,28 @@ module pmic_top (
 
     import pmic_types_pkg::*;
 
+    // ---- writable-register values ----
+    // Driven from the package defaults until reg_file lands. Each of these
+    // becomes a reg_file output; the package value then becomes that
+    // register's reset value rather than a constant.
+    //@TODO: Delete once reg_file properly exists
+
+    logic [TRIP_W-1:0]        trip_run;
+    logic [TRIP_W-1:0]        trip_ss;
+    logic [STRIKE_W-1:0]      max_strikes;
+    logic [ON_TIME_W-1:0]     max_on_limit;
+    logic [HICCUP_BASE_W-1:0] hiccup_base;
+    logic [CYC_STEP_W-1:0]    cycles_per_step;
+    logic [CLEAN_RUN_W-1:0]   clean_run_target;
+
+    assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
+    assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
+    assign max_strikes      = STRIKE_W'(MAX_STRIKES_DEFAULT);
+    assign max_on_limit     = ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
+    assign hiccup_base      = HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
+    assign cycles_per_step  = CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
+    assign clean_run_target = CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
+
     // ---- reset synchronization----
     logic rst_n;
     reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));
@@ -61,8 +83,8 @@ module pmic_top (
 
     // ---- synchronised copies of the asynchronous inputs ----
     logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
-    logic i2c_enable_sync;
-    assign i2c_enable_sync = 1'b1; // For now, tie the I2C enable to high. This can be changed later when I2C is implemented.
+    logic spi_enable_sync;
+    assign spi_enable_sync = 1'b1; // For now, tie the SPI enable to high. This can be changed later when SPI is implemented.
 
     // ============================================================
     // Input synchronisers
@@ -74,7 +96,6 @@ module pmic_top (
     input_sync #(.RESET_VALUE(1'b1)) u_uvlo_sync (.clk(clk), .rst_n(rst_n), .async_in(UVLO_trig), .sync_out(UVLO_sync));
     input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync (.clk(clk), .rst_n(rst_n), .async_in(latch_stat), .sync_out(latch_stat_sync));
     input_sync u_pgood_comp_sync(.clk(clk), .rst_n(rst_n), .async_in(PGOOD_comp), .sync_out(PGOOD_comp_sync));
-    //input_sync u_i2c_enable_sync (.clk(clk), .rst_n(rst_n), .async_in(i2c_enable), .sync_out(i2c_enable_sync));
     input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
 
     //-- debounced inputs--//
@@ -104,8 +125,40 @@ module pmic_top (
     logic window_trip, window_trip_SS;
     logic [STRIKE_W-1:0]strike_level;
     logic [ON_TIME_W-1:0] max_on_counts;
- 
- 
+
+    /* verilator lint_off UNUSEDSIGNAL */
+    // Driven here, consumed by reg_file. Unused until that module lands.
+    state_t sup_state;
+    logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
+    logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss;
+    logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
+    /* verilator lint_on UNUSEDSIGNAL */
+    
+    logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        /*
+        Purpose: Stores delayed copy of en_from_switch_sync_db for edge detection
+        
+        */
+        if(!rst_n)begin
+            en_from_switch_sync_db_d <= 0;
+        end
+
+        else
+            en_from_switch_sync_db_d <= en_from_switch_sync_db;
+
+    end
+
+    always_comb begin
+
+        /*
+        Purpose: Edge detection on the physical enable switch signal synced and debounced
+        */
+
+        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
+
+    end
     // ============================================================
     // Supervisor FSM
     // ============================================================
@@ -114,7 +167,7 @@ module pmic_top (
                             .SS_done(SS_done),
                             .rst_n(rst_n),
                             .en_SW(en_from_switch_sync_db),
-                            .i2c_enable(i2c_enable_sync),
+                            .spi_enable(spi_enable_sync),
                             .latch_state(latch_stat_sync_db),
                             .OTP(OTP_sync_db),
                             .window_trip_SS(window_trip_SS),
@@ -125,7 +178,8 @@ module pmic_top (
                             .en(En),
                             .ss_active(ss_active),
                             .run_active(run_active),
-                            .hiccup_active(hiccup_active)
+                            .hiccup_active(hiccup_active),
+                            .state_out(sup_state)
                             );
 
 
@@ -135,6 +189,10 @@ module pmic_top (
     // 
     fault_arbiter u_fault_arbiter ( .clk(clk),
                                     .rst_n(rst_n),
+                                    .trip_run(trip_run),
+                                    .trip_ss(trip_ss),
+                                    .fault_count_run_out(fault_count_run),
+                                    .fault_count_ss_out(fault_count_ss),
                                     .pwm_sync(Osc_sync),
                                     .cp_sync(CP_sync),
                                     .ss_active(ss_active),
@@ -144,6 +202,7 @@ module pmic_top (
                                     );
     hiccup_timer u_hiccup_timer ( .clk(clk),
                                     .rst_n(rst_n),
+                                    .base_clks(hiccup_base),
                                     .hiccup_active(hiccup_active),
                                     .strike_level(strike_level),
                                     .hiccup_done(hiccup_done)
@@ -151,6 +210,8 @@ module pmic_top (
     
     strike_counter u_strike_counter ( .clk(clk),
                                     .rst_n(rst_n),
+                                    .max_strikes(max_strikes),
+                                    .clean_run_target(clean_run_target),
                                     .pwm_sync(Osc_sync),
                                     .hiccup_active(hiccup_active),
                                     .run_active(run_active),
@@ -164,6 +225,8 @@ module pmic_top (
                                     .ss_active(ss_active),
                                     .run_active(run_active),
                                     .max_on_counts(max_on_counts),
+                                    .max_on_limit(max_on_limit),
+                                    .cycles_per_step(cycles_per_step),
                                     .SS_done(SS_done)
                                     );
 

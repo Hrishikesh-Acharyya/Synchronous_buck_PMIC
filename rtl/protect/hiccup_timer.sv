@@ -17,8 +17,6 @@
 
 module hiccup_timer #(
 
-    // BASE_CLKS: cool-down for strike level 0
-    parameter int BASE_CLKS = pmic_types_pkg::HICCUP_BASE_CLKS,
     // STRIKE_W: width of the strike level input
     parameter int STRIKE_W  = pmic_types_pkg::STRIKE_W,
     // TIMER_W: width of the cool-down counter, sized for the longest interval
@@ -29,6 +27,7 @@ module hiccup_timer #(
     input   wire logic                rst_n,
     input   wire logic                hiccup_active,  // high only while the supervisor is in S_HICCUP
     input   wire logic [STRIKE_W-1:0] strike_level,   // strikes accumulated so far
+    input wire logic [pmic_types_pkg::HICCUP_BASE_W-1:0] base_clks,  // base_clks: cool-down for strike level 0
     output  logic                hiccup_done     // cool-down interval has elapsed
 );
 
@@ -53,7 +52,7 @@ module hiccup_timer #(
     the target only ever grows, so the counter can never step past it.
     */
 
-    cool_down_target = TIMER_W'(BASE_CLKS)<<strike_level;
+    cool_down_target = TIMER_W'(base_clks)<<strike_level;
     
     end
 
