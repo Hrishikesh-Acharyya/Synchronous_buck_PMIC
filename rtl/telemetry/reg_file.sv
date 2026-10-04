@@ -210,6 +210,14 @@ module reg_file
     //               TRIP_RUN must not also rewrite MAX_STRIKES from a stale temp.
     logic [10:0] temp_dirty;
 
+    // en_pending / en_pending_val: a CONTROL write records its intent here rather
+    // than changing spi_enable directly. The change applies only on integrity_OK,
+    // so a transaction whose CRC fails cannot stop a running converter. The
+    // thresholds already work this way; spi_enable is the one bit where getting it
+    // wrong costs the load its power.
+    logic en_pending;
+    logic en_pending_val;
+
 
 
     // ==================================================================
@@ -355,7 +363,7 @@ module reg_file
       // An armed-but-not-executed disable shows separately in bit 1, so
       // firmware can tell "armed" from "disabled".
 
-      ADDR_CONTROL      : rdata = {6'b0, disable_armed, spi_enable};
+      ADDR_CONTROL : rdata = {5'b0, en_pending, disable_armed, spi_enable};
       ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
       ADDR_LOG_INDEX    : rdata = 8'(log_index);
       ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
@@ -651,6 +659,8 @@ module reg_file
       log_index     <= 4'h0;
       disable_armed <= 1'b0;
       unlock_armed  <= 1'b0;
+      en_pending     <= 1'b0;
+      en_pending_val <= 1'b0;
 
     end
 
@@ -689,13 +699,15 @@ module reg_file
         ADDR_CONTROL: begin
 
           if(wdata[0]) begin
-            spi_enable <= 1;  //enabling needs no key
+            en_pending     <= 1'b1;
+            en_pending_val <= 1'b1;   // enable: no key needed, but still deferred
             disable_armed <= 0;
           end
 
           else if (disable_armed) begin
 
-            spi_enable <= 1'b0; //disable only when armed
+            en_pending     <= 1'b1;
+            en_pending_val <= 1'b0;   // disable: armed, so honoured at commit
             disable_armed <= 1'b0;
 
           end
@@ -707,12 +719,20 @@ module reg_file
       endcase
     end
 
-    if(abort||integrity_OK) begin
-        disable_armed <= 0;
-        unlock_armed <= 0;
+    // Apply a pending enable change only on a validated transaction, then clear
+    // all pending state. On abort, the pending change is discarded with it.
+    if (integrity_OK) begin
+        if (en_pending) spi_enable <= en_pending_val;
     end
 
-    if(en_switch_rise) spi_enable <= 1;
+    if (abort || integrity_OK) begin
+        disable_armed  <= 1'b0;
+        unlock_armed   <= 1'b0;
+        en_pending     <= 1'b0;
+        en_pending_val <= 1'b0;
+    end
+
+    if(en_switch_rise) spi_enable <= 1'b1;
 
     end
 
