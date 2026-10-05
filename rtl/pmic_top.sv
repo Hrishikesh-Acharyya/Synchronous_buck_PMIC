@@ -56,18 +56,19 @@ module pmic_top (
 
     import pmic_types_pkg::*;
 
-
+    // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
+    //                  SDIO shifts the data relative to the clock it is sampled
+    //                  against, which is worse than no filtering at all.
+    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
 
     // ---- reset synchronization----
     logic rst_n;
     reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));
 
-    // --- switch supply from HV LDO to buck for housekeeping
-
-   
-
     // ---- synchronised copies of the asynchronous inputs ----
     logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
+    //SPI SIGNALS
+    logic sck_sync,  cs_n_sync,  sdio_sync;
 
 
     // ============================================================
@@ -82,41 +83,25 @@ module pmic_top (
     input_sync u_pgood_comp_sync(.clk(clk), .rst_n(rst_n), .async_in(PGOOD_comp), .sync_out(PGOOD_comp_sync));
     input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
     
-
-    // ---- SPI bus, synchronised then filtered ----
-    // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
-    //                  SDIO shifts the data relative to the clock it is sampled
-    //                  against, which is worse than no filtering at all.
-    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
-
-    logic sck_sync,  cs_n_sync,  sdio_sync;
-    logic sck_filt,  cs_n_filt,  sdio_filt;
-
     // ============================================================
     // SPI bus conditioning
     // ============================================================
     // Reset values are each line's IDLE level: CS idles high, Mode 0 SCK idles low,
     // SDIO idles released and reads low through the pull-down. Resetting to the wrong
     // level manufactures an edge on the first clock after reset.
-
     
-
     input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
     input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
     input_sync                      u_sdio_sync (.clk(clk), .rst_n(rst_n), .async_in(SDIO), .sync_out(sdio_sync));
 
-    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-        u_sck_filt  (.clk(clk), .rst_n(rst_n), .raw_in(sck_sync),  .filt_out(sck_filt));
-    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
-        u_cs_filt   (.clk(clk), .rst_n(rst_n), .raw_in(cs_n_sync), .filt_out(cs_n_filt));
-    spi_filter #(.FILTER_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-        u_sdio_filt (.clk(clk), .rst_n(rst_n), .raw_in(sdio_sync), .filt_out(sdio_filt));
 
-    //-- debounced inputs--//
+    //-- debounced and filtered inputs--//
      logic en_from_switch_sync_db;
      logic OTP_sync_db;
      logic UVLO_sync_db;
      logic latch_stat_sync_db;
+     //spi signals
+     logic sck_filt,  cs_n_filt,  sdio_filt;
 
     // ============================================================
     // Input debouncers
@@ -133,6 +118,30 @@ module pmic_top (
     input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));
 
 
+    // SPI bus conditioning
+    
+    // input_debounce instanced SYMMETRIC and SHORT, which is a different regime from
+    // the fault flags it was written for. The symmetry is the critical part: spi_slave
+    // samples SDIO on an edge derived from SCK, so unequal delay between the two
+    // shifts the data relative to the clock it is sampled against. All three
+    // instances must therefore carry IDENTICAL parameters - any future retune of the
+    // fault-flag instances must not be copied here.
+    //
+    // 8 clocks is 160 ns at 50 MHz: far longer than the tens of ns a switch-node edge
+    // couples in, far shorter than the 500 ns SCK half-period at 1 MHz. Noise lasting
+    // longer than the window is not a glitch and is not this layer's job - CRC-8 in
+    // spi_slave catches it and the transaction is discarded.    
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_sck_filt  (.clk(clk), .rst_n(rst_n), .flag_in(sck_sync),  .flag_out(sck_filt));
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
+        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_sdio_filt (.clk(clk), .rst_n(rst_n), .flag_in(sdio_sync), .flag_out(sdio_filt));
+
+   
     // ---- inter-module signals ----
 
     logic ss_active, run_active, hiccup_active, hiccup_done, SS_done;
@@ -173,6 +182,7 @@ module pmic_top (
     logic [CYC_STEP_W-1:0]    cycles_per_step;
     logic [CLEAN_RUN_W-1:0]   clean_run_target;
 
+    
     logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -335,7 +345,9 @@ module pmic_top (
                           .cycle_count('0),
                           .bus_err_count('0),
                           .log_entry('0),
-                          .log_index(),
+                            /* verilator lint_off PINCONNECTEMPTY */
+                          .log_index(),      // @TODO fault log not built
+                          /* verilator lint_on PINCONNECTEMPTY */
 
                           // control out
                           .spi_enable(spi_enable),

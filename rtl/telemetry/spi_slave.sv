@@ -120,9 +120,10 @@ module spi_slave
     logic rw;
     // sck_timeout: one-clock pulse.
     logic sck_timeout;
-    // rx_shift: receive shift register. MSB first, so each new bit enters at the
-    //           bottom and the byte is complete when the first bit has reached bit 7.
-    logic [7:0] rx_shift;
+    // rx_shift: receive staging register. Seven bits, not eight - rx_byte appends
+    //           the arriving bit to complete a byte, so an eighth bit here would
+    //           shift out unused.
+    logic [6:0] rx_shift;
     // crc: running CRC-8 over every received bit. Polynomial 0x07, init 0x00, no
     //      final XOR. The host must use the same parameters - a datasheet
     //      requirement, since CRC-8 has no universal default.
@@ -133,9 +134,13 @@ module spi_slave
     logic [7:0] held_data;
     // held_valid: the delay line holds a byte not yet released
     logic       held_valid;
-     // tx_shift: transmit shift register, MSB first. Loaded from rdata, emptied one
-    //           bit per falling SCK edge.
+    /* verilator lint_off UNUSEDSIGNAL */
+    // tx_shift: transmit shift register, MSB first. Bit 7 is written on load but
+    //           never read - sdio_out takes rdata[7] on the load and tx_shift[6] on
+    //           each shift, so the top bit is always one position ahead of what is
+    //           needed. Kept 8 bits so a load is a plain byte assignment.
     logic [7:0] tx_shift;
+    /* verilator lint_on UNUSEDSIGNAL */
 
     // ==================================================================
     // BLOCK 1 - edge detection
@@ -334,7 +339,7 @@ module spi_slave
     // ==================================================================
 
     
-    always_comb rx_byte = {rx_shift[6:0], sdio_in};
+    always_comb rx_byte = {rx_shift, sdio_in};
 
     always_ff @(posedge clk or negedge rst_n) begin
     /*
@@ -361,7 +366,7 @@ module spi_slave
     exclusive by state anyway.
     */
         if (!rst_n) begin
-            rx_shift   <= 8'h00;
+            rx_shift   <= 7'h00;
             rw         <= 1'b0;
             addr       <= 7'h00;
             held_data  <= 8'h00;
@@ -374,7 +379,7 @@ module spi_slave
             wr_en <= 1'b0;                      // one-clock pulse, default low
 
             if (sck_rise) begin
-                rx_shift <= {rx_shift[6:0], sdio_in};
+                rx_shift <= {rx_shift[5:0], sdio_in};
             end
 
             if (cs_fall) begin
