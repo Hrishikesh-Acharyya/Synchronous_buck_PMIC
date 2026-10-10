@@ -81,9 +81,6 @@ module reg_file
 
     //@TODO: These telemetey are to be written as modules
 
-    // peak_fault_run: highest value fault_count_run has reached since reset; shows how
-    //                 close to TRIP_RUN the board normally runs
-    input  wire logic [4:0]          peak_fault_run,
     // cycle_count:    free-running switching-cycle count; timestamp source for the fault log
     input  wire logic [23:0]         cycle_count,
     // bus_err_count:  CRC failures, CS timeouts and misaligned transactions seen by
@@ -134,7 +131,6 @@ module reg_file
     localparam logic [6:0] ADDR_PREV_PERIOD  = 7'h14;
     localparam logic [6:0] ADDR_FCOUNT_RUN   = 7'h15;
     localparam logic [6:0] ADDR_FCOUNT_SS    = 7'h16;
-    localparam logic [6:0] ADDR_PEAK_FRUN    = 7'h17;
     localparam logic [6:0] ADDR_CYCLE_0      = 7'h18;
     localparam logic [6:0] ADDR_CYCLE_1      = 7'h19;
     localparam logic [6:0] ADDR_CYCLE_2      = 7'h1A;
@@ -172,7 +168,7 @@ module reg_file
     // image serve several build configurations - the host reads this and knows
     // not to bother with addresses whose source does not exist yet.
     //   [0] pwm_stats present     [1] fault log present
-    //   [2] thresholds writable   [3] peak fault tracking
+    //   [2] thresholds writable   [3] Reserved
     //   [4] cycle counter         [5] bus error counter
     localparam logic [7:0] CAPABILITY_VAL = 8'b0000_0101;
 
@@ -351,7 +347,6 @@ module reg_file
       ADDR_PREV_PERIOD  : rdata = (prev_period);
       ADDR_FCOUNT_RUN   : rdata = 8'(fault_count_run);
       ADDR_FCOUNT_SS    : rdata = 8'(fault_count_ss);
-      ADDR_PEAK_FRUN    : rdata = 8'(peak_fault_run);
       ADDR_CYCLE_0      : rdata = (cycle_count[7:0]);
       ADDR_CYCLE_1      : rdata = (cycle_count[15:8]);
       ADDR_CYCLE_2      : rdata = (cycle_count[23:16]);

@@ -341,7 +341,6 @@ module pmic_top (
                           .fault_count_ss(fault_count_ss),
 
                           // @TODO not built - CAPABILITY_VAL reports them absent
-                          .peak_fault_run('0),
                           .cycle_count('0),
                           .bus_err_count('0),
                           .log_entry('0),
