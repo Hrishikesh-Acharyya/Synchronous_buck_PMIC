@@ -65,7 +65,7 @@ module reg_file
     
     // sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base and
     //            cycles_per_step writes - those are only accepted in S_OFF
-    input wire state_t sup_state,
+    input state_t sup_state,
     input wire logic pgood,
     input wire logic latch_state,
     input wire logic en_switch,
@@ -249,7 +249,7 @@ module reg_file
      function automatic logic [TRIP_W-1:0] clamp_trip_ss (input logic [7:0] input_trip_ss);
 
       if      (input_trip_ss<8'd1)           clamp_trip_ss = TRIP_W'(1);
-      else if (input_trip_ss>8'(WINDOW_RUN)) clamp_trip_ss = TRIP_W'(WINDOW_SS);
+      else if (input_trip_ss>8'(WINDOW_SS)) clamp_trip_ss = TRIP_W'(WINDOW_SS);
       else                                   clamp_trip_ss = input_trip_ss[TRIP_W-1:0];
 
      endfunction

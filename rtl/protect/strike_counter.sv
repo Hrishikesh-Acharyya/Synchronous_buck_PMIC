@@ -27,16 +27,16 @@ module strike_counter #(
     parameter int STRIKE_W    = pmic_types_pkg::STRIKE_W
 
 ) (
-    input  wire logic                clk,
-    input  wire logic                rst_n,
-    input  wire logic                pwm_sync,      // synchronised raw PWM, for the cycle boundary
-    input  wire logic                hiccup_active, // high only while the supervisor is in S_HICCUP
-    input  wire logic                run_active,    // high only while the supervisor is in S_RUN
-    input  wire logic                window_trip,   // running fault window exceeded
-    input  wire logic [STRIKE_W-1:0]    max_strikes, // MAX_STRIKES: hiccup retries permitted before the latch is asserted
+    input  wire logic                   clk,
+    input  wire logic                   rst_n,
+    input  wire logic                   pwm_sync,         // synchronised raw PWM, for the cycle boundary
+    input  wire logic                   hiccup_active,    // high only while the supervisor is in S_HICCUP
+    input  wire logic                   run_active,       // high only while the supervisor is in S_RUN
+    input  wire logic                   window_trip,      // running fault window exceeded
+    input  wire logic [STRIKE_W-1:0]    max_strikes,      // MAX_STRIKES: hiccup entries permitted before latch assertion
     input  wire logic [CLEAN_RUN_W-1:0] clean_run_target, //How many cycles no strikes
-    output logic [STRIKE_W-1:0] strike_level,  // strikes accumulated, sets the cool-down
-    output logic                latch_assert   // MAX_STRIKES reached, trip the latch
+    output logic      [STRIKE_W-1:0]    strike_level,     // strikes accumulated, sets the cool-down
+    output logic                        latch_assert      // MAX_STRIKES reached, trip the latch
 );
 
     // hiccup_active_d: hiccup_active delayed one clk, to count entries not duration

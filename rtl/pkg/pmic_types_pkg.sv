@@ -119,9 +119,10 @@ package pmic_types_pkg;
     // STRIKE_W: width of the strike level bus, shared by strike_counter and
     //           hiccup_timer
     localparam int STRIKE_W         = $clog2(MAX_STRIKES_DEFAULT + 1);
-     // HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
+    // HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
     //                 host-writable hiccup_base register. Each strike doubles
-    //                 it, so the default sequence is 5 / 10 / 20 ms.
+    //                 it, so the default sequence is 10 / 20 ms. Only 2 retries
+    //                 and latching on 3rd entry
     localparam int HICCUP_BASE_MS   = 5;
     // HICCUP_BASE_DEFAULT_CLKS: the same interval in clk counts. Clocks, not
     //                   switching cycles: the power stage is off throughout
