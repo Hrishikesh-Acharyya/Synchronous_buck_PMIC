@@ -78,6 +78,7 @@ module reg_file
     input wire logic [CNT_W-1:0] prev_period,
     input wire logic [4:0] fault_count_run,
     input wire logic [5:0] fault_count_ss,
+    input wire logic [FAULT_CAUSE_W-1:0] fault_reg,
 
     //@TODO: These telemetey are to be written as modules
 
@@ -111,7 +112,9 @@ module reg_file
     output logic [CYC_STEP_W-1:0]               cycles_per_step,
     // clean_run_target: fault-free switching cycles in S_RUN that clear the
     //                   strike count
-    output logic [CLEAN_RUN_W-1:0]   clean_run_target  
+    output logic [CLEAN_RUN_W-1:0]   clean_run_target  ,
+    //fault_reg_read_done: Indicated that the fault_register was read
+    output logic fault_reg_read_done
 );
 
     logic write_rejected;   // set when a threshold write is refused (locked, or not in S_OFF)
@@ -131,6 +134,7 @@ module reg_file
     localparam logic [6:0] ADDR_PREV_PERIOD  = 7'h14;
     localparam logic [6:0] ADDR_FCOUNT_RUN   = 7'h15;
     localparam logic [6:0] ADDR_FCOUNT_SS    = 7'h16;
+    localparam logic [6:0] ADDR_FAULT_CAUSE  = 7'h17;
     localparam logic [6:0] ADDR_CYCLE_0      = 7'h18;
     localparam logic [6:0] ADDR_CYCLE_1      = 7'h19;
     localparam logic [6:0] ADDR_CYCLE_2      = 7'h1A;
@@ -168,9 +172,9 @@ module reg_file
     // image serve several build configurations - the host reads this and knows
     // not to bother with addresses whose source does not exist yet.
     //   [0] pwm_stats present     [1] fault log present
-    //   [2] thresholds writable   [3] Reserved
+    //   [2] thresholds writable   [3] Fault cause register present
     //   [4] cycle counter         [5] bus error counter
-    localparam logic [7:0] CAPABILITY_VAL = 8'b0000_0101;
+    localparam logic [7:0] CAPABILITY_VAL = 8'b0000_1101;
 
 
     // ==================================================================
@@ -213,6 +217,41 @@ module reg_file
     // wrong costs the load its power.
     logic en_pending;
     logic en_pending_val;
+
+    //addr_d: Delayed copy of addr;
+    logic[6:0] addr_d; 
+
+
+    // ==================================================================
+    // Fault cause register read signal generation
+    // ==================================================================
+    always_ff @ (posedge clk or negedge rst_n) begin
+      
+      /*
+      Purpose: Generate delayed copy of addr
+      */
+
+      if(!rst_n) addr_d <= '0;
+      else addr_d <= addr;
+
+    end
+
+    always_comb begin
+
+    /* 
+      Purpose: Check if fault register is read
+               Since pointer moves ahead continuously, we can compare
+               the old and new addr and check if a read was done.
+               The output signal is used by fault_cause module to clear
+               the fault cause register and start logging a new episode
+    
+    */
+
+      fault_reg_read_done = (addr_d == ADDR_FAULT_CAUSE)
+                          &&(addr != ADDR_FAULT_CAUSE)
+                          &&(!wr_en);
+
+    end
 
 
 
@@ -304,7 +343,7 @@ module reg_file
         else if (raw > 24'((2**CLEAN_RUN_W)-1))    clamp_clean_run = CLEAN_RUN_W'((2**CLEAN_RUN_W)-1);
         else                                       clamp_clean_run = raw[CLEAN_RUN_W-1:0];
        endfunction
-
+    
 
     // ==================================================================
     // read multiplexer
@@ -352,6 +391,7 @@ module reg_file
       ADDR_CYCLE_2      : rdata = (cycle_count[23:16]);
       ADDR_BUS_ERR_L    : rdata = (bus_err_count[7:0]);
       ADDR_BUS_ERR_H    : rdata = (bus_err_count[15:8]);
+      ADDR_FAULT_CAUSE  : rdata = 8'(fault_reg);
 
       // ---- control readback ----
       // CONTROL reports REALITY, not intent: bit 0 is the live enable state.

@@ -26,6 +26,7 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
        ../rtl/protect/hiccup_timer.sv \
        ../rtl/protect/strike_counter.sv \
        ../rtl/status/pgood_gen.sv \
+			 ../rtl/status/fault_cause.sv \
 			 ../rtl/telemetry/pwm_stats.sv \
 			 ../rtl/telemetry/reg_file.sv \
 			 ../rtl/telemetry/spi_slave.sv \

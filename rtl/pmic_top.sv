@@ -157,7 +157,10 @@ module pmic_top (
     logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
     logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss;
     logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
-    
+    // fault_reg: one-hot accumulated fault causes, consumed by reg_file
+    logic [FAULT_CAUSE_W-1:0] fault_reg;
+    // fault_reg_read_done: one-clk pulse from reg_file when the host reads 0x17
+    logic fault_reg_read_done;
 
    
 
@@ -339,6 +342,8 @@ module pmic_top (
                           .prev_period(prev_period),         
                           .fault_count_run(fault_count_run),
                           .fault_count_ss(fault_count_ss),
+                          .fault_reg(fault_reg),
+                          .fault_reg_read_done(fault_reg_read_done),
 
                           // @TODO not built - CAPABILITY_VAL reports them absent
                           .cycle_count('0),
@@ -383,6 +388,21 @@ module pmic_top (
                             .duty_count(duty_count),
                             .prev_period(prev_period)
                             );
+
+    fault_cause u_fault_cause (
+                                .clk(clk),
+                                .rst_n(rst_n),
+                                .otp_state(OTP_sync_db),
+                                .uvlo_state(UVLO_sync_db),
+                                .latch_state(latch_stat_sync_db),
+                                .latch_assert(latch_out),
+                                .window_trip(window_trip),
+                                .window_trip_SS(window_trip_SS),
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .fault_reg_read_done(fault_reg_read_done),
+                                .fault_reg(fault_reg)
+                                );
 
      /*
     switch_supply carries the same value as PGOOD but is a separate pin

@@ -229,6 +229,11 @@ package pmic_types_pkg;
     // CYC_STEP_W: width of the writable register and of soft_start's counter
     localparam int CYC_STEP_W          = $clog2(CYCLES_PER_STEP_MAX + 1);
 
+
+    //FAULT_CAUSE_W: Width of the fault_cause reg in fault_cause.sv
+    //                Also the number of faults
+    localparam int FAULT_CAUSE_W = 5;
+
     // ============================================================
     // Supervisor FSM states
     // ============================================================
