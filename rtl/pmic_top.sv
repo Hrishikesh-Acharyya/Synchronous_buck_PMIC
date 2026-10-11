@@ -358,8 +358,6 @@ module pmic_top (
                           .fault_time(fault_time),
                           .fault_reg_read_done(fault_reg_read_done),
                           
-                          // @TODO not built - CAPABILITY_VAL reports them absent
-                          .bus_err_count('0),
                           // control out
                           .spi_enable(spi_enable),
                           .trip_run(trip_run),

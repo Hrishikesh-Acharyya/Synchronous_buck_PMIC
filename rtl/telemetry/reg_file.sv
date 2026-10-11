@@ -76,16 +76,8 @@ module reg_file
     input wire logic [5:0] fault_count_ss,
     input wire logic [FAULT_CAUSE_W-1:0] fault_reg,
     input wire logic [TIMESTAMP_W-1:0] fault_time,
-
-    
-
     // timestamp_ms: free-running millisecond counter; timestamp source for the fault log
     input wire logic [TIMESTAMP_W-1:0] timestamp_ms,
-
-    //@TODO: These telemetey are to be written as modules
-    // bus_err_count:  CRC failures, CS timeouts and misaligned transactions seen by
-    //                 spi_slave; a healthy link leaves this at zero
-    input  wire logic [15:0]         bus_err_count,
 
     // ---------------- control out ----------------
     // What registers the MCU can write
@@ -166,7 +158,7 @@ module reg_file
     //   [0] pwm_stats present     [1] RESERVED
     //   [2] thresholds writable   [3] Fault Record exists
     //   [4] timestamp counter     [5] bus error counter
-    localparam logic [7:0] CAPABILITY_VAL = 8'b0001_1101;
+    localparam logic [7:0] CAPABILITY_VAL = 8'b0011_1101;
     //WD_TIMEOUT_MS: host silence tolerated before the SPI enable veto is released.
     //               Long enough that any sane polling rate never trips it, short
     //               enough that an unattended board recovers in a useful time.
@@ -216,6 +208,13 @@ module reg_file
 
     //addr_d: Delayed copy of addr;
     logic[6:0] addr_d; 
+
+    // bus_err_count: failed transactions seen on the host bus - CRC mismatch, CS
+    //                rising off a byte boundary, illegal length, or an SCK timeout
+    //                poisoning the frame to S_DEAD. A healthy link leaves this at
+    //                zero; a nonzero value that keeps climbing points at wiring,
+    //                grounding or an MCU driving the bus wrongly.
+    logic [15:0] bus_err_count;
 
 
     // ==================================================================
@@ -325,6 +324,31 @@ module reg_file
 
         wd_expired = !spi_enable
                    && ((timestamp_ms - wd_mark) >= TIMESTAMP_W'(WD_TIMEOUT_MS));
+
+    end
+
+    always_ff @ (posedge clk or negedge rst_n) begin
+    /*
+    Purpose:
+    ---
+    Count failed host transactions. spi_slave already distinguishes a good write
+    from a bad one and reduces every failure mode to abort, so nothing new has to
+    be detected here - this block only keeps the tally.
+
+    Saturating, not wrapping. A wrapped counter reading 3 could mean three errors
+    or sixty-five thousand.
+
+    Cleared only by rst_n. The host reads it periodically and takes differences; a
+    clear-on-read would need its own address edge-detect and buys nothing a
+    subtraction does not already give.
+
+    LIMITATION: abort is raised only for WRITE transactions - spi_slave gates it on
+    cs_rise && !rw, because a read carries no CRC and has nothing to validate. A
+    read that times out or ends misaligned is therefore not counted.
+    */
+
+        if(!rst_n)                   bus_err_count <= '0;
+        else if (abort && !(&bus_err_count)) bus_err_count <= bus_err_count + 1'b1;
 
     end
 
