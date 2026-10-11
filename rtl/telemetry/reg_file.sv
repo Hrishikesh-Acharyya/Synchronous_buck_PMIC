@@ -2,7 +2,7 @@
 
 # Filename:         reg_file.sv
 
-# File Description: Transport-agnostic register map for the PMIC supervisor. Presents a
+# File Description: Register map for the PMIC supervisor. Presents a
 #                   byte-addressable view of supervisor status to a host, and holds the
 #                   writable control bits and protection thresholds..
 
@@ -79,6 +79,7 @@ module reg_file
     input wire logic [4:0] fault_count_run,
     input wire logic [5:0] fault_count_ss,
     input wire logic [FAULT_CAUSE_W-1:0] fault_reg,
+    input wire logic [TIMESTAMP_W-1:0] fault_time,
 
     
 
@@ -89,14 +90,6 @@ module reg_file
     // bus_err_count:  CRC failures, CS timeouts and misaligned transactions seen by
     //                 spi_slave; a healthy link leaves this at zero
     input  wire logic [15:0]         bus_err_count,
-
-    // ---------------- fault log ----------------
-
-    // log_index: host writes which fault-log entry it wants; drives the log's read port
-    output logic      [3:0]          log_index,
-    // log_entry: the selected entry, returned through the 0x70/0x71 data window
-    input  wire logic [15:0]         log_entry,
-
 
     // ---------------- control out ----------------
     // What registers the MCU can write
@@ -141,14 +134,19 @@ module reg_file
     localparam logic [6:0] ADDR_TIME_2      = 7'h1A;
     localparam logic [6:0] ADDR_BUS_ERR_L    = 7'h1B;
     localparam logic [6:0] ADDR_BUS_ERR_H    = 7'h1C;
-    localparam logic [6:0] ADDR_FAULT_CAUSE  = 7'h1D;
+    // Fault record: cause byte then the episode-start timestamp. Read as one
+    // four-byte sweep; the clear fires only on leaving the TOP address, so a
+    // partial read cannot destroy a record the host has not fully received.
+    localparam logic [6:0] ADDR_FAULT_CAUSE = 7'h1D;
+    localparam logic [6:0] ADDR_FTIME_0     = 7'h1E;
+    localparam logic [6:0] ADDR_FTIME_1     = 7'h1F;
+    localparam logic [6:0] ADDR_FTIME_2     = 7'h20;
 
     // ---- 0x40-0x4F : control ----
     // DISABLE_KEY sits directly below CONTROL so auto-increment carries the arm
     // and the command inside one transaction, under one CRC.
     localparam logic [6:0] ADDR_DISABLE_KEY  = 7'h40;
     localparam logic [6:0] ADDR_CONTROL      = 7'h41;
-    localparam logic [6:0] ADDR_LOG_INDEX    = 7'h42;
     // WRITE_ACCESS_KEY sits at the TOP of the bank for the same reason: the next
     // address after it is the first threshold.
     localparam logic [6:0] ADDR_WRITE_KEY    = 7'h4F;
@@ -166,15 +164,11 @@ module reg_file
     localparam logic [6:0] ADDR_CLEAN_RUN_1  = 7'h59;
     localparam logic [6:0] ADDR_CLEAN_RUN_2  = 7'h5A;
 
-    // ---- 0x70-0x71 : fault log data window ----
-    localparam logic [6:0] ADDR_LOG_DATA_L   = 7'h70;
-    localparam logic [6:0] ADDR_LOG_DATA_H   = 7'h71;
-
     // CAPABILITY_VAL: which optional blocks were compiled in. Lets one firmware
     // image serve several build configurations - the host reads this and knows
     // not to bother with addresses whose source does not exist yet.
-    //   [0] pwm_stats present     [1] fault log present
-    //   [2] thresholds writable   [3] Fault cause register present
+    //   [0] pwm_stats present     [1] RESERVED
+    //   [2] thresholds writable   [3] Fault Record exists
     //   [4] timestamp counter     [5] bus error counter
     localparam logic [7:0] CAPABILITY_VAL = 8'b0001_1101;
 
@@ -241,17 +235,19 @@ module reg_file
     always_comb begin
 
     /* 
-      Purpose: Check if fault register is read
-               Since pointer moves ahead continuously, we can compare
-               the old and new addr and check if a read was done.
+      Purpose: 
                The output signal is used by fault_cause module to clear
                the fault cause register and start logging a new episode
+               The pulse fires when the pointer leaves the last byte of
+               the four-byte record, so the whole record is delivered before
+               anything is destroyed, and that a host reading fewer than four
+               bytes gets a partial view but loses nothing.
     
     */
 
-      fault_reg_read_done = (addr_d == ADDR_FAULT_CAUSE)
-                          &&(addr == addr_d + 1'b1)
-                          &&(!wr_en);
+      fault_reg_read_done = (addr_d == ADDR_FTIME_2)
+                            &&(addr   == ADDR_FTIME_2 + 7'd1)
+                            &&(!wr_en);
 
     end
 
@@ -382,18 +378,21 @@ module reg_file
                                          pgood,            // [2]
                                          sup_state};       // [1:0]
 
-      ADDR_FAULT_FLAGS  :  rdata  = {5'b0, cp_state, otp_state, uvlo_state};
+      ADDR_FAULT_FLAGS  :  rdata   = {5'b0, cp_state, otp_state, uvlo_state};
       ADDR_STRIKE_LEVEL :  rdata   = 8'(strike_level);
       ADDR_DUTY_COUNT   :  rdata   = (duty_count);
       ADDR_PREV_PERIOD  :  rdata   = (prev_period);
       ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
       ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
-      ADDR_TIME_0       :  rdata  = (timestamp_ms[7:0]);
-      ADDR_TIME_1       :  rdata  = (timestamp_ms[15:8]);
-      ADDR_TIME_2       :  rdata  = 8'(timestamp_ms[TIMESTAMP_W-1:16]);
+      ADDR_TIME_0       :  rdata   = (timestamp_ms[7:0]);
+      ADDR_TIME_1       :  rdata   = (timestamp_ms[15:8]);
+      ADDR_TIME_2       :  rdata   = 8'(timestamp_ms[TIMESTAMP_W-1:16]);
       ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
       ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
       ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);
+      ADDR_FTIME_0      :  rdata   = fault_time[7:0];
+      ADDR_FTIME_1      :  rdata   = fault_time[15:8];
+      ADDR_FTIME_2      :  rdata   = 8'(fault_time[TIMESTAMP_W-1:16]);
 
       // ---- control readback ----
       // CONTROL reports REALITY, not intent: bit 0 is the live enable state.
@@ -402,7 +401,6 @@ module reg_file
 
       ADDR_CONTROL : rdata = {5'b0, en_pending, disable_armed, spi_enable};
       ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
-      ADDR_LOG_INDEX    : rdata = 8'(log_index);
       ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
 
 
@@ -419,10 +417,6 @@ module reg_file
       ADDR_CLEAN_RUN_0  : rdata = clean_run_target[7:0];
       ADDR_CLEAN_RUN_1  : rdata = clean_run_target[15:8];
       ADDR_CLEAN_RUN_2  : rdata = 8'(clean_run_target[CLEAN_RUN_W-1:16]);
-
-      // ---- fault log window ----
-      ADDR_LOG_DATA_L   : rdata = log_entry[7:0];
-      ADDR_LOG_DATA_H   : rdata = log_entry[15:8];
 
       default: rdata = 8'h00;
 
@@ -693,7 +687,6 @@ module reg_file
       arm_timer     <= 1'b0;
       spi_enable    <= 1'b1;
       scratch_r     <= 8'h00;
-      log_index     <= 4'h0;
       disable_armed <= 1'b0;
       unlock_armed  <= 1'b0;
       en_pending     <= 1'b0;
@@ -728,8 +721,6 @@ module reg_file
       case(addr)
 
         ADDR_SCRATCH : scratch_r <= wdata;
-        ADDR_LOG_INDEX : log_index <= wdata [3:0];
-
         ADDR_DISABLE_KEY : disable_armed <= (wdata == DISABLE_KEY_ID);
         ADDR_WRITE_KEY : unlock_armed <= (wdata == WRITE_ACCESS_KEY_ID);
 

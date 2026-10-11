@@ -28,7 +28,7 @@
 #                   LIMITATIONS:
 #                   - No ordering or repetition is preserved. OTP-then-OCP reads
 #                     identically to OCP-then-OTP, and a cause that recurred reads
-#                     the same as one that happened once. fault_log fills that gap.
+#                     the same as one that happened once.
 #                   - A fault asserting while the converter is already stopped is
 #                     not captured. The register means "faults that interrupted
 #                     operation", not "conditions that were ever true".
@@ -61,7 +61,13 @@ module fault_cause
     input  wire logic ss_active,
     input  wire logic run_active,
     input  wire logic fault_reg_read_done, // one-clk pulse from reg_file
+    input  wire logic [TIMESTAMP_W-1:0] timestamp_ms,   // free-running ms counter
 
+
+    //fault_time: timestamp_ms latched at the instant this episode began - the
+    //            empty-to-non-empty transition of fault_reg. Held while further
+    //            causes accumulate, cleared with the bits on a host read.
+    output logic [TIMESTAMP_W-1:0] fault_time,
     //fault_reg:  Keeps state of the faults that have occured,
     //            1- hot encoded and OR-accumulated.
     //            [10000] - OVP
@@ -78,8 +84,13 @@ localparam int BIT_OTP   = 2;
 localparam int BIT_UVLO  = 1;
 localparam int BIT_OC    = 0;
 
+//convertor_running: Is the convertor is run or ss state?
 logic  convertor_running;
+//ovp: latch was triggered due to ovp?
 logic  ovp;
+//episode_start: high on the clk a cause is about to be captured into an empty
+//               fault_reg - the first fault of a new episode
+logic episode_start;
 
 /*
 Purpose:
@@ -105,6 +116,51 @@ this combination.
 
   if(latch_state & ~latch_assert) ovp = 1'b1;
   else ovp = 1'b0;
+
+end
+
+always_comb begin
+/*
+Purpose:
+---
+Detect the first fault of an episode. True when fault_reg is still empty and at
+least one capture condition is live, which is exactly the clk on which the
+accumulator below sets its first bit.
+
+Built from the same conditions the accumulator tests rather than from fault_reg
+going non-empty, so the timestamp is latched on the SAME edge as the first cause
+rather than one clk later. The two blocks must agree; a condition added to one
+must be added to the other.
+*/
+
+  episode_start = convertor_running && (fault_reg == '0)
+                && (otp_state || uvlo_state || ovp || latch_assert
+                    || window_trip || window_trip_SS);
+
+end
+
+always_ff @ (posedge clk or negedge rst_n) begin
+/*
+Purpose:
+---
+Latch the time the episode began, and hold it while further causes accumulate
+into fault_reg.
+
+Start rather than most-recent: with several causes in one record, one timestamp
+cannot describe them all, and "when did this begin" is the question worth
+answering. The later causes are usually consequences of the first.
+
+Cleared with fault_reg on a host read, so each read window carries its own start
+time. Clear takes priority over capture for the same reason it does below.
+
+LIMITATION: two episodes separated by a quiet interval, with no host read between
+them, merge into one record carrying the EARLIER timestamp. Ordering and
+repetition are not recoverable here - see the file header.
+*/
+
+  if(!rst_n)                        fault_time <= '0;
+  else if (fault_reg_read_done)     fault_time <= '0;
+  else if (episode_start)           fault_time <= timestamp_ms;
 
 end
 

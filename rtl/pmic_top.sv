@@ -150,7 +150,11 @@ module pmic_top (
     logic [ON_TIME_W-1:0] max_on_counts;
     logic [CNT_W-1:0] duty_count;
     logic [CNT_W-1:0] prev_period;
+    //timestamp_ms: The current time to ms precision since start of convertor
     logic [TIMESTAMP_W-1:0] timestamp_ms;
+    //fault_time: The timestamp from the start of an episode's fault,episodes is one mcu host read long
+    logic [TIMESTAMP_W-1:0]   fault_time;
+
 
     
     // Driven here, consumed by reg_file. 
@@ -160,7 +164,7 @@ module pmic_top (
     logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
     // fault_reg: one-hot accumulated fault causes, consumed by reg_file
     logic [FAULT_CAUSE_W-1:0] fault_reg;
-    // fault_reg_read_done: one-clk pulse from reg_file when the host reads 0x17
+    // fault_reg_read_done: one-clk pulse from reg_file when the host reads 0x20
     logic fault_reg_read_done;
 
    
@@ -344,17 +348,12 @@ module pmic_top (
                           .fault_count_run(fault_count_run),
                           .fault_count_ss(fault_count_ss),
                           .fault_reg(fault_reg),
-                          .fault_reg_read_done(fault_reg_read_done),
                           .timestamp_ms(timestamp_ms),
+                          .fault_time(fault_time),
+                          .fault_reg_read_done(fault_reg_read_done),
                           
                           // @TODO not built - CAPABILITY_VAL reports them absent
-                          
                           .bus_err_count('0),
-                          .log_entry('0),
-                            /* verilator lint_off PINCONNECTEMPTY */
-                          .log_index(),      // @TODO fault log not built
-                          /* verilator lint_on PINCONNECTEMPTY */
-
                           // control out
                           .spi_enable(spi_enable),
                           .trip_run(trip_run),
@@ -379,6 +378,23 @@ module pmic_top (
                             .prev_period(prev_period)
                             );
 
+     fault_cause u_fault_cause (
+                                .clk(clk),
+                                .rst_n(rst_n),
+                                .otp_state(OTP_sync_db),
+                                .uvlo_state(UVLO_sync_db),
+                                .latch_state(latch_stat_sync_db),
+                                .latch_assert(latch_out),
+                                .window_trip(window_trip),
+                                .window_trip_SS(window_trip_SS),
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .fault_reg_read_done(fault_reg_read_done),
+                                .timestamp_ms(timestamp_ms),
+                                .fault_time(fault_time),
+                                .fault_reg(fault_reg)
+                            );
+
     // ============================================================
     // Status
     // ============================================================
@@ -393,20 +409,7 @@ module pmic_top (
 
     
 
-    fault_cause u_fault_cause (
-                                .clk(clk),
-                                .rst_n(rst_n),
-                                .otp_state(OTP_sync_db),
-                                .uvlo_state(UVLO_sync_db),
-                                .latch_state(latch_stat_sync_db),
-                                .latch_assert(latch_out),
-                                .window_trip(window_trip),
-                                .window_trip_SS(window_trip_SS),
-                                .ss_active(ss_active),
-                                .run_active(run_active),
-                                .fault_reg_read_done(fault_reg_read_done),
-                                .fault_reg(fault_reg)
-                                );
+   
     timestamp u_timestamp       (
                                     .clk(clk),
                                     .rst_n(rst_n),
