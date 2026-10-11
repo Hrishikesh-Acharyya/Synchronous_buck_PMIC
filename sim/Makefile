@@ -27,6 +27,7 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
        ../rtl/protect/strike_counter.sv \
        ../rtl/status/pgood_gen.sv \
 			 ../rtl/status/timestamp.sv \
+			 ../rtl/status/fault_LED.sv \
 			 ../rtl/telemetry/pwm_stats.sv \
 			 ../rtl/telemetry/reg_file.sv \
 			 ../rtl/telemetry/spi_slave.sv \

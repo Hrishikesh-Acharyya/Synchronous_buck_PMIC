@@ -51,7 +51,13 @@ module pmic_top (
     output logic En,           // LM5106 enable driven by the supervisor FSM
     output logic PGOOD,        // supply changeover and telemetry
     output logic latch_out,    // CPLD-driven trip into the shared latch
-    output logic switch_supply // NPN drive for the housekeeping rail changeover
+    output logic switch_supply, // NPN drive for the housekeeping rail changeover
+    // ---- indicators ----
+    output logic Green_LED,  // running, no fault present
+    output logic pgood_LED,  // output rail in regulation
+    output logic Red_LED1,   // latched trip (solid) or strikes outstanding (blink)
+    output logic Red_LED2,   // over-temperature
+    output logic Red_LED3    // input undervoltage
 );
 
     import pmic_types_pkg::*;
@@ -414,6 +420,23 @@ module pmic_top (
                                     .clk(clk),
                                     .rst_n(rst_n),
                                     .timestamp_ms(timestamp_ms)
+                                );
+
+    fault_LED u_fault_LED       (   .clk(clk),
+                                    .rst_n(rst_n),
+                                    .otp_state(OTP_sync_db),
+                                    .uvlo_state(UVLO_sync_db),
+                                    .latch_state(latch_stat_sync_db),
+                                    .latch_assert(latch_out),
+                                    .strike_level(strike_level),
+                                    .ss_active(ss_active),
+                                    .run_active(run_active),
+                                    .pgood(PGOOD),
+                                    .Green_LED(Green_LED),
+                                    .pgood_LED(pgood_LED),
+                                    .Red_LED1(Red_LED1),
+                                    .Red_LED2(Red_LED2),
+                                    .Red_LED3(Red_LED3)
                                 );
 
      /*
