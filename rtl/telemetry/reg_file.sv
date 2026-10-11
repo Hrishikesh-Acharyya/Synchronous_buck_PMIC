@@ -51,9 +51,9 @@ module reg_file
     // rdata: supervisor -> host. Data that supervisor gives
     output logic [7:0] rdata,
     // rd_first : first data byte of a read  -> triggers snapshot
-
     /* verilator lint_off UNUSEDSIGNAL */
-    input wire logic rd_first,   // unused until cycle_count / bus_err_count exist
+    //TODO: Remove rd_first logic as that is replaced by addr and addr_d mechanism now
+    input wire logic rd_first,   //unused signal
     /* verilator lint_on UNUSEDSIGNAL */
 
     // integrity_OK   : write transaction passed length check and CRC
@@ -80,10 +80,12 @@ module reg_file
     input wire logic [5:0] fault_count_ss,
     input wire logic [FAULT_CAUSE_W-1:0] fault_reg,
 
-    //@TODO: These telemetey are to be written as modules
+    
 
-    // cycle_count:    free-running switching-cycle count; timestamp source for the fault log
-    input  wire logic [23:0]         cycle_count,
+    // timestamp_ms: free-running millisecond counter; timestamp source for the fault log
+    input wire logic [TIMESTAMP_W-1:0] timestamp_ms,
+
+    //@TODO: These telemetey are to be written as modules
     // bus_err_count:  CRC failures, CS timeouts and misaligned transactions seen by
     //                 spi_slave; a healthy link leaves this at zero
     input  wire logic [15:0]         bus_err_count,
@@ -134,12 +136,12 @@ module reg_file
     localparam logic [6:0] ADDR_PREV_PERIOD  = 7'h14;
     localparam logic [6:0] ADDR_FCOUNT_RUN   = 7'h15;
     localparam logic [6:0] ADDR_FCOUNT_SS    = 7'h16;
-    localparam logic [6:0] ADDR_FAULT_CAUSE  = 7'h17;
-    localparam logic [6:0] ADDR_CYCLE_0      = 7'h18;
-    localparam logic [6:0] ADDR_CYCLE_1      = 7'h19;
-    localparam logic [6:0] ADDR_CYCLE_2      = 7'h1A;
+    localparam logic [6:0] ADDR_TIME_0      = 7'h18;
+    localparam logic [6:0] ADDR_TIME_1      = 7'h19;
+    localparam logic [6:0] ADDR_TIME_2      = 7'h1A;
     localparam logic [6:0] ADDR_BUS_ERR_L    = 7'h1B;
     localparam logic [6:0] ADDR_BUS_ERR_H    = 7'h1C;
+    localparam logic [6:0] ADDR_FAULT_CAUSE  = 7'h1D;
 
     // ---- 0x40-0x4F : control ----
     // DISABLE_KEY sits directly below CONTROL so auto-increment carries the arm
@@ -173,8 +175,8 @@ module reg_file
     // not to bother with addresses whose source does not exist yet.
     //   [0] pwm_stats present     [1] fault log present
     //   [2] thresholds writable   [3] Fault cause register present
-    //   [4] cycle counter         [5] bus error counter
-    localparam logic [7:0] CAPABILITY_VAL = 8'b0000_1101;
+    //   [4] timestamp counter     [5] bus error counter
+    localparam logic [7:0] CAPABILITY_VAL = 8'b0001_1101;
 
 
     // ==================================================================
@@ -248,7 +250,7 @@ module reg_file
     */
 
       fault_reg_read_done = (addr_d == ADDR_FAULT_CAUSE)
-                          &&(addr != ADDR_FAULT_CAUSE)
+                          &&(addr == addr_d + 1'b1)
                           &&(!wr_en);
 
     end
@@ -380,18 +382,18 @@ module reg_file
                                          pgood,            // [2]
                                          sup_state};       // [1:0]
 
-      ADDR_FAULT_FLAGS :  rdata = {5'b0, cp_state, otp_state, uvlo_state};
-      ADDR_STRIKE_LEVEL : rdata = 8'(strike_level);
-      ADDR_DUTY_COUNT   : rdata = (duty_count);
-      ADDR_PREV_PERIOD  : rdata = (prev_period);
-      ADDR_FCOUNT_RUN   : rdata = 8'(fault_count_run);
-      ADDR_FCOUNT_SS    : rdata = 8'(fault_count_ss);
-      ADDR_CYCLE_0      : rdata = (cycle_count[7:0]);
-      ADDR_CYCLE_1      : rdata = (cycle_count[15:8]);
-      ADDR_CYCLE_2      : rdata = (cycle_count[23:16]);
-      ADDR_BUS_ERR_L    : rdata = (bus_err_count[7:0]);
-      ADDR_BUS_ERR_H    : rdata = (bus_err_count[15:8]);
-      ADDR_FAULT_CAUSE  : rdata = 8'(fault_reg);
+      ADDR_FAULT_FLAGS  :  rdata  = {5'b0, cp_state, otp_state, uvlo_state};
+      ADDR_STRIKE_LEVEL :  rdata   = 8'(strike_level);
+      ADDR_DUTY_COUNT   :  rdata   = (duty_count);
+      ADDR_PREV_PERIOD  :  rdata   = (prev_period);
+      ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
+      ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
+      ADDR_TIME_0       :  rdata  = (timestamp_ms[7:0]);
+      ADDR_TIME_1       :  rdata  = (timestamp_ms[15:8]);
+      ADDR_TIME_2       :  rdata  = 8'(timestamp_ms[TIMESTAMP_W-1:16]);
+      ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
+      ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
+      ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);
 
       // ---- control readback ----
       // CONTROL reports REALITY, not intent: bit 0 is the live enable state.

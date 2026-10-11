@@ -150,6 +150,7 @@ module pmic_top (
     logic [ON_TIME_W-1:0] max_on_counts;
     logic [CNT_W-1:0] duty_count;
     logic [CNT_W-1:0] prev_period;
+    logic [TIMESTAMP_W-1:0] timestamp_ms;
 
     
     // Driven here, consumed by reg_file. 
@@ -344,9 +345,10 @@ module pmic_top (
                           .fault_count_ss(fault_count_ss),
                           .fault_reg(fault_reg),
                           .fault_reg_read_done(fault_reg_read_done),
-
+                          .timestamp_ms(timestamp_ms),
+                          
                           // @TODO not built - CAPABILITY_VAL reports them absent
-                          .cycle_count('0),
+                          
                           .bus_err_count('0),
                           .log_entry('0),
                             /* verilator lint_off PINCONNECTEMPTY */
@@ -364,6 +366,19 @@ module pmic_top (
                           .clean_run_target(clean_run_target)
                           );
 
+    /*
+    Telemetry only. pwm_stats drives no control path and takes no part in any
+    protection timing, so it runs unconditionally from the synchronised PWM rather
+    than being gated on any supervisor state - duty and period are as interesting
+    during a fault as during normal running.
+    */
+    pwm_stats u_pwm_stats ( .clk(clk),
+                            .rst_n(rst_n),
+                            .pwm_sync(Osc_sync),
+                            .duty_count(duty_count),
+                            .prev_period(prev_period)
+                            );
+
     // ============================================================
     // Status
     // ============================================================
@@ -376,18 +391,7 @@ module pmic_top (
                             .PGOOD(PGOOD)
                             );
 
-        /*
-    Telemetry only. pwm_stats drives no control path and takes no part in any
-    protection timing, so it runs unconditionally from the synchronised PWM rather
-    than being gated on any supervisor state - duty and period are as interesting
-    during a fault as during normal running.
-    */
-    pwm_stats u_pwm_stats ( .clk(clk),
-                            .rst_n(rst_n),
-                            .pwm_sync(Osc_sync),
-                            .duty_count(duty_count),
-                            .prev_period(prev_period)
-                            );
+    
 
     fault_cause u_fault_cause (
                                 .clk(clk),
@@ -402,6 +406,11 @@ module pmic_top (
                                 .run_active(run_active),
                                 .fault_reg_read_done(fault_reg_read_done),
                                 .fault_reg(fault_reg)
+                                );
+    timestamp u_timestamp       (
+                                    .clk(clk),
+                                    .rst_n(rst_n),
+                                    .timestamp_ms(timestamp_ms)
                                 );
 
      /*

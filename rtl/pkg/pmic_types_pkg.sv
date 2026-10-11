@@ -63,6 +63,20 @@ package pmic_types_pkg;
         return (CONVERTOR_HZ / 1000) * ms;
     endfunction
 
+    // ============================================================
+    // TIMESTAMP GENERATOR CONSTANTS
+    // ============================================================
+    
+    //TIMESTAMP_W: Width of timestamp generstor register. Arbitrary. Gives ~4.6 hours of timestamping 
+    //              before resetting.
+    localparam int TIMESTAMP_W = 24;
+    //PRESCALAR_HZ: Default frequency value of the prescalar. 
+    localparam int PRESCALAR_HZ = 1000;
+    //PRESCALE_VAL: THe value prescalar counts to
+    localparam int PRESCALE_VAL = CLK_HZ/PRESCALAR_HZ; 
+    //PRESCALAR_W: width of prescalar register
+    localparam int PRESCALAR_W = $clog2(PRESCALE_VAL+1);
+
 
     // ============================================================
     // Gate driver - LM5106 at RDT = 10k
