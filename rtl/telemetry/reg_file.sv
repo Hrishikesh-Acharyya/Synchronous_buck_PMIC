@@ -484,9 +484,9 @@ module reg_file
       ADDR_PREV_PERIOD  :  rdata   = (prev_period);
       ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
       ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
-      ADDR_TIME_0       :  rdata   = (timestamp_snap[7:0]);
-      ADDR_TIME_1       :  rdata   = (timestamp_snap[15:8]);
-      ADDR_TIME_2       :  rdata   = 8'(timestamp_snap[TIMESTAMP_W-1:16]);
+      ADDR_TIME_0       :  rdata   = rd_first ? timestamp_ms[7:0]  : timestamp_snap[7:0];
+      ADDR_TIME_1       :  rdata   = rd_first ? timestamp_ms[15:8] : timestamp_snap[15:8];
+      ADDR_TIME_2       :  rdata   = rd_first ? 8'(timestamp_ms[TIMESTAMP_W-1:16])                                 : 8'(timestamp_snap[TIMESTAMP_W-1:16]);
       ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
       ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
       ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);

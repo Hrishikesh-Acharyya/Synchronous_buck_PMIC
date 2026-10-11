@@ -480,11 +480,9 @@ module spi_slave
             tx_shift <= 8'h00;
             sdio_out <= 1'b0;
             sdio_oe  <= 1'b0;
-            rd_first <= 1'b0;
+            
         end
         else begin
-
-            rd_first <= 1'b0;                   // one-clock pulse, default low
 
             // ---- release the line outside S_READ ----
             if (spi_state != S_READ) begin
@@ -500,7 +498,7 @@ module spi_slave
                     tx_shift <= rdata;
                     sdio_out <= rdata[7];
                     sdio_oe  <= 1'b1;
-                    rd_first <= 1'b1;
+                    
                 end
 
                 else if (spi_state == S_READ) begin
@@ -525,6 +523,24 @@ module spi_slave
         end
     end
 
+        always_comb begin
+    /*
+    Purpose:
+    ---
+    Flag the load of the first read byte, COMBINATIONALLY rather than as a
+    registered pulse.
+
+    reg_file uses this to snapshot the free-running millisecond counter. A
+    registered pulse arrives one clk after the load, so the first byte would be
+    served from the PREVIOUS transaction's snapshot while the rest came from this
+    one - stale by however long it had been since the last read. Asserting on the
+    same edge as the load lets reg_file present the live value for that byte and
+    the frozen copy for the rest, which are then the same value.
+    */
+
+        rd_first = sck_fall && (spi_state == S_TURN) && (bit_count == 3'd7);
+
+    end
 
     // ==================================================================
     // BLOCK 8 - SCK idle timeout
