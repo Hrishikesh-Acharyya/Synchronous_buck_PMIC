@@ -811,7 +811,7 @@ module reg_file
 
       else begin
 
-          arm_timer <= 1'b0;
+          arm_timer <= '0;
 
       end
   

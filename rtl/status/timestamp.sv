@@ -61,7 +61,7 @@ always_ff @ (posedge clk or negedge rst_n) begin
 
   else begin
 
-    if(prescalar == PRESCALE_VAL-1) begin
+    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin
 
         prescalar <= '0;
 
@@ -96,7 +96,7 @@ Wraps silently at 2**TIMESTAMP_W.
 
   else begin
 
-    if(prescalar == PRESCALE_VAL-1) timestamp_ms <= timestamp_ms + 1'b1;
+    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;
 
   end
 

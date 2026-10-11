@@ -44,14 +44,16 @@ module fault_arbiter #(
     input  wire logic cp_sync,         // synchronised current-protection flag (CP_trig)
     input  wire logic ss_active,       // high only while the supervisor is in S_SS
     input  wire logic run_active,      // high only while the supervisor is in S_RUN
-    input wire logic [pmic_types_pkg::TRIP_W-1:0] trip_run, // TRIP_RUN: faulted cycles within WINDOW_RUN that assert window_trip
-    input wire logic [pmic_types_pkg::TRIP_W-1:0] trip_ss,  // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
+    input  wire logic [pmic_types_pkg::TRIP_W-1:0] trip_run, // TRIP_RUN: faulted cycles within WINDOW_RUN that assert window_trip
+    input  wire logic [pmic_types_pkg::TRIP_W-1:0] trip_ss,  // TRIP_SS: faulted cycles within WINDOW_SS that assert window_trip_SS
     output logic window_trip,     // fault window exceeded while running
     output logic window_trip_SS,   // fault window exceeded during soft start
     output logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run_out,   // telemetry output
     output logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss_out    // telemetry output
 );
 
+    localparam int FCNT_RUN_W = $clog2(WINDOW_RUN+1);
+    localparam int FCNT_SS_W  = $clog2(WINDOW_SS+1);
     // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle start
     logic pwm_sync_d;
     // pwm_rise: one-clk pulse marking high-side turn-on, i.e. the end of
@@ -64,9 +66,9 @@ module fault_arbiter #(
     //fault_shifter_RUN: 16 bit register for RUN state fault handling
     logic[WINDOW_RUN-1:0] fault_shifter_RUN;
     // fault_count_run: faulted cycles within the trailing WINDOW_RUN bits
-    logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
+    logic [FCNT_RUN_W-1:0] fault_count_run;
     // fault_count_ss: faulted cycles within the trailing WINDOW_SS bits
-    logic [$clog2(WINDOW_SS+1)-1:0] fault_count_ss;
+    logic [FCNT_SS_W-1:0] fault_count_ss;
     // cp_delay: shift register of cp_sync; bit [BLANK_CLKS-1] holds the
     //           comparator state from BLANK_CLKS clocks ago
     logic [BLANK_CLKS-1:0] cp_delay;
@@ -131,7 +133,7 @@ module fault_arbiter #(
       end
 
       else begin
-        cp_delay <= cp_delay << 1 | cp_sync;
+        cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);
       end
     end
 
@@ -174,16 +176,18 @@ module fault_arbiter #(
 
     else if (pwm_rise && run_active) begin
 
-      fault_count_run <= fault_count_run + cp_delay[BLANK_CLKS-1] - fault_shifter_RUN[WINDOW_RUN-1];
-      fault_shifter_RUN <= (fault_shifter_RUN << 1) | cp_delay[BLANK_CLKS-1];
+      fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])
+                                         - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);
+      fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);
 
     end
 
 
     else if (pwm_rise && ss_active) begin
 
-      fault_count_ss <= fault_count_ss + cp_delay[BLANK_CLKS-1] - fault_shifter_SS[WINDOW_SS-1];
-      fault_shifter_SS <= (fault_shifter_SS<<1)|cp_delay[BLANK_CLKS-1];
+      fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])
+                                       - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);
+      fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);
       
     end 
 
@@ -204,7 +208,7 @@ module fault_arbiter #(
     // Thresholds differ because elevated current during soft start is
     // expected as the output capacitor charges from zero in FCCM, whereas
     // sustained overcurrent in S_RUN is a genuine load fault.
-    always_comb window_trip = fault_count_run >= trip_run;
+    always_comb window_trip = pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run;
     always_comb window_trip_SS = fault_count_ss>= trip_ss;
     always_comb fault_count_run_out = fault_count_run;
     always_comb fault_count_ss_out = fault_count_ss;
