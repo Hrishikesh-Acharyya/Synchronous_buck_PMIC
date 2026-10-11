@@ -51,11 +51,7 @@ module reg_file
     // rdata: supervisor -> host. Data that supervisor gives
     output logic [7:0] rdata,
     // rd_first : first data byte of a read  -> triggers snapshot
-    /* verilator lint_off UNUSEDSIGNAL */
-    //TODO: Remove rd_first logic as that is replaced by addr and addr_d mechanism now
-    input wire logic rd_first,   //unused signal
-    /* verilator lint_on UNUSEDSIGNAL */
-
+    input wire logic rd_first,   
     // integrity_OK   : write transaction passed length check and CRC
     input wire logic integrity_OK,
     // abort    : transaction ended unvalidated -> discard temporary flop data. 
@@ -251,6 +247,37 @@ module reg_file
 
     end
 
+        //timestamp_snap: timestamp_ms frozen at the start of a read transaction
+    logic [TIMESTAMP_W-1:0] timestamp_snap;
+
+    always_ff @ (posedge clk or negedge rst_n) begin
+    /*
+    Purpose:
+    ---
+    Freeze the free-running millisecond counter for the duration of a read, so the
+    three bytes at 0x18-0x1A come from one coherent value.
+
+    Without this the read mux samples the live counter as the pointer reaches each
+    byte, and a tick landing mid-transaction stitches old and new bytes together.
+    At a carry boundary that is not a small error: a counter at 0x00FFFF ticking to
+    0x010000 between byte 0 and byte 1 reconstructs as 0x01FFFF, which is 65
+    seconds adrift from a 1 ms timebase. A log of mostly-sane timestamps with
+    occasional impossible ones is worse than one that is uniformly coarse.
+
+    rd_first pulses at the start of ANY read transaction, so the freeze happens
+    before the first byte is loaded regardless of which address the sweep begins
+    at. The snapshot is therefore as old as the transaction start - tens of
+    microseconds - which is invisible against a 1 ms tick. Consistency matters here
+    and freshness does not.
+
+    fault_time needs no snapshot: it is already frozen by construction, held until
+    the host read that destroys it.
+    */
+
+        if(!rst_n)        timestamp_snap <= '0;
+        else if (rd_first) timestamp_snap <= timestamp_ms;
+
+    end
 
 
     // ==================================================================
@@ -384,9 +411,9 @@ module reg_file
       ADDR_PREV_PERIOD  :  rdata   = (prev_period);
       ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
       ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
-      ADDR_TIME_0       :  rdata   = (timestamp_ms[7:0]);
-      ADDR_TIME_1       :  rdata   = (timestamp_ms[15:8]);
-      ADDR_TIME_2       :  rdata   = 8'(timestamp_ms[TIMESTAMP_W-1:16]);
+      ADDR_TIME_0       :  rdata   = (timestamp_snap[7:0]);
+      ADDR_TIME_1       :  rdata   = (timestamp_snap[15:8]);
+      ADDR_TIME_2       :  rdata   = 8'(timestamp_snap[TIMESTAMP_W-1:16]);
       ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
       ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
       ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);
