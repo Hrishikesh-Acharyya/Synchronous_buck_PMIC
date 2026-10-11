@@ -784,7 +784,7 @@ module reg_file
     
     if(!rst_n) begin
 
-      arm_timer      <= 1'b0;
+      arm_timer      <=  '0;
       spi_enable     <= 1'b1;
       scratch_r      <= 8'h00;
       disable_armed  <= 1'b0;
