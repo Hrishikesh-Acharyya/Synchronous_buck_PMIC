@@ -167,6 +167,10 @@ module reg_file
     //   [2] thresholds writable   [3] Fault Record exists
     //   [4] timestamp counter     [5] bus error counter
     localparam logic [7:0] CAPABILITY_VAL = 8'b0001_1101;
+    //WD_TIMEOUT_MS: host silence tolerated before the SPI enable veto is released.
+    //               Long enough that any sane polling rate never trips it, short
+    //               enough that an unattended board recovers in a useful time.
+    localparam int WD_TIMEOUT_MS = 5000;
 
 
     // ==================================================================
@@ -276,6 +280,51 @@ module reg_file
 
         if(!rst_n)        timestamp_snap <= '0;
         else if (rd_first) timestamp_snap <= timestamp_ms;
+
+    end
+
+
+    //wd_mark: timestamp_ms at the last proof the host was alive
+    logic [TIMESTAMP_W-1:0] wd_mark;
+    //wd_expired: host has been silent past the timeout while holding the veto
+    logic                   wd_expired;
+    //wd_restored: the watchdog, not the host, re-enabled the converter
+    logic                   wd_restored;
+
+
+    always_ff @ (posedge clk or negedge rst_n) begin
+    /*
+    Purpose:
+    ---
+    Hold the reference time the bus-silence watchdog measures against.
+
+    Re-marked continuously while spi_enable is high, so the timeout always starts
+    from the instant the veto is applied rather than from some earlier transaction.
+    While the veto is held it is re-marked only on integrity_OK.
+
+    */
+
+        if(!rst_n)             wd_mark <= '0;
+        else if (spi_enable)   wd_mark <= timestamp_ms;
+        else if (integrity_OK) wd_mark <= timestamp_ms;
+
+    end
+
+
+    always_comb begin
+    /*
+    Purpose:
+    ---
+    Flag an expired watchdog. Gated on the veto actually being held, so the counter
+    is meaningless - and the status bit never set - during normal operation when
+    spi_enable is already high.
+
+    Unsigned subtraction, so a timestamp_ms wrap between the mark and the present
+    still yields the correct elapsed interval.
+    */
+
+        wd_expired = !spi_enable
+                   && ((timestamp_ms - wd_mark) >= TIMESTAMP_W'(WD_TIMEOUT_MS));
 
     end
 
@@ -426,7 +475,7 @@ module reg_file
       // An armed-but-not-executed disable shows separately in bit 1, so
       // firmware can tell "armed" from "disabled".
 
-      ADDR_CONTROL : rdata = {5'b0, en_pending, disable_armed, spi_enable};
+      ADDR_CONTROL : rdata = {4'b0, wd_restored, en_pending, disable_armed, spi_enable};
       ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
       ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
 
@@ -711,13 +760,14 @@ module reg_file
     
     if(!rst_n) begin
 
-      arm_timer     <= 1'b0;
-      spi_enable    <= 1'b1;
-      scratch_r     <= 8'h00;
-      disable_armed <= 1'b0;
-      unlock_armed  <= 1'b0;
+      arm_timer      <= 1'b0;
+      spi_enable     <= 1'b1;
+      scratch_r      <= 8'h00;
+      disable_armed  <= 1'b0;
+      unlock_armed   <= 1'b0;
       en_pending     <= 1'b0;
       en_pending_val <= 1'b0;
+      wd_restored    <= 1'b0;
 
     end
 
@@ -787,6 +837,19 @@ module reg_file
         en_pending_val <= 1'b0;
     end
 
+    // Bus-silence watchdog. A host that commands a disable and then dies, hangs or
+    // is unplugged would otherwise hold the converter off until someone physically
+    // toggles the enable switch. Releasing the veto is the point - a status bit
+    // nobody is listening to is no recovery at all - but the release is recorded so
+    // a board that came back on its own can say why.
+    if (wd_expired) begin
+        spi_enable  <= 1'b1;
+        wd_restored <= 1'b1;
+    end
+
+    // A fresh host-commanded disable clears the flag: the veto now belongs to a
+    // host that is demonstrably alive.
+    if (integrity_OK && en_pending && !en_pending_val) wd_restored <= 1'b0;
     if(en_switch_rise) spi_enable <= 1'b1;
 
     end
