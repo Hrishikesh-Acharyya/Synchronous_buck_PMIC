@@ -1,3 +1,6 @@
+
+`timescale 1ns/1ps
+`default_nettype none
 module supervisor  import pmic_types_pkg::*;
                    (input  logic clk,
                    input  wire logic SS_done,
@@ -143,9 +146,9 @@ always_comb
     en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO&~latch_assert;
 
 always_comb state_out = state; 
-      
-              
-        
-              
+             
            
 endmodule
+
+`default_nettype wire
+

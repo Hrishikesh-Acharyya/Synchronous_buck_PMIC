@@ -16,7 +16,7 @@
 # Global variables: None
 
 */
-
+`timescale 1ns/1ps
 `default_nettype none
 
 module fault_arbiter #(

@@ -6,9 +6,7 @@
 #   make clean  remove build outputs
 #
 # CI runs lint only. The testbench uses clocking blocks and ##() cycle
-# delays: Icarus 12.0 does not support clocking blocks at all, and
-# Verilator 5.020 takes an internal fault on ##() inside an automatic task.
-# ModelSim handles both, so simulation is a local step.
+# delays: Icarus 12.0 does not support clocking blocks at all.
 
 VERILATOR ?= verilator
 VLOG      ?= vlog
@@ -85,3 +83,36 @@ wave:
 clean:
 	rm -f $(VCD) transcript vsim.wlf
 	rm -rf work
+
+
+# ============================================================
+# Verilator testbenches
+# ============================================================
+# Each testbench gets its own target and its own build directory.
+#
+#   make tb_reset_sync            build + run, exit status is the verdict
+#   make tb_reset_sync WAVES=1    same, but record a VCD for debug
+#   make tb_clean                 remove all testbench build output
+#
+# Build output goes under $(HOME) rather than into the repo: this tree is
+# on a Windows mount, and Verilator writes hundreds of small files that
+# each cost a 9p round trip from the WSL2 side.
+
+VFLAGS := --binary --timing --assert -Wall
+TBBUILD ?= $(HOME)/build/sync_buck
+
+# PKG: compiled first wherever a testbench imports it. reset_sync does not.
+PKG := ../rtl/pkg/pmic_types_pkg.sv
+
+.PHONY: tb_reset_sync tb_clean
+
+tb_reset_sync: TOP  := reset_sync_tb
+tb_reset_sync: SRCS := ../rtl/clk_rst/reset_sync.sv ../tb/clk_rst/reset_sync_tb.sv
+tb_reset_sync:
+	rm -rf $(TBBUILD)/$(TOP)
+	mkdir -p $(TBBUILD)/$(TOP)
+	$(VERILATOR) $(VFLAGS) --Mdir $(TBBUILD)/$(TOP) --top-module $(TOP) $(SRCS)
+	$(TBBUILD)/$(TOP)/V$(TOP) $(if $(WAVES),+WAVES)
+
+tb_clean:
+	rm -rf $(TBBUILD)

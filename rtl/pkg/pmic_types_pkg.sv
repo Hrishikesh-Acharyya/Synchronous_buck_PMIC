@@ -16,7 +16,7 @@
 # Global variables: None (package-scoped types and parameters only)
 
 */
-
+`timescale 1ns/1ps
 `default_nettype none
 
 package pmic_types_pkg;
