@@ -9,17 +9,13 @@
 
 module reset_sync_tb;
 
-/*
-Purpose:
----
-Print $time in nanoseconds with no unit suffix, so log messages match the
-timescale a reader of this file already has in mind.
-*/
+import pmic_types_pkg::*;
 
-
-
-//CLK_PERIOD_NS: The rtl clock timeperiod in nanoseconds, since timescale is already in nanoseconds
-localparam  realtime CLK_PERIOD_NS = 20.0;
+// CLK_PERIOD_NS: supervisor clock period, derived from the package rather than
+//                hardcoded, so retuning CLK_HZ moves every testbench with it.
+//                Real division: integer arithmetic truncates for any CLK_HZ
+//                that does not divide 1e9 exactly.
+localparam realtime CLK_PERIOD_NS = 1.0e9 / real'(CLK_HZ);
 // DRIVE_OFFSET_NS: How far past a clock edge stimulus is applied, so the
 //                  DUT never sees an input change at its own capture edge.
 localparam realtime DRIVE_OFFSET_NS = 3.0;
@@ -43,6 +39,13 @@ initial begin
     #10us;
     $fatal(1, "timeout - simulation did not complete");
 end
+
+/*
+Purpose:
+---
+Print $time in nanoseconds with no unit suffix, so log messages match the
+timescale a reader of this file already has in mind.
+*/
 
 initial $timeformat(-9, 0, " ns", 10);
 
