@@ -2,7 +2,7 @@
 /*
 # Filename:         input_debounce.sv
 
-# File Description: Agreement-counter debouncer for a single synchronised
+# File Description:  Disagreement-counter debouncer for a single synchronised
 #                    fault flag. Requires the input to hold a new level for
 #                    a parameterised number of clocks before the output
 #                    follows it, and clears the counter on any disagreement,
@@ -56,6 +56,19 @@ module input_debounce #(
     output logic      flag_out     // debounced flag to the supervisor
 );
 
+   
+    // Parameter legality. ASSERT_CLKS or RELEASE_CLKS of zero would make
+    // target_clks - 1 underflow to all-ones on an unsigned counter, so the
+    // transition could never qualify and the flag would be stuck at
+    // RESET_VALUE forever - a silent failure, not a visible one.
+    if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
+        $error("input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
+    end
+
+    if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
+        $error("input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
+    end
+
     // CNT_MAX: the longer of the two qualification times, which sizes the
     //          counter. ASSERT_CLKS is expected to be the larger, but the
     //          counter is sized for either so a call-site override cannot
@@ -83,7 +96,7 @@ module input_debounce #(
     */
 
     target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
-
+    
     end
 
 
@@ -106,7 +119,7 @@ module input_debounce #(
     end
 
     else if (flag_in != flag_out) begin
-      if (disagree_counter < target_clks)
+      if (disagree_counter < target_clks - 1'b1)
         disagree_counter <= disagree_counter + 1;
     end
 
@@ -136,7 +149,7 @@ module input_debounce #(
       flag_out <= RESET_VALUE;
     end
 
-    else if ((flag_in != flag_out) && (disagree_counter >= target_clks)) begin
+    else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin
       flag_out <= flag_in;
     end
 

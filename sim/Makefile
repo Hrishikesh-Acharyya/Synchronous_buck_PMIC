@@ -145,6 +145,10 @@ tb_input_sync: TOP  := input_sync_tb
 tb_input_sync: SRCS := $(RTL) $(SVA_SRCS) ../tb/inputs/input_sync_tb.sv
 tb_input_sync: run_tb
 
+tb_input_debounce: TOP  := input_debounce_tb
+tb_input_debounce: SRCS := $(RTL) $(SVA_SRCS) ../tb/inputs/input_debounce_tb.sv
+tb_input_debounce: run_tb
+
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
 #         this, so adding a testbench is two lines rather than a copied recipe.
 #         The cd puts coverage.dat beside the model instead of in sim/.

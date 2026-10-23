@@ -59,7 +59,7 @@ localparam int      RESET_CLKS      = 3;
 // in the DUT never fires and the flops sit at x until the first clock edge.
 logic clk;
 logic rst_n = 1'b1;
-// <DUT inputs and outputs here>
+
 int unsigned checks_run    = 0;
 int unsigned checks_failed = 0;
 
@@ -141,18 +141,26 @@ endtask
 //             so a timeout reports a verdict instead of dying silently.
 //             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+    bit passed;
+    passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
-    $display("%s exit     : %s", TB_NAME, reason);
-    $display("procedural      : %0d run, %0d failed",
-             checks_run, checks_failed);
-    $display("assertion fails : %0d", sva_pkg::sva_failures);
-    if (checks_failed == 0 && sva_pkg::sva_failures == 0)
-        $display("%s: PASS  (check cover hits before trusting this)", TB_NAME);
+    $display("exit            : %s", reason);
+    $display("assertion fails : %s%0d%s",
+             (sva_pkg::sva_failures == 0) ? ANSI_GREEN : ANSI_RED,
+             sva_pkg::sva_failures, ANSI_RESET);
+    $display("checks run      : %0d", checks_run);
+    $display("checks failed   : %s%0d%s",
+             (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
+             checks_failed, ANSI_RESET);
+    if (passed)
+        $display("%s%s: PASS%s  (check cover hits before trusting this)",
+                 ANSI_GREEN, TB_NAME, ANSI_RESET);
     else
-        $display("%s: FAIL", TB_NAME);
+        $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
     $display("--------------------------------------------------");
     $finish;
 endtask
+
 
 
 /*
