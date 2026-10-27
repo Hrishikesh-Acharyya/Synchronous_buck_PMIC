@@ -50,6 +50,16 @@ localparam realtime CLK_PERIOD_NS   = 1.0e9 / real'(CLK_HZ);
 localparam realtime WATCHDOG_NS     = 10_000.0;
 // RESET_CLKS: clocks reset is held in do_reset()
 localparam int      RESET_CLKS      = 3;
+localparam realtime DRIVE_OFFSET_NS = 3.0;
+// SETTLE_NS: delay after a mid-cycle reset before the procedural checks
+//            read sync_out. Small enough to stay inside the clock period,
+//            so the check observes the asynchronous clear and not the next
+//            clock edge.
+localparam realtime SETTLE_NS       = 0.1;
+// Asynchronous inputs are initialised to their inactive level at
+// declaration. An uninitialised logic driven straight to its active level
+// transitions x -> 0, which is not a reliable negedge, so the DUT's async
+// clear never fires and both flops hold x until the first clock edge.
 
 
 

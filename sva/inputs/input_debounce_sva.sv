@@ -49,49 +49,44 @@ module input_debounce_sva #(
     input  wire logic clk,
     input  wire logic rst_n,
     input  wire logic flag_in,     // synchronised comparator flag
-    input  wire logic flag_out     // debounced flag to the supervisor
+    input  wire logic flag_out,     // debounced flag to the supervisor
+    input  wire logic [CNT_W-1:0] dut_disagree_counter   // DUT internal, see header
 );
 
 localparam int CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS) ? ASSERT_CLKS : RELEASE_CLKS;
 localparam int CNT_W   = $clog2(CNT_MAX + 1);
 
-// prev_flag_in: flag_in as sampled on the previous edge
-logic prev_flag_in;
-// hold_count:   edges flag_in has continuously held its present value
-logic [CNT_W-1:0] hold_count; 
+// hold_count: edges flag_in has continuously disagreed with flag_out,
+//             restarting on agreement
+logic [CNT_W-1:0] hold_count;
 
 always_ff @(posedge clk or negedge rst_n) begin
-
-   /*
+  /*
   Purpose:
   ---
-  Measures how long flag_in has continuously held its present value, derived
-  from flag_in alone with no reference to flag_out. Deliberately not a mirror
-  of the DUT's disagree_counter: an identical computation would reproduce any
-  bug in that counter and the check would cancel out.
+  Measures the qualification window independently of the DUT's own
+  disagree_counter, so a fencepost bug in that counter does not appear
+  identically here and cancel out in the check. The restart condition is the
+  same - it has to be, since the claim is about the disagreement window - but
+  this one saturates at CNT_MAX and the properties compare against
+  qual_target, where the DUT saturates one below its target and compares
+  there. An off-by-one on either side therefore still shows.
 
-  The edge on which a change is detected is consumed restarting the count, so
-  the restart value is 1 rather than 0 - that edge is already one edge of the
-  new value being held. Entering edge k the count therefore reads k-1, which
-  is why every property adds one before comparing against a target.
-
-  Saturates at CNT_MAX, the larger of the two qualification times, so the
-  count can always reach whichever target applies.
+  Entering edge k of a window this reads k-1, because the write lands after
+  the edge while the properties sample before it. Every property adds one
+  before comparing against a target.
   */
-  
-  if(!rst_n) begin
-    
-    prev_flag_in <= RESET_VALUE;
-    hold_count <= 'b0;
+  if (!rst_n) begin
+
+    hold_count <= '0;
 
   end
 
   else begin
-    
-    prev_flag_in <= flag_in;
 
-    if((prev_flag_in == flag_in) && (hold_count != CNT_W'(CNT_MAX))) hold_count <= hold_count + 1'b1;
-    else hold_count <= 1'b1;
+    if (flag_in == flag_out)                hold_count <= '0;
+    else if (hold_count != CNT_W'(CNT_MAX)) hold_count <= hold_count + 1'b1;
+    // else: saturated and still disagreeing - hold
 
   end
   
@@ -232,17 +227,17 @@ Purpose: PAC(Property, Assertion, Cover) Group 4:
 property p_ASSERT_and_RELEASE_work;
 
   @(posedge clk) disable iff (!rst_n)
-    (flag_out != flag_in) && (clks_since_release) && ((hold_count + 1'b1) == qual_target)
-    |=> (flag_out == flag_in);
-
+    (flag_out != flag_in) && clks_since_release && ((hold_count + 1'b1) == qual_target)
+    |=> ($stable(flag_in) -> (flag_out == flag_in));
+    
 endproperty
 
 a_ASSERT_and_RELEASE_work: assert property (p_ASSERT_and_RELEASE_work)
   else begin
     
     sva_pkg::note_failure($sformatf(
-      "a_ASSERT_and_RELEASE_work: flag_out changed to %b with hold_count=%0d, while target was=%0d",
-       flag_out, hold_count + 1'b1, qual_target));
+      "a_ASSERT_and_RELEASE_work: window completed at hold_count=%0d target=%0d, but flag_out=%b did not follow flag_in=%b",
+       $past(hold_count) + 1'b1, $past(qual_target), flag_out, flag_in));
 
   end
 
@@ -285,7 +280,7 @@ property p_window_abandoned;
   //disagree counter is the internal signal of the DUT, checking against this module's counter
   // is akin to not writing this PAC group at all
   @(posedge clk) disable iff (!rst_n)
-    s_window_abandoned |=> (disagree_counter == 0); 
+    s_window_abandoned |=> (dut_disagree_counter == 0); 
 
 endproperty
 
@@ -294,7 +289,7 @@ a_window_abandoned: assert property (p_window_abandoned)
     
     sva_pkg::note_failure($sformatf(
       "a_window_abandoned: a glitch did not clear the counter - disagree_counter=%0d flag_in=%b, flag_out=%b",
-       disagree_counter, flag_in, flag_out));
+       dut_disagree_counter, flag_in, flag_out));
 
   end
 

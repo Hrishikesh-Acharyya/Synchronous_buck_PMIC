@@ -62,11 +62,7 @@ module pmic_top (
 
     import pmic_types_pkg::*;
 
-    // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
-    //                  SDIO shifts the data relative to the clock it is sampled
-    //                  against, which is worse than no filtering at all.
-    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
-
+    
     // ---- reset synchronization----
     logic rst_n;
     reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));

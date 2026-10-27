@@ -2,13 +2,14 @@
 #
 #   make lint                     Verilator lint pass over the RTL  (CI runs this)
 #   make sim                      ModelSim build + run of supervisor_tb  (local only)
-#   make wave                     open the supervisor_tb waveform
 #   make clean                    remove build outputs
 #
 #   make tb_<module>              build + run a Verilator testbench; exit status
 #                                 is the verdict, cover hits printed after
 #   make tb_<module> WAVES=1      same, plus a VCD for debug
-#   make tb_cov TOP=<top>         re-list cover hits; fails on any zero-hit cover
+#   make wave_<module>            build + run with WAVES=1, then open GTKWave
+#   make tb_wave TOP=<top>        open the last VCD for that top
+#   make tb_cov  TOP=<top>        re-list cover hits; fails on any zero-hit cover
 #   make tb_clean                 remove all testbench build output
 #
 # CI runs lint only. supervisor_tb uses clocking blocks and ##() cycle delays:
@@ -49,7 +50,6 @@ SVA_SRCS := ../sva/sva_pkg.sv \
             ../sva/bind_sva.sv
 
 TB  := ../tb/supervisor_tb.sv
-VCD := supervisor.vcd
 
 # Single top: elaborating the whole hierarchy is the only way port width
 # mismatches between modules get caught.
@@ -73,7 +73,7 @@ LINT_WAIVERS := -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM
 #               Fires from every checker that references rst_n.
 TB_WAIVERS := -Wno-SYNCASYNCNET
 
-.PHONY: all lint sim wave clean
+.PHONY: all lint sim clean
 
 all: lint
 
@@ -102,11 +102,8 @@ sim:
 	  exit 1; \
 	fi
 
-wave:
-	$(VIEWER) $(VCD) &
-
 clean:
-	rm -f $(VCD) transcript vsim.wlf
+	rm -f transcript vsim.wlf
 	rm -rf work
 
 
@@ -130,12 +127,17 @@ clean:
 #                  this the first assertion failure ends the run and every
 #                  later one is lost. The verdict block owns the exit status.
 # --coverage-user: collect cover property hits into coverage.dat.
+# --trace:         compile in VCD support. Without it $dumpvars is silently
+#                  a no-op and WAVES=1 produces nothing.
 # --assert:        default since Verilator 5.038; kept as documentation.
-VFLAGS := --binary --timing --assert --no-stop-fail --coverage-user -Wall \
+VFLAGS := --binary --timing --assert --no-stop-fail --coverage-user --trace -Wall \
           $(LINT_WAIVERS) $(TB_WAIVERS)
 TBBUILD ?= $(HOME)/build/sync_buck
+# WAVEDIR: saved GTKWave signal selections, one per testbench top. Kept outside
+#          the build dir so tb_clean does not destroy them.
+WAVEDIR ?= $(HOME)/gtkwave
 
-.PHONY: tb_reset_sync tb_input_sync tb_cov tb_clean
+.PHONY: tb_reset_sync tb_input_sync tb_input_debounce
 
 tb_reset_sync: TOP  := reset_sync_tb
 tb_reset_sync: SRCS := $(RTL) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
@@ -151,10 +153,10 @@ tb_input_debounce: run_tb
 
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
 #         this, so adding a testbench is two lines rather than a copied recipe.
-#         The cd puts coverage.dat beside the model instead of in sim/.
-#         Cover hits are printed after the verdict but do not fail the build -
-#         a testbench under construction legitimately has covers not yet
-#         reached. Use `make tb_cov TOP=...` for the strict check.
+#         The cd puts coverage.dat and the VCD beside the model instead of in
+#         sim/. Cover hits are printed after the verdict but do not fail the
+#         build - a testbench under construction legitimately has covers not
+#         yet reached. Use `make tb_cov TOP=...` for the strict check.
 .PHONY: run_tb
 run_tb:
 	rm -rf $(TBBUILD)/$(TOP)
@@ -169,8 +171,12 @@ run_tb:
 #         non-zero exit, which makes this usable as a CI gate. Verilator does
 #         not expose cover counts to SystemVerilog, so the verdict block inside
 #         the testbench cannot make this check itself.
+#         --annotate-all is required: by default verilator_coverage writes out
+#         only files with MISSING coverage, so a fully-covered run produces an
+#         empty directory and the grep finds nothing.
 #         --annotate-min 1 marks only genuine zeros; the default of 10 would
 #         flag a cover that hit three times as if it were dead.
+.PHONY: tb_cov
 tb_cov:
 	@test -n "$(TOP)" || { echo "tb_cov needs TOP=<testbench top>"; exit 1; }
 	@test -f $(TBBUILD)/$(TOP)/coverage.dat || { \
@@ -195,5 +201,36 @@ tb_cov:
 	    echo "all cover directives hit"; \
 	fi
 
+# tb_wave: open the last VCD for a testbench top. Loads $(WAVEDIR)/<top>.gtkw
+#          if it exists, so the signal selection, radix settings and zoom
+#          survive between runs - save one from GTKWave with
+#          File > Write Save File. Backgrounded so the shell returns at once;
+#          stderr is dropped because WSLg emits a dconf warning on every
+#          launch that has nothing to do with the trace.
+.PHONY: tb_wave
+tb_wave:
+	@test -n "$(TOP)" || { echo "tb_wave needs TOP=<testbench top>"; exit 1; }
+	@test -f $(TBBUILD)/$(TOP)/$(TOP).vcd || { \
+	    echo "no VCD for '$(TOP)' - run with WAVES=1 first"; exit 1; }
+	@$(VIEWER) $(TBBUILD)/$(TOP)/$(TOP).vcd \
+	    $(if $(wildcard $(WAVEDIR)/$(TOP).gtkw),-a $(WAVEDIR)/$(TOP).gtkw) \
+	    2>/dev/null &
+
+# wave_<module>: build, run with tracing, and open the viewer in one command.
+.PHONY: wave_reset_sync wave_input_sync wave_input_debounce
+
+wave_reset_sync:
+	@$(MAKE) --no-print-directory tb_reset_sync WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=reset_sync_tb
+
+wave_input_sync:
+	@$(MAKE) --no-print-directory tb_input_sync WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=input_sync_tb
+
+wave_input_debounce:
+	@$(MAKE) --no-print-directory tb_input_debounce WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=input_debounce_tb
+
+.PHONY: tb_clean
 tb_clean:
 	rm -rf $(TBBUILD)

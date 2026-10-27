@@ -248,6 +248,12 @@ package pmic_types_pkg;
     //                Also the number of faults
     localparam int FAULT_CAUSE_W = 5;
 
+    // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
+    //                  SDIO shifts the data relative to the clock it is sampled
+    //                  against, which is worse than no filtering at all.
+    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
+
+
     // ============================================================
     // Supervisor FSM states
     // ============================================================
