@@ -1,4 +1,6 @@
 `default_nettype none
+`default_nettype wire
+`default_nettype none
 module reset_sync (
 	clk,
 	rst_n_enter,
@@ -18,6 +20,30 @@ module reset_sync (
 			rst_n_exit <= 1'b0;
 		else
 			rst_n_exit <= meta_ff;
+endmodule
+`default_nettype wire
+`default_nettype none
+module input_sync (
+	clk,
+	rst_n,
+	async_in,
+	sync_out
+);
+	parameter [0:0] RESET_VALUE = 1'b0;
+	input wire clk;
+	input wire rst_n;
+	input wire async_in;
+	output reg sync_out;
+	reg meta_ff;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n) begin
+			meta_ff <= RESET_VALUE;
+			sync_out <= RESET_VALUE;
+		end
+		else begin
+			meta_ff <= async_in;
+			sync_out <= meta_ff;
+		end
 endmodule
 `default_nettype wire
 `default_nettype none
@@ -44,10 +70,10 @@ module input_debounce (
 	output reg flag_out;
 	generate
 		if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
-			initial $display("Error [elaboration] rtl/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
+			initial $display("Error [elaboration] ../rtl/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
 		end
 		if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
-			initial $display("Error [elaboration] rtl/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
+			initial $display("Error [elaboration] ../rtl/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
 		end
 	endgenerate
 	localparam signed [31:0] CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS ? ASSERT_CLKS : RELEASE_CLKS);
@@ -81,236 +107,27 @@ module input_debounce (
 endmodule
 `default_nettype wire
 `default_nettype none
-module input_sync (
+module soft_start (
 	clk,
 	rst_n,
-	async_in,
-	sync_out
-);
-	parameter [0:0] RESET_VALUE = 1'b0;
-	input wire clk;
-	input wire rst_n;
-	input wire async_in;
-	output reg sync_out;
-	reg meta_ff;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n) begin
-			meta_ff <= RESET_VALUE;
-			sync_out <= RESET_VALUE;
-		end
-		else begin
-			meta_ff <= async_in;
-			sync_out <= meta_ff;
-		end
-endmodule
-`default_nettype wire
-`default_nettype none
-`default_nettype wire
-`default_nettype none
-module pmic_top (
-	clk,
-	rst_n_pin,
-	SCK,
-	CS_n,
-	SDIO,
-	Osc_in,
-	CP_trig,
-	OTP_trig,
-	UVLO_trig,
-	latch_stat,
-	PGOOD_comp,
-	en_from_switch,
-	PWM_out,
-	En,
-	PGOOD,
-	latch_out,
-	switch_supply,
-	Green_LED,
-	pgood_LED,
-	Red_LED1,
-	Red_LED2,
-	Red_LED3
+	pwm_sync,
+	ss_active,
+	run_active,
+	cycles_per_step,
+	max_on_limit,
+	max_on_counts,
+	SS_done
 );
 	reg _sv2v_0;
-	input wire clk;
-	input wire rst_n_pin;
-	input wire SCK;
-	input wire CS_n;
-	inout wire SDIO;
-	input wire Osc_in;
-	input wire CP_trig;
-	input wire OTP_trig;
-	input wire UVLO_trig;
-	input wire latch_stat;
-	input wire PGOOD_comp;
-	input wire en_from_switch;
-	output wire PWM_out;
-	output wire En;
-	output wire PGOOD;
-	output wire latch_out;
-	output wire switch_supply;
-	output wire Green_LED;
-	output wire pgood_LED;
-	output wire Red_LED1;
-	output wire Red_LED2;
-	output wire Red_LED3;
-	wire rst_n;
-	reset_sync rst_sync(
-		.clk(clk),
-		.rst_n_enter(rst_n_pin),
-		.rst_n_exit(rst_n)
-	);
-	wire en_from_switch_sync;
-	wire Osc_sync;
-	wire CP_sync;
-	wire OTP_sync;
-	wire UVLO_sync;
-	wire latch_stat_sync;
-	wire PGOOD_comp_sync;
-	wire sck_sync;
-	wire cs_n_sync;
-	wire sdio_sync;
-	input_sync u_osc_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(Osc_in),
-		.sync_out(Osc_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_cp_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(CP_trig),
-		.sync_out(CP_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_otp_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(OTP_trig),
-		.sync_out(OTP_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_uvlo_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(UVLO_trig),
-		.sync_out(UVLO_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(latch_stat),
-		.sync_out(latch_stat_sync)
-	);
-	input_sync u_pgood_comp_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(PGOOD_comp),
-		.sync_out(PGOOD_comp_sync)
-	);
-	input_sync u_en_from_switch_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(en_from_switch),
-		.sync_out(en_from_switch_sync)
-	);
-	input_sync u_sck_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(SCK),
-		.sync_out(sck_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_cs_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(CS_n),
-		.sync_out(cs_n_sync)
-	);
-	input_sync u_sdio_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(SDIO),
-		.sync_out(sdio_sync)
-	);
-	wire en_from_switch_sync_db;
-	wire OTP_sync_db;
-	wire UVLO_sync_db;
-	wire latch_stat_sync_db;
-	wire sck_filt;
-	wire cs_n_filt;
-	wire sdio_filt;
+	localparam signed [31:0] pmic_types_pkg_LM5106_SHRINK_NS = 128;
+	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
 	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
-	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
-		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 50000 * ms;
+	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
+		input reg signed [31:0] ns;
+		pmic_types_pkg_ns_to_clks = (50 * ns) / 1000;
 	endfunction
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_ms_to_clks(20)),
-		.RELEASE_CLKS(pmic_types_pkg_ms_to_clks(20)),
-		.RESET_VALUE(1'b0)
-	) u_en_from_switch_db(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(en_from_switch_sync),
-		.flag_out(en_from_switch_sync_db)
-	);
-	input_debounce u_OTP_sync_db(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(OTP_sync),
-		.flag_out(OTP_sync_db)
-	);
-	input_debounce u_UVLO_sync_db(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(UVLO_sync),
-		.flag_out(UVLO_sync_db)
-	);
-	input_debounce u_latch_stat_sync_db(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(latch_stat_sync),
-		.flag_out(latch_stat_sync_db)
-	);
-	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b0)
-	) u_sck_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(sck_sync),
-		.flag_out(sck_filt)
-	);
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b1)
-	) u_cs_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(cs_n_sync),
-		.flag_out(cs_n_filt)
-	);
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b0)
-	) u_sdio_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(sdio_sync),
-		.flag_out(sdio_filt)
-	);
-	wire ss_active;
-	wire run_active;
-	wire hiccup_active;
-	wire hiccup_done;
-	wire SS_done;
-	wire window_trip;
-	wire window_trip_SS;
-	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
-	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
-	wire [1:0] strike_level;
+	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
+	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
 	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
@@ -320,241 +137,114 @@ module pmic_top (
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MAX_ON_COUNTS_DEFAULT = pmic_types_pkg_duty_to_counts(pmic_types_pkg_DIGITAL_DUTY_PCT);
 	localparam signed [31:0] pmic_types_pkg_ON_TIME_W = $clog2(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT + 1);
-	wire [pmic_types_pkg_ON_TIME_W - 1:0] max_on_counts;
-	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
-	wire [pmic_types_pkg_CNT_W - 1:0] duty_count;
-	wire [pmic_types_pkg_CNT_W - 1:0] prev_period;
-	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
-	wire [23:0] timestamp_ms;
-	wire [23:0] fault_time;
-	wire [1:0] sup_state;
-	localparam signed [31:0] pmic_types_pkg_WINDOW_RUN = 16;
-	wire [4:0] fault_count_run;
-	localparam signed [31:0] pmic_types_pkg_WINDOW_SS = 32;
-	wire [5:0] fault_count_ss;
-	reg en_switch_rise;
-	localparam signed [31:0] pmic_types_pkg_FAULT_CAUSE_W = 5;
-	wire [4:0] fault_reg;
-	wire fault_reg_read_done;
-	wire [6:0] spi_addr;
-	wire spi_wr_en;
-	wire [7:0] spi_wdata;
-	wire [7:0] spi_rdata;
-	wire spi_rd_first;
-	wire spi_integrity_ok;
-	wire spi_abort;
-	wire sdio_out;
-	wire sdio_oe;
-	wire spi_enable;
-	localparam signed [31:0] pmic_types_pkg_TRIP_W = 6;
-	wire [5:0] trip_run;
-	wire [5:0] trip_ss;
-	wire [1:0] max_strikes;
-	wire [pmic_types_pkg_ON_TIME_W - 1:0] max_on_limit;
-	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
-	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_W = $clog2(pmic_types_pkg_HICCUP_BASE_MAX_CLKS + 1);
-	wire [pmic_types_pkg_HICCUP_BASE_W - 1:0] hiccup_base;
+	parameter signed [31:0] ON_TIME_W = pmic_types_pkg_ON_TIME_W;
+	input wire clk;
+	input wire rst_n;
+	input wire pwm_sync;
+	input wire ss_active;
+	input wire run_active;
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_MAX = 64;
 	localparam signed [31:0] pmic_types_pkg_CYC_STEP_W = 7;
-	wire [6:0] cycles_per_step;
-	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_MS = 1000;
-	function automatic signed [31:0] pmic_types_pkg_ms_to_sw_cycles;
-		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_sw_cycles = 450 * ms;
-	endfunction
-	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_CYCLES = pmic_types_pkg_ms_to_sw_cycles(pmic_types_pkg_CLEAN_RUN_MS);
-	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_W = $clog2(pmic_types_pkg_CLEAN_RUN_CYCLES + 1);
-	wire [pmic_types_pkg_CLEAN_RUN_W - 1:0] clean_run_target;
-	reg en_from_switch_sync_db_d;
+	input wire [6:0] cycles_per_step;
+	input wire [ON_TIME_W - 1:0] max_on_limit;
+	output reg [ON_TIME_W - 1:0] max_on_counts;
+	output reg SS_done;
+	localparam [ON_TIME_W - 1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W - 1:0];
+	reg pwm_sync_d;
+	reg pwm_fall;
+	reg [6:0] cycle_counter;
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
-			en_from_switch_sync_db_d <= 0;
+			pwm_sync_d <= 1'b0;
 		else
-			en_from_switch_sync_db_d <= en_from_switch_sync_db;
+			pwm_sync_d <= pwm_sync;
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
+		pwm_fall = pwm_sync_d & ~pwm_sync;
 	end
-	supervisor u_supervisor(
-		.clk(clk),
-		.SS_done(SS_done),
-		.rst_n(rst_n),
-		.en_SW(en_from_switch_sync_db),
-		.spi_enable(spi_enable),
-		.latch_state(latch_stat_sync_db),
-		.OTP(OTP_sync_db),
-		.window_trip_SS(window_trip_SS),
-		.window_trip(window_trip),
-		.latch_assert(latch_out),
-		.UVLO(UVLO_sync_db),
-		.hiccup_done(hiccup_done),
-		.en(En),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.hiccup_active(hiccup_active),
-		.state_out(sup_state)
-	);
-	fault_arbiter u_fault_arbiter(
-		.clk(clk),
-		.rst_n(rst_n),
-		.trip_run(trip_run),
-		.trip_ss(trip_ss),
-		.fault_count_run_out(fault_count_run),
-		.fault_count_ss_out(fault_count_ss),
-		.pwm_sync(Osc_sync),
-		.cp_sync(CP_sync),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.window_trip(window_trip),
-		.window_trip_SS(window_trip_SS)
-	);
-	hiccup_timer u_hiccup_timer(
-		.clk(clk),
-		.rst_n(rst_n),
-		.base_clks(hiccup_base),
-		.hiccup_active(hiccup_active),
-		.strike_level(strike_level),
-		.hiccup_done(hiccup_done)
-	);
-	strike_counter u_strike_counter(
-		.clk(clk),
-		.rst_n(rst_n),
-		.max_strikes(max_strikes),
-		.clean_run_target(clean_run_target),
-		.pwm_sync(Osc_sync),
-		.hiccup_active(hiccup_active),
-		.run_active(run_active),
-		.window_trip(window_trip),
-		.strike_level(strike_level),
-		.latch_assert(latch_out)
-	);
-	soft_start u_soft_start(
-		.clk(clk),
-		.rst_n(rst_n),
-		.pwm_sync(Osc_sync),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.max_on_counts(max_on_counts),
-		.max_on_limit(max_on_limit),
-		.cycles_per_step(cycles_per_step),
-		.SS_done(SS_done)
-	);
-	pwm_mask u_pwm_mask(
-		.clk(clk),
-		.rst_n(rst_n),
-		.pwm_sync(Osc_sync),
-		.max_on_counts(max_on_counts),
-		.pwm_out(PWM_out)
-	);
-	assign SDIO = (sdio_oe ? sdio_out : 1'bz);
-	spi_slave u_spi_slave(
-		.clk(clk),
-		.rst_n(rst_n),
-		.sck(sck_filt),
-		.cs_n(cs_n_filt),
-		.sdio_in(sdio_filt),
-		.sdio_out(sdio_out),
-		.sdio_oe(sdio_oe),
-		.addr(spi_addr),
-		.wr_en(spi_wr_en),
-		.wdata(spi_wdata),
-		.rdata(spi_rdata),
-		.rd_first(spi_rd_first),
-		.integrity_ok(spi_integrity_ok),
-		.abort(spi_abort)
-	);
-	reg_file u_reg_file(
-		.clk(clk),
-		.rst_n(rst_n),
-		.addr(spi_addr),
-		.wr_en(spi_wr_en),
-		.wdata(spi_wdata),
-		.rdata(spi_rdata),
-		.rd_first(spi_rd_first),
-		.integrity_OK(spi_integrity_ok),
-		.abort(spi_abort),
-		.sup_state(sup_state),
-		.pgood(PGOOD),
-		.latch_state(latch_stat_sync_db),
-		.en_switch(en_from_switch_sync_db),
-		.en_switch_rise(en_switch_rise),
-		.cp_state(CP_sync),
-		.otp_state(OTP_sync_db),
-		.uvlo_state(UVLO_sync_db),
-		.strike_level(strike_level),
-		.duty_count(duty_count),
-		.prev_period(prev_period),
-		.fault_count_run(fault_count_run),
-		.fault_count_ss(fault_count_ss),
-		.fault_reg(fault_reg),
-		.timestamp_ms(timestamp_ms),
-		.fault_time(fault_time),
-		.fault_reg_read_done(fault_reg_read_done),
-		.spi_enable(spi_enable),
-		.trip_run(trip_run),
-		.trip_ss(trip_ss),
-		.max_strikes(max_strikes),
-		.max_on_limit(max_on_limit),
-		.hiccup_base(hiccup_base),
-		.cycles_per_step(cycles_per_step),
-		.clean_run_target(clean_run_target)
-	);
-	pwm_stats u_pwm_stats(
-		.clk(clk),
-		.rst_n(rst_n),
-		.pwm_sync(Osc_sync),
-		.duty_count(duty_count),
-		.prev_period(prev_period)
-	);
-	fault_cause u_fault_cause(
-		.clk(clk),
-		.rst_n(rst_n),
-		.otp_state(OTP_sync_db),
-		.uvlo_state(UVLO_sync_db),
-		.latch_state(latch_stat_sync_db),
-		.latch_assert(latch_out),
-		.window_trip(window_trip),
-		.window_trip_SS(window_trip_SS),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.fault_reg_read_done(fault_reg_read_done),
-		.timestamp_ms(timestamp_ms),
-		.fault_time(fault_time),
-		.fault_reg(fault_reg)
-	);
-	pgood_gen u_pgood_gen(
-		.clk(clk),
-		.rst_n(rst_n),
-		.pwm_sync(Osc_sync),
-		.pgood_comp(PGOOD_comp_sync),
-		.run_active(run_active),
-		.PGOOD(PGOOD)
-	);
-	timestamp u_timestamp(
-		.clk(clk),
-		.rst_n(rst_n),
-		.timestamp_ms(timestamp_ms)
-	);
-	fault_LED u_fault_LED(
-		.clk(clk),
-		.rst_n(rst_n),
-		.otp_state(OTP_sync_db),
-		.uvlo_state(UVLO_sync_db),
-		.latch_state(latch_stat_sync_db),
-		.latch_assert(latch_out),
-		.strike_level(strike_level),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.pgood(PGOOD),
-		.Green_LED(Green_LED),
-		.pgood_LED(pgood_LED),
-		.Red_LED1(Red_LED1),
-		.Red_LED2(Red_LED2),
-		.Red_LED3(Red_LED3)
-	);
-	assign switch_supply = PGOOD;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n) begin
+			cycle_counter <= 1'sb0;
+			max_on_counts <= MIN_ON_CNT;
+			SS_done <= 1'b0;
+		end
+		else if (ss_active) begin
+			if (pwm_fall) begin
+				if (cycle_counter == (cycles_per_step - 1'b1)) begin
+					cycle_counter <= 1'sb0;
+					if (max_on_counts == max_on_limit)
+						SS_done <= 1'b1;
+					else begin
+						max_on_counts <= max_on_counts + 1;
+						if ((max_on_counts + 1) == max_on_limit)
+							SS_done <= 1'b1;
+					end
+				end
+				else
+					cycle_counter <= cycle_counter + 1;
+			end
+		end
+		else if (run_active)
+			;
+		else begin
+			cycle_counter <= 1'sb0;
+			max_on_counts <= MIN_ON_CNT;
+			SS_done <= 1'b0;
+		end
 	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module pwm_mask (
+	clk,
+	rst_n,
+	pwm_sync,
+	max_on_counts,
+	pwm_out
+);
+	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
+	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
+	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
+		input reg signed [31:0] duty_pct;
+		pmic_types_pkg_duty_to_counts = (pmic_types_pkg_CLKS_PER_SW * duty_pct) / 100;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_MAX_ON_COUNTS_DEFAULT = pmic_types_pkg_duty_to_counts(pmic_types_pkg_DIGITAL_DUTY_PCT);
+	localparam signed [31:0] pmic_types_pkg_ON_TIME_W = $clog2(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT + 1);
+	parameter signed [31:0] ON_TIME_W = pmic_types_pkg_ON_TIME_W;
+	input wire clk;
+	input wire rst_n;
+	input wire pwm_sync;
+	input wire [ON_TIME_W - 1:0] max_on_counts;
+	output reg pwm_out;
+	reg [ON_TIME_W - 1:0] run_counter;
+	reg pulse_allowed;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n) begin
+			run_counter <= 0;
+			pulse_allowed <= 1;
+		end
+		else if (pwm_sync) begin
+			if (run_counter < max_on_counts) begin
+				run_counter <= run_counter + 1;
+				pulse_allowed <= 1;
+			end
+			else begin
+				run_counter <= run_counter;
+				pulse_allowed <= 0;
+			end
+		end
+		else begin
+			run_counter <= 0;
+			pulse_allowed <= 1;
+		end
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			pwm_out <= 0;
+		else
+			pwm_out <= pwm_sync & pulse_allowed;
 endmodule
 `default_nettype wire
 `default_nettype none
@@ -743,147 +433,6 @@ module hiccup_timer (
 endmodule
 `default_nettype wire
 `default_nettype none
-module pwm_mask (
-	clk,
-	rst_n,
-	pwm_sync,
-	max_on_counts,
-	pwm_out
-);
-	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
-	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
-	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
-	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
-		input reg signed [31:0] duty_pct;
-		pmic_types_pkg_duty_to_counts = (pmic_types_pkg_CLKS_PER_SW * duty_pct) / 100;
-	endfunction
-	localparam signed [31:0] pmic_types_pkg_MAX_ON_COUNTS_DEFAULT = pmic_types_pkg_duty_to_counts(pmic_types_pkg_DIGITAL_DUTY_PCT);
-	localparam signed [31:0] pmic_types_pkg_ON_TIME_W = $clog2(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT + 1);
-	parameter signed [31:0] ON_TIME_W = pmic_types_pkg_ON_TIME_W;
-	input wire clk;
-	input wire rst_n;
-	input wire pwm_sync;
-	input wire [ON_TIME_W - 1:0] max_on_counts;
-	output reg pwm_out;
-	reg [ON_TIME_W - 1:0] run_counter;
-	reg pulse_allowed;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n) begin
-			run_counter <= 0;
-			pulse_allowed <= 1;
-		end
-		else if (pwm_sync) begin
-			if (run_counter < max_on_counts) begin
-				run_counter <= run_counter + 1;
-				pulse_allowed <= 1;
-			end
-			else begin
-				run_counter <= run_counter;
-				pulse_allowed <= 0;
-			end
-		end
-		else begin
-			run_counter <= 0;
-			pulse_allowed <= 1;
-		end
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			pwm_out <= 0;
-		else
-			pwm_out <= pwm_sync & pulse_allowed;
-endmodule
-`default_nettype wire
-`default_nettype none
-module soft_start (
-	clk,
-	rst_n,
-	pwm_sync,
-	ss_active,
-	run_active,
-	cycles_per_step,
-	max_on_limit,
-	max_on_counts,
-	SS_done
-);
-	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_LM5106_SHRINK_NS = 128;
-	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
-	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
-		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = (50 * ns) / 1000;
-	endfunction
-	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
-	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
-	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
-	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
-	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
-	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
-		input reg signed [31:0] duty_pct;
-		pmic_types_pkg_duty_to_counts = (pmic_types_pkg_CLKS_PER_SW * duty_pct) / 100;
-	endfunction
-	localparam signed [31:0] pmic_types_pkg_MAX_ON_COUNTS_DEFAULT = pmic_types_pkg_duty_to_counts(pmic_types_pkg_DIGITAL_DUTY_PCT);
-	localparam signed [31:0] pmic_types_pkg_ON_TIME_W = $clog2(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT + 1);
-	parameter signed [31:0] ON_TIME_W = pmic_types_pkg_ON_TIME_W;
-	input wire clk;
-	input wire rst_n;
-	input wire pwm_sync;
-	input wire ss_active;
-	input wire run_active;
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_MAX = 64;
-	localparam signed [31:0] pmic_types_pkg_CYC_STEP_W = 7;
-	input wire [6:0] cycles_per_step;
-	input wire [ON_TIME_W - 1:0] max_on_limit;
-	output reg [ON_TIME_W - 1:0] max_on_counts;
-	output reg SS_done;
-	localparam [ON_TIME_W - 1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W - 1:0];
-	reg pwm_sync_d;
-	reg pwm_fall;
-	reg [6:0] cycle_counter;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			pwm_sync_d <= 1'b0;
-		else
-			pwm_sync_d <= pwm_sync;
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		pwm_fall = pwm_sync_d & ~pwm_sync;
-	end
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n) begin
-			cycle_counter <= 1'sb0;
-			max_on_counts <= MIN_ON_CNT;
-			SS_done <= 1'b0;
-		end
-		else if (ss_active) begin
-			if (pwm_fall) begin
-				if (cycle_counter == (cycles_per_step - 1'b1)) begin
-					cycle_counter <= 1'sb0;
-					if (max_on_counts == max_on_limit)
-						SS_done <= 1'b1;
-					else begin
-						max_on_counts <= max_on_counts + 1;
-						if ((max_on_counts + 1) == max_on_limit)
-							SS_done <= 1'b1;
-					end
-				end
-				else
-					cycle_counter <= cycle_counter + 1;
-			end
-		end
-		else if (run_active)
-			;
-		else begin
-			cycle_counter <= 1'sb0;
-			max_on_counts <= MIN_ON_CNT;
-			SS_done <= 1'b0;
-		end
-	initial _sv2v_0 = 0;
-endmodule
-`default_nettype wire
-`default_nettype none
 module strike_counter (
 	clk,
 	rst_n,
@@ -963,6 +512,97 @@ module strike_counter (
 				clean_counter <= clean_counter + 1;
 		end
 	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module pgood_gen (
+	clk,
+	rst_n,
+	pwm_sync,
+	pgood_comp,
+	run_active,
+	PGOOD
+);
+	reg _sv2v_0;
+	localparam signed [31:0] pmic_types_pkg_PGOOD_DELAY_MS = 9;
+	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
+	function automatic signed [31:0] pmic_types_pkg_ms_to_sw_cycles;
+		input reg signed [31:0] ms;
+		pmic_types_pkg_ms_to_sw_cycles = 450 * ms;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_PGOOD_DELAY_CYCLES = pmic_types_pkg_ms_to_sw_cycles(pmic_types_pkg_PGOOD_DELAY_MS);
+	parameter signed [31:0] PGOOD_DELAY_CYCLES = pmic_types_pkg_PGOOD_DELAY_CYCLES;
+	parameter signed [31:0] PGOOD_DELAY_W = $clog2(PGOOD_DELAY_CYCLES + 1);
+	input wire clk;
+	input wire rst_n;
+	input wire pwm_sync;
+	input wire pgood_comp;
+	input wire run_active;
+	output reg PGOOD;
+	reg pwm_sync_d;
+	reg pwm_fall;
+	reg [PGOOD_DELAY_W - 1:0] qualify_counter;
+	localparam signed [31:0] TARGET = pmic_types_pkg_PGOOD_DELAY_CYCLES;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			pwm_sync_d <= 0;
+		else
+			pwm_sync_d <= pwm_sync;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		pwm_fall = pwm_sync_d & ~pwm_sync;
+	end
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			qualify_counter <= 0;
+		else if (!run_active || !pgood_comp)
+			qualify_counter <= 0;
+		else if (pwm_fall) begin
+			if (qualify_counter == TARGET)
+				qualify_counter <= TARGET;
+			else
+				qualify_counter <= qualify_counter + 1;
+		end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		PGOOD = ((qualify_counter == TARGET) & pgood_comp) & run_active;
+	end
+	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module timestamp (
+	clk,
+	rst_n,
+	timestamp_ms
+);
+	input wire clk;
+	input wire rst_n;
+	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
+	output reg [23:0] timestamp_ms;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
+	localparam signed [31:0] pmic_types_pkg_PRESCALE_VAL = pmic_types_pkg_CLK_HZ / pmic_types_pkg_PRESCALAR_HZ;
+	localparam signed [31:0] pmic_types_pkg_PRESCALAR_W = $clog2(pmic_types_pkg_PRESCALE_VAL + 1);
+	reg [pmic_types_pkg_PRESCALAR_W - 1:0] prescalar;
+	function automatic signed [pmic_types_pkg_PRESCALAR_W - 1:0] sv2v_cast_BC981_signed;
+		input reg signed [pmic_types_pkg_PRESCALAR_W - 1:0] inp;
+		sv2v_cast_BC981_signed = inp;
+	endfunction
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			prescalar <= 1'sb0;
+		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
+			prescalar <= 1'sb0;
+		else
+			prescalar <= prescalar + 1'b1;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			timestamp_ms <= 1'sb0;
+		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
+			timestamp_ms <= timestamp_ms + 1'b1;
 endmodule
 `default_nettype wire
 `default_nettype none
@@ -1060,308 +700,6 @@ module fault_LED (
 			Red_LED3 <= 1'b0;
 		else
 			Red_LED3 <= uvlo_state;
-	initial _sv2v_0 = 0;
-endmodule
-`default_nettype wire
-`default_nettype none
-module pgood_gen (
-	clk,
-	rst_n,
-	pwm_sync,
-	pgood_comp,
-	run_active,
-	PGOOD
-);
-	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_PGOOD_DELAY_MS = 9;
-	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
-	function automatic signed [31:0] pmic_types_pkg_ms_to_sw_cycles;
-		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_sw_cycles = 450 * ms;
-	endfunction
-	localparam signed [31:0] pmic_types_pkg_PGOOD_DELAY_CYCLES = pmic_types_pkg_ms_to_sw_cycles(pmic_types_pkg_PGOOD_DELAY_MS);
-	localparam signed [31:0] pmic_types_pkg_PGOOD_DELAY_W = $clog2(pmic_types_pkg_PGOOD_DELAY_CYCLES + 1);
-	parameter signed [31:0] PGOOD_DELAY_W = pmic_types_pkg_PGOOD_DELAY_W;
-	input wire clk;
-	input wire rst_n;
-	input wire pwm_sync;
-	input wire pgood_comp;
-	input wire run_active;
-	output reg PGOOD;
-	reg pwm_sync_d;
-	reg pwm_fall;
-	reg [PGOOD_DELAY_W - 1:0] qualify_counter;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			pwm_sync_d <= 0;
-		else
-			pwm_sync_d <= pwm_sync;
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		pwm_fall = pwm_sync_d & ~pwm_sync;
-	end
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			qualify_counter <= 0;
-		else if (!run_active || !pgood_comp)
-			qualify_counter <= 0;
-		else if (pwm_fall) begin
-			if (qualify_counter == ((2 ** PGOOD_DELAY_W) - 1))
-				qualify_counter <= (2 ** PGOOD_DELAY_W) - 1;
-			else
-				qualify_counter <= qualify_counter + 1;
-		end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		PGOOD = ((qualify_counter == ((2 ** PGOOD_DELAY_W) - 1)) & pgood_comp) & run_active;
-	end
-	initial _sv2v_0 = 0;
-endmodule
-`default_nettype wire
-`default_nettype none
-module timestamp (
-	clk,
-	rst_n,
-	timestamp_ms
-);
-	input wire clk;
-	input wire rst_n;
-	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
-	output reg [23:0] timestamp_ms;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
-	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
-	localparam signed [31:0] pmic_types_pkg_PRESCALE_VAL = pmic_types_pkg_CLK_HZ / pmic_types_pkg_PRESCALAR_HZ;
-	localparam signed [31:0] pmic_types_pkg_PRESCALAR_W = $clog2(pmic_types_pkg_PRESCALE_VAL + 1);
-	reg [pmic_types_pkg_PRESCALAR_W - 1:0] prescalar;
-	function automatic signed [pmic_types_pkg_PRESCALAR_W - 1:0] sv2v_cast_BC981_signed;
-		input reg signed [pmic_types_pkg_PRESCALAR_W - 1:0] inp;
-		sv2v_cast_BC981_signed = inp;
-	endfunction
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			prescalar <= 1'sb0;
-		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
-			prescalar <= 1'sb0;
-		else
-			prescalar <= prescalar + 1'b1;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			timestamp_ms <= 1'sb0;
-		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
-			timestamp_ms <= timestamp_ms + 1'b1;
-endmodule
-`default_nettype wire
-`default_nettype none
-module supervisor (
-	clk,
-	SS_done,
-	rst_n,
-	latch_state,
-	OTP,
-	window_trip_SS,
-	window_trip,
-	latch_assert,
-	UVLO,
-	hiccup_done,
-	en_SW,
-	spi_enable,
-	en,
-	ss_active,
-	run_active,
-	hiccup_active,
-	state_out
-);
-	reg _sv2v_0;
-	input wire clk;
-	input wire SS_done;
-	input wire rst_n;
-	input wire latch_state;
-	input wire OTP;
-	input wire window_trip_SS;
-	input wire window_trip;
-	input wire latch_assert;
-	input wire UVLO;
-	input wire hiccup_done;
-	input wire en_SW;
-	input wire spi_enable;
-	output reg en;
-	output reg ss_active;
-	output reg run_active;
-	output reg hiccup_active;
-	output reg [1:0] state_out;
-	reg en_from_state;
-	reg [1:0] state;
-	reg [1:0] next_state;
-	wire g_en;
-	assign g_en = spi_enable & en_SW;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			state <= 2'b00;
-		else
-			state <= next_state;
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		next_state = state;
-		(* full_case, parallel_case *)
-		case (state)
-			2'b00:
-				if ((((g_en & ~latch_state) & ~OTP) & ~UVLO) & ~latch_assert)
-					next_state = 2'b01;
-				else
-					next_state = 2'b00;
-			2'b01:
-				if ((((~g_en | OTP) | latch_state) | UVLO) | latch_assert)
-					next_state = 2'b00;
-				else if (window_trip_SS)
-					next_state = 2'b11;
-				else if (SS_done)
-					next_state = 2'b10;
-				else
-					next_state = 2'b01;
-			2'b10:
-				if ((((~g_en | latch_state) | OTP) | UVLO) | latch_assert)
-					next_state = 2'b00;
-				else if (window_trip)
-					next_state = 2'b11;
-				else
-					next_state = 2'b10;
-			2'b11:
-				if ((((~g_en | latch_state) | OTP) | latch_assert) | UVLO)
-					next_state = 2'b00;
-				else if (hiccup_done)
-					next_state = 2'b01;
-				else
-					next_state = 2'b11;
-			default: next_state = 2'b00;
-		endcase
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		(* full_case, parallel_case *)
-		case (state)
-			2'b00: en_from_state = 1'b0;
-			2'b01: en_from_state = 1'b1;
-			2'b10: en_from_state = 1'b1;
-			2'b11: en_from_state = 1'b0;
-			default: en_from_state = 1'b0;
-		endcase
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		ss_active = state == 2'b01;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		run_active = state == 2'b10;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		hiccup_active = state == 2'b11;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		en = ((((g_en & en_from_state) & ~OTP) & ~latch_state) & ~UVLO) & ~latch_assert;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		state_out = state;
-	end
-	initial _sv2v_0 = 0;
-endmodule
-`default_nettype wire
-`default_nettype none
-module fault_cause (
-	clk,
-	rst_n,
-	otp_state,
-	uvlo_state,
-	latch_state,
-	latch_assert,
-	window_trip,
-	window_trip_SS,
-	ss_active,
-	run_active,
-	fault_reg_read_done,
-	timestamp_ms,
-	fault_time,
-	fault_reg
-);
-	reg _sv2v_0;
-	input wire clk;
-	input wire rst_n;
-	input wire otp_state;
-	input wire uvlo_state;
-	input wire latch_state;
-	input wire latch_assert;
-	input wire window_trip;
-	input wire window_trip_SS;
-	input wire ss_active;
-	input wire run_active;
-	input wire fault_reg_read_done;
-	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
-	input wire [23:0] timestamp_ms;
-	output reg [23:0] fault_time;
-	localparam signed [31:0] pmic_types_pkg_FAULT_CAUSE_W = 5;
-	output reg [4:0] fault_reg;
-	localparam signed [31:0] BIT_OVP = 4;
-	localparam signed [31:0] BIT_LATCH = 3;
-	localparam signed [31:0] BIT_OTP = 2;
-	localparam signed [31:0] BIT_UVLO = 1;
-	localparam signed [31:0] BIT_OC = 0;
-	reg convertor_running;
-	reg ovp;
-	reg episode_start;
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		convertor_running = ss_active || run_active;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		if (latch_state & ~latch_assert)
-			ovp = 1'b1;
-		else
-			ovp = 1'b0;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		episode_start = (convertor_running && (fault_reg == {5 {1'sb0}})) && (((((otp_state || uvlo_state) || ovp) || latch_assert) || window_trip) || window_trip_SS);
-	end
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			fault_time <= 1'sb0;
-		else if (fault_reg_read_done)
-			fault_time <= 1'sb0;
-		else if (episode_start)
-			fault_time <= timestamp_ms;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			fault_reg <= 1'sb0;
-		else if (fault_reg_read_done)
-			fault_reg <= 1'sb0;
-		else if (convertor_running) begin
-			if (otp_state)
-				fault_reg[BIT_OTP] <= 1'b1;
-			if (uvlo_state)
-				fault_reg[BIT_UVLO] <= 1'b1;
-			if (window_trip || window_trip_SS)
-				fault_reg[BIT_OC] <= 1'b1;
-			if (ovp)
-				fault_reg[BIT_OVP] <= 1'b1;
-			if (latch_assert)
-				fault_reg[BIT_LATCH] <= 1'b1;
-		end
 	initial _sv2v_0 = 0;
 endmodule
 `default_nettype wire
@@ -2236,6 +1574,669 @@ module spi_slave (
 					abort <= 1'b1;
 			end
 		end
+	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module fault_cause (
+	clk,
+	rst_n,
+	otp_state,
+	uvlo_state,
+	latch_state,
+	latch_assert,
+	window_trip,
+	window_trip_SS,
+	ss_active,
+	run_active,
+	fault_reg_read_done,
+	timestamp_ms,
+	fault_time,
+	fault_reg
+);
+	reg _sv2v_0;
+	input wire clk;
+	input wire rst_n;
+	input wire otp_state;
+	input wire uvlo_state;
+	input wire latch_state;
+	input wire latch_assert;
+	input wire window_trip;
+	input wire window_trip_SS;
+	input wire ss_active;
+	input wire run_active;
+	input wire fault_reg_read_done;
+	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
+	input wire [23:0] timestamp_ms;
+	output reg [23:0] fault_time;
+	localparam signed [31:0] pmic_types_pkg_FAULT_CAUSE_W = 5;
+	output reg [4:0] fault_reg;
+	localparam signed [31:0] BIT_OVP = 4;
+	localparam signed [31:0] BIT_LATCH = 3;
+	localparam signed [31:0] BIT_OTP = 2;
+	localparam signed [31:0] BIT_UVLO = 1;
+	localparam signed [31:0] BIT_OC = 0;
+	reg convertor_running;
+	reg ovp;
+	reg episode_start;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		convertor_running = ss_active || run_active;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		if (latch_state & ~latch_assert)
+			ovp = 1'b1;
+		else
+			ovp = 1'b0;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		episode_start = (convertor_running && (fault_reg == {5 {1'sb0}})) && (((((otp_state || uvlo_state) || ovp) || latch_assert) || window_trip) || window_trip_SS);
+	end
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			fault_time <= 1'sb0;
+		else if (fault_reg_read_done)
+			fault_time <= 1'sb0;
+		else if (episode_start)
+			fault_time <= timestamp_ms;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			fault_reg <= 1'sb0;
+		else if (fault_reg_read_done)
+			fault_reg <= 1'sb0;
+		else if (convertor_running) begin
+			if (otp_state)
+				fault_reg[BIT_OTP] <= 1'b1;
+			if (uvlo_state)
+				fault_reg[BIT_UVLO] <= 1'b1;
+			if (window_trip || window_trip_SS)
+				fault_reg[BIT_OC] <= 1'b1;
+			if (ovp)
+				fault_reg[BIT_OVP] <= 1'b1;
+			if (latch_assert)
+				fault_reg[BIT_LATCH] <= 1'b1;
+		end
+	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module supervisor (
+	clk,
+	SS_done,
+	rst_n,
+	latch_state,
+	OTP,
+	window_trip_SS,
+	window_trip,
+	latch_assert,
+	UVLO,
+	hiccup_done,
+	en_SW,
+	spi_enable,
+	en,
+	ss_active,
+	run_active,
+	hiccup_active,
+	state_out
+);
+	reg _sv2v_0;
+	input wire clk;
+	input wire SS_done;
+	input wire rst_n;
+	input wire latch_state;
+	input wire OTP;
+	input wire window_trip_SS;
+	input wire window_trip;
+	input wire latch_assert;
+	input wire UVLO;
+	input wire hiccup_done;
+	input wire en_SW;
+	input wire spi_enable;
+	output reg en;
+	output reg ss_active;
+	output reg run_active;
+	output reg hiccup_active;
+	output reg [1:0] state_out;
+	reg en_from_state;
+	reg [1:0] state;
+	reg [1:0] next_state;
+	wire g_en;
+	assign g_en = spi_enable & en_SW;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			state <= 2'b00;
+		else
+			state <= next_state;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		next_state = state;
+		(* full_case, parallel_case *)
+		case (state)
+			2'b00:
+				if ((((g_en & ~latch_state) & ~OTP) & ~UVLO) & ~latch_assert)
+					next_state = 2'b01;
+				else
+					next_state = 2'b00;
+			2'b01:
+				if ((((~g_en | OTP) | latch_state) | UVLO) | latch_assert)
+					next_state = 2'b00;
+				else if (window_trip_SS)
+					next_state = 2'b11;
+				else if (SS_done)
+					next_state = 2'b10;
+				else
+					next_state = 2'b01;
+			2'b10:
+				if ((((~g_en | latch_state) | OTP) | UVLO) | latch_assert)
+					next_state = 2'b00;
+				else if (window_trip)
+					next_state = 2'b11;
+				else
+					next_state = 2'b10;
+			2'b11:
+				if ((((~g_en | latch_state) | OTP) | latch_assert) | UVLO)
+					next_state = 2'b00;
+				else if (hiccup_done)
+					next_state = 2'b01;
+				else
+					next_state = 2'b11;
+			default: next_state = 2'b00;
+		endcase
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		(* full_case, parallel_case *)
+		case (state)
+			2'b00: en_from_state = 1'b0;
+			2'b01: en_from_state = 1'b1;
+			2'b10: en_from_state = 1'b1;
+			2'b11: en_from_state = 1'b0;
+			default: en_from_state = 1'b0;
+		endcase
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		ss_active = state == 2'b01;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		run_active = state == 2'b10;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		hiccup_active = state == 2'b11;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		en = ((((g_en & en_from_state) & ~OTP) & ~latch_state) & ~UVLO) & ~latch_assert;
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		state_out = state;
+	end
+	initial _sv2v_0 = 0;
+endmodule
+`default_nettype wire
+`default_nettype none
+module pmic_top (
+	clk,
+	rst_n_pin,
+	SCK,
+	CS_n,
+	SDIO,
+	Osc_in,
+	CP_trig,
+	OTP_trig,
+	UVLO_trig,
+	latch_stat,
+	PGOOD_comp,
+	en_from_switch,
+	PWM_out,
+	En,
+	PGOOD,
+	latch_out,
+	switch_supply,
+	Green_LED,
+	pgood_LED,
+	Red_LED1,
+	Red_LED2,
+	Red_LED3
+);
+	reg _sv2v_0;
+	input wire clk;
+	input wire rst_n_pin;
+	input wire SCK;
+	input wire CS_n;
+	inout wire SDIO;
+	input wire Osc_in;
+	input wire CP_trig;
+	input wire OTP_trig;
+	input wire UVLO_trig;
+	input wire latch_stat;
+	input wire PGOOD_comp;
+	input wire en_from_switch;
+	output wire PWM_out;
+	output wire En;
+	output wire PGOOD;
+	output wire latch_out;
+	output wire switch_supply;
+	output wire Green_LED;
+	output wire pgood_LED;
+	output wire Red_LED1;
+	output wire Red_LED2;
+	output wire Red_LED3;
+	wire rst_n;
+	reset_sync rst_sync(
+		.clk(clk),
+		.rst_n_enter(rst_n_pin),
+		.rst_n_exit(rst_n)
+	);
+	wire en_from_switch_sync;
+	wire Osc_sync;
+	wire CP_sync;
+	wire OTP_sync;
+	wire UVLO_sync;
+	wire latch_stat_sync;
+	wire PGOOD_comp_sync;
+	wire sck_sync;
+	wire cs_n_sync;
+	wire sdio_sync;
+	input_sync u_osc_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(Osc_in),
+		.sync_out(Osc_sync)
+	);
+	input_sync #(.RESET_VALUE(1'b1)) u_cp_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(CP_trig),
+		.sync_out(CP_sync)
+	);
+	input_sync #(.RESET_VALUE(1'b1)) u_otp_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(OTP_trig),
+		.sync_out(OTP_sync)
+	);
+	input_sync #(.RESET_VALUE(1'b1)) u_uvlo_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(UVLO_trig),
+		.sync_out(UVLO_sync)
+	);
+	input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(latch_stat),
+		.sync_out(latch_stat_sync)
+	);
+	input_sync u_pgood_comp_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(PGOOD_comp),
+		.sync_out(PGOOD_comp_sync)
+	);
+	input_sync u_en_from_switch_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(en_from_switch),
+		.sync_out(en_from_switch_sync)
+	);
+	input_sync u_sck_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(SCK),
+		.sync_out(sck_sync)
+	);
+	input_sync #(.RESET_VALUE(1'b1)) u_cs_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(CS_n),
+		.sync_out(cs_n_sync)
+	);
+	input_sync u_sdio_sync(
+		.clk(clk),
+		.rst_n(rst_n),
+		.async_in(SDIO),
+		.sync_out(sdio_sync)
+	);
+	wire en_from_switch_sync_db;
+	wire OTP_sync_db;
+	wire UVLO_sync_db;
+	wire latch_stat_sync_db;
+	wire sck_filt;
+	wire cs_n_filt;
+	wire sdio_filt;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
+		input reg signed [31:0] ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
+	endfunction
+	input_debounce #(
+		.ASSERT_CLKS(pmic_types_pkg_ms_to_clks(20)),
+		.RELEASE_CLKS(pmic_types_pkg_ms_to_clks(20)),
+		.RESET_VALUE(1'b0)
+	) u_en_from_switch_db(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(en_from_switch_sync),
+		.flag_out(en_from_switch_sync_db)
+	);
+	input_debounce u_OTP_sync_db(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(OTP_sync),
+		.flag_out(OTP_sync_db)
+	);
+	input_debounce u_UVLO_sync_db(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(UVLO_sync),
+		.flag_out(UVLO_sync_db)
+	);
+	input_debounce u_latch_stat_sync_db(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(latch_stat_sync),
+		.flag_out(latch_stat_sync_db)
+	);
+	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;
+	input_debounce #(
+		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RESET_VALUE(1'b0)
+	) u_sck_filt(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(sck_sync),
+		.flag_out(sck_filt)
+	);
+	input_debounce #(
+		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RESET_VALUE(1'b1)
+	) u_cs_filt(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(cs_n_sync),
+		.flag_out(cs_n_filt)
+	);
+	input_debounce #(
+		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+		.RESET_VALUE(1'b0)
+	) u_sdio_filt(
+		.clk(clk),
+		.rst_n(rst_n),
+		.flag_in(sdio_sync),
+		.flag_out(sdio_filt)
+	);
+	wire ss_active;
+	wire run_active;
+	wire hiccup_active;
+	wire hiccup_done;
+	wire SS_done;
+	wire window_trip;
+	wire window_trip_SS;
+	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
+	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
+	wire [1:0] strike_level;
+	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
+	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
+	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
+	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
+		input reg signed [31:0] duty_pct;
+		pmic_types_pkg_duty_to_counts = (pmic_types_pkg_CLKS_PER_SW * duty_pct) / 100;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_MAX_ON_COUNTS_DEFAULT = pmic_types_pkg_duty_to_counts(pmic_types_pkg_DIGITAL_DUTY_PCT);
+	localparam signed [31:0] pmic_types_pkg_ON_TIME_W = $clog2(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT + 1);
+	wire [pmic_types_pkg_ON_TIME_W - 1:0] max_on_counts;
+	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
+	wire [pmic_types_pkg_CNT_W - 1:0] duty_count;
+	wire [pmic_types_pkg_CNT_W - 1:0] prev_period;
+	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
+	wire [23:0] timestamp_ms;
+	wire [23:0] fault_time;
+	wire [1:0] sup_state;
+	localparam signed [31:0] pmic_types_pkg_WINDOW_RUN = 16;
+	wire [4:0] fault_count_run;
+	localparam signed [31:0] pmic_types_pkg_WINDOW_SS = 32;
+	wire [5:0] fault_count_ss;
+	reg en_switch_rise;
+	localparam signed [31:0] pmic_types_pkg_FAULT_CAUSE_W = 5;
+	wire [4:0] fault_reg;
+	wire fault_reg_read_done;
+	wire [6:0] spi_addr;
+	wire spi_wr_en;
+	wire [7:0] spi_wdata;
+	wire [7:0] spi_rdata;
+	wire spi_rd_first;
+	wire spi_integrity_ok;
+	wire spi_abort;
+	wire sdio_out;
+	wire sdio_oe;
+	wire spi_enable;
+	localparam signed [31:0] pmic_types_pkg_TRIP_W = 6;
+	wire [5:0] trip_run;
+	wire [5:0] trip_ss;
+	wire [1:0] max_strikes;
+	wire [pmic_types_pkg_ON_TIME_W - 1:0] max_on_limit;
+	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
+	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_W = $clog2(pmic_types_pkg_HICCUP_BASE_MAX_CLKS + 1);
+	wire [pmic_types_pkg_HICCUP_BASE_W - 1:0] hiccup_base;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_MAX = 64;
+	localparam signed [31:0] pmic_types_pkg_CYC_STEP_W = 7;
+	wire [6:0] cycles_per_step;
+	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_MS = 1000;
+	function automatic signed [31:0] pmic_types_pkg_ms_to_sw_cycles;
+		input reg signed [31:0] ms;
+		pmic_types_pkg_ms_to_sw_cycles = 450 * ms;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_CYCLES = pmic_types_pkg_ms_to_sw_cycles(pmic_types_pkg_CLEAN_RUN_MS);
+	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_W = $clog2(pmic_types_pkg_CLEAN_RUN_CYCLES + 1);
+	wire [pmic_types_pkg_CLEAN_RUN_W - 1:0] clean_run_target;
+	reg en_from_switch_sync_db_d;
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			en_from_switch_sync_db_d <= 0;
+		else
+			en_from_switch_sync_db_d <= en_from_switch_sync_db;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
+	end
+	supervisor u_supervisor(
+		.clk(clk),
+		.SS_done(SS_done),
+		.rst_n(rst_n),
+		.en_SW(en_from_switch_sync_db),
+		.spi_enable(spi_enable),
+		.latch_state(latch_stat_sync_db),
+		.OTP(OTP_sync_db),
+		.window_trip_SS(window_trip_SS),
+		.window_trip(window_trip),
+		.latch_assert(latch_out),
+		.UVLO(UVLO_sync_db),
+		.hiccup_done(hiccup_done),
+		.en(En),
+		.ss_active(ss_active),
+		.run_active(run_active),
+		.hiccup_active(hiccup_active),
+		.state_out(sup_state)
+	);
+	fault_arbiter u_fault_arbiter(
+		.clk(clk),
+		.rst_n(rst_n),
+		.trip_run(trip_run),
+		.trip_ss(trip_ss),
+		.fault_count_run_out(fault_count_run),
+		.fault_count_ss_out(fault_count_ss),
+		.pwm_sync(Osc_sync),
+		.cp_sync(CP_sync),
+		.ss_active(ss_active),
+		.run_active(run_active),
+		.window_trip(window_trip),
+		.window_trip_SS(window_trip_SS)
+	);
+	hiccup_timer u_hiccup_timer(
+		.clk(clk),
+		.rst_n(rst_n),
+		.base_clks(hiccup_base),
+		.hiccup_active(hiccup_active),
+		.strike_level(strike_level),
+		.hiccup_done(hiccup_done)
+	);
+	strike_counter u_strike_counter(
+		.clk(clk),
+		.rst_n(rst_n),
+		.max_strikes(max_strikes),
+		.clean_run_target(clean_run_target),
+		.pwm_sync(Osc_sync),
+		.hiccup_active(hiccup_active),
+		.run_active(run_active),
+		.window_trip(window_trip),
+		.strike_level(strike_level),
+		.latch_assert(latch_out)
+	);
+	soft_start u_soft_start(
+		.clk(clk),
+		.rst_n(rst_n),
+		.pwm_sync(Osc_sync),
+		.ss_active(ss_active),
+		.run_active(run_active),
+		.max_on_counts(max_on_counts),
+		.max_on_limit(max_on_limit),
+		.cycles_per_step(cycles_per_step),
+		.SS_done(SS_done)
+	);
+	pwm_mask u_pwm_mask(
+		.clk(clk),
+		.rst_n(rst_n),
+		.pwm_sync(Osc_sync),
+		.max_on_counts(max_on_counts),
+		.pwm_out(PWM_out)
+	);
+	assign SDIO = (sdio_oe ? sdio_out : 1'bz);
+	spi_slave u_spi_slave(
+		.clk(clk),
+		.rst_n(rst_n),
+		.sck(sck_filt),
+		.cs_n(cs_n_filt),
+		.sdio_in(sdio_filt),
+		.sdio_out(sdio_out),
+		.sdio_oe(sdio_oe),
+		.addr(spi_addr),
+		.wr_en(spi_wr_en),
+		.wdata(spi_wdata),
+		.rdata(spi_rdata),
+		.rd_first(spi_rd_first),
+		.integrity_ok(spi_integrity_ok),
+		.abort(spi_abort)
+	);
+	reg_file u_reg_file(
+		.clk(clk),
+		.rst_n(rst_n),
+		.addr(spi_addr),
+		.wr_en(spi_wr_en),
+		.wdata(spi_wdata),
+		.rdata(spi_rdata),
+		.rd_first(spi_rd_first),
+		.integrity_OK(spi_integrity_ok),
+		.abort(spi_abort),
+		.sup_state(sup_state),
+		.pgood(PGOOD),
+		.latch_state(latch_stat_sync_db),
+		.en_switch(en_from_switch_sync_db),
+		.en_switch_rise(en_switch_rise),
+		.cp_state(CP_sync),
+		.otp_state(OTP_sync_db),
+		.uvlo_state(UVLO_sync_db),
+		.strike_level(strike_level),
+		.duty_count(duty_count),
+		.prev_period(prev_period),
+		.fault_count_run(fault_count_run),
+		.fault_count_ss(fault_count_ss),
+		.fault_reg(fault_reg),
+		.timestamp_ms(timestamp_ms),
+		.fault_time(fault_time),
+		.fault_reg_read_done(fault_reg_read_done),
+		.spi_enable(spi_enable),
+		.trip_run(trip_run),
+		.trip_ss(trip_ss),
+		.max_strikes(max_strikes),
+		.max_on_limit(max_on_limit),
+		.hiccup_base(hiccup_base),
+		.cycles_per_step(cycles_per_step),
+		.clean_run_target(clean_run_target)
+	);
+	pwm_stats u_pwm_stats(
+		.clk(clk),
+		.rst_n(rst_n),
+		.pwm_sync(Osc_sync),
+		.duty_count(duty_count),
+		.prev_period(prev_period)
+	);
+	fault_cause u_fault_cause(
+		.clk(clk),
+		.rst_n(rst_n),
+		.otp_state(OTP_sync_db),
+		.uvlo_state(UVLO_sync_db),
+		.latch_state(latch_stat_sync_db),
+		.latch_assert(latch_out),
+		.window_trip(window_trip),
+		.window_trip_SS(window_trip_SS),
+		.ss_active(ss_active),
+		.run_active(run_active),
+		.fault_reg_read_done(fault_reg_read_done),
+		.timestamp_ms(timestamp_ms),
+		.fault_time(fault_time),
+		.fault_reg(fault_reg)
+	);
+	pgood_gen u_pgood_gen(
+		.clk(clk),
+		.rst_n(rst_n),
+		.pwm_sync(Osc_sync),
+		.pgood_comp(PGOOD_comp_sync),
+		.run_active(run_active),
+		.PGOOD(PGOOD)
+	);
+	timestamp u_timestamp(
+		.clk(clk),
+		.rst_n(rst_n),
+		.timestamp_ms(timestamp_ms)
+	);
+	fault_LED u_fault_LED(
+		.clk(clk),
+		.rst_n(rst_n),
+		.otp_state(OTP_sync_db),
+		.uvlo_state(UVLO_sync_db),
+		.latch_state(latch_stat_sync_db),
+		.latch_assert(latch_out),
+		.strike_level(strike_level),
+		.ss_active(ss_active),
+		.run_active(run_active),
+		.pgood(PGOOD),
+		.Green_LED(Green_LED),
+		.pgood_LED(pgood_LED),
+		.Red_LED1(Red_LED1),
+		.Red_LED2(Red_LED2),
+		.Red_LED3(Red_LED3)
+	);
+	assign switch_supply = PGOOD;
 	initial _sv2v_0 = 0;
 endmodule
 `default_nettype wire

@@ -27,4 +27,13 @@ bind pwm_mask pwm_mask_sva #(
     .*
 );
 
+bind pgood_gen pgood_gen_sva #(
+    .QUAL_CYCLES  (PGOOD_DELAY_CYCLES),
+    .PGOOD_DELAY_W(PGOOD_DELAY_W)
+) u_sva (
+    .dut_qualify_counter(qualify_counter),
+    .dut_pwm_fall       (pwm_fall),
+    .*
+);
+
 

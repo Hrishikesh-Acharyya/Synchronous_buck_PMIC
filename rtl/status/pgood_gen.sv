@@ -20,15 +20,22 @@
 `default_nettype none
 
 module pgood_gen #(
-    // PGOOD_DELAY_W: width of the qualifying counter.
-    parameter int PGOOD_DELAY_W = pmic_types_pkg::PGOOD_DELAY_W
+    
+  // PGOOD_DELAY_CYCLES: switching cycles the rail must be continuously good
+  //                     before PGOOD asserts. Overridden far below the
+  //                     default in simulation.
+  parameter int PGOOD_DELAY_CYCLES = pmic_types_pkg::PGOOD_DELAY_CYCLES,
+  // PGOOD_DELAY_W: width of the qualifying counter, derived so a call-site
+  //                override cannot truncate it
+  parameter int PGOOD_DELAY_W = $clog2(PGOOD_DELAY_CYCLES + 1)
+
 ) (
     input  wire logic clk,
     input  wire logic rst_n,
     input  wire logic pwm_sync,     // synchronised raw PWM, for the cycle boundary
     input  wire logic pgood_comp,   // synchronised output comparator, high when the rail is above threshold
     input  wire logic run_active,   // high only while the supervisor is in S_RUN
-    output logic PGOOD         // power good, to the supply changeover and telemetry
+    output logic PGOOD              // power good, to the supply changeover and telemetry
 );
 
     // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
@@ -37,6 +44,10 @@ module pgood_gen #(
     logic pwm_fall;
     // qualify_counter: switching cycles the rail has been good while regulating
     logic [PGOOD_DELAY_W-1:0] qualify_counter;
+    // TARGET: qualifying cycles. Compared directly rather than running the
+    //         counter to all-ones, so the realised delay is PGOOD_DELAY_MS and
+    //         not whatever 2**PGOOD_DELAY_W happens to be.
+    localparam int TARGET = pmic_types_pkg::PGOOD_DELAY_CYCLES;
 
 
     always_ff @(posedge clk or negedge rst_n) begin
@@ -103,8 +114,8 @@ module pgood_gen #(
 
     else if(pwm_fall) begin
 
-        if(qualify_counter == 2**PGOOD_DELAY_W -1)
-          qualify_counter <= 2**PGOOD_DELAY_W-1;
+        if(qualify_counter == TARGET)
+          qualify_counter <= TARGET;
         
         else
          qualify_counter <= qualify_counter + 1;
@@ -132,7 +143,7 @@ module pgood_gen #(
     shoot-through hazard.
     */
 
-    PGOOD = ((qualify_counter == 2**PGOOD_DELAY_W - 1) & pgood_comp & run_active);
+    PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);
     end
 
 endmodule

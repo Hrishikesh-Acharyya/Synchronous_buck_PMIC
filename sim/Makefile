@@ -166,6 +166,10 @@ tb_pwm_mask: TOP  := pwm_mask_tb
 tb_pwm_mask: SRCS := $(RTL) $(SVA_SRCS) ../tb/protect/pwm_mask_tb.sv
 tb_pwm_mask: run_tb 
 
+tb_pgood_gen: TOP  := pgood_gen_tb
+tb_pgood_gen: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/pgood_gen_tb.sv
+tb_pgood_gen: run_tb 
+
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
 #         this, so adding a testbench is two lines rather than a copied recipe.
 #         The cd puts coverage.dat and the VCD beside the model instead of in
@@ -250,12 +254,16 @@ wave_pwm_mask:
 	@$(MAKE) --no-print-directory tb_pwm_mask WAVES=1
 	@$(MAKE) --no-print-directory tb_wave TOP=pwm_mask_tb
 
+wave_pgood_gen: 
+	@$(MAKE) --no-print-directory tb_pgood_gen WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=pgood_gen_tb
+
 .PHONY: tb_clean
 tb_clean:
 	rm -rf $(TBBUILD)
 
 
-	# ============================================================
+# ============================================================
 # ASIC conversion and synthesis
 # ============================================================
 #   make convert        sv2v the RTL into one Verilog-2005 file
@@ -274,9 +282,11 @@ tb_clean:
 SV2V     ?= sv2v
 YOSYS    ?= $(HOME)/oss-cad-suite/bin/yosys
 
-# SYNDIR: outside the repo for the same 9p reason as TBBUILD - yosys and
-#         sv2v both write often, and this tree is a Windows mount.
-SYNDIR   ?= $(HOME)/build/sync_buck_syn
+# SYNDIR: inside the repo so the converted file is visible in the editor and
+#         easy to attach to a submission. Slower than $(HOME) would be - this
+#         tree is a Windows mount reached over 9p - but conversion runs rarely
+#         and the output is a deliverable rather than scratch.
+SYNDIR   ?= ../Build
 CONVERTED := $(SYNDIR)/pmic_full.v
 
 # PKG: the package is inlined into the sv2v output and no longer exists as a
@@ -355,6 +365,16 @@ equiv_input_debounce: TOP  := input_debounce_tb
 equiv_input_debounce: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/inputs/input_debounce_tb.sv
 equiv_input_debounce: VFLAGS += $(EQUIV_WAIVERS)
 equiv_input_debounce: $(CONVERTED) run_tb
+
+equiv_pwm_mask: TOP  := pwm_mask_tb
+equiv_pwm_mask: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/protect/pwm_mask_tb.sv
+equiv_pwm_mask: VFLAGS += $(EQUIV_WAIVERS)
+equiv_pwm_mask: $(CONVERTED) run_tb
+
+equiv_pgood_gen: TOP  := pgood_gen_tb
+equiv_pgood_gen: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/pgood_gen_tb.sv
+equiv_pgood_gen: VFLAGS += $(EQUIV_WAIVERS)
+equiv_pgood_gen: $(CONVERTED) run_tb
 
 # equiv: every equivalence run in sequence. This is the gate before zipping a
 #        submission - if any of these fails, the converted file is not the
