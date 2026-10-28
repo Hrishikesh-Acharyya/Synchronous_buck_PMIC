@@ -2,7 +2,7 @@
 
 # Filename:         pwm_mask.sv
 
-# File Description: Per-cycle on-time limiter. Counts clk ticks for the
+# File Description:  Per-cycle on-time limiter. Counts clk ticks for the
 #                    duration of each incoming PWM pulse and truncates that
 #                    pulse once the count reaches max_on_counts, re-arming on
 #                    the low phase of the next switching cycle. The block can
@@ -29,7 +29,7 @@ module pwm_mask #(
     input  wire logic                 rst_n,
     input  wire logic                 pwm_sync,       // synchronised raw PWM from the analog modulator
     input  wire logic [ON_TIME_W-1:0] max_on_counts,  // on-time ceiling count from soft_start
-    output logic                 pwm_out         // truncated PWM to the gate driver
+    output logic                      pwm_out         // truncated PWM to the gate driver
 );
 
     // run_counter: clk ticks elapsed within the present pulse
@@ -103,10 +103,14 @@ module pwm_mask #(
     */
 
       if(!rst_n) begin
+
         pwm_out <= 0;
+
       end
       else begin
-      pwm_out <= pwm_sync & pulse_allowed;
+
+        pwm_out <= pwm_sync & pulse_allowed;
+        
       end
       
     end

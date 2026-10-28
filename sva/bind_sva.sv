@@ -19,3 +19,12 @@ bind input_debounce input_debounce_sva #(
     .RESET_VALUE (RESET_VALUE)
 ) u_sva (.dut_disagree_counter(disagree_counter),.*);
 
+
+bind pwm_mask pwm_mask_sva #(
+    .ON_TIME_W(ON_TIME_W)
+) u_sva (
+    .dut_run_counter(run_counter),
+    .*
+);
+
+
