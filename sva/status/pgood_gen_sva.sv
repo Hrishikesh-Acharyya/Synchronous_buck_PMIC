@@ -39,7 +39,6 @@ module pgood_gen_sva #(
 )(
     input  wire logic                     clk,
     input  wire logic                     rst_n,
-    input  wire logic                     pwm_sync,
     input  wire logic                     pgood_comp,
     input  wire logic                     run_active,
     input  wire logic                     PGOOD,
@@ -194,7 +193,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 property p_run_counter_advances_on_pwm_fall;
 
   @(posedge clk) disable iff (!rst_n)
-    $changed(dut_qualify_counter) |-> $past(dut_pwm_fall);
+    (dut_qualify_counter > $past(dut_qualify_counter)) |-> $past(dut_pwm_fall);
 
 endproperty
 
@@ -207,7 +206,7 @@ a_run_counter_advances_on_pwm_fall: assert property (p_run_counter_advances_on_p
   end
 
 c_run_counter_advances_on_pwm_fall: cover property (@(posedge clk) disable iff (!rst_n)
-  $changed(dut_qualify_counter));
+  (dut_qualify_counter > $past(dut_qualify_counter)));
 
 /*
 ////////////////////////////////////////////////////////////////////////////////

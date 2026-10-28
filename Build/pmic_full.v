@@ -542,7 +542,11 @@ module pgood_gen (
 	reg pwm_sync_d;
 	reg pwm_fall;
 	reg [PGOOD_DELAY_W - 1:0] qualify_counter;
-	localparam signed [31:0] TARGET = pmic_types_pkg_PGOOD_DELAY_CYCLES;
+	function automatic signed [PGOOD_DELAY_W - 1:0] sv2v_cast_C6A89_signed;
+		input reg signed [PGOOD_DELAY_W - 1:0] inp;
+		sv2v_cast_C6A89_signed = inp;
+	endfunction
+	localparam [PGOOD_DELAY_W - 1:0] TARGET = sv2v_cast_C6A89_signed(PGOOD_DELAY_CYCLES);
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			pwm_sync_d <= 0;

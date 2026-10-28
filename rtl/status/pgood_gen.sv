@@ -44,10 +44,11 @@ module pgood_gen #(
     logic pwm_fall;
     // qualify_counter: switching cycles the rail has been good while regulating
     logic [PGOOD_DELAY_W-1:0] qualify_counter;
-    // TARGET: qualifying cycles. Compared directly rather than running the
-    //         counter to all-ones, so the realised delay is PGOOD_DELAY_MS and
-    //         not whatever 2**PGOOD_DELAY_W happens to be.
-    localparam int TARGET = pmic_types_pkg::PGOOD_DELAY_CYCLES;
+    // TARGET: qualifying count the counter stops at and PGOOD qualifies against.
+    //         Sized to the counter rather than left as int, so the assignment
+    //         below is not a truncation. Taken from the parameter, not from the
+    //         package, so a call-site override reaches both comparisons.
+    localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);
 
 
     always_ff @(posedge clk or negedge rst_n) begin
