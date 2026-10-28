@@ -191,13 +191,18 @@ Purpose: PAC(Property, Assertion, Cover) Group 6:
          the next edge. Group 5 is the lower bound; neither alone pins the
          on-time, both together do. Without this a DUT that truncated far
          late would satisfy every other property here.
+          The two-edge delay is structural: pulse_allowed is registered from
+         run_counter, and pwm_out is registered from pulse_allowed, so the
+         ceiling being reached takes two edges to appear at the output. This
+         is the realised on-time the DUT header documents as max_on_counts+1,
+         seen from the property's side. Chekced from waveform
 */
 
 
 property p_long_pulses_truncated;
 
   @(posedge clk) disable iff (!rst_n)
-    (pwm_sync && (dut_run_counter >= max_on_counts)) |=> !pwm_out;
+    (pwm_sync && (dut_run_counter >= max_on_counts)) |-> ##2 !pwm_out;
 
 endproperty
 

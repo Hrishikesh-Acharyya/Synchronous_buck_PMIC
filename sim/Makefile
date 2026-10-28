@@ -162,6 +162,10 @@ tb_input_debounce: TOP  := input_debounce_tb
 tb_input_debounce: SRCS := $(RTL) $(SVA_SRCS) ../tb/inputs/input_debounce_tb.sv
 tb_input_debounce: run_tb
 
+tb_pwm_mask: TOP  := pwm_mask_tb
+tb_pwm_mask: SRCS := $(RTL) $(SVA_SRCS) ../tb/protect/pwm_mask_tb.sv
+tb_pwm_mask: run_tb 
+
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
 #         this, so adding a testbench is two lines rather than a copied recipe.
 #         The cd puts coverage.dat and the VCD beside the model instead of in
@@ -241,6 +245,10 @@ wave_input_sync:
 wave_input_debounce:
 	@$(MAKE) --no-print-directory tb_input_debounce WAVES=1
 	@$(MAKE) --no-print-directory tb_wave TOP=input_debounce_tb
+
+wave_pwm_mask: 
+	@$(MAKE) --no-print-directory tb_pwm_mask WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=pwm_mask_tb
 
 .PHONY: tb_clean
 tb_clean:
