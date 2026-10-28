@@ -12,6 +12,11 @@
 #   make tb_cov  TOP=<top>        re-list cover hits; fails on any zero-hit cover
 #   make tb_clean                 remove all testbench build output
 #
+#   make convert                  sv2v the RTL to one Verilog-2005 file
+#   make syn                      synthesise it, print cell and flop counts
+#   make syn_area                 sky130-mapped area (needs LIBERTY)
+#   make equiv                    run the SV testbenches against the converted RTL
+#   make syn_clean                remove conversion and synthesis output
 # CI runs lint only. supervisor_tb uses clocking blocks and ##() cycle delays:
 # Icarus 12.0 does not support clocking blocks at all.
 
@@ -72,6 +77,12 @@ LINT_WAIVERS := -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM
 #               observer, not hardware, so there is no reset-domain hazard.
 #               Fires from every checker that references rst_n.
 TB_WAIVERS := -Wno-SYNCASYNCNET
+
+# EQUIV_WAIVERS: sv2v emits every module into a single file, so DECLFILENAME
+#                fires on all but one of them by construction. Kept separate
+#                from LINT_WAIVERS so the pass over ../rtl stays strict - this
+#                waiver only ever applies to the converted file.
+EQUIV_WAIVERS := -Wno-DECLFILENAME
 
 .PHONY: all lint sim clean
 
@@ -234,3 +245,116 @@ wave_input_debounce:
 .PHONY: tb_clean
 tb_clean:
 	rm -rf $(TBBUILD)
+
+
+	# ============================================================
+# ASIC conversion and synthesis
+# ============================================================
+#   make convert        sv2v the RTL into one Verilog-2005 file
+#   make syn            synthesise the converted file, print cell counts
+#   make syn_area       same, mapped against the sky130 liberty (needs LIBERTY)
+#   make equiv_<module> run an existing SV testbench against the CONVERTED
+#                       Verilog instead of the SystemVerilog source
+#   make syn_clean      remove conversion and synthesis output
+#
+# Silicluster v3 accepts Verilog only, for both RTL and testbench, so the
+# submitted source is the sv2v output rather than the tree under ../rtl.
+# The equiv_ targets are the evidence that the two are the same design:
+# the testbenches bind the same checkers to the same module names, so a
+# pass against the converted file is a pass against what gets submitted.
+
+SV2V     ?= sv2v
+YOSYS    ?= $(HOME)/oss-cad-suite/bin/yosys
+
+# SYNDIR: outside the repo for the same 9p reason as TBBUILD - yosys and
+#         sv2v both write often, and this tree is a Windows mount.
+SYNDIR   ?= $(HOME)/build/sync_buck_syn
+CONVERTED := $(SYNDIR)/pmic_full.v
+
+# PKG: the package is inlined into the sv2v output and no longer exists as a
+#      package there, but ../tb and ../sva still import it. Equivalence runs
+#      therefore compile the package source alongside the converted RTL.
+#      Taken from $(RTL) rather than repeated, so the path has one owner.
+PKG      := $(firstword $(RTL))
+
+# LIBERTY: sky130 high-density standard cells, for real area numbers. Install
+#          with `volare enable --pdk sky130 <version>`. Without it, `make syn`
+#          still gives exact flop counts and generic gate counts, which is
+#          enough to size the design to within about 20%.
+LIBERTY  ?= $(HOME)/.volare/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+.PHONY: convert
+convert: $(CONVERTED)
+
+# Order matters here exactly as it does for the simulators: the package
+# defines the widths every other file elaborates against.
+$(CONVERTED): $(RTL)
+	@mkdir -p $(SYNDIR)
+	$(SV2V) $(RTL) > $@
+	@echo "--- converted: $$(wc -l < $@) lines of Verilog-2005 ---"
+
+# -flatten: area is a whole-design number, and the per-module breakdown is
+#           misleading without it - a module instantiated three times counts
+#           once in the hierarchical stat.
+.PHONY: syn
+syn: $(CONVERTED)
+	$(YOSYS) -p "read_verilog $(CONVERTED); \
+	             hierarchy -top pmic_top; \
+	             synth -top pmic_top -flatten; \
+	             stat" > $(SYNDIR)/stat.txt 2>&1
+	@awk '/^4\. Printing statistics/,0' $(SYNDIR)/stat.txt
+	@echo "--- full log: $(SYNDIR)/stat.txt ---"
+
+# dfflibmap before abc: abc maps combinational logic only, so the flops have
+#                       to be bound to library cells first or they are left as
+#                       generic $_DFF_ and contribute nothing to the area.
+.PHONY: syn_area
+syn_area: $(CONVERTED)
+	@test -f $(LIBERTY) || { \
+	    echo "no liberty file at $(LIBERTY)"; \
+	    echo "set LIBERTY=<path>, or run: volare enable --pdk sky130 <version>"; \
+	    exit 1; }
+	$(YOSYS) -p "read_verilog $(CONVERTED); \
+	             hierarchy -top pmic_top; \
+	             synth -top pmic_top -flatten; \
+	             dfflibmap -liberty $(LIBERTY); \
+	             abc -liberty $(LIBERTY); \
+	             opt_clean; \
+	             stat -liberty $(LIBERTY)" > $(SYNDIR)/area.txt 2>&1
+	@grep -E "Chip area|Number of cells" $(SYNDIR)/area.txt || \
+	    { tail -40 $(SYNDIR)/area.txt; exit 1; }
+	@echo "--- Silicluster v3 standard slot is 180 x 115 = 20700 um2 ---"
+	@echo "--- divide chip area by 0.55 for die area at realistic utilisation ---"
+
+# equiv_<module>: identical to tb_<module> except that $(CONVERTED) replaces
+#                 $(RTL). Same testbench, same checkers, different source.
+#                 Any behavioural difference sv2v introduced shows up as an
+#                 assertion failure here and nowhere else.
+.PHONY: equiv_reset_sync equiv_input_sync equiv_input_debounce
+
+equiv_reset_sync: TOP  := reset_sync_tb
+equiv_reset_sync: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
+equiv_reset_sync: VFLAGS += $(EQUIV_WAIVERS)
+equiv_reset_sync: $(CONVERTED) run_tb
+
+
+equiv_input_sync: TOP  := input_sync_tb
+equiv_input_sync: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/inputs/input_sync_tb.sv
+equiv_input_sync: VFLAGS += $(EQUIV_WAIVERS)
+equiv_input_sync: $(CONVERTED) run_tb
+
+equiv_input_debounce: TOP  := input_debounce_tb
+equiv_input_debounce: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/inputs/input_debounce_tb.sv
+equiv_input_debounce: VFLAGS += $(EQUIV_WAIVERS)
+equiv_input_debounce: $(CONVERTED) run_tb
+
+# equiv: every equivalence run in sequence. This is the gate before zipping a
+#        submission - if any of these fails, the converted file is not the
+#        design the testbenches were written against.
+.PHONY: equiv
+equiv: equiv_reset_sync equiv_input_sync equiv_input_debounce
+	@echo "--- all equivalence runs passed ---"
+
+.PHONY: syn_clean
+syn_clean:
+	rm -rf $(SYNDIR)
