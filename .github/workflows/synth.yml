@@ -1,0 +1,83 @@
+# Filename:         synth.yml
+#
+# File Description: Synthesis trend on pull requests. Converts and
+#                   synthesises both the PR head and its base with yosys,
+#                   then posts the cell, flop and latch counts side by side
+#                   as a PR comment (edited in place on later pushes) and in
+#                   the job summary. A refactor that quietly adds 200 flops,
+#                   or any latch at all, is then visible before merge.
+#
+#                   Generic gates, not sky130 cells: the comparison needs
+#                   only to be consistent between base and head, and this
+#                   avoids installing the PDK on every run. Real area stays a
+#                   local `make syn_area`.
+#
+# Global variables: None
+
+name: Synthesis trend
+
+on:
+  pull_request:
+    paths:
+      - "rtl/**"
+      - "sim/Makefile"
+      - ".github/workflows/synth.yml"
+      - ".github/scripts/syn_stats.py"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  synth:
+    name: yosys cell counts, base vs head
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up sv2v and yosys
+        uses: ./.github/actions/setup-hdl
+        with:
+          verilator: "false"
+          sv2v: "true"
+          yosys: "true"
+
+      # -B for the same stale-file reason as in rtl.yml. SYNDIR outside the
+      # repo so head and base cannot overwrite each other.
+      - name: Synthesise the PR head
+        run: make -C sim -B syn YOSYS=yosys SYNDIR="$RUNNER_TEMP/syn-head"
+
+      # Allowed to fail: the base may predate a target or a file the head
+      # adds. The comparison then shows the head alone.
+      - name: Synthesise the base
+        continue-on-error: true
+        run: |
+          git worktree add "$RUNNER_TEMP/base" "${{ github.event.pull_request.base.sha }}"
+          make -C "$RUNNER_TEMP/base/sim" -B syn YOSYS=yosys SYNDIR="$RUNNER_TEMP/syn-base"
+
+      - name: Compare
+        run: |
+          python3 .github/scripts/syn_stats.py \
+            --head "$RUNNER_TEMP/syn-head/stat.txt" \
+            --base "$RUNNER_TEMP/syn-base/stat.txt" \
+            > "$RUNNER_TEMP/syn-comment.md"
+          cat "$RUNNER_TEMP/syn-comment.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # --edit-last updates this workflow's previous comment, so the PR keeps
+      # one live table instead of one per push. The fallback creates it the
+      # first time, when there is nothing to edit.
+      - name: Post the comparison on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr=${{ github.event.pull_request.number }}
+          gh pr comment "$pr" --edit-last --body-file "$RUNNER_TEMP/syn-comment.md" \
+            || gh pr comment "$pr" --body-file "$RUNNER_TEMP/syn-comment.md"

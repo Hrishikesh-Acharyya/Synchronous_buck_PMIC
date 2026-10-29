@@ -1,0 +1,5 @@
+# Shell scripts must keep LF endings or bash fails with $'\r' errors when
+# they are edited on the Windows side of the WSL2 mount.
+*.sh text eol=lf
+*.yml text eol=lf
+*.py text eol=lf

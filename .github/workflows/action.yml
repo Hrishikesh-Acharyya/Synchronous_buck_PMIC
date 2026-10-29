@@ -1,0 +1,95 @@
+# Filename:         action.yml (setup-hdl)
+#
+# File Description: Installs the HDL toolchain a job asks for, at the versions
+#                   the local WSL2 flow uses, so CI and the desk cannot
+#                   disagree about what passes.
+#
+#                   Verilator is built from source and cached: the Ubuntu
+#                   package is 5.020, which lacks --no-stop-fail and does not
+#                   write coverage.dat from --binary, so the cover gate would
+#                   read every run as INCONCLUSIVE. The first build takes
+#                   several minutes; every run after restores it in seconds.
+#
+#                   sv2v comes from its release binary. yosys comes from the
+#                   Ubuntu package - it only ever reads the sv2v output, which
+#                   is plain Verilog-2005, so its old SystemVerilog frontend
+#                   does not matter here.
+#
+# Global variables: None
+
+name: Set up HDL tools
+description: Verilator (cached source build), sv2v and yosys, on demand
+
+inputs:
+  verilator:
+    description: Install Verilator
+    default: "true"
+  verilator-version:
+    description: Verilator release, without the leading v
+    default: "5.052"
+  sv2v:
+    description: Install sv2v
+    default: "false"
+  sv2v-version:
+    description: sv2v release tag
+    default: "v0.0.13"
+  yosys:
+    description: Install yosys
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    # The key names the runner image because the cached binary links against
+    # its glibc and libstdc++. The workflows pin ubuntu-24.04 for the same
+    # reason; change both together. Bump the trailing -v1 to force a rebuild.
+    - name: Restore cached Verilator
+      if: inputs.verilator == 'true'
+      id: verilator-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/verilator
+        key: verilator-${{ inputs.verilator-version }}-ubuntu-24.04-${{ runner.arch }}-v1
+
+    - name: Build Verilator ${{ inputs.verilator-version }}
+      if: inputs.verilator == 'true' && steps.verilator-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          git help2man perl python3 make autoconf g++ flex bison \
+          libfl2 libfl-dev zlib1g zlib1g-dev
+        git clone --depth 1 --branch "v${{ inputs.verilator-version }}" \
+          https://github.com/verilator/verilator.git /tmp/verilator-src
+        cd /tmp/verilator-src
+        autoconf
+        ./configure --prefix="$HOME/.local/verilator"
+        make -j"$(nproc)"
+        make install
+
+    - name: Put Verilator on PATH
+      if: inputs.verilator == 'true'
+      shell: bash
+      run: |
+        echo "$HOME/.local/verilator/bin" >> "$GITHUB_PATH"
+        "$HOME/.local/verilator/bin/verilator" --version
+
+    - name: Install sv2v ${{ inputs.sv2v-version }}
+      if: inputs.sv2v == 'true'
+      shell: bash
+      run: |
+        mkdir -p "$HOME/.local/bin"
+        curl -fsSL -o /tmp/sv2v.zip \
+          "https://github.com/zachjs/sv2v/releases/download/${{ inputs.sv2v-version }}/sv2v-Linux.zip"
+        unzip -q -o /tmp/sv2v.zip -d /tmp/sv2v
+        install -m 755 /tmp/sv2v/sv2v-Linux/sv2v "$HOME/.local/bin/sv2v"
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        "$HOME/.local/bin/sv2v" --version
+
+    - name: Install yosys
+      if: inputs.yosys == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends yosys
+        yosys -V

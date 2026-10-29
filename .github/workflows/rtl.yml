@@ -1,40 +1,103 @@
-# Lint for the CPLD supervisor RTL.
+# Filename:         rtl.yml
 #
-# Runs on pull requests and on pushes to main.
+# File Description: Lint, then the full testbench regression, on every pull
+#                   request and on pushes to main.
 #
-# Lint only. The testbench uses clocking blocks and ##() cycle delays:
-# Icarus 12.0 does not support clocking blocks, and Verilator 5.020 takes an
-# internal fault on ##() inside an automatic task. ModelSim handles both, so
-# `make -C sim sim` is a local step and is deliberately not run here.
+#                   lint        strict Verilator lint over the RTL, elaborated
+#                               from pmic_top so port-width mismatches between
+#                               modules are caught.
+#                   regression  every registered testbench against the
+#                               SystemVerilog source AND against the sv2v
+#                               output (make equiv_all), with STRICT=1 so a
+#                               zero-hit cover fails the build unless the top
+#                               is listed in INCONCLUSIVE_WAIVERS in
+#                               sim/Makefile. The equiv half is what proves the
+#                               submitted Verilog is the verified design.
+#
+#                   Both use Verilator 5.052 built by the setup-hdl action,
+#                   the same version as the local flow. ModelSim plays no
+#                   part.
+#
+# Global variables: None
 
 name: RTL
 
-# push is restricted to main; with a wildcard branch filter both triggers fire
-# on a pull request branch and the same commit is built twice.
+# push is restricted to main; with a wildcard branch filter both triggers
+# fire on a pull request branch and the same commit is built twice.
 on:
   push:
     branches: [main]
   pull_request:
 
+# A newer push to the same branch makes the running build pointless.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: RTL lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Install Verilator
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends verilator
+      - name: Set up Verilator
+        uses: ./.github/actions/setup-hdl
 
-      - name: Report tool version
-        run: verilator --version
-
-      # Each module is linted as its own top. Port width mismatches between
-      # modules are not caught until pmic_top exists to elaborate them
-      # together.
       - name: Lint the RTL
         run: make -C sim lint
+
+  regression:
+    name: Testbench regression (source + converted)
+    needs: lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Verilator and sv2v
+        uses: ./.github/actions/setup-hdl
+        with:
+          sv2v: "true"
+
+      # -B forces the conversion. Checkout gives every file the same mtime,
+      # so make can judge a committed Build/pmic_full.v up to date with the
+      # RTL and the equiv runs would test a stale file - the trap the
+      # logbook already recorded once.
+      - name: Convert the RTL with sv2v
+        run: make -C sim -B convert
+
+      - name: Run every testbench against source and converted RTL
+        run: make -C sim -j"$(nproc)" equiv_all STRICT=1 TBBUILD="$RUNNER_TEMP/tbbuild"
+
+      # Runs on failure too, so the table is on the run page either way.
+      # stderr dropped: it only carries make's "(ignored)" notes.
+      - name: Write the results table to the job summary
+        if: always()
+        run: |
+          {
+            echo '## Testbench results'
+            echo '```'
+            make -C sim report STRICT=1 TBBUILD="$RUNNER_TEMP/tbbuild" 2>/dev/null
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Logs and cover listings only - the built models are large and
+      # useless off the runner.
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testbench-logs
+          path: |
+            ${{ runner.temp }}/tbbuild/**/*.log
+            ${{ runner.temp }}/tbbuild/**/covers.txt
+            ${{ runner.temp }}/tbbuild/**/result.tsv
+          if-no-files-found: ignore
+          retention-days: 14
