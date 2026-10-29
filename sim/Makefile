@@ -82,7 +82,7 @@ TB_WAIVERS := -Wno-SYNCASYNCNET
 #                fires on all but one of them by construction. Kept separate
 #                from LINT_WAIVERS so the pass over ../rtl stays strict - this
 #                waiver only ever applies to the converted file.
-EQUIV_WAIVERS := -Wno-DECLFILENAME
+EQUIV_WAIVERS := -Wno-DECLFILENAME -Wno-WIDTHTRUNC
 
 .PHONY: all lint sim clean
 
@@ -169,6 +169,11 @@ tb_pwm_mask: run_tb
 tb_pgood_gen: TOP  := pgood_gen_tb
 tb_pgood_gen: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/pgood_gen_tb.sv
 tb_pgood_gen: run_tb 
+
+tb_timestamp: TOP  := timestamp_tb
+tb_timestamp: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/timestamp_tb.sv
+tb_timestamp: run_tb
+
 
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
 #         this, so adding a testbench is two lines rather than a copied recipe.
@@ -257,6 +262,11 @@ wave_pwm_mask:
 wave_pgood_gen: 
 	@$(MAKE) --no-print-directory tb_pgood_gen WAVES=1
 	@$(MAKE) --no-print-directory tb_wave TOP=pgood_gen_tb
+
+wave_timestamp:
+	@$(MAKE) --no-print-directory tb_timestamp WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=timestamp_tb
+
 
 .PHONY: tb_clean
 tb_clean:
@@ -376,13 +386,33 @@ equiv_pgood_gen: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/pgood_gen_
 equiv_pgood_gen: VFLAGS += $(EQUIV_WAIVERS)
 equiv_pgood_gen: $(CONVERTED) run_tb
 
-# equiv: every equivalence run in sequence. This is the gate before zipping a
-#        submission - if any of these fails, the converted file is not the
-#        design the testbenches were written against.
+equiv_timestamp: TOP  := timestamp_tb
+equiv_timestamp: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/timestamp_tb.sv
+equiv_timestamp: VFLAGS += $(EQUIV_WAIVERS)
+equiv_timestamp: $(CONVERTED) run_tb
+
+# equiv: every equivalence run in sequence. Recursive rather than a
+#        prerequisite list: run_tb is phony, so Make would build it once and
+#        skip it for every target after the first.
 .PHONY: equiv
-equiv: equiv_reset_sync equiv_input_sync equiv_input_debounce
+equiv:
+	@for t in equiv_reset_sync equiv_input_sync equiv_input_debounce \
+	          equiv_pwm_mask equiv_pgood_gen equiv_timestamp; do \
+	    echo "=== $$t ==="; \
+	    $(MAKE) --no-print-directory $$t || exit 1; \
+	done
 	@echo "--- all equivalence runs passed ---"
 
-.PHONY: syn_clean
-syn_clean:
-	rm -rf $(SYNDIR)
+# tb_all: the same for the SystemVerilog source runs.
+.PHONY: tb_all
+tb_all:
+	@for t in tb_reset_sync tb_input_sync tb_input_debounce \
+	          tb_pwm_mask tb_pgood_gen tb_timestamp; do \
+	    echo "=== $$t ==="; \
+	    $(MAKE) --no-print-directory $$t || exit 1; \
+	done
+	@echo "--- all testbenches passed ---"
+
+# equiv_all: both, for the pre-submission gate.
+.PHONY: equiv_all
+equiv_all: tb_all equiv

@@ -36,4 +36,15 @@ bind pgood_gen pgood_gen_sva #(
     .*
 );
 
+bind timestamp timestamp_sva #(
+    .PRESCALE_VAL(PRESCALE_VAL),
+    .TIMESTAMP_W (TIMESTAMP_W),
+    .PRESCALAR_W (PRESCALAR_W)
+) u_sva (
+    .dut_prescalar(prescalar),
+    .*
+);
+
+
+
 

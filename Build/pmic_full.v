@@ -582,30 +582,32 @@ module timestamp (
 	rst_n,
 	timestamp_ms
 );
-	input wire clk;
-	input wire rst_n;
-	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
-	output reg [23:0] timestamp_ms;
 	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALE_VAL = pmic_types_pkg_CLK_HZ / pmic_types_pkg_PRESCALAR_HZ;
-	localparam signed [31:0] pmic_types_pkg_PRESCALAR_W = $clog2(pmic_types_pkg_PRESCALE_VAL + 1);
-	reg [pmic_types_pkg_PRESCALAR_W - 1:0] prescalar;
-	function automatic signed [pmic_types_pkg_PRESCALAR_W - 1:0] sv2v_cast_BC981_signed;
-		input reg signed [pmic_types_pkg_PRESCALAR_W - 1:0] inp;
-		sv2v_cast_BC981_signed = inp;
+	parameter signed [31:0] PRESCALE_VAL = pmic_types_pkg_PRESCALE_VAL;
+	localparam signed [31:0] pmic_types_pkg_TIMESTAMP_W = 24;
+	parameter signed [31:0] TIMESTAMP_W = pmic_types_pkg_TIMESTAMP_W;
+	parameter signed [31:0] PRESCALAR_W = $clog2(PRESCALE_VAL + 1);
+	input wire clk;
+	input wire rst_n;
+	output reg [TIMESTAMP_W - 1:0] timestamp_ms;
+	reg [PRESCALAR_W - 1:0] prescalar;
+	function automatic signed [PRESCALAR_W - 1:0] sv2v_cast_725DF_signed;
+		input reg signed [PRESCALAR_W - 1:0] inp;
+		sv2v_cast_725DF_signed = inp;
 	endfunction
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			prescalar <= 1'sb0;
-		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
+		else if (prescalar == sv2v_cast_725DF_signed(PRESCALE_VAL - 1))
 			prescalar <= 1'sb0;
 		else
 			prescalar <= prescalar + 1'b1;
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			timestamp_ms <= 1'sb0;
-		else if (prescalar == sv2v_cast_BC981_signed(pmic_types_pkg_PRESCALE_VAL - 1))
+		else if (prescalar == sv2v_cast_725DF_signed(PRESCALE_VAL - 1))
 			timestamp_ms <= timestamp_ms + 1'b1;
 endmodule
 `default_nettype wire

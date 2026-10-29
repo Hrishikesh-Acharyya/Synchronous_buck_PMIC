@@ -30,16 +30,29 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-module timestamp
-import pmic_types_pkg::*;
-
-                
-                  (
-                     input  wire logic clk,
-                     input  wire logic  rst_n,
-                     //timestamp_ms: the timsetamp counter
-                     output logic [TIMESTAMP_W-1:0] timestamp_ms
-                  );
+module timestamp #(
+    // PRESCALE_VAL: clocks per timestamp tick. Defaults to the package value,
+    //               which divides CLK_HZ down to PRESCALAR_HZ. Overridden far
+    //               below it in simulation: at the default one tick costs a
+    //               millisecond of simulated time and a counter wrap costs
+    //               4.66 hours, so neither is reachable in a testbench.
+    //
+    //               The package is referenced explicitly rather than wildcard-
+    //               imported: an import would put these same three names in
+    //               scope and every parameter below would shadow one.
+    parameter int PRESCALE_VAL = pmic_types_pkg::PRESCALE_VAL,
+    // TIMESTAMP_W: width of the millisecond counter. Also overridden down, so
+    //              the natural wrap at 2**TIMESTAMP_W can be reached.
+    parameter int TIMESTAMP_W  = pmic_types_pkg::TIMESTAMP_W,
+    // PRESCALAR_W: derived from PRESCALE_VAL rather than taken independently,
+    //              so an override cannot leave the two disagreeing.
+    parameter int PRESCALAR_W  = $clog2(PRESCALE_VAL + 1)
+) (
+    input  wire logic clk,
+    input  wire logic rst_n,
+    // timestamp_ms: the free-running millisecond counter
+    output logic [TIMESTAMP_W-1:0] timestamp_ms
+);
 
 //prescalar: the prescalar counter, counts PRESCALE_VAL times, to indicate required time elapsed
 logic [PRESCALAR_W - 1:0] prescalar;
