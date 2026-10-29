@@ -160,7 +160,7 @@ TBBUILD ?= $(HOME)/build/sync_buck
 WAVEDIR ?= $(HOME)/gtkwave
 
 .PHONY: tb_reset_sync tb_input_sync tb_input_debounce tb_pwm_mask \
-        tb_pgood_gen tb_timestamp tb_fault_LED
+        tb_pgood_gen tb_timestamp tb_fault_LED tb_pwm_stats
 
 tb_reset_sync: TOP  := reset_sync_tb
 tb_reset_sync: SRCS := $(RTL) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
@@ -189,6 +189,10 @@ tb_timestamp: run_tb
 tb_fault_LED: TOP  := fault_LED_tb
 tb_fault_LED: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/fault_LED_tb.sv
 tb_fault_LED: run_tb
+
+tb_pwm_stats: TOP  := pwm_stats_tb
+tb_pwm_stats: SRCS := $(RTL) $(SVA_SRCS) ../tb/telemetry/pwm_stats_tb.sv
+tb_pwm_stats: run_tb
 
 
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
@@ -258,7 +262,7 @@ tb_wave:
 
 # wave_<module>: build, run with tracing, and open the viewer in one command.
 .PHONY: wave_reset_sync wave_input_sync wave_input_debounce wave_pwm_mask \
-        wave_pgood_gen wave_timestamp wave_fault_LED
+        wave_pgood_gen wave_timestamp wave_fault_LED wave_pwm_stats
 
 wave_reset_sync:
 	@$(MAKE) --no-print-directory tb_reset_sync WAVES=1
@@ -288,6 +292,9 @@ wave_fault_LED:
 	@$(MAKE) --no-print-directory tb_fault_LED WAVES=1
 	@$(MAKE) --no-print-directory tb_wave TOP=fault_LED_tb
 
+wave_pwm_stats:
+	@$(MAKE) --no-print-directory tb_pwm_stats WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=pwm_stats_tb
 
 .PHONY: tb_clean
 tb_clean:
@@ -380,7 +387,7 @@ syn_area: $(CONVERTED)
 #                 Any behavioural difference sv2v introduced shows up as an
 #                 assertion failure here and nowhere else.
 .PHONY: equiv_reset_sync equiv_input_sync equiv_input_debounce equiv_pwm_mask \
-        equiv_pgood_gen equiv_timestamp equiv_fault_LED
+        equiv_pgood_gen equiv_timestamp equiv_fault_LED equiv_pwm_stats
 
 equiv_reset_sync: TOP  := reset_sync_tb
 equiv_reset_sync: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
@@ -417,13 +424,18 @@ equiv_fault_LED: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/fault_LED_
 equiv_fault_LED: VFLAGS += $(EQUIV_WAIVERS)
 equiv_fault_LED: $(CONVERTED) run_tb
 
+equiv_pwm_stats: TOP  := pwm_stats_tb
+equiv_pwm_stats: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/telemetry/pwm_stats_tb.sv
+equiv_pwm_stats: VFLAGS += $(EQUIV_WAIVERS)
+equiv_pwm_stats: $(CONVERTED) run_tb
+
 # equiv: every equivalence run in sequence. Recursive rather than a
 #        prerequisite list: run_tb is phony, so Make would build it once and
 #        skip it for every target after the first.
 .PHONY: equiv
 equiv:
 	@for t in equiv_reset_sync equiv_input_sync equiv_input_debounce \
-	          equiv_pwm_mask equiv_pgood_gen equiv_timestamp equiv_fault_LED; do \
+	          equiv_pwm_mask equiv_pgood_gen equiv_timestamp equiv_fault_LED equiv_pwm_stats; do \
 	    echo "=== $$t ==="; \
 	    $(MAKE) --no-print-directory $$t || exit 1; \
 	done
@@ -433,7 +445,7 @@ equiv:
 .PHONY: tb_all
 tb_all:
 	@for t in tb_reset_sync tb_input_sync tb_input_debounce \
-	          tb_pwm_mask tb_pgood_gen tb_timestamp tb_fault_LED; do \
+	          tb_pwm_mask tb_pgood_gen tb_timestamp tb_fault_LED tb_pwm_stats; do \
 	    echo "=== $$t ==="; \
 	    $(MAKE) --no-print-directory $$t || exit 1; \
 	done

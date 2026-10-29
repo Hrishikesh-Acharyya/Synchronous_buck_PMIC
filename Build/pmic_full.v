@@ -757,6 +757,10 @@ module pwm_stats (
 			prev_period <= period_counter;
 			period_counter <= 0;
 		end
+		else if (period_counter == {CNT_W {1'sb1}}) begin
+			if (pwm_fall)
+				duty_count <= period_counter;
+		end
 		else if (pwm_fall) begin
 			duty_count <= period_counter;
 			period_counter <= period_counter + 1;

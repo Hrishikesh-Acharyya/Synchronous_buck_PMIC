@@ -54,6 +54,13 @@ bind fault_LED fault_LED_sva #(
     .*
 );
 
+bind pwm_stats pwm_stats_sva #(
+    .CNT_W(CNT_W)
+) u_sva (
+    .dut_period_counter(period_counter),
+    .*
+);
+
 
 
 

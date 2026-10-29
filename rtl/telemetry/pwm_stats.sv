@@ -28,6 +28,13 @@
 #                   switching cycle old: the period is only known once it
 #                   has ended.
 #
+#                   The period counter saturates at all-ones rather than
+#                   wrapping. A stalled pwm_sync would otherwise roll it over
+#                   and the next captured period would read short, which the
+#                   host would take as a higher switching frequency. All-ones
+#                   is a value a correct period can never produce, so it reads
+#                   as out-of-range instead.
+#
 #                   Telemetry only. Drives no control path and takes no part
 #                   in any protection timing.
 
@@ -42,7 +49,7 @@ module pwm_stats #(
 // CNT_W: Width of the counter used to count number of periods. 
 //        Derives base value from the nominal duty count defined in pmic_packages + 1 bit extra
 //        to account for oscillator drift
-//        @TODO: Check if extra bit required or not
+
 parameter int CNT_W = pmic_types_pkg::CNT_W
 
 ) (input  wire logic clk,
@@ -106,31 +113,48 @@ always_ff @ (posedge clk or negedge rst_n) begin
   */
 
   if(!rst_n) begin
+
     period_counter <= 0;
-    duty_count <= 0;
-    prev_period <=0;
+    duty_count     <= 0;
+    prev_period    <= 0;
+
   end
 
   else if (pwm_rise) begin
 
-    prev_period <= period_counter;
+    prev_period    <= period_counter;
     period_counter <= 0;
+
+  end
+
+  // Saturate rather than wrap. The counter is sized for a period within
+  // oscillator tolerance, so all-ones is only reached when pwm_sync has
+  // stalled high - a dead modulator, a latched comparator, a broken trace.
+  // Wrapping would make the next captured period read as a small number and
+  // the host would conclude the oscillator had doubled in frequency. All-ones
+  // is an out-of-range marker it can recognise instead, which matters because
+  // duty times a known Vin infers Vout with no ADC in the loop to contradict
+  // a plausible wrong answer.
+  else if (period_counter == '1) begin
+
+    if (pwm_fall) duty_count <= period_counter;
 
   end
 
   else if (pwm_fall) begin
 
-    duty_count <= period_counter;
-    period_counter <= period_counter  +1;
+    duty_count     <= period_counter;
+    period_counter <= period_counter + 1;
 
   end
 
   else begin
+
     period_counter <= period_counter + 1;
-  end
 
   end
 
+end
 
 endmodule
 
