@@ -168,8 +168,12 @@ task automatic finish_run(input string reason);
     else
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
     $display("--------------------------------------------------");
-    $finish;
+    // $stop on failure: non-zero exit status, so make and CI see the FAIL.
+    // Not $fatal - by this point the tallies are already printed.
+    if (passed) $finish;
+    else        $stop;
 endtask
+
 
 
 

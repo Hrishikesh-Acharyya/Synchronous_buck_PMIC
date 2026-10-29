@@ -9,6 +9,8 @@
 
 */
 
+bind reset_sync reset_sync_sva u_sva (.*);
+
 bind input_sync input_sync_sva #(
   .RESET_VALUE(RESET_VALUE)
   ) u_sva (.*);
