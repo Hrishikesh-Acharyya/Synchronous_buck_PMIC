@@ -30,8 +30,26 @@
 `default_nettype none
 
 module fault_LED
-    import pmic_types_pkg::*;
-(
+import pmic_types_pkg::*;
+#(
+    // LED_BLINK_HALF_CLKS: half the blink period, giving a 4 Hz blink. Sized
+    //                      against the clean-run window rather than chosen for
+    //                      looks: strikes clear after clean_run_target cycles,
+    //                      about 1 s at the switching frequency, so a slower
+    //                      blink would show only one or two cycles on a board
+    //                      that recovers - which reads as a glitch rather than
+    //                      a pattern. At 125 ms the recovery shows four clean
+    //                      cycles.
+    //
+    //                      A parameter rather than a localparam so simulation
+    //                      can override it: at 6.25 M clocks one blink edge is
+    //                      125 ms of simulated time and no property about the
+    //                      timebase is reachable.
+    parameter int LED_BLINK_HALF_CLKS = pmic_types_pkg::ms_to_clks(125),
+    // BLINK_W: derived from the half-period rather than taken independently,
+    //          so an override cannot leave the two disagreeing.
+    parameter int BLINK_W             = $clog2(LED_BLINK_HALF_CLKS + 1)
+)(
     input  wire logic clk,
     input  wire logic rst_n,
 
@@ -57,15 +75,6 @@ module fault_LED
     output logic Red_LED3    // input undervoltage
 );
 
-    // LED_BLINK_HALF_CLKS: half the blink period, giving a 4 Hz blink. Sized
-    //                      against the clean-run window rather than chosen for
-    //                      looks: strikes clear after clean_run_target cycles,
-    //                      about 1 s at the switching frequency, so a slower blink
-    //                      would show only one or two cycles on a board that
-    //                      recovers - which reads as a glitch rather than a
-    //                      pattern. At 125 ms the recovery shows four clean cycles.
-    localparam int LED_BLINK_HALF_CLKS = ms_to_clks(125);
-    localparam int BLINK_W             = $clog2(LED_BLINK_HALF_CLKS+1);
 
     //blink_counter: free-running half-period counter for the blink pattern
     logic [BLINK_W-1:0] blink_counter;

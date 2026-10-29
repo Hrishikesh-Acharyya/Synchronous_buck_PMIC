@@ -45,6 +45,17 @@ bind timestamp timestamp_sva #(
     .*
 );
 
+bind fault_LED fault_LED_sva #(
+    .LED_BLINK_HALF_CLKS(LED_BLINK_HALF_CLKS),
+    .BLINK_W            (BLINK_W)
+) u_sva (
+    .dut_blink_counter(blink_counter),
+    .dut_blink        (blink),
+    .*
+);
+
+
+
 
 
 

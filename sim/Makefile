@@ -11,7 +11,9 @@
 #   make tb_wave TOP=<top>        open the last VCD for that top
 #   make tb_cov  TOP=<top>        re-list cover hits; fails on any zero-hit cover
 #   make tb_clean                 remove all testbench build output
+#   make tb_all                   run every testbench against the SV source
 #
+#   make equiv_all                tb_all, then every equivalence run
 #   make convert                  sv2v the RTL to one Verilog-2005 file
 #   make syn                      synthesise it, print cell and flop counts
 #   make syn_area                 sky130-mapped area (needs LIBERTY)
@@ -78,10 +80,19 @@ LINT_WAIVERS := -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM
 #               Fires from every checker that references rst_n.
 TB_WAIVERS := -Wno-SYNCASYNCNET
 
-# EQUIV_WAIVERS: sv2v emits every module into a single file, so DECLFILENAME
-#                fires on all but one of them by construction. Kept separate
-#                from LINT_WAIVERS so the pass over ../rtl stays strict - this
-#                waiver only ever applies to the converted file.
+# EQUIV_WAIVERS: warnings that fire only on the converted file, never on the
+#                SystemVerilog source. Kept separate from LINT_WAIVERS so the
+#                pass over ../rtl stays strict.
+#
+# DECLFILENAME: sv2v emits every module into a single file, so all but one of
+#               them disagree with the filename by construction.
+# WIDTHTRUNC:   sv2v renders a SystemVerilog width cast as a generated
+#               function sized to the target width, then passes the 32-bit int
+#               parameter into it. The narrowing is exactly what the original
+#               CNT_W'(ASSERT_CLKS) asked for, but Verilator sees a width
+#               mismatch at the function boundary. Safe to waive here only
+#               because the source is checked strictly - this is the warning
+#               that caught the TARGET assignment in pgood_gen.
 EQUIV_WAIVERS := -Wno-DECLFILENAME -Wno-WIDTHTRUNC
 
 .PHONY: all lint sim clean
@@ -148,7 +159,8 @@ TBBUILD ?= $(HOME)/build/sync_buck
 #          the build dir so tb_clean does not destroy them.
 WAVEDIR ?= $(HOME)/gtkwave
 
-.PHONY: tb_reset_sync tb_input_sync tb_input_debounce
+.PHONY: tb_reset_sync tb_input_sync tb_input_debounce tb_pwm_mask \
+        tb_pgood_gen tb_timestamp tb_fault_LED
 
 tb_reset_sync: TOP  := reset_sync_tb
 tb_reset_sync: SRCS := $(RTL) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
@@ -173,6 +185,10 @@ tb_pgood_gen: run_tb
 tb_timestamp: TOP  := timestamp_tb
 tb_timestamp: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/timestamp_tb.sv
 tb_timestamp: run_tb
+
+tb_fault_LED: TOP  := fault_LED_tb
+tb_fault_LED: SRCS := $(RTL) $(SVA_SRCS) ../tb/status/fault_LED_tb.sv
+tb_fault_LED: run_tb
 
 
 # run_tb: shared build-and-run recipe. Targets set TOP and SRCS and depend on
@@ -241,7 +257,8 @@ tb_wave:
 	    2>/dev/null &
 
 # wave_<module>: build, run with tracing, and open the viewer in one command.
-.PHONY: wave_reset_sync wave_input_sync wave_input_debounce
+.PHONY: wave_reset_sync wave_input_sync wave_input_debounce wave_pwm_mask \
+        wave_pgood_gen wave_timestamp wave_fault_LED
 
 wave_reset_sync:
 	@$(MAKE) --no-print-directory tb_reset_sync WAVES=1
@@ -266,6 +283,10 @@ wave_pgood_gen:
 wave_timestamp:
 	@$(MAKE) --no-print-directory tb_timestamp WAVES=1
 	@$(MAKE) --no-print-directory tb_wave TOP=timestamp_tb
+
+wave_fault_LED:
+	@$(MAKE) --no-print-directory tb_fault_LED WAVES=1
+	@$(MAKE) --no-print-directory tb_wave TOP=fault_LED_tb
 
 
 .PHONY: tb_clean
@@ -358,13 +379,13 @@ syn_area: $(CONVERTED)
 #                 $(RTL). Same testbench, same checkers, different source.
 #                 Any behavioural difference sv2v introduced shows up as an
 #                 assertion failure here and nowhere else.
-.PHONY: equiv_reset_sync equiv_input_sync equiv_input_debounce
+.PHONY: equiv_reset_sync equiv_input_sync equiv_input_debounce equiv_pwm_mask \
+        equiv_pgood_gen equiv_timestamp equiv_fault_LED
 
 equiv_reset_sync: TOP  := reset_sync_tb
 equiv_reset_sync: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/clk_rst/reset_sync_tb.sv
 equiv_reset_sync: VFLAGS += $(EQUIV_WAIVERS)
 equiv_reset_sync: $(CONVERTED) run_tb
-
 
 equiv_input_sync: TOP  := input_sync_tb
 equiv_input_sync: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/inputs/input_sync_tb.sv
@@ -391,13 +412,18 @@ equiv_timestamp: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/timestamp_
 equiv_timestamp: VFLAGS += $(EQUIV_WAIVERS)
 equiv_timestamp: $(CONVERTED) run_tb
 
+equiv_fault_LED: TOP  := fault_LED_tb
+equiv_fault_LED: SRCS := $(PKG) $(CONVERTED) $(SVA_SRCS) ../tb/status/fault_LED_tb.sv
+equiv_fault_LED: VFLAGS += $(EQUIV_WAIVERS)
+equiv_fault_LED: $(CONVERTED) run_tb
+
 # equiv: every equivalence run in sequence. Recursive rather than a
 #        prerequisite list: run_tb is phony, so Make would build it once and
 #        skip it for every target after the first.
 .PHONY: equiv
 equiv:
 	@for t in equiv_reset_sync equiv_input_sync equiv_input_debounce \
-	          equiv_pwm_mask equiv_pgood_gen equiv_timestamp; do \
+	          equiv_pwm_mask equiv_pgood_gen equiv_timestamp equiv_fault_LED; do \
 	    echo "=== $$t ==="; \
 	    $(MAKE) --no-print-directory $$t || exit 1; \
 	done
@@ -407,7 +433,7 @@ equiv:
 .PHONY: tb_all
 tb_all:
 	@for t in tb_reset_sync tb_input_sync tb_input_debounce \
-	          tb_pwm_mask tb_pgood_gen tb_timestamp; do \
+	          tb_pwm_mask tb_pgood_gen tb_timestamp tb_fault_LED; do \
 	    echo "=== $$t ==="; \
 	    $(MAKE) --no-print-directory $$t || exit 1; \
 	done

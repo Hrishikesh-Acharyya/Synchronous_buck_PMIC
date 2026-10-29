@@ -55,7 +55,7 @@ localparam string ANSI_RESET = "\033[0m";
 
 // TB_NAME: prefix on every log line, so output is attributable when
 //          several testbenches run in one session
-localparam string   TB_NAME         = "<MODULE>_tb";
+localparam string   TB_NAME         = "pgood_gen_tb";
 // CLK_PERIOD_NS: supervisor clock period, derived from the package rather
 //                than hardcoded, so retuning CLK_HZ moves every testbench
 //                with it. Real division: integer arithmetic truncates for

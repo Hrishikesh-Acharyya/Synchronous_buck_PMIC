@@ -630,6 +630,13 @@ module fault_LED (
 	Red_LED3
 );
 	reg _sv2v_0;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
+		input reg signed [31:0] ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
+	endfunction
+	parameter signed [31:0] LED_BLINK_HALF_CLKS = pmic_types_pkg_ms_to_clks(125);
+	parameter signed [31:0] BLINK_W = $clog2(LED_BLINK_HALF_CLKS + 1);
 	input wire clk;
 	input wire rst_n;
 	input wire otp_state;
@@ -647,13 +654,6 @@ module fault_LED (
 	output reg Red_LED1;
 	output reg Red_LED2;
 	output reg Red_LED3;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
-	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
-		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 50000 * ms;
-	endfunction
-	localparam signed [31:0] LED_BLINK_HALF_CLKS = pmic_types_pkg_ms_to_clks(125);
-	localparam signed [31:0] BLINK_W = $clog2(LED_BLINK_HALF_CLKS + 1);
 	reg [BLINK_W - 1:0] blink_counter;
 	reg blink;
 	reg currently_faulted;
