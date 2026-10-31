@@ -28,6 +28,8 @@ an old row; the trend is the useful part.
 | 2026-10-31 17:17 | chg 3: CLK_HZ 10 MHz     | 10 MHz | (n/a, =1)    | 700   | 2,137      | 30,821           | 54,072          | 2.61x         | -30 flops from narrowed counters, as derived |
 | 2026-10-31 17:19 | chg 5: ns_to_clks ceil   | 10 MHz | (n/a, =1)    | 700   | 2,132      | 30,845           | 54,113          | 2.61x         | MIN_ON_COUNTS 2 -> 3; width unchanged |
 | 2026-10-31 17:20 | chg 6: cycles/step 64    | 10 MHz | (n/a, =1)    | 700   | 2,132      | 30,845           | 54,113          | 2.61x         | reset value only; no area change |
+| 2026-10-31 17:23 | chg 7: TELEMETRY_EN      | 10 MHz | 1            | 700   | 2,127      | 30,808           | 54,050          | 2.61x         | submission build |
+| 2026-10-31 17:23 | chg 7: TELEMETRY_EN      | 10 MHz | 0            | 252   | 705        | 10,523           | 18,461          | 0.89x         | cost reference only |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.
@@ -43,3 +45,10 @@ Commit hashes for each changelog entry are in the table at the end of
   3,032), so the earlier figure most likely came from the unmapped netlist and
   overstates the area by roughly a third. All figures below are measured
   sky130 numbers.
+- **2026-10-31, cost of telemetry, measured.** At 10 MHz, TELEMETRY_EN=1 vs 0:
+  448 flops, 1,422 combinational cells and 20,285 um^2 of cell area (about
+  35,600 um^2 of die at 57%). The rules' prior estimate was ~465 flops and
+  2,174 cells; flops agree, the cell figure was again a generic count. Without
+  telemetry the design fits the standard 20,700 um^2 slot (0.89x); with it,
+  the submission needs about 2.6x the slot - an additional-area request of
+  roughly 33,400 um^2 of die, almost all of it the host interface.

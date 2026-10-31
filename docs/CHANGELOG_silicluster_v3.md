@@ -158,3 +158,37 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Area: unchanged (700 flops, 2,132 comb cells, 30,845 um^2).
 - Depends on entries 3 and 5 for the 13-step arithmetic; on its own it is safe.
 - Undo: `git revert <hash>`.
+
+## 7. 2026-10-31 17:23 UTC - top: TELEMETRY_EN parameter (project rules 3.4)
+
+- Files: `rtl/pmic_top.sv`, `sim/Makefile` (`lint_notel`, `syn_notel`,
+  `syn_area_notel`, `syn_both`), `Build/*` (regenerated, enabled build plus
+  `stat_notel*.txt`, `area_notel_summary.txt`), `docs/silicluster_area.md`.
+- What: `parameter bit TELEMETRY_EN = 1'b1` on `pmic_top`. Five generate blocks,
+  each wrapped IN PLACE so the file keeps its section layout:
+  `g_spi_sync` (SCK/CS_n/SDIO synchronisers), `g_spi_filt` (their filters),
+  `g_en_switch_edge` (the enable-switch edge detector, consumed only by
+  reg_file), `g_telemetry` (SDIO tri-state, spi_slave, reg_file, pwm_stats,
+  fault_cause) with its `else` branch `g_no_telemetry`, and `g_timestamp`.
+  `git diff -w` shows +47/-1: wrappers, tie-offs and comments only; the
+  existing lines are re-indented, not edited.
+- Disabled build: SDIO released (`1'bz`), spi_enable tied 1, and trip_run,
+  trip_ss, max_strikes, max_on_limit, hiccup_base, cycles_per_step,
+  clean_run_target tied to the same package constants reg_file resets to. So it
+  behaves like an enabled build the host never writes.
+- Ports unchanged, no second top, no duplicated tree. The submission is the
+  default, enabled build.
+- Correction to the project rules: sv2v does NOT flatten the generate away. It keeps
+  TELEMETRY_EN as a Verilog parameter and the blocks as Verilog generates, so
+  `Build/pmic_full.v` carries both configurations, defaulting to 1. The
+  disabled numbers come from `chparam -set TELEMETRY_EN 0` in yosys.
+- Gate: `make lint` clean; `make lint_notel` clean apart from UNUSEDSIGNAL
+  (waived for that build only - the compiled-out nets and the SCK/CS_n pins);
+  sv2v clean (2313 lines); equiv_all as entry 3 (6/8 per flow, the two
+  watchdog-limited testbenches pass with the scaled scratch watchdog).
+- Area: enabled 700 flops / 2,127 comb / 30,808 um^2 (comb -5 is ABC noise from
+  the restructure); disabled 252 / 705 / 10,523 um^2. Telemetry costs 448
+  flops, 1,422 cells, 20,285 um^2 cell area. Disabled fits the slot (0.89x);
+  enabled is 2.61x.
+- Undo: `git revert <hash>`. Entry 8's testbench needs the enabled build only,
+  so it survives this revert.

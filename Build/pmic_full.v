@@ -1825,6 +1825,7 @@ module pmic_top (
 	Red_LED3
 );
 	reg _sv2v_0;
+	parameter [0:0] TELEMETRY_EN = 1'b1;
 	input wire clk;
 	input wire rst_n_pin;
 	input wire SCK;
@@ -1905,24 +1906,28 @@ module pmic_top (
 		.async_in(en_from_switch),
 		.sync_out(en_from_switch_sync)
 	);
-	input_sync u_sck_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(SCK),
-		.sync_out(sck_sync)
-	);
-	input_sync #(.RESET_VALUE(1'b1)) u_cs_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(CS_n),
-		.sync_out(cs_n_sync)
-	);
-	input_sync u_sdio_sync(
-		.clk(clk),
-		.rst_n(rst_n),
-		.async_in(SDIO),
-		.sync_out(sdio_sync)
-	);
+	generate
+		if (TELEMETRY_EN) begin : g_spi_sync
+			input_sync u_sck_sync(
+				.clk(clk),
+				.rst_n(rst_n),
+				.async_in(SCK),
+				.sync_out(sck_sync)
+			);
+			input_sync #(.RESET_VALUE(1'b1)) u_cs_sync(
+				.clk(clk),
+				.rst_n(rst_n),
+				.async_in(CS_n),
+				.sync_out(cs_n_sync)
+			);
+			input_sync u_sdio_sync(
+				.clk(clk),
+				.rst_n(rst_n),
+				.async_in(SDIO),
+				.sync_out(sdio_sync)
+			);
+		end
+	endgenerate
 	wire en_from_switch_sync_db;
 	wire OTP_sync_db;
 	wire UVLO_sync_db;
@@ -1964,36 +1969,40 @@ module pmic_top (
 		.flag_out(latch_stat_sync_db)
 	);
 	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b0)
-	) u_sck_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(sck_sync),
-		.flag_out(sck_filt)
-	);
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b1)
-	) u_cs_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(cs_n_sync),
-		.flag_out(cs_n_filt)
-	);
-	input_debounce #(
-		.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
-		.RESET_VALUE(1'b0)
-	) u_sdio_filt(
-		.clk(clk),
-		.rst_n(rst_n),
-		.flag_in(sdio_sync),
-		.flag_out(sdio_filt)
-	);
+	generate
+		if (TELEMETRY_EN) begin : g_spi_filt
+			input_debounce #(
+				.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RESET_VALUE(1'b0)
+			) u_sck_filt(
+				.clk(clk),
+				.rst_n(rst_n),
+				.flag_in(sck_sync),
+				.flag_out(sck_filt)
+			);
+			input_debounce #(
+				.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RESET_VALUE(1'b1)
+			) u_cs_filt(
+				.clk(clk),
+				.rst_n(rst_n),
+				.flag_in(cs_n_sync),
+				.flag_out(cs_n_filt)
+			);
+			input_debounce #(
+				.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
+				.RESET_VALUE(1'b0)
+			) u_sdio_filt(
+				.clk(clk),
+				.rst_n(rst_n),
+				.flag_in(sdio_sync),
+				.flag_out(sdio_filt)
+			);
+		end
+	endgenerate
 	wire ss_active;
 	wire run_active;
 	wire hiccup_active;
@@ -2059,16 +2068,20 @@ module pmic_top (
 	localparam signed [31:0] pmic_types_pkg_CLEAN_RUN_W = $clog2(pmic_types_pkg_CLEAN_RUN_CYCLES + 1);
 	wire [pmic_types_pkg_CLEAN_RUN_W - 1:0] clean_run_target;
 	reg en_from_switch_sync_db_d;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			en_from_switch_sync_db_d <= 0;
-		else
-			en_from_switch_sync_db_d <= en_from_switch_sync_db;
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
-	end
+	generate
+		if (TELEMETRY_EN) begin : g_en_switch_edge
+			always @(posedge clk or negedge rst_n)
+				if (!rst_n)
+					en_from_switch_sync_db_d <= 0;
+				else
+					en_from_switch_sync_db_d <= en_from_switch_sync_db;
+			always @(*) begin
+				if (_sv2v_0)
+					;
+				en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
+			end
+		end
+	endgenerate
 	supervisor u_supervisor(
 		.clk(clk),
 		.SS_done(SS_done),
@@ -2140,82 +2153,126 @@ module pmic_top (
 		.max_on_counts(max_on_counts),
 		.pwm_out(PWM_out)
 	);
-	assign SDIO = (sdio_oe ? sdio_out : 1'bz);
-	spi_slave u_spi_slave(
-		.clk(clk),
-		.rst_n(rst_n),
-		.sck(sck_filt),
-		.cs_n(cs_n_filt),
-		.sdio_in(sdio_filt),
-		.sdio_out(sdio_out),
-		.sdio_oe(sdio_oe),
-		.addr(spi_addr),
-		.wr_en(spi_wr_en),
-		.wdata(spi_wdata),
-		.rdata(spi_rdata),
-		.rd_first(spi_rd_first),
-		.integrity_ok(spi_integrity_ok),
-		.abort(spi_abort)
-	);
-	reg_file u_reg_file(
-		.clk(clk),
-		.rst_n(rst_n),
-		.addr(spi_addr),
-		.wr_en(spi_wr_en),
-		.wdata(spi_wdata),
-		.rdata(spi_rdata),
-		.rd_first(spi_rd_first),
-		.integrity_OK(spi_integrity_ok),
-		.abort(spi_abort),
-		.sup_state(sup_state),
-		.pgood(PGOOD),
-		.latch_state(latch_stat_sync_db),
-		.en_switch(en_from_switch_sync_db),
-		.en_switch_rise(en_switch_rise),
-		.cp_state(CP_sync),
-		.otp_state(OTP_sync_db),
-		.uvlo_state(UVLO_sync_db),
-		.strike_level(strike_level),
-		.duty_count(duty_count),
-		.prev_period(prev_period),
-		.fault_count_run(fault_count_run),
-		.fault_count_ss(fault_count_ss),
-		.fault_reg(fault_reg),
-		.timestamp_ms(timestamp_ms),
-		.fault_time(fault_time),
-		.fault_reg_read_done(fault_reg_read_done),
-		.spi_enable(spi_enable),
-		.trip_run(trip_run),
-		.trip_ss(trip_ss),
-		.max_strikes(max_strikes),
-		.max_on_limit(max_on_limit),
-		.hiccup_base(hiccup_base),
-		.cycles_per_step(cycles_per_step),
-		.clean_run_target(clean_run_target)
-	);
-	pwm_stats u_pwm_stats(
-		.clk(clk),
-		.rst_n(rst_n),
-		.pwm_sync(Osc_sync),
-		.duty_count(duty_count),
-		.prev_period(prev_period)
-	);
-	fault_cause u_fault_cause(
-		.clk(clk),
-		.rst_n(rst_n),
-		.otp_state(OTP_sync_db),
-		.uvlo_state(UVLO_sync_db),
-		.latch_state(latch_stat_sync_db),
-		.latch_assert(latch_out),
-		.window_trip(window_trip),
-		.window_trip_SS(window_trip_SS),
-		.ss_active(ss_active),
-		.run_active(run_active),
-		.fault_reg_read_done(fault_reg_read_done),
-		.timestamp_ms(timestamp_ms),
-		.fault_time(fault_time),
-		.fault_reg(fault_reg)
-	);
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
+	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
+	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
+	localparam signed [31:0] pmic_types_pkg_TRIP_RUN_DEFAULT = 12;
+	localparam signed [31:0] pmic_types_pkg_TRIP_SS_DEFAULT = 28;
+	function automatic signed [5:0] sv2v_cast_67DF8_signed;
+		input reg signed [5:0] inp;
+		sv2v_cast_67DF8_signed = inp;
+	endfunction
+	function automatic signed [1:0] sv2v_cast_6B4D7_signed;
+		input reg signed [1:0] inp;
+		sv2v_cast_6B4D7_signed = inp;
+	endfunction
+	function automatic signed [pmic_types_pkg_ON_TIME_W - 1:0] sv2v_cast_D6A01_signed;
+		input reg signed [pmic_types_pkg_ON_TIME_W - 1:0] inp;
+		sv2v_cast_D6A01_signed = inp;
+	endfunction
+	function automatic signed [pmic_types_pkg_HICCUP_BASE_W - 1:0] sv2v_cast_B4DD0_signed;
+		input reg signed [pmic_types_pkg_HICCUP_BASE_W - 1:0] inp;
+		sv2v_cast_B4DD0_signed = inp;
+	endfunction
+	function automatic signed [6:0] sv2v_cast_A371F_signed;
+		input reg signed [6:0] inp;
+		sv2v_cast_A371F_signed = inp;
+	endfunction
+	function automatic signed [pmic_types_pkg_CLEAN_RUN_W - 1:0] sv2v_cast_DC11B_signed;
+		input reg signed [pmic_types_pkg_CLEAN_RUN_W - 1:0] inp;
+		sv2v_cast_DC11B_signed = inp;
+	endfunction
+	generate
+		if (TELEMETRY_EN) begin : g_telemetry
+			assign SDIO = (sdio_oe ? sdio_out : 1'bz);
+			spi_slave u_spi_slave(
+				.clk(clk),
+				.rst_n(rst_n),
+				.sck(sck_filt),
+				.cs_n(cs_n_filt),
+				.sdio_in(sdio_filt),
+				.sdio_out(sdio_out),
+				.sdio_oe(sdio_oe),
+				.addr(spi_addr),
+				.wr_en(spi_wr_en),
+				.wdata(spi_wdata),
+				.rdata(spi_rdata),
+				.rd_first(spi_rd_first),
+				.integrity_ok(spi_integrity_ok),
+				.abort(spi_abort)
+			);
+			reg_file u_reg_file(
+				.clk(clk),
+				.rst_n(rst_n),
+				.addr(spi_addr),
+				.wr_en(spi_wr_en),
+				.wdata(spi_wdata),
+				.rdata(spi_rdata),
+				.rd_first(spi_rd_first),
+				.integrity_OK(spi_integrity_ok),
+				.abort(spi_abort),
+				.sup_state(sup_state),
+				.pgood(PGOOD),
+				.latch_state(latch_stat_sync_db),
+				.en_switch(en_from_switch_sync_db),
+				.en_switch_rise(en_switch_rise),
+				.cp_state(CP_sync),
+				.otp_state(OTP_sync_db),
+				.uvlo_state(UVLO_sync_db),
+				.strike_level(strike_level),
+				.duty_count(duty_count),
+				.prev_period(prev_period),
+				.fault_count_run(fault_count_run),
+				.fault_count_ss(fault_count_ss),
+				.fault_reg(fault_reg),
+				.timestamp_ms(timestamp_ms),
+				.fault_time(fault_time),
+				.fault_reg_read_done(fault_reg_read_done),
+				.spi_enable(spi_enable),
+				.trip_run(trip_run),
+				.trip_ss(trip_ss),
+				.max_strikes(max_strikes),
+				.max_on_limit(max_on_limit),
+				.hiccup_base(hiccup_base),
+				.cycles_per_step(cycles_per_step),
+				.clean_run_target(clean_run_target)
+			);
+			pwm_stats u_pwm_stats(
+				.clk(clk),
+				.rst_n(rst_n),
+				.pwm_sync(Osc_sync),
+				.duty_count(duty_count),
+				.prev_period(prev_period)
+			);
+			fault_cause u_fault_cause(
+				.clk(clk),
+				.rst_n(rst_n),
+				.otp_state(OTP_sync_db),
+				.uvlo_state(UVLO_sync_db),
+				.latch_state(latch_stat_sync_db),
+				.latch_assert(latch_out),
+				.window_trip(window_trip),
+				.window_trip_SS(window_trip_SS),
+				.ss_active(ss_active),
+				.run_active(run_active),
+				.fault_reg_read_done(fault_reg_read_done),
+				.timestamp_ms(timestamp_ms),
+				.fault_time(fault_time),
+				.fault_reg(fault_reg)
+			);
+		end
+		else begin : g_no_telemetry
+			assign SDIO = 1'bz;
+			assign spi_enable = 1'b1;
+			assign trip_run = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_RUN_DEFAULT);
+			assign trip_ss = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_SS_DEFAULT);
+			assign max_strikes = sv2v_cast_6B4D7_signed(pmic_types_pkg_MAX_STRIKES_DEFAULT);
+			assign max_on_limit = sv2v_cast_D6A01_signed(pmic_types_pkg_MAX_ON_COUNTS_DEFAULT);
+			assign hiccup_base = sv2v_cast_B4DD0_signed(pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS);
+			assign cycles_per_step = sv2v_cast_A371F_signed(pmic_types_pkg_CYCLES_PER_STEP_DEFAULT);
+			assign clean_run_target = sv2v_cast_DC11B_signed(pmic_types_pkg_CLEAN_RUN_CYCLES);
+		end
+	endgenerate
 	pgood_gen u_pgood_gen(
 		.clk(clk),
 		.rst_n(rst_n),
@@ -2224,11 +2281,15 @@ module pmic_top (
 		.run_active(run_active),
 		.PGOOD(PGOOD)
 	);
-	timestamp u_timestamp(
-		.clk(clk),
-		.rst_n(rst_n),
-		.timestamp_ms(timestamp_ms)
-	);
+	generate
+		if (TELEMETRY_EN) begin : g_timestamp
+			timestamp u_timestamp(
+				.clk(clk),
+				.rst_n(rst_n),
+				.timestamp_ms(timestamp_ms)
+			);
+		end
+	endgenerate
 	fault_LED u_fault_LED(
 		.clk(clk),
 		.rst_n(rst_n),
