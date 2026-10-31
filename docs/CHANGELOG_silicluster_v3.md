@@ -422,3 +422,63 @@ cannot contain its own hash, so the table is filled in by a later commit.
   cell area 30,522 -> 30,644 um^2 - ABC result variation across module
   boundaries, since the module itself shrank.
 - Undo: `git revert <hash>` (back to one clock of trailing drive).
+
+## 13. 2026-10-31 19:14 UTC - tb: Silicluster integration testbench `tb/pmic_top_tb.v`
+
+- Files: `tb/pmic_top_tb.v` (new, one module, plain Verilog-2005). Nothing else
+  in `tb/` touched.
+- What: the submission testbench required by the call (section 6, "a Verilog
+  testbench to verify the operation of the design"), driving `pmic_top` only
+  through its pins with board models around it: a free-running asynchronous
+  450 kHz modulator, the SCR latch read back on latch_stat, comparator levels,
+  the enable switch, and an SPI master with CRC-8. All configuration goes over
+  SPI into the register map; no RTL timer is shortened.
+- Structure, following project rules section 4:
+  - every check prints PASS/FAIL and is counted; one verdict line; everything
+    is also written to `pmic_top_tb.log`;
+  - run-long monitors every clock: SDIO driven exactly while the SPI slave is
+    in S_READ (no tolerance), first data bit valid at every drive start,
+    switch_supply == PGOOD, no PGOOD without En, PWM backstop, latch_out
+    set-only, SDIO contention;
+  - two scoreboards compared every clock: a reference model of the supervisor
+    FSM (state and En, from the supervisor's own inputs) and a shadow of the
+    register map built from the bytes sent and the documented rules (delay
+    line, keys, deferred CONTROL, S_OFF-only registers, all-three-bytes rule,
+    clamps), also checked against every byte read back;
+  - 51 coverage bins, each set only when a monitor sees the DUT reach the
+    condition (all eight FSM transitions, every fault entry and exit path,
+    hiccup retry, strike levels 1-3 and latch, strike clear, ramp ceiling, PGOOD
+    qualify and both drops, every SPI read/write/abort/reject path, the
+    timestamp snapshot, the fault-log clear, the watchdog, a stuck modulator);
+    any unhit bin fails the run;
+  - fork/join with disable for every timed wait; the unavoidable 100 ms
+    clean-run window runs concurrently with 32 directed-random register
+    transactions, 16 random duty corners and 6 random sub-debounce OTP glitches
+    (seeded xorshift32 rather than $random, whose sequence Verilator does not
+    reproduce, so both simulators get identical stimulus);
+  - force/release only where a state is otherwise unreachable: an illegal SPI
+    state encoding, and the 5 s host-silence watchdog (via its wd_mark
+    reference, so no counter is disturbed);
+  - new paths beyond the first version: S_SS -> S_OFF (UVLO in the ramp),
+    S_HICCUP -> S_OFF (OTP in the cool-down), enable switch off/on, the length
+    and alignment aborts, S_OFF-only rejection while running, a stuck-high
+    modulator.
+- Honest scope, as the rules ask: the coverage table proves the stimulus
+  arrived; it does not prove the design correct the way the SVA suite does.
+  The checks and scoreboards carry that weight, for what they compare.
+- Testbench bugs found and fixed while building it (none were RTL issues):
+  real-to-integer double rounding in the ramp measurement; a same-edge race
+  between a waiting task and the pulse monitor (1 ns settle after each PWM_out
+  edge wait); a modulator whose edges landed exactly on clock edges every 4.5
+  periods, which the two simulators order differently (fixed 37.3 ns start
+  offset); and a watchdog force on the millisecond net that Verilator and
+  Icarus resolve differently (moved to wd_mark).
+- Results at this commit, 0 FAIL lines and 51/51 bins in every run:
+  Verilator on the SV source at 10 MHz and 50 MHz, Verilator on the converted
+  Verilog at 10 MHz, Icarus on the converted Verilog at 10 MHz. SV source vs
+  converted Verilog, and Verilator vs Icarus, produce identical check lines
+  including timestamps - no divergence between the SystemVerilog and the
+  Verilog. FSM scoreboard ~4.8 M clocks compared, 0 mismatches; register-map
+  scoreboard ~4.7 M clocks and 87 read-back bytes, 0 mismatches.
+- No RTL or area change.
+- Undo: `git revert <hash>` (entry 14 runs it from make; revert that first).
