@@ -63,7 +63,7 @@ localparam string   TB_NAME         = "pgood_gen_tb";
 localparam realtime CLK_PERIOD_NS   = 1.0e9 / real'(CLK_HZ);
 // WATCHDOG_NS: hard stop so a stalled run fails instead of hanging CI.
 //              Size it against the longest segment below, not by habit.
-localparam realtime WATCHDOG_NS     = 10_000.0;
+localparam realtime WATCHDOG_NS     = 500.0 * CLK_PERIOD_NS;  // 500 clocks: 10 us at 50 MHz, 50 us at 10 MHz
 // RESET_CLKS: clocks reset is held in do_reset()
 localparam int      RESET_CLKS      = 3;
 localparam realtime DRIVE_OFFSET_NS = 3.0;
