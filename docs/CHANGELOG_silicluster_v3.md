@@ -36,3 +36,18 @@ cannot contain its own hash, so the table is filled in by a later commit.
   (~43,000 um^2, 3,039 cells). The reference appears to have used the generic
   gate count. Flop count (730) agrees exactly.
 - Undo: `git revert <hash>` (documentation only, no functional effect).
+
+## 2. 2026-10-31 17:14 UTC - sim: synthesis targets write their statistics with `tee -o`
+
+- Files: `sim/Makefile`, `sim/scripts/area_counts.py` (new)
+- What: `syn` and `syn_area` now have yosys write the statistics table to
+  `stat_summary.txt` / `area_summary.txt` itself instead of scraping it from the
+  redirected log. `syn_area` ends with one summary line (flops, comb cells, cell
+  area, die @57%, slot ratio) from the new script. `syn_clean` removes the two
+  new files. The old "divide by 0.55" hint is replaced by the script's 57%
+  figure, which is the assumption the area log uses.
+- Why: the YoWASP (WebAssembly) yosys build truncates redirected stdout, so the
+  old grep found nothing and `syn_area` failed even though synthesis succeeded.
+  `tee -o` is exact with every yosys build, native included. No change to the
+  synthesis script itself, so numbers are unaffected.
+- Undo: `git revert <hash>`.

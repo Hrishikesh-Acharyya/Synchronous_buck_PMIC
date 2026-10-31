@@ -280,12 +280,16 @@ $(CONVERTED): $(RTL)
 
 # -flatten: area is a whole-design number; a module instantiated three times
 #           counts once in the hierarchical stat.
+# tee -o:   the statistics table is written to its own file by yosys itself
+#           rather than scraped from the redirected log. The YoWASP (WebAssembly)
+#           build of yosys truncates a redirected stdout, so scraping the log
+#           silently printed nothing there; tee -o is exact with every build.
 syn: $(CONVERTED)  ## yosys synthesis, generic cell and flop counts
 	$(YOSYS) -p "read_verilog $(CONVERTED); \
 	             hierarchy -top pmic_top; \
 	             synth -top pmic_top -flatten; \
-	             stat" > $(SYNDIR)/stat.txt 2>&1
-	@awk '/^4\. Printing statistics/,0' $(SYNDIR)/stat.txt
+	             tee -o $(SYNDIR)/stat_summary.txt stat" > $(SYNDIR)/stat.txt 2>&1
+	@cat $(SYNDIR)/stat_summary.txt
 	@echo "--- full log: $(SYNDIR)/stat.txt ---"
 
 # dfflibmap before abc: abc maps combinational logic only, so flops must be
@@ -301,11 +305,11 @@ syn_area: $(CONVERTED)  ## sky130-mapped area (needs LIBERTY)
 	             dfflibmap -liberty $(LIBERTY); \
 	             abc -liberty $(LIBERTY); \
 	             opt_clean; \
-	             stat -liberty $(LIBERTY)" > $(SYNDIR)/area.txt 2>&1
-	@grep -E "Chip area|Number of cells" $(SYNDIR)/area.txt || \
+	             tee -o $(SYNDIR)/area_summary.txt stat -liberty $(LIBERTY)" > $(SYNDIR)/area.txt 2>&1
+	@grep -E "Chip area|Number of cells|cells$$" $(SYNDIR)/area_summary.txt || \
 	    { tail -40 $(SYNDIR)/area.txt; exit 1; }
+	@python3 $(SCRIPTS)/area_counts.py $(SYNDIR)/area_summary.txt syn_area
 	@echo "--- Silicluster v3 standard slot is 180 x 115 = 20700 um2 ---"
-	@echo "--- divide chip area by 0.55 for die area at realistic utilisation ---"
 
 # ============================================================
 # Housekeeping
@@ -318,7 +322,8 @@ tb_clean:  ## remove all testbench build output
 	rm -rf $(TBBUILD)
 
 syn_clean:  ## remove conversion and synthesis output
-	rm -f $(CONVERTED) $(SYNDIR)/stat.txt $(SYNDIR)/area.txt
+	rm -f $(CONVERTED) $(SYNDIR)/stat.txt $(SYNDIR)/area.txt \
+	      $(SYNDIR)/stat_summary.txt $(SYNDIR)/area_summary.txt
 
 clean: tb_clean syn_clean  ## both of the above
 
