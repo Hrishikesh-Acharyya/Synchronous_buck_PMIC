@@ -1,0 +1,30 @@
+
+4. Printing statistics.
+
+=== pmic_top ===
+
+        +----------Local Count, excluding submodules.
+        | 
+     3030 wires
+     4821 wire bits
+      441 public wires
+     1605 public wire bits
+       22 ports
+       22 port bits
+     3589 cells
+      205   $_ANDNOT_
+     1237   $_AND_
+      548   $_DFFE_PN0P_
+       32   $_DFFE_PN1P_
+      108   $_DFF_PN0_
+       12   $_DFF_PN1_
+       67   $_MUX_
+      227   $_NAND_
+      228   $_NOR_
+      183   $_NOT_
+       93   $_ORNOT_
+      346   $_OR_
+       87   $_XNOR_
+      185   $_XOR_
+       31   $scopeinfo
+

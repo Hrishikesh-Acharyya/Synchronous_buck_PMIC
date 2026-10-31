@@ -29,7 +29,7 @@
 
 module pmic_top (
     // ---- clock and reset ----
-    input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
+    input  wire logic clk,          // Clk_Ext, 10 MHz external clock (Silicluster v3 maximum)
     input  wire logic rst_n_pin,    // asynchronous external reset, active low
 
     //---SPI pins
@@ -129,8 +129,11 @@ module pmic_top (
     // instances must therefore carry IDENTICAL parameters - any future retune of the
     // fault-flag instances must not be copied here.
     //
-    // 8 clocks is 160 ns at 50 MHz: far longer than the tens of ns a switch-node edge
-    // couples in, far shorter than the 500 ns SCK half-period at 1 MHz. Noise lasting
+    // 8 clocks is 800 ns at 10 MHz (160 ns at 50 MHz): far longer than the tens of ns a
+    // switch-node edge couples in. At 10 MHz it is LONGER than a 1 MHz SCK half-period,
+    // and a read bit leaves the slave about 12 clocks (1.2 us) after the master's falling
+    // edge, so the host must hold each SCK phase well above that: 250 kHz SCK, a 2 us
+    // half-period, is the verified rate (tb/pmic_top_tb.v). Noise lasting
     // longer than the window is not a glitch and is not this layer's job - CRC-8 in
     // spi_slave catches it and the transaction is discarded.    
 

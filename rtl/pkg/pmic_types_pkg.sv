@@ -25,11 +25,11 @@ package pmic_types_pkg;
     // System timing - everything below derives from these two
     // ============================================================
     // CLK_HZ: supervisor clock, from the external oscillator
-    localparam int CLK_HZ       = 50_000_000;
+    localparam int CLK_HZ       = 10_000_000;
     // CONVERTOR_HZ: switching frequency of the analog modulator
     localparam int CONVERTOR_HZ = 450_000;
     // CLKS_PER_SW: clk ticks in one switching period. The true ratio is
-    //              111.1, a non-integer: every counter in the
+    //              22.2 at 10 MHz, a non-integer: every counter in the
     //              design re-references to pwm_fall each cycle, so the
     //              fractional part never accumulates.
     localparam int CLKS_PER_SW  = CLK_HZ / CONVERTOR_HZ;
@@ -251,7 +251,7 @@ package pmic_types_pkg;
     // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
     //                  SDIO shifts the data relative to the clock it is sampled
     //                  against, which is worse than no filtering at all.
-    localparam int SPI_FILTER_CLKS = 8;     // 160 ns at 50 MHz
+    localparam int SPI_FILTER_CLKS = 8;     // 800 ns at 10 MHz (160 ns at 50 MHz)
 
 
     // ============================================================

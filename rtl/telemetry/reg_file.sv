@@ -31,8 +31,8 @@ module reg_file
     // WRITE_ACCESS_KEY_ID: magic byte unlocking the threshold bank
     parameter logic [7:0] WRITE_ACCESS_KEY_ID  = 8'hA7,
 
-    // ARM_TIMEOUT_W: width of the arm expiry counter. At 50 MHz, 16 bits is about
-    //                1.3 ms - far longer than any legal transaction, far shorter
+    // ARM_TIMEOUT_W: width of the arm expiry counter. At 10 MHz, 16 bits is about
+    //                6.5 ms - far longer than any legal transaction, far shorter
     //                than a human notices.
     parameter int ARM_TIMEOUT_W = 16
 )

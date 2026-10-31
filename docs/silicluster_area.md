@@ -22,9 +22,13 @@ an old row; the trend is the useful part.
 
 ## Runs
 
-| Date (UTC)       | Commit  | Clock  | TELEMETRY_EN | Flops | Comb cells | Cell area (um^2) | Die @57% (um^2) | Ratio vs slot | Note |
-|------------------|---------|--------|--------------|-------|------------|------------------|-----------------|---------------|------|
-| 2026-10-31 17:10 | a70e4a9 | 50 MHz | (n/a, =1)    | 730   | 2,281      | 32,369           | 56,787          | 2.74x         | baseline, `main` as received |
+| Date (UTC)       | Commit / changelog entry | Clock  | TELEMETRY_EN | Flops | Comb cells | Cell area (um^2) | Die @57% (um^2) | Ratio vs slot | Note |
+|------------------|--------------------------|--------|--------------|-------|------------|------------------|-----------------|---------------|------|
+| 2026-10-31 17:10 | a70e4a9 (main)           | 50 MHz | (n/a, =1)    | 730   | 2,281      | 32,369           | 56,787          | 2.74x         | baseline, `main` as received |
+| 2026-10-31 17:17 | chg 3: CLK_HZ 10 MHz     | 10 MHz | (n/a, =1)    | 700   | 2,137      | 30,821           | 54,072          | 2.61x         | -30 flops from narrowed counters, as derived |
+
+Commit hashes for each changelog entry are in the table at the end of
+`docs/CHANGELOG_silicluster_v3.md`.
 
 ## Findings
 

@@ -50,3 +50,6 @@ sim/*.wlf
 *.bak
 # Local Vivado projects (regenerate from fpga/ + rtl/)
 vivado/
+
+# Full yosys logs of the liberty-mapped run; the summary is committed instead
+Build/area.txt
