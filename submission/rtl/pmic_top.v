@@ -43,7 +43,8 @@ module pmic_top (
 	rst_n_pin,
 	SCK,
 	CS_n,
-	SDIO,
+	MOSI,
+	MISO,
 	Osc_in,
 	CP_trig,
 	OTP_trig,
@@ -75,10 +76,11 @@ module pmic_top (
 	// ---- clock and reset ----
 	input wire clk;  // Clk_Ext, 10 MHz external clock (Silicluster v3 maximum)
 	input wire rst_n_pin;  // asynchronous external reset, active low
-	//---SPI pins
+	//---SPI pins: 4-wire, a separate data line each way
 	input wire SCK;
 	input wire CS_n;
-	inout wire SDIO;  // 3 wire SPI
+	input wire MOSI;  // SPI data in, master to supervisor
+	output wire MISO;  // SPI data out, supervisor to master
 	// ---- asynchronous inputs from the analog side ----
 	input wire Osc_in;  // Master_PWM from the analog modulator
 	input wire CP_trig;  // valley-current comparator
@@ -117,7 +119,7 @@ module pmic_top (
 	//SPI SIGNALS
 	wire sck_sync;
 	wire cs_n_sync;
-	wire sdio_sync;
+	wire mosi_sync;
 	// ---- input synchronisers ----
 	// Every asynchronous pin is synchronised once, here, and the result
 	// distributed: no submodule sees a raw pin. Fault inputs reset to their
@@ -166,9 +168,9 @@ module pmic_top (
 		.sync_out(en_from_switch_sync)
 	);
 	// SPI bus conditioning, built only with TELEMETRY_EN. Reset values are each
-	// line's IDLE level: CS idles high, Mode 0 SCK idles low, SDIO idles released
-	// and reads low through the pull-down. Resetting to the wrong level
-	// manufactures an edge on the first clock after reset.
+	// line's IDLE level: CS idles high, Mode 0 SCK idles low, MOSI idles low.
+	// Resetting to the wrong level manufactures an edge on the first clock after
+	// reset.
 	generate
 		if (TELEMETRY_EN) begin : g_spi_sync
 			input_sync u_sck_sync(
@@ -183,11 +185,11 @@ module pmic_top (
 				.async_in(CS_n),
 				.sync_out(cs_n_sync)
 			);
-			input_sync u_sdio_sync(
+			input_sync u_mosi_sync(
 				.clk(clk),
 				.rst_n(rst_n),
-				.async_in(SDIO),
-				.sync_out(sdio_sync)
+				.async_in(MOSI),
+				.sync_out(mosi_sync)
 			);
 		end
 	endgenerate
@@ -199,7 +201,7 @@ module pmic_top (
 	//spi signals
 	wire sck_filt;
 	wire cs_n_filt;
-	wire sdio_filt;
+	wire mosi_filt;
 	// Package constants used here, inlined by the conversion from
 	// pmic_types_pkg.sv. Each is evaluated at elaboration; none is hardware.
 	// CLK_HZ: supervisor clock, from the external oscillator
@@ -244,12 +246,12 @@ module pmic_top (
 		.flag_out(latch_stat_sync_db)
 	);
 	// SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
-	//                  SDIO shifts the data relative to the clock it is sampled
+	//                  MOSI shifts the data relative to the clock it is sampled
 	//                  against, which is worse than no filtering at all.
 	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;  // 800 ns at 10 MHz (160 ns at 50 MHz)
 	// SPI filters, built only with TELEMETRY_EN: input_debounce instanced
 	// SYMMETRIC and SHORT, a different regime from the fault flags it was written
-	// for. The symmetry is the critical part: spi_slave samples SDIO on an edge
+	// for. The symmetry is the critical part: spi_slave samples MOSI on an edge
 	// derived from SCK, so unequal delay between the two shifts the data relative
 	// to the clock it is sampled against. All three instances must therefore
 	// carry IDENTICAL parameters - a retune of the fault-flag instances must not
@@ -288,11 +290,11 @@ module pmic_top (
 				.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
 				.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
 				.RESET_VALUE(1'b0)
-			) u_sdio_filt(
+			) u_mosi_filt(
 				.clk(clk),
 				.rst_n(rst_n),
-				.flag_in(sdio_sync),
-				.flag_out(sdio_filt)
+				.flag_in(mosi_sync),
+				.flag_out(mosi_filt)
 			);
 		end
 	endgenerate
@@ -379,8 +381,8 @@ module pmic_top (
 	wire spi_rd_byte_done;  // a read data byte has been clocked out
 	wire spi_integrity_ok;
 	wire spi_abort;
-	wire sdio_out;
-	wire sdio_oe;
+	wire sdio_out;  // MISO data, from spi_slave
+	wire sdio_oe;  // high only while sdio_out is read data (S_READ)
 	// ---- reg_file control outputs ----
 	wire spi_enable;
 	// TRIP_W: width of the fault-window trip thresholds, now that both are
@@ -572,18 +574,21 @@ module pmic_top (
 		sv2v_cast_DC11B_signed = inp;
 	endfunction
 	// ---- host interface, built only with TELEMETRY_EN ----
-	// The SDIO tri-state lives HERE and nowhere else, so every simulator and the
-	// hardware see the same behaviour. spi_slave exposes sdio_out and sdio_oe and
-	// never touches a bidirectional net itself.
+	// MISO is driven here and nowhere else. spi_slave's sdio_out carries the read
+	// data and sdio_oe is high exactly while spi_slave is in S_READ, so MISO shows
+	// read data during the read data phase and is held low at every other time -
+	// a plain output, with no tri-state anywhere in the design. Both terms are
+	// flops that change on different SCK edges, so MISO does not glitch. The
+	// spi_slave port names keep the sdio_ prefix of the original 3-wire bus.
 	generate
 		if (TELEMETRY_EN) begin : g_telemetry
-			assign SDIO = (sdio_oe ? sdio_out : 1'bz);
+			assign MISO = sdio_oe & sdio_out;
 			spi_slave u_spi_slave(
 				.clk(clk),
 				.rst_n(rst_n),
 				.sck(sck_filt),
 				.cs_n(cs_n_filt),
-				.sdio_in(sdio_filt),
+				.sdio_in(mosi_filt),
 				.sdio_out(sdio_out),
 				.sdio_oe(sdio_oe),
 				.addr(spi_addr),
@@ -661,12 +666,12 @@ module pmic_top (
 			);
 		end
 		else begin : g_no_telemetry
-			// No host interface. SDIO is released permanently, so the pin is a plain
-			// input that nothing drives, and every value reg_file would have held is
-			// tied to the package constant reg_file resets to. spi_enable is tied high
+			// No host interface. MISO is held low and MOSI is unused, and every value
+			// reg_file would have held is tied to the package constant reg_file resets
+			// to. spi_enable is tied high
 			// so the enable switch alone gates the converter - the same as an enabled
 			// build whose host has never written CONTROL.
-			assign SDIO = 1'bz;
+			assign MISO = 1'b0;
 			assign spi_enable = 1'b1;
 			assign trip_run = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_RUN_DEFAULT);
 			assign trip_ss = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_SS_DEFAULT);

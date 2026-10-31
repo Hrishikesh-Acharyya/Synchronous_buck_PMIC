@@ -58,7 +58,8 @@ tb/pmic_top_tb.v               the testbench
 ## Pins
 
 The call provides `clk` and `rst` separately from the 14 inputs and 14 outputs.
-This design uses 9 inputs, 1 bidirectional pin and 10 outputs besides them.
+This design uses 10 inputs and 11 outputs besides them, and no bidirectional
+pins.
 
 | Pin | Dir | Function |
 |-----|-----|----------|
@@ -66,7 +67,8 @@ This design uses 9 inputs, 1 bidirectional pin and 10 outputs besides them.
 | `rst_n_pin` | in | Reset, **active low**, asynchronous assert, released synchronously inside |
 | `SCK` | in | SPI clock (mode 0) |
 | `CS_n` | in | SPI chip select, active low |
-| `SDIO` | inout | SPI data, half duplex; driven by the chip only during read data |
+| `MOSI` | in | SPI data in (master out, slave in) |
+| `MISO` | out | SPI data out (master in, slave out): read data during a read, low otherwise |
 | `Osc_in` | in | PWM from the analog modulator |
 | `CP_trig` | in | Valley-current comparator (overcurrent), high = fault |
 | `OTP_trig` | in | Over-temperature comparator, high = fault |
@@ -85,9 +87,10 @@ This design uses 9 inputs, 1 bidirectional pin and 10 outputs besides them.
 | `Red_LED2` | out | Over-temperature |
 | `Red_LED3` | out | Input undervoltage |
 
-`SDIO` is the only bidirectional pin (a tri-state, `assign SDIO = sdio_oe ?
-sdio_out : 1'bz` in `pmic_top.v`). Every other input is asynchronous to `clk`
-and is synchronised on chip.
+There is no bidirectional pin and no tri-state anywhere in the design: `MISO`
+is a plain output (`assign MISO = sdio_oe & sdio_out` in `pmic_top.v`), driven
+low whenever the chip is not sending read data. Every input is asynchronous to
+`clk` and is synchronised on chip.
 
 ## Clock and reset
 
@@ -105,15 +108,16 @@ and is synchronised on chip.
 
 - `TELEMETRY_EN = 1`: SPI slave, register map, fault log, timestamp and PWM
   statistics are all included. `TELEMETRY_EN` is a parameter of `pmic_top`;
-  with 0 the host interface is not built, `SDIO` is released, and the
+  with 0 the host interface is not built, `MISO` is held low, and the
   protection runs on its default thresholds.
-- SPI: mode 0, MSB first, half duplex on `SDIO`. **SCK at most about 250 kHz**
+- SPI: mode 0, MSB first, 4-wire (`MOSI` in, `MISO` out). **SCK at most about 250 kHz**
   at a 10 MHz clock (verified rate): the three SPI lines pass through an
   800 ns digital filter, and a read bit leaves the chip about 1.2 us after the
   master's falling edge. Write frame: command byte (bit 7 = 0, address in
   bits 6:0), data bytes, then CRC-8 (polynomial 0x07, initial value 0x00, over
   the command and data bytes). Read frame: command byte (bit 7 = 1), one
-  turnaround byte during which the master releases `SDIO`, then data bytes.
+  dummy (turnaround) byte, then data bytes on `MISO`; after the command byte
+  `MOSI` is ignored.
   The address auto-increments. A write commits only if CS rises on a byte
   boundary after at least three bytes with a good CRC.
 - Register map highlights: 0x00 ID (0xB5), 0x01 version, 0x03 scratch, 0x10
@@ -171,9 +175,10 @@ switch; a stuck-high modulator.
 It checks in four layers:
 
 - **directed checks** - 215, each printing PASS or FAIL;
-- **monitors** sampled every clock - SDIO driven exactly while the SPI slave
-  is in its read state and never while the master owns the line, the first read
-  bit valid when the chip takes the line, `switch_supply` equal to `PGOOD`, no
+- **monitors** sampled every clock - `MISO` carrying read data exactly while
+  the SPI slave is in its read state and low at every other time, the first read
+  bit valid on `MISO` at the start of read data, `switch_supply` equal to
+  `PGOOD`, no
   `PGOOD` without `En`, no `PWM_out` pulse above the 75% ceiling, `latch_out`
   never falling without a reset;
 - **two scoreboards** compared with the design every clock - a reference model
@@ -211,7 +216,7 @@ Synthesised with Yosys 0.70 and the sky130_fd_sc_hd typical library
 
 | Build | Flops | Comb cells | Cell area | Die at 57% utilisation | vs 180 x 115 um slot |
 |-------|-------|------------|-----------|------------------------|----------------------|
-| As submitted, `TELEMETRY_EN = 1` | 693 | 2,113 | 30,644 um^2 | ~53,800 um^2 | 2.6x |
+| As submitted, `TELEMETRY_EN = 1` | 694 | 2,119 | 30,737 um^2 | ~53,900 um^2 | 2.6x |
 | Reference, `TELEMETRY_EN = 0` | 252 | 705 | 10,523 um^2 | ~18,500 um^2 | 0.9x |
 
 The submitted build needs more than the standard slot; additional area is
@@ -232,6 +237,9 @@ number.
   and the LED work.
 - Reading 0x20 clears the fault log even in a one-byte read; read 0x1D-0x20 as
   one burst to get the whole record first.
+- `MISO` is always driven, low when idle, so sharing the MISO line with other
+  SPI devices needs an external buffer. With one device on the bus it does not
+  matter.
 
 ## Participant
 
