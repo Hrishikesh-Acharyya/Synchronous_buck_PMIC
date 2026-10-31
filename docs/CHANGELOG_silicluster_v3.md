@@ -825,6 +825,16 @@ cannot contain its own hash, so the table is filled in by a later commit.
   against the logs and reports on this branch; every image and link resolves.
 - Undo: `git revert <hash>` (restores the old README and the old file name).
 
+## 30. 2026-10-31 23:31 UTC - rtl: correct two comments that still named the 50 MHz clock
+
+- Files: `rtl/telemetry/spi_slave.sv`, `rtl/protect/strike_counter.sv` -
+  comments only. Found in the comment review of the sign-off the user asked
+  for: two Purpose blocks said the edge strobes are "enables on the 50 MHz
+  domain"; the clock is 10 MHz since entry 3, so both now say "the clk domain".
+  sv2v drops comments, so `Build/pmic_full.v` is byte-identical. The annotated
+  package copies receive the same two edits with entry 31.
+- Undo: `git revert <hash>` (comments only).
+
 ---
 
 ## Commit table
@@ -867,6 +877,7 @@ its commit.
 | 26 | `a2c8a15` | 2026-10-31 21:12 | docs: area-log notes on utilisation and the fallback; commit table for entries 20-25 |
 | 27 | `9f3d553` | 2026-10-31 21:30 | package: stop committing the submission zip |
 | 28 | `10e86d3` | 2026-10-31 22:30 | pnr: place and route of both builds, scripts and results |
+| 29 | `a64c745` | 2026-10-31 22:38 | docs: repository README covers the whole project; the package README is renamed |
 
-Entry 29 is the newest commit touching this file, so its own hash is:
+Entry 32 is the newest commit touching this file, so its own hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
