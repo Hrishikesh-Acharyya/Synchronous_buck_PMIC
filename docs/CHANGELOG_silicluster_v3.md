@@ -761,6 +761,16 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - No RTL or Verilog file changed; `make package_check` 17/17 before the zip.
 - Undo: `git revert <hash>` (documentation and zip only).
 
+## 26. 2026-10-31 21:12 UTC - docs: area-log notes on utilisation and the fallback; commit table for entries 20-25
+
+- Files: `docs/silicluster_area.md` (two findings appended, no row edited),
+  `docs/CHANGELOG_silicluster_v3.md` (this entry and the table below).
+- What: the area log now records what the 57% die figure can and cannot say -
+  the full build's cell area alone is 1.48x the slot, so it cannot fit one slot
+  at any utilisation; the reduced build fits only at 51% utilisation or more -
+  and that the reduced build is a verified fallback since entry 23.
+- Undo: `git revert <hash>` (documentation only).
+
 ---
 
 ## Commit table
@@ -769,7 +779,9 @@ Every entry above is exactly one commit on this branch. To undo one, revert its
 commit (`git revert <commit>`), newest first where entries depend on each
 other, then rerun the gate: `cd sim && make lint && make -B convert && make -j4
 equiv_all`, and for the submission `make package_check && make equiv SPLIT=1`.
-Commit times are UTC and are the times each entry records.
+Times are commit times, UTC. Up to entry 20 they equal the entry headings; from
+entry 21 a heading records when the entry was written, a few minutes before
+its commit.
 
 | Entry | Commit | Time (UTC) | Subject |
 |------:|--------|------------|---------|
@@ -793,6 +805,11 @@ Commit times are UTC and are the times each entry records.
 | 18 | `bc7fba0` | 2026-10-31 20:07 | package: regenerate the submission for MOSI/MISO |
 | 19 | `c767707` | 2026-10-31 20:10 | package: rebuild the zip, which the previous commit left stale |
 | 20 | `5f68f60` | 2026-10-31 20:11 | docs: update the changelog commit table for entries 17-19 |
+| 21 | `bf842f4` | 2026-10-31 20:22 | package: correct the README's check count |
+| 22 | `3f6a70e` | 2026-10-31 21:05 | tb: count a PGOOD drop only when PGOOD falls from 1 |
+| 23 | `8899a75` | 2026-10-31 21:06 | tb: TELEMETRY_EN parameter and a pins-only sequence for the reduced build |
+| 24 | `fb1b37c` | 2026-10-31 21:10 | sim: integration testbench targets for TELEMETRY_EN=0; the gate runs both builds |
+| 25 | `87992af` | 2026-10-31 21:11 | package: README for both TELEMETRY_EN builds, the fallback and the area method |
 
-Entry 21 is the newest commit touching this file, so its own hash is:
+Entry 26 is the newest commit touching this file, so its own hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
