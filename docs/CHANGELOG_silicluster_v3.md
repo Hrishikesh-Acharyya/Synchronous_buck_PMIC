@@ -779,6 +779,31 @@ cannot contain its own hash, so the table is filled in by a later commit.
   `package_check`; it is no longer tracked.
 - Undo: `git revert <hash>` (restores the zip as of entry 25).
 
+## 28. 2026-10-31 22:28 UTC - pnr: place and route of both builds, scripts and results
+
+- Files: `pnr/` (new: `fetch_platform.sh`, `synth.sh`, `run_pnr.sh`, `flow.tcl`,
+  `report.tcl`, `image.tcl`, `summarize.py`, `README.md`, and `results/` - per run
+  metrics, timing, power, skew and DRC reports, gzipped flow log, routed DEF and
+  netlist, `summary.tsv`, five layout pictures); `.gitignore` (`pnr/platform/`,
+  `pnr/work/`); `docs/silicluster_area.md` (one finding);
+  `submission/README.md` (a place-and-route table in the area section).
+  Requested by the user: check the fit with a real layout rather than the
+  57% assumption, and keep all the data.
+- Flow: OpenROAD 2.0-12381 (litex-hub conda), sky130_fd_sc_hd typical corner,
+  ORFS sky130hd LEFs and set-up scripts, the volare liberty; yosys netlists
+  without the ORFS don't-use cells; floorplan, pins, taps, met1/met4/met5 grid,
+  placement, repair, clock tree, setup and hold repair, global and TritonRoute
+  detailed routing, OpenRCX extraction, timing at 10 MHz.
+- Results: reduced build routed with 0 DRC violations in 180 x 115 um at 2, 5
+  and 10 um margins (66%, 71%, 84%) and in 180 x 100 and 180 x 90 um (75%,
+  84%); 180 x 80 um fails global routing. Full build: 180 x 115 um does not
+  fit, 180 x 230 um (2x) fails global routing, 180 x 288 um (2.5x) routed with
+  0 DRC violations after 41 passes, 180 x 345 um (3x) routed with 0 after 14.
+  Setup slack 94-97 ns and hold slack +0.26 to +0.35 ns in every routed run.
+- Gate: the committed scripts rerun from a clean `pnr/` reproduce the reduced
+  build at 180 x 115 um.
+- Undo: `git revert <hash>`.
+
 ---
 
 ## Commit table
@@ -819,6 +844,7 @@ its commit.
 | 24 | `fb1b37c` | 2026-10-31 21:10 | sim: integration testbench targets for TELEMETRY_EN=0; the gate runs both builds |
 | 25 | `87992af` | 2026-10-31 21:11 | package: README for both TELEMETRY_EN builds, the fallback and the area method |
 | 26 | `a2c8a15` | 2026-10-31 21:12 | docs: area-log notes on utilisation and the fallback; commit table for entries 20-25 |
+| 27 | `9f3d553` | 2026-10-31 21:30 | package: stop committing the submission zip |
 
-Entry 27 is the newest commit touching this file, so its own hash is:
+Entry 28 is the newest commit touching this file, so its own hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.

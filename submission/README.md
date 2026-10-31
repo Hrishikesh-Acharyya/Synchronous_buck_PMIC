@@ -291,11 +291,27 @@ route sets the real number. For scale: the reduced build fits the standard
 slot if the layout reaches at least 51% utilisation; the full build needs about
 2.6x the slot at 57% and 3x at 50%.
 
+Placed and routed to check (OpenROAD, sky130_fd_sc_hd, typical corner, a
+met1/met4/met5 power grid, clock tree, timing repair, detailed routing; the
+participant's own flow, so pin positions and margins may differ from the
+integration flow):
+
+| Build | Die | vs slot | Utilisation | Result |
+|-------|-----|---------|-------------|--------|
+| `TELEMETRY_EN = 0` | 180 x 115 um | 1.0x | 66% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 x 115 um, 10 um reserved all round | 1.0x | 84% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 x 90 um | 0.78x | 84% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 1` | 180 x 230 um | 2.0x | 90% | does not route |
+| `TELEMETRY_EN = 1` | 180 x 288 um | 2.5x | 72% | routed, 0 DRC violations (only just) |
+| `TELEMETRY_EN = 1` | 180 x 345 um | 3.0x | 61% | routed, 0 DRC violations |
+
+Timing closes with large margin at 10 MHz in every routed case.
+
 The full build needs more than the standard slot; additional area is
 requested. Almost all of the difference is the host interface - SPI, register
 map, fault log, timestamp, PWM statistics - which is what lets the design be
 configured and observed remotely, including on the virtual testing platform.
-If that area is not available, the reduced build is estimated to fit the
+If that area is not available, the reduced build places and routes in the
 standard slot (see "Configuration").
 
 ## Known limitations

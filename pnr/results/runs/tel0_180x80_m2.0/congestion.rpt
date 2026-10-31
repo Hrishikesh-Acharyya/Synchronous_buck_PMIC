@@ -1,0 +1,216 @@
+violation type: Horizontal congestion
+	srcs: net:OTP_sync net:_0088_ net:_0146_ net:_0326_ net:_0366_ net:_0368_ net:_0536_ net:_0537_ net:_0555_ net:_0559_ net:_0611_ net:_0617_ net:_0618_ net:_0620_ net:_0621_ net:_0681_ net:u_OTP_sync_db.disagree_counter\[10\] net:u_OTP_sync_db.disagree_counter\[11\] net:u_OTP_sync_db.disagree_counter\[12\] net:u_OTP_sync_db.disagree_counter\[4\] 
+	congestion information: capacity:19 usage:20 overflow:1
+	bbox = ( 6.9, 62.1 ) - ( 13.8, 69) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0011_ net:_0012_ net:_0013_ net:_0062_ net:_0064_ net:_0087_ net:_0246_ net:_0295_ net:_0297_ net:_0303_ net:_0339_ net:_0346_ net:_0422_ net:_0435_ net:_0437_ net:_0438_ net:u_fault_LED.blink_counter\[13\] net:u_fault_LED.blink_counter\[14\] net:u_fault_LED.blink_counter\[18\] net:u_strike_counter.clean_counter\[16\] 
+	congestion information: capacity:18 usage:20 overflow:2
+	bbox = ( 13.8, 20.7 ) - ( 20.7, 27.6) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0093_ net:_0094_ net:_0095_ net:_0248_ net:_0340_ net:_0383_ net:_0433_ net:_0434_ net:_0436_ net:_0444_ net:_0447_ net:_0462_ net:_0486_ net:_0487_ net:_0604_ net:_0678_ net:u_fault_LED.blink_counter\[16\] net:u_hiccup_timer.cool_counter\[2\] net:u_hiccup_timer.cool_counter\[5\] net:u_strike_counter.clean_counter\[15\] net:u_strike_counter.clean_counter\[17\] 
+	congestion information: capacity:20 usage:21 overflow:1
+	bbox = ( 13.8, 27.6 ) - ( 20.7, 34.5) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0092_ net:_0219_ net:_0247_ net:_0265_ net:_0280_ net:_0335_ net:_0405_ net:_0414_ net:_0415_ net:_0421_ net:_0458_ net:_0461_ net:_0463_ net:_0473_ net:_0561_ net:_0675_ net:u_hiccup_timer.cool_counter\[0\] net:u_hiccup_timer.cool_counter\[1\] net:u_hiccup_timer.cool_counter\[3\] net:u_hiccup_timer.cool_counter\[4\] net:u_hiccup_timer.cool_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[8\] 
+	congestion information: capacity:20 usage:22 overflow:2
+	bbox = ( 13.8, 34.5 ) - ( 20.7, 41.4) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0036_ net:_0417_ net:_0418_ net:_0439_ net:_0445_ net:_0450_ net:_0451_ net:_0454_ net:_0468_ net:_0474_ net:_0555_ net:_0572_ net:hiccup_active net:strike_level\[0\] net:strike_level\[1\] net:u_hiccup_timer.cool_counter\[11\] net:u_hiccup_timer.cool_counter\[13\] net:u_hiccup_timer.cool_counter\[16\] net:u_hiccup_timer.cool_counter\[17\] net:u_hiccup_timer.cool_counter\[18\] net:clknet_5_8__leaf_clk 
+	congestion information: capacity:19 usage:21 overflow:2
+	bbox = ( 13.8, 41.4 ) - ( 20.7, 48.3) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0083_ net:_0085_ net:_0086_ net:_0148_ net:_0283_ net:_0284_ net:_0361_ net:_0419_ net:_0440_ net:_0446_ net:_0464_ net:_0466_ net:_0467_ net:_0471_ net:u_hiccup_timer.cool_counter\[10\] net:u_hiccup_timer.cool_counter\[7\] net:u_hiccup_timer.cool_counter\[9\] 
+	congestion information: capacity:16 usage:17 overflow:1
+	bbox = ( 13.8, 48.3 ) - ( 20.7, 55.2) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0034_ net:_0038_ net:_0088_ net:_0089_ net:_0138_ net:_0141_ net:_0278_ net:_0282_ net:_0364_ net:_0465_ net:_0524_ net:_0526_ net:_0538_ net:_0605_ net:_0607_ net:_0609_ net:_0686_ net:max_on_counts\[3\] net:u_OTP_sync_db.disagree_counter\[1\] net:u_OTP_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[4\] net:u_pgood_gen.qualify_counter\[6\] 
+	congestion information: capacity:20 usage:22 overflow:2
+	bbox = ( 13.8, 55.2 ) - ( 20.7, 62.1) on Layer -
+violation type: Horizontal congestion
+	srcs: net:OTP_sync net:_0146_ net:_0326_ net:_0366_ net:_0368_ net:_0469_ net:_0470_ net:_0530_ net:_0537_ net:_0559_ net:_0618_ net:_0620_ net:_0681_ net:u_OTP_sync_db.disagree_counter\[11\] net:u_OTP_sync_db.disagree_counter\[12\] net:u_OTP_sync_db.disagree_counter\[9\] net:u_hiccup_timer.cool_counter\[12\] net:u_hiccup_timer.cool_counter\[14\] 
+	congestion information: capacity:17 usage:18 overflow:1
+	bbox = ( 13.8, 62.1 ) - ( 20.7, 69) on Layer -
+violation type: Horizontal congestion
+	srcs: net:PGOOD net:_0046_ net:_0143_ net:_0145_ net:_0147_ net:_0150_ net:_0271_ net:_0285_ net:_0345_ net:_0357_ net:_0367_ net:_0382_ net:_0525_ net:_0527_ net:_0528_ net:_0529_ net:_0534_ net:_0535_ net:_0558_ net:_0576_ net:_0581_ net:_0606_ net:_0610_ net:_0611_ net:_0614_ net:_0617_ net:latch_stat_sync net:latch_stat_sync_db net:switch_supply net:u_OTP_sync_db.disagree_counter\[0\] net:u_OTP_sync_db.disagree_counter\[4\] net:u_OTP_sync_db.disagree_counter\[5\] net:u_OTP_sync_db.disagree_counter\[7\] net:u_OTP_sync_db.disagree_counter\[8\] net:u_latch_stat_sync_db.disagree_counter\[9\] net:net5 net:clknet_5_10__leaf_clk 
+	congestion information: capacity:35 usage:37 overflow:2
+	bbox = ( 13.8, 69 ) - ( 20.7, 80) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0065_ net:_0248_ net:_0282_ net:_0383_ net:_0405_ net:_0414_ net:_0433_ net:_0434_ net:_0436_ net:_0444_ net:_0447_ net:_0462_ net:_0486_ net:_0487_ net:_0604_ net:_0678_ net:u_fault_LED.blink_counter\[16\] net:u_hiccup_timer.cool_counter\[2\] net:u_hiccup_timer.cool_counter\[5\] net:u_strike_counter.clean_counter\[15\] net:u_strike_counter.clean_counter\[17\] net:net5 
+	congestion information: capacity:21 usage:22 overflow:1
+	bbox = ( 20.7, 27.6 ) - ( 27.6, 34.5) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0036_ net:_0038_ net:_0096_ net:_0148_ net:_0417_ net:_0418_ net:_0419_ net:_0439_ net:_0445_ net:_0446_ net:_0454_ net:_0558_ net:hiccup_active net:strike_level\[0\] net:strike_level\[1\] net:u_hiccup_timer.cool_counter\[11\] net:u_hiccup_timer.cool_counter\[13\] net:u_hiccup_timer.cool_counter\[16\] net:u_hiccup_timer.cool_counter\[18\] net:clknet_4_4_0_clk net:clknet_5_8__leaf_clk 
+	congestion information: capacity:20 usage:21 overflow:1
+	bbox = ( 20.7, 41.4 ) - ( 27.6, 48.3) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0034_ net:_0088_ net:_0089_ net:_0141_ net:_0278_ net:_0364_ net:_0524_ net:_0526_ net:_0527_ net:_0538_ net:_0605_ net:_0607_ net:_0609_ net:_0620_ net:u_OTP_sync_db.disagree_counter\[1\] net:u_OTP_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[4\] net:u_pgood_gen.qualify_counter\[6\] net:clknet_4_5_0_clk net:clknet_5_9__leaf_clk net:clknet_5_10__leaf_clk 
+	congestion information: capacity:20 usage:21 overflow:1
+	bbox = ( 20.7, 55.2 ) - ( 27.6, 62.1) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0133_ net:_0134_ net:_0329_ net:_0345_ net:_0389_ net:_0392_ net:_0393_ net:_0400_ net:_0493_ net:_0497_ net:_0508_ net:_0514_ net:_0555_ net:_0560_ net:_0627_ net:_0633_ net:fault_count_run\[0\] net:fault_count_run\[4\] net:max_on_counts\[3\] net:u_en_from_switch_db.disagree_counter\[1\] net:u_fault_arbiter.fault_shifter_RUN\[4\] 
+	congestion information: capacity:20 usage:21 overflow:1
+	bbox = ( 131.1, 0 ) - ( 138, 6.9) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0386_ net:_0399_ net:_0498_ net:_0499_ net:_0539_ net:_0580_ net:_0634_ net:_0635_ net:_0636_ net:fault_count_ss\[0\] net:max_on_counts\[2\] net:u_fault_arbiter.cp_delay\[4\] net:u_fault_arbiter.fault_shifter_RUN\[5\] net:u_fault_arbiter.fault_shifter_RUN\[6\] net:u_fault_arbiter.fault_shifter_RUN\[7\] net:u_latch_stat_sync_db.disagree_counter\[10\] net:u_soft_start.cycle_counter\[6\] net:clknet_5_20__leaf_clk 
+	congestion information: capacity:17 usage:18 overflow:1
+	bbox = ( 131.1, 6.9 ) - ( 138, 13.8) on Layer -
+violation type: Horizontal congestion
+	srcs: net:UVLO_sync net:_0122_ net:_0123_ net:_0132_ net:_0214_ net:_0328_ net:_0387_ net:_0394_ net:_0481_ net:_0495_ net:_0500_ net:_0572_ net:_0626_ net:_0638_ net:_0639_ net:u_fault_arbiter.fault_shifter_RUN\[14\] net:u_fault_arbiter.fault_shifter_RUN\[15\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_latch_stat_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[7\] net:u_soft_start.cycle_counter\[4\] net:net4 net:clknet_4_10_0_clk 
+	congestion information: capacity:20 usage:23 overflow:3
+	bbox = ( 131.1, 13.8 ) - ( 138, 20.7) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0131_ net:_0329_ net:_0345_ net:_0392_ net:_0393_ net:_0400_ net:_0497_ net:_0512_ net:_0514_ net:_0517_ net:_0555_ net:_0560_ net:_0627_ net:_0633_ net:fault_count_run\[0\] net:fault_count_run\[3\] net:fault_count_run\[4\] net:max_on_counts\[3\] net:u_en_from_switch_db.disagree_counter\[1\] net:u_fault_arbiter.fault_shifter_RUN\[4\] 
+	congestion information: capacity:18 usage:20 overflow:2
+	bbox = ( 138, 0 ) - ( 144.9, 6.9) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0130_ net:_0389_ net:_0394_ net:_0399_ net:_0493_ net:_0498_ net:_0539_ net:_0580_ net:_0634_ net:_0635_ net:fault_count_run\[2\] net:fault_count_ss\[0\] net:max_on_counts\[2\] net:u_fault_arbiter.cp_delay\[4\] net:u_fault_arbiter.fault_shifter_RUN\[5\] net:u_fault_arbiter.fault_shifter_RUN\[6\] net:u_fault_arbiter.fault_shifter_RUN\[7\] net:u_latch_stat_sync_db.disagree_counter\[10\] net:u_soft_start.cycle_counter\[4\] net:u_soft_start.cycle_counter\[6\] net:clknet_4_10_0_clk 
+	congestion information: capacity:17 usage:21 overflow:4
+	bbox = ( 138, 6.9 ) - ( 144.9, 13.8) on Layer -
+violation type: Horizontal congestion
+	srcs: net:UVLO_sync net:_0122_ net:_0125_ net:_0328_ net:_0330_ net:_0481_ net:_0572_ net:_0575_ net:_0597_ net:_0601_ net:_0626_ net:u_en_from_switch_db.disagree_counter\[0\] net:u_fault_arbiter.fault_shifter_RUN\[13\] net:u_fault_arbiter.fault_shifter_RUN\[15\] net:u_latch_stat_sync_db.disagree_counter\[0\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_latch_stat_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[7\] net:clknet_5_21__leaf_clk 
+	congestion information: capacity:17 usage:19 overflow:2
+	bbox = ( 138, 13.8 ) - ( 144.9, 20.7) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0055_ net:_0056_ net:_0106_ net:_0107_ net:_0124_ net:_0126_ net:_0255_ net:_0343_ net:_0384_ net:_0388_ net:_0395_ net:_0402_ net:_0404_ net:_0509_ net:_0540_ net:_0567_ net:_0581_ net:_0582_ net:fault_count_run\[1\] net:max_on_counts\[0\] net:u_latch_stat_sync_db.disagree_counter\[12\] net:clknet_5_23__leaf_clk 
+	congestion information: capacity:17 usage:22 overflow:5
+	bbox = ( 138, 20.7 ) - ( 144.9, 27.6) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0131_ net:_0257_ net:_0329_ net:_0345_ net:_0392_ net:_0393_ net:_0400_ net:_0497_ net:_0509_ net:_0511_ net:_0512_ net:_0514_ net:_0517_ net:_0555_ net:_0560_ net:_0569_ net:_0623_ net:_0627_ net:_0633_ net:fault_count_run\[0\] net:fault_count_run\[3\] net:fault_count_run\[4\] net:max_on_counts\[3\] net:u_en_from_switch_db.disagree_counter\[1\] net:u_fault_arbiter.fault_shifter_RUN\[8\] net:clknet_5_21__leaf_clk 
+	congestion information: capacity:20 usage:26 overflow:6
+	bbox = ( 144.9, 0 ) - ( 151.8, 6.9) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0128_ net:_0129_ net:_0389_ net:_0394_ net:_0399_ net:_0493_ net:_0498_ net:_0508_ net:_0539_ net:_0567_ net:_0580_ net:_0622_ net:_0624_ net:_0634_ net:_0635_ net:fault_count_run\[2\] net:fault_count_ss\[0\] net:max_on_counts\[2\] net:u_fault_arbiter.cp_delay\[4\] net:u_fault_arbiter.fault_shifter_RUN\[10\] net:u_fault_arbiter.fault_shifter_RUN\[7\] net:u_latch_stat_sync_db.disagree_counter\[10\] net:u_soft_start.cycle_counter\[4\] net:u_soft_start.cycle_counter\[6\] 
+	congestion information: capacity:17 usage:24 overflow:7
+	bbox = ( 144.9, 6.9 ) - ( 151.8, 13.8) on Layer -
+violation type: Horizontal congestion
+	srcs: net:UVLO_sync net:_0055_ net:_0107_ net:_0125_ net:_0255_ net:_0328_ net:_0330_ net:_0481_ net:_0491_ net:_0556_ net:_0572_ net:_0575_ net:_0597_ net:_0599_ net:_0601_ net:_0626_ net:_0646_ net:_0660_ net:_0661_ net:u_en_from_switch_db.disagree_counter\[0\] net:u_en_from_switch_db.disagree_counter\[4\] net:u_fault_arbiter.fault_shifter_RUN\[11\] net:u_latch_stat_sync_db.disagree_counter\[0\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_latch_stat_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[7\] 
+	congestion information: capacity:18 usage:26 overflow:8
+	bbox = ( 144.9, 13.8 ) - ( 151.8, 20.7) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0056_ net:_0343_ net:_0384_ net:_0388_ net:_0395_ net:_0397_ net:_0477_ net:_0540_ net:_0564_ net:_0581_ net:_0582_ net:fault_count_run\[1\] net:max_on_counts\[0\] net:u_en_from_switch_db.disagree_counter\[5\] net:u_en_from_switch_db.disagree_counter\[7\] net:u_latch_stat_sync_db.disagree_counter\[12\] net:u_soft_start.cycle_counter\[2\] net:net4 net:clknet_5_23__leaf_clk 
+	congestion information: capacity:17 usage:19 overflow:2
+	bbox = ( 144.9, 20.7 ) - ( 151.8, 27.6) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0119_ net:_0184_ net:_0185_ net:_0385_ net:_0476_ net:_0483_ net:_0484_ net:_0486_ net:_0491_ net:_0508_ net:_0515_ net:_0516_ net:_0518_ net:_0519_ net:_0520_ net:_0521_ net:_0661_ net:u_en_from_switch_db.disagree_counter\[17\] net:u_en_from_switch_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[7\] net:net4 net:clknet_4_11_0_clk 
+	congestion information: capacity:20 usage:22 overflow:2
+	bbox = ( 144.9, 27.6 ) - ( 151.8, 34.5) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0183_ net:_0257_ net:_0329_ net:_0345_ net:_0400_ net:_0497_ net:_0509_ net:_0511_ net:_0512_ net:_0514_ net:_0517_ net:_0550_ net:_0555_ net:_0560_ net:_0569_ net:_0602_ net:_0623_ net:_0627_ net:_0633_ net:_0652_ net:_0656_ net:fault_count_run\[0\] net:fault_count_run\[3\] net:fault_count_run\[4\] net:max_on_counts\[3\] net:u_en_from_switch_db.disagree_counter\[1\] net:u_en_from_switch_db.disagree_counter\[6\] net:u_fault_arbiter.fault_shifter_RUN\[8\] 
+	congestion information: capacity:19 usage:28 overflow:9
+	bbox = ( 151.8, 0 ) - ( 158.7, 6.9) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0128_ net:_0389_ net:_0392_ net:_0399_ net:_0493_ net:_0498_ net:_0508_ net:_0515_ net:_0539_ net:_0567_ net:_0580_ net:_0622_ net:_0624_ net:_0634_ net:_0635_ net:fault_count_run\[2\] net:fault_count_ss\[0\] net:max_on_counts\[2\] net:u_fault_arbiter.cp_delay\[4\] net:u_fault_arbiter.fault_shifter_RUN\[10\] net:u_fault_arbiter.fault_shifter_RUN\[7\] net:u_latch_stat_sync_db.disagree_counter\[0\] net:u_latch_stat_sync_db.disagree_counter\[10\] net:u_soft_start.cycle_counter\[4\] net:u_soft_start.cycle_counter\[6\] net:net4 
+	congestion information: capacity:17 usage:26 overflow:9
+	bbox = ( 151.8, 6.9 ) - ( 158.7, 13.8) on Layer -
+violation type: Horizontal congestion
+	srcs: net:UVLO_sync net:_0055_ net:_0107_ net:_0254_ net:_0255_ net:_0328_ net:_0330_ net:_0481_ net:_0491_ net:_0554_ net:_0556_ net:_0564_ net:_0572_ net:_0575_ net:_0597_ net:_0599_ net:_0601_ net:_0646_ net:_0658_ net:_0661_ net:_0662_ net:u_en_from_switch_db.disagree_counter\[0\] net:u_en_from_switch_db.disagree_counter\[4\] net:u_en_from_switch_db.disagree_counter\[7\] net:u_en_from_switch_db.disagree_counter\[8\] net:u_fault_arbiter.fault_shifter_RUN\[9\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_latch_stat_sync_db.disagree_counter\[6\] net:u_latch_stat_sync_db.disagree_counter\[7\] 
+	congestion information: capacity:21 usage:29 overflow:8
+	bbox = ( 151.8, 13.8 ) - ( 158.7, 20.7) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0098_ net:_0104_ net:_0343_ net:_0388_ net:_0395_ net:_0477_ net:_0540_ net:_0581_ net:_0582_ net:_0647_ net:_0655_ net:fault_count_run\[1\] net:max_on_counts\[0\] net:u_UVLO_sync_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[5\] net:u_latch_stat_sync_db.disagree_counter\[12\] net:u_soft_start.cycle_counter\[2\] net:u_soft_start.cycle_counter\[3\] net:net4 net:clknet_5_23__leaf_clk 
+	congestion information: capacity:17 usage:20 overflow:3
+	bbox = ( 151.8, 20.7 ) - ( 158.7, 27.6) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0099_ net:_0183_ net:_0329_ net:_0345_ net:_0509_ net:_0511_ net:_0514_ net:_0550_ net:_0555_ net:_0560_ net:_0602_ net:_0623_ net:_0628_ net:_0652_ net:_0656_ net:_0657_ net:_0668_ net:fault_count_run\[0\] net:fault_count_run\[3\] net:fault_count_run\[4\] net:u_en_from_switch_db.disagree_counter\[1\] net:u_en_from_switch_db.disagree_counter\[6\] 
+	congestion information: capacity:20 usage:22 overflow:2
+	bbox = ( 158.7, 0 ) - ( 165.6, 6.9) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0055_ net:_0255_ net:_0392_ net:_0508_ net:_0515_ net:_0554_ net:_0564_ net:_0567_ net:_0580_ net:_0597_ net:_0622_ net:_0624_ net:_0632_ net:_0647_ net:_0648_ net:fault_count_run\[2\] net:u_fault_arbiter.cp_delay\[4\] net:u_latch_stat_sync_db.disagree_counter\[10\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_soft_start.cycle_counter\[4\] 
+	congestion information: capacity:19 usage:20 overflow:1
+	bbox = ( 158.7, 6.9 ) - ( 165.6, 13.8) on Layer -
+violation type: Horizontal congestion
+	srcs: net:UVLO_sync net:_0201_ net:_0254_ net:_0328_ net:_0330_ net:_0343_ net:_0481_ net:_0491_ net:_0545_ net:_0572_ net:_0574_ net:_0599_ net:_0601_ net:_0603_ net:_0646_ net:_0663_ net:u_UVLO_sync_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[0\] net:u_en_from_switch_db.disagree_counter\[10\] net:u_en_from_switch_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[9\] net:u_latch_stat_sync_db.disagree_counter\[6\] 
+	congestion information: capacity:20 usage:22 overflow:2
+	bbox = ( 158.7, 13.8 ) - ( 165.6, 20.7) on Layer -
+violation type: Horizontal congestion
+	srcs: net:_0098_ net:_0184_ net:_0256_ net:_0388_ net:_0395_ net:_0477_ net:_0478_ net:_0540_ net:_0581_ net:_0582_ net:fault_count_run\[1\] net:max_on_counts\[0\] net:max_on_counts\[1\] net:u_UVLO_sync_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[10\] net:u_en_from_switch_db.disagree_counter\[9\] net:u_latch_stat_sync_db.disagree_counter\[12\] net:u_soft_start.cycle_counter\[2\] net:net4 net:clknet_5_23__leaf_clk 
+	congestion information: capacity:18 usage:20 overflow:2
+	bbox = ( 158.7, 20.7 ) - ( 165.6, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0021_ net:_0060_ net:_0291_ net:_0292_ net:_0300_ net:_0304_ net:_0306_ net:_0307_ net:_0309_ net:_0323_ net:_0328_ net:_0350_ net:_0562_ net:_0573_ net:net2 net:u_fault_LED.blink_counter\[4\] net:u_fault_LED.blink_counter\[7\] 
+	congestion information: capacity:16 usage:17 overflow:1
+	bbox = ( 0, 13.8 ) - ( 6.9, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0034_ net:_0045_ net:_0202_ net:_0208_ net:_0228_ net:_0265_ net:_0266_ net:_0323_ net:_0341_ net:_0346_ net:_0383_ net:_0561_ net:_0562_ net:_0572_ net:_0573_ net:max_on_counts\[3\] net:u_latch_stat_sync_db.disagree_counter\[8\] 
+	congestion information: capacity:16 usage:17 overflow:1
+	bbox = ( 0, 55.2 ) - ( 6.9, 62.1) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0182_ net:_0202_ net:_0208_ net:_0221_ net:_0250_ net:_0266_ net:_0290_ net:_0294_ net:_0305_ net:_0324_ net:_0341_ net:_0355_ net:_0481_ net:_0540_ net:u_en_from_switch_db.disagree_counter\[17\] net:u_fault_LED.blink_counter\[0\] net:u_fault_LED.blink_counter\[8\] net:u_fault_LED.blink_counter\[9\] 
+	congestion information: capacity:16 usage:18 overflow:2
+	bbox = ( 6.9, 13.8 ) - ( 13.8, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0036_ net:_0208_ net:_0265_ net:_0280_ net:_0335_ net:_0339_ net:_0341_ net:_0346_ net:_0454_ net:_0468_ net:_0572_ net:_0684_ net:net2 net:hiccup_active net:u_hiccup_timer.cool_counter\[16\] net:net5 net:clknet_5_8__leaf_clk 
+	congestion information: capacity:16 usage:17 overflow:1
+	bbox = ( 6.9, 41.4 ) - ( 13.8, 48.3) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0008_ net:_0045_ net:_0063_ net:_0090_ net:_0228_ net:_0293_ net:_0298_ net:_0348_ net:_0349_ net:_0351_ net:u_fault_LED.blink_counter\[10\] net:u_fault_LED.blink_counter\[11\] net:u_fault_LED.blink_counter\[12\] net:u_fault_LED.blink_counter\[17\] net:u_fault_LED.blink_counter\[1\] net:clknet_5_2__leaf_clk 
+	congestion information: capacity:15 usage:16 overflow:1
+	bbox = ( 13.8, 13.8 ) - ( 20.7, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0088_ net:_0138_ net:_0469_ net:_0524_ net:_0527_ net:_0538_ net:_0555_ net:_0605_ net:_0687_ net:hiccup_active net:u_OTP_sync_db.disagree_counter\[0\] net:u_OTP_sync_db.disagree_counter\[8\] net:u_OTP_sync_db.disagree_counter\[9\] net:u_hiccup_timer.cool_counter\[12\] net:net5 net:clknet_5_10__leaf_clk 
+	congestion information: capacity:15 usage:16 overflow:1
+	bbox = ( 13.8, 55.2 ) - ( 20.7, 62.1) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0055_ net:_0105_ net:_0107_ net:_0126_ net:_0255_ net:_0257_ net:_0491_ net:_0508_ net:_0509_ net:_0511_ net:_0556_ net:_0567_ net:_0569_ net:_0599_ net:_0646_ net:_0661_ net:u_en_from_switch_db.disagree_counter\[4\] net:u_fault_arbiter.fault_shifter_RUN\[12\] net:net4 
+	congestion information: capacity:15 usage:19 overflow:4
+	bbox = ( 144.9, 13.8 ) - ( 151.8, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0257_ net:_0397_ net:_0403_ net:_0477_ net:_0491_ net:_0508_ net:_0511_ net:_0556_ net:_0564_ net:_0569_ net:_0599_ net:_0646_ net:_0661_ net:u_en_from_switch_db.disagree_counter\[4\] net:u_en_from_switch_db.disagree_counter\[5\] net:u_en_from_switch_db.disagree_counter\[7\] net:u_soft_start.cycle_counter\[2\] net:net4 
+	congestion information: capacity:15 usage:18 overflow:3
+	bbox = ( 144.9, 20.7 ) - ( 151.8, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0104_ net:_0183_ net:_0254_ net:_0385_ net:_0515_ net:_0516_ net:_0550_ net:_0554_ net:_0564_ net:_0602_ net:_0625_ net:_0652_ net:_0656_ net:_0658_ net:_0659_ net:u_en_from_switch_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[7\] net:u_en_from_switch_db.disagree_counter\[8\] net:net4 
+	congestion information: capacity:16 usage:19 overflow:3
+	bbox = ( 151.8, 13.8 ) - ( 158.7, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0098_ net:_0102_ net:_0183_ net:_0385_ net:_0515_ net:_0516_ net:_0550_ net:_0554_ net:_0602_ net:_0625_ net:_0647_ net:_0652_ net:_0655_ net:_0656_ net:_0658_ net:u_UVLO_sync_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[8\] net:u_soft_start.cycle_counter\[3\] 
+	congestion information: capacity:16 usage:19 overflow:3
+	bbox = ( 151.8, 20.7 ) - ( 158.7, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0098_ net:_0101_ net:_0183_ net:_0186_ net:_0523_ net:_0542_ net:_0550_ net:_0554_ net:_0602_ net:_0631_ net:_0647_ net:_0653_ net:_0655_ net:_0656_ net:max_on_counts\[1\] net:u_UVLO_sync_db.disagree_counter\[6\] net:u_en_from_switch_db.disagree_counter\[12\] net:u_soft_start.cycle_counter\[3\] 
+	congestion information: capacity:16 usage:18 overflow:2
+	bbox = ( 151.8, 27.6 ) - ( 158.7, 34.5) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0055_ net:_0099_ net:_0255_ net:_0554_ net:_0564_ net:_0565_ net:_0597_ net:_0628_ net:_0632_ net:_0647_ net:_0648_ net:_0657_ net:_0668_ net:u_fault_arbiter.fault_shifter_RUN\[9\] net:u_latch_stat_sync_db.disagree_counter\[11\] net:u_soft_start.cycle_counter\[3\] 
+	congestion information: capacity:15 usage:16 overflow:1
+	bbox = ( 158.7, 6.9 ) - ( 165.6, 13.8) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0099_ net:_0186_ net:_0201_ net:_0343_ net:_0478_ net:_0484_ net:_0486_ net:_0545_ net:_0565_ net:_0596_ net:_0603_ net:_0628_ net:_0632_ net:_0647_ net:_0648_ net:_0653_ net:_0655_ net:_0668_ net:u_UVLO_sync_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[10\] net:u_en_from_switch_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[5\] net:u_en_from_switch_db.disagree_counter\[9\] net:u_soft_start.cycle_counter\[3\] 
+	congestion information: capacity:15 usage:24 overflow:9
+	bbox = ( 158.7, 13.8 ) - ( 165.6, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0099_ net:_0184_ net:_0186_ net:_0201_ net:_0256_ net:_0484_ net:_0486_ net:_0545_ net:_0565_ net:_0596_ net:_0603_ net:_0628_ net:_0632_ net:_0648_ net:_0653_ net:_0668_ net:max_on_counts\[1\] net:u_UVLO_sync_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[10\] net:u_en_from_switch_db.disagree_counter\[11\] net:u_en_from_switch_db.disagree_counter\[9\] 
+	congestion information: capacity:15 usage:21 overflow:6
+	bbox = ( 158.7, 20.7 ) - ( 165.6, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0099_ net:_0201_ net:_0256_ net:_0485_ net:_0487_ net:_0510_ net:_0544_ net:_0545_ net:_0565_ net:_0592_ net:_0596_ net:_0603_ net:_0629_ net:_0648_ net:_0668_ net:_0669_ net:u_UVLO_sync_db.disagree_counter\[11\] net:clknet_5_23__leaf_clk 
+	congestion information: capacity:15 usage:18 overflow:3
+	bbox = ( 158.7, 27.6 ) - ( 165.6, 34.5) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0103_ net:_0184_ net:_0185_ net:_0256_ net:_0395_ net:_0510_ net:_0541_ net:_0542_ net:_0544_ net:_0546_ net:_0549_ net:_0553_ net:_0568_ net:_0581_ net:_0582_ net:_0630_ net:_0664_ net:_0667_ net:_0672_ net:fault_count_run\[1\] net:u_UVLO_sync_db.disagree_counter\[6\] net:u_UVLO_sync_db.disagree_counter\[9\] net:u_latch_stat_sync_db.disagree_counter\[12\] net:u_latch_stat_sync_db.disagree_counter\[2\] net:u_soft_start.cycle_counter\[2\] 
+	congestion information: capacity:16 usage:25 overflow:9
+	bbox = ( 165.6, 13.8 ) - ( 172.5, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0185_ net:_0187_ net:_0217_ net:_0479_ net:_0488_ net:_0489_ net:_0490_ net:_0510_ net:_0541_ net:_0542_ net:_0544_ net:_0546_ net:_0549_ net:_0553_ net:_0568_ net:_0590_ net:_0592_ net:_0630_ net:_0664_ net:_0672_ net:_0673_ net:u_UVLO_sync_db.disagree_counter\[9\] net:u_en_from_switch_db.disagree_counter\[14\] net:u_latch_stat_sync_db.disagree_counter\[2\] 
+	congestion information: capacity:16 usage:24 overflow:8
+	bbox = ( 165.6, 20.7 ) - ( 172.5, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0187_ net:_0338_ net:_0480_ net:_0482_ net:_0488_ net:_0490_ net:_0541_ net:_0546_ net:_0549_ net:_0553_ net:_0568_ net:_0590_ net:_0666_ net:_0672_ net:u_UVLO_sync_db.disagree_counter\[4\] net:u_UVLO_sync_db.disagree_counter\[9\] net:u_en_from_switch_db.disagree_counter\[14\] net:u_en_from_switch_db.disagree_counter\[16\] net:u_latch_stat_sync_db.disagree_counter\[2\] 
+	congestion information: capacity:16 usage:19 overflow:3
+	bbox = ( 165.6, 27.6 ) - ( 172.5, 34.5) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0098_ net:_0210_ net:_0338_ net:_0540_ net:_0543_ net:_0585_ net:_0586_ net:_0587_ net:_0588_ net:_0592_ net:_0593_ net:_0600_ net:_0671_ net:u_UVLO_sync_db.disagree_counter\[10\] net:u_UVLO_sync_db.disagree_counter\[2\] net:u_UVLO_sync_db.disagree_counter\[3\] net:u_UVLO_sync_db.disagree_counter\[6\] net:u_UVLO_sync_db.disagree_counter\[9\] net:u_en_from_switch_db.disagree_counter\[13\] 
+	congestion information: capacity:18 usage:19 overflow:1
+	bbox = ( 172.5, 6.9 ) - ( 180, 13.8) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0097_ net:_0098_ net:_0189_ net:_0210_ net:_0217_ net:_0338_ net:_0483_ net:_0490_ net:_0540_ net:_0543_ net:_0585_ net:_0586_ net:_0587_ net:_0588_ net:_0589_ net:_0592_ net:_0593_ net:_0671_ net:_0673_ net:u_UVLO_sync_db.disagree_counter\[10\] net:u_UVLO_sync_db.disagree_counter\[2\] net:u_UVLO_sync_db.disagree_counter\[3\] net:u_UVLO_sync_db.disagree_counter\[4\] net:u_UVLO_sync_db.disagree_counter\[5\] net:u_UVLO_sync_db.disagree_counter\[7\] net:u_UVLO_sync_db.disagree_counter\[8\] net:u_en_from_switch_db.disagree_counter\[13\] 
+	congestion information: capacity:18 usage:27 overflow:9
+	bbox = ( 172.5, 13.8 ) - ( 180, 20.7) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0097_ net:_0189_ net:_0210_ net:_0338_ net:_0483_ net:_0543_ net:_0585_ net:_0586_ net:_0587_ net:_0588_ net:_0589_ net:_0593_ net:_0594_ net:_0595_ net:_0667_ net:_0670_ net:_0671_ net:u_UVLO_sync_db.disagree_counter\[10\] net:u_UVLO_sync_db.disagree_counter\[2\] net:u_UVLO_sync_db.disagree_counter\[3\] net:u_UVLO_sync_db.disagree_counter\[4\] net:u_UVLO_sync_db.disagree_counter\[5\] net:u_UVLO_sync_db.disagree_counter\[7\] net:u_UVLO_sync_db.disagree_counter\[8\] net:u_en_from_switch_db.disagree_counter\[13\] net:u_en_from_switch_db.disagree_counter\[15\] 
+	congestion information: capacity:18 usage:26 overflow:8
+	bbox = ( 172.5, 20.7 ) - ( 180, 27.6) on Layer -
+violation type: Vertical congestion
+	srcs: net:_0189_ net:_0210_ net:_0543_ net:_0585_ net:_0586_ net:_0587_ net:_0588_ net:_0589_ net:_0593_ net:_0594_ net:_0595_ net:_0670_ net:_0671_ net:u_UVLO_sync_db.disagree_counter\[10\] net:u_UVLO_sync_db.disagree_counter\[2\] net:u_UVLO_sync_db.disagree_counter\[3\] net:u_UVLO_sync_db.disagree_counter\[5\] net:u_UVLO_sync_db.disagree_counter\[7\] net:u_UVLO_sync_db.disagree_counter\[8\] net:u_en_from_switch_db.disagree_counter\[13\] net:u_en_from_switch_db.disagree_counter\[15\] 
+	congestion information: capacity:18 usage:21 overflow:3
+	bbox = ( 172.5, 27.6 ) - ( 180, 34.5) on Layer -
