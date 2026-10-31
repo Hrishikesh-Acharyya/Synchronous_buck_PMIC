@@ -115,7 +115,7 @@ module strike_counter (
 	clock; the rising edge gives exactly one strike per hiccup. pwm_fall
 	marks the switching-cycle boundary for the clean-run counter.
 
-	Both are used as enables on the 50 MHz domain, never as clocks.
+	Both are used as enables on the clk domain, never as clocks.
 	*/
 	always @(*) begin
 		if (_sv2v_0)

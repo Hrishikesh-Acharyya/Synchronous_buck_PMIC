@@ -90,11 +90,11 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
 PKG := $(firstword $(RTL))
 
 # SPLIT=1: run the equiv flows against the hand-annotated split tree in
-#          ../submission/rtl - the files that go into the Silicluster zip -
+#          ../submissions_full/rtl - the files that go into the Silicluster zip -
 #          instead of the single-file conversion in ../Build. Results are
 #          listed under the flow name "split".
 SPLIT      ?= 0
-SUBDIR     := ../submission
+SUBDIR     := ../submissions_full
 SPLIT_SRCS := $(patsubst ../rtl/%.sv,$(SUBDIR)/rtl/%.v,$(filter-out $(PKG),$(RTL)))
 EQUIV_SRCS := $(if $(filter 1,$(SPLIT)),$(SPLIT_SRCS),$(CONVERTED))
 EQUIV_FLOW := $(if $(filter 1,$(SPLIT)),split,equiv)
@@ -230,7 +230,8 @@ $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 # ============================================================
 # Integration testbench - the Silicluster deliverable
 # ============================================================
-# tb/pmic_top_tb.v exercises pmic_top as a whole: plain Verilog-2005, no SVA,
+# pmic_top_tb.v (in the package folder, tb/) exercises pmic_top as a whole:
+# plain Verilog-2005, no SVA,
 # self-checking, with its own coverage bins and two scoreboards. It runs in
 # both flows like the module testbenches, and also under Icarus Verilog, the
 # open-source simulator a reviewer is most likely to have:
@@ -241,7 +242,7 @@ $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 # bins in the covers column. scripts/run_top_tb.sh takes the verdict from the
 # testbench's last line, which is also what gives Icarus a non-zero exit on
 # FAIL - vvp exits 0 from $stop.
-TOP_TB      := ../tb/pmic_top_tb.v
+TOP_TB      := $(SUBDIR)/tb/pmic_top_tb.v
 IVERILOG    ?= iverilog
 VVP         ?= vvp
 
@@ -476,7 +477,7 @@ syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
 # ============================================================
 # The call accepts Verilog only, in one .zip. The deliverable is a split tree,
 # one .v per .sv mirroring rtl/, with the comments sv2v discards restored by
-# hand. The annotated tree is committed in ../submission/rtl; this flow never
+# hand. The annotated tree is committed in ../submissions_full/rtl; this flow never
 # overwrites it.
 #   package        sv2v -w adjacent into a clean staging tree, $(PKGRAW). The
 #                  package converts to two pragmas and nothing else - its

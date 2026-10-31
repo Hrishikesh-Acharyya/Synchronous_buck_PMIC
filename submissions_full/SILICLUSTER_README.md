@@ -157,14 +157,14 @@ With `TELEMETRY_EN = 1`:
 
 ## Running the testbench
 
-Icarus Verilog, `TELEMETRY_EN = 1` (about two minutes):
+Icarus Verilog (about four minutes):
 
 ```
 iverilog -g2005 -o pmic_top_tb.vvp rtl/*.v rtl/*/*.v tb/pmic_top_tb.v
 vvp -n pmic_top_tb.vvp
 ```
 
-Verilator 5, `TELEMETRY_EN = 1` (about 45 seconds):
+Verilator 5 (about a minute, build included):
 
 ```
 verilator --binary --timing -Wno-fatal -Wno-lint -Wno-style -Wno-ZERODLY \
@@ -172,11 +172,11 @@ verilator --binary --timing -Wno-fatal -Wno-lint -Wno-style -Wno-ZERODLY \
 ./obj_dir/Vpmic_top_tb
 ```
 
-For the reduced build, `TELEMETRY_EN = 0`, add the parameter at compile time:
-`iverilog -g2005 -P pmic_top_tb.TELEMETRY_EN=0 ...` (about four minutes), or
-`verilator ... -GTELEMETRY_EN=0 ...` (about 35 seconds). The testbench
-passes it to `pmic_top`, so the one setting selects both the design and the
-test sequence that fits it.
+For the reduced build add the parameter at compile time:
+`iverilog -g2005 -P pmic_top_tb.TELEMETRY_EN=0 ...` (about five minutes), or
+`verilator ... -GTELEMETRY_EN=0 ...` (about a minute). The testbench passes it
+to `pmic_top`, so the one setting selects both the design and the test
+sequence that fits it.
 
 The `-Wno-*` flags silence width warnings that come from the conversion's
 width-cast helper functions, and the testbench's run-time delays; with them the
@@ -196,34 +196,47 @@ behavioural models around it: an asynchronous 450 kHz modulator, the SCR latch,
 comparator levels, the enable switch, and an SPI master with CRC-8. With
 `TELEMETRY_EN = 1` every configuration is written over SPI into the register
 map, as a host would; no timer in the design was shortened for simulation. The
-run covers about 360 ms of simulated time in 13 phases: reset and defaults; the
+run covers about 790 ms of simulated time in 20 phases: reset and defaults; the
 SPI protocol and register map (single and burst reads and writes, CRC, length
 and alignment aborts, the locked bank, clamping, CS dropped mid-read, the SCK
 timeout); start-up through the 20 ms switch debounce and the soft-start ramp;
 the duty backstop; PGOOD; overcurrent, hiccup and retry; the 100 ms clean-run
 window; OTP, UVLO and SCR-latch shutdown and recovery; host disable and enable;
 the timestamp snapshot across a carry; strike accumulation to the latch; the
-enable switch; a stuck-high modulator.
+enable switch; a stuck-high modulator; reset while running and in the middle
+of an SPI transaction; every fault from every state it can arrive in; the
+overcurrent window's exact threshold (11 faulted cycles in every 16 hold, the
+12th consecutive one trips); a second strike inside the clean-run window (the
+cool-down doubles, the window restarts); UVLO and latch-readback glitches,
+enable-switch chatter and overlapping faults; programmed thresholds reaching
+the protection (TRIP_SS, TRIP_RUN, MAX_ON, CYCLES_PER_STEP, MAX_STRIKES); and
+SPI corners (read-only and unmapped addresses, the address wrap, glitches under
+the input filter).
 
 It checks in four layers:
 
-- **directed checks** - 198, each printing PASS or FAIL;
+- **directed checks** - 254, each printing PASS or FAIL;
 - **monitors** sampled every clock - `MISO` carrying read data exactly while
   the SPI slave is in its read state and low at every other time, the first read
   bit valid on `MISO` at the start of read data, `switch_supply` equal to
   `PGOOD`, no
-  `PGOOD` without `En`, no `PWM_out` pulse above the 75% ceiling, `latch_out`
-  never falling without a reset;
+  `PGOOD` without `En` and never outside run, no `PWM_out` pulse longer than the
+  ceiling in force (the soft-start level, the programmed limit, or the minimum
+  while off), the LEDs matching the state and the debounced faults, `latch_out`
+  set only on the strike that reaches the limit and never falling without a
+  reset;
 - **two scoreboards** compared with the design every clock - a reference model
   of the supervisor FSM (state and `En`), and a shadow of the register map
   built from the bytes sent and the documented rules (keys, deferred enable,
   off-only registers, multi-byte rule, clamps), also checked against every byte
   read back;
-- **a coverage table** of 51 bins: every supervisor transition, every fault
-  entry and exit path, hiccup retry, strike levels and latch, the strike clear,
-  soft-start completion, PGOOD qualification and both ways it drops, and every
-  SPI read, write, abort and rejection path. A bin is set only when a monitor
-  sees the design reach the condition; any bin left unhit fails the run.
+- **a coverage table** of 86 bins: every supervisor transition, every fault
+  entry and exit path, every fault cause crossed with the state it arrives in,
+  hiccup retry and escalation, strike levels and latch, the strike clear and
+  its restart, soft-start completion, PGOOD qualification and both ways it
+  drops, every SPI read, write, abort and rejection path, and each programmed
+  threshold taking effect. A bin is set only when a monitor sees the design
+  reach the condition; any bin left unhit fails the run.
 
 The unavoidable 100 ms clean-run window runs concurrently with 32 seeded
 directed-random register transactions, 16 random duty settings and 6 random
@@ -238,36 +251,40 @@ what they compare. The source repository also has module-level SystemVerilog
 testbenches with bound SVA assertions, which pass against these same Verilog
 files; they are SystemVerilog, so they are not part of this submission.
 
-Results: PASS, 216 checks with 0 failures (the 198 directed checks and 18
-end-of-run monitor and scoreboard verdicts) and all 51 bins, on Icarus Verilog
+Results: PASS, 277 checks with 0 failures (the 254 directed checks and 23
+end-of-run monitor and scoreboard verdicts) and all 86 bins, on Icarus Verilog
 12 and on Verilator 5.052, against these files and against the SystemVerilog
-source, with identical check lines between them.
+source, with identical check lines between them; also at 50 MHz (Verilator,
+package clock rebuilt).
 
 ### With `TELEMETRY_EN = 0`
 
 The reduced build has no register map, so the testbench runs a separate
 pins-only sequence on the design's default timers, with nothing configured -
-about 1.2 s of simulated time, most of it the default 1 s clean-run window.
+about 1.4 s of simulated time, most of it the default 1 s clean-run window.
 The phases keep the numbers of the full sequence: reset and fail-safe
 outputs; SPI frames with no effect; start-up and the soft-start ramp (64
 cycles a step); the duty backstop; PGOOD; overcurrent, a 10 ms first hiccup
-(the 5 ms base doubled) and retry; the 1 s clean-run window, concurrent with
-the same duty and glitch corners and 48 random SPI frames; OTP, UVLO and
-SCR-latch shutdown and recovery; a keyed SPI disable that must change nothing;
-OTP during a hiccup; strikes to the latch on the default 10 and 20 ms hiccups;
-restart, the enable switch and a stuck-high modulator.
+(the 5 ms base doubled) and retry; a second strike inside the 1 s clean-run
+window (a 20 ms cool-down, and the window restarts), then the window itself,
+concurrent with the same duty and glitch corners and 48 random SPI frames; OTP,
+UVLO and SCR-latch shutdown and recovery; a keyed SPI disable that must change
+nothing; OTP during a hiccup; strikes to the latch on the default 10 and 20 ms
+hiccups; restart, the enable switch and a stuck-high modulator; and the same
+phases 14-18 as the full sequence: reset while running, every fault from every
+state, the window threshold, glitches, chatter and overlapping faults.
 
 It proves the host interface is truly absent, not just idle: the configuration
 the full sequence writes (a 1 ms hiccup base, a 100 ms clean-run window) is
 sent as a valid keyed SPI frame, and the hiccup and the window are then timed
 at their defaults; keyed disables are sent while running and `En` must never
 fall; every bit read back on `MISO` must be 0. The FSM scoreboard and the
-monitors run underneath as before. Of the 51 coverage bins, 20 name hardware
-this build does not have (host disable, SPI protocol, timestamp, fault log,
-bus-error counter, watchdog, PWM statistics) and are reported "n/a"; the other
-31 must all be hit.
+monitors run underneath as before. Of the 86 coverage bins, 32 name hardware
+this build does not have (host disable, SPI protocol, register map, timestamp,
+fault log, bus-error counter, watchdog, PWM statistics) and are reported "n/a";
+the other 54 must all be hit.
 
-Results: PASS, 134 checks with 0 failures and all 31 applicable bins, on
+Results: PASS, 173 checks with 0 failures and all 54 applicable bins, on
 Icarus Verilog 12 and on Verilator 5.052, against these files and against the
 SystemVerilog source, with identical check lines between them; also at 50 MHz
 (Verilator, package clock rebuilt).
