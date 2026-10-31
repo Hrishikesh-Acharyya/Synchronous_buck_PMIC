@@ -642,6 +642,11 @@ cannot contain its own hash, so the table is filled in by a later commit.
   checks, 51/51 bins, zero build warnings, identical check lines.
 - Undo: `git revert <hash>` (restores the stale zip - do not).
 
+## 20. 2026-10-31 20:11 UTC - docs: commit table updated for entries 17-19
+
+- Files: `docs/CHANGELOG_silicluster_v3.md` (the table below).
+- Undo: `git revert <hash>` (documentation only).
+
 ---
 
 ## Commit table
@@ -669,6 +674,10 @@ Commit times are UTC and are the times each entry records.
 | 13 | `3a586ff` | 2026-10-31 19:14 | tb: add the Silicluster integration testbench pmic_top_tb.v |
 | 14 | `29684c7` | 2026-10-31 19:14 | sim: run the integration testbench from make, in all three flows |
 | 15 | `7a58492` | 2026-10-31 19:39 | package: Silicluster submission tree, README and zip |
+| 16 | `a9fa9c8` | 2026-10-31 19:39 | docs: record the commit hash of every changelog entry |
+| 17 | `478fd75` | 2026-10-31 20:01 | top: split the bidirectional SDIO pin into MOSI and MISO |
+| 18 | `bc7fba0` | 2026-10-31 20:07 | package: regenerate the submission for MOSI/MISO |
+| 19 | `c767707` | 2026-10-31 20:10 | package: rebuild the zip, which the previous commit left stale |
 
-Entry 16 is the commit that adds this table, so its own hash is the branch head
-at that point: `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
+Entry 20 is the commit that updates this table, so its own hash is the
+newest commit touching this file: `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
