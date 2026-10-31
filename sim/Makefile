@@ -280,15 +280,16 @@ $(CONVERTED): $(RTL)
 
 # -flatten: area is a whole-design number; a module instantiated three times
 #           counts once in the hierarchical stat.
-# tee -o:   the statistics table is written to its own file by yosys itself
-#           rather than scraped from the redirected log. The YoWASP (WebAssembly)
-#           build of yosys truncates a redirected stdout, so scraping the log
-#           silently printed nothing there; tee -o is exact with every build.
+# -l, tee -o: yosys writes the full log (-l) and the statistics table (tee -o)
+#           to files itself rather than through a redirected stdout. The YoWASP
+#           (WebAssembly) build of yosys truncates a redirected stdout, which
+#           left a partial log and an empty table; files written by yosys are
+#           exact with every build. -q keeps the terminal quiet.
 syn: $(CONVERTED)  ## yosys synthesis, generic cell and flop counts
-	$(YOSYS) -p "read_verilog $(CONVERTED); \
+	$(YOSYS) -q -l $(SYNDIR)/stat.txt -p "read_verilog $(CONVERTED); \
 	             hierarchy -top pmic_top; \
 	             synth -top pmic_top -flatten; \
-	             tee -o $(SYNDIR)/stat_summary.txt stat" > $(SYNDIR)/stat.txt 2>&1
+	             tee -o $(SYNDIR)/stat_summary.txt stat" > /dev/null 2>&1
 	@cat $(SYNDIR)/stat_summary.txt
 	@echo "--- full log: $(SYNDIR)/stat.txt ---"
 
@@ -299,13 +300,13 @@ syn_area: $(CONVERTED)  ## sky130-mapped area (needs LIBERTY)
 	    echo "no liberty file at $(LIBERTY)"; \
 	    echo "set LIBERTY=<path>, or run: volare enable --pdk sky130 <version>"; \
 	    exit 1; }
-	$(YOSYS) -p "read_verilog $(CONVERTED); \
+	$(YOSYS) -q -l $(SYNDIR)/area.txt -p "read_verilog $(CONVERTED); \
 	             hierarchy -top pmic_top; \
 	             synth -top pmic_top -flatten; \
 	             dfflibmap -liberty $(LIBERTY); \
 	             abc -liberty $(LIBERTY); \
 	             opt_clean; \
-	             tee -o $(SYNDIR)/area_summary.txt stat -liberty $(LIBERTY)" > $(SYNDIR)/area.txt 2>&1
+	             tee -o $(SYNDIR)/area_summary.txt stat -liberty $(LIBERTY)" > /dev/null 2>&1
 	@grep -E "Chip area|Number of cells|cells$$" $(SYNDIR)/area_summary.txt || \
 	    { tail -40 $(SYNDIR)/area.txt; exit 1; }
 	@python3 $(SCRIPTS)/area_counts.py $(SYNDIR)/area_summary.txt syn_area
