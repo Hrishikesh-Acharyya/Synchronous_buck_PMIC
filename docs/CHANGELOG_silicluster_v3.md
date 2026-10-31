@@ -310,3 +310,23 @@ cannot contain its own hash, so the table is filled in by a later commit.
   flops 700 -> 700, comb cells 2,116 -> 2,130, cell area 30,837 -> 30,827 um^2.
 - Undo: `git revert <hash>` (writes land one address high again, and the 0x20
   check passes again for the wrong reason).
+
+## 10. 2026-10-31 18:35 UTC - tb: pgood_gen and pwm_stats watchdogs scale with the clock
+
+- Files and lines: `tb/status/pgood_gen_tb.sv` line 66,
+  `tb/telemetry/pwm_stats_tb.sv` line 50. Those two lines only, approved by the
+  reviewer; nothing else in `tb/` changed.
+- Classification: a TESTBENCH bug exposed by the clock change (entry 3), not an
+  RTL issue. Both watchdogs were an absolute `10_000.0` ns, which was 500 clocks
+  at 20 ns. At 100 ns the same stimulus needs 5x the time, so both testbenches
+  hit the watchdog with zero assertion failures.
+- Fix: `WATCHDOG_NS = 500.0 * CLK_PERIOD_NS`, from the testbench's own
+  `CLK_PERIOD_NS` rather than a hardcoded multiplier - 10 us at 50 MHz
+  (unchanged) and 50 us at 10 MHz.
+- Evidence: `make equiv_all` 6/8 -> 8/8 in both tables (SV source and sv2v
+  output), every cover hit, 0 assertion failures. Against a scratch copy of the
+  RTL with the package at 50 MHz, both testbenches also PASS (5/5, 7/7 covers).
+  This closes the "awaiting approval" item recorded in entries 3, 5, 6, 7, 8
+  and 9.
+- No RTL change, no area change.
+- Undo: `git revert <hash>` (equiv_all returns to 6/8 at 10 MHz).
