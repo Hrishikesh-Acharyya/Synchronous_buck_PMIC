@@ -557,3 +557,39 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - No RTL or area change: the netlist is that of entry 12 (693 flops, 30,644
   um^2 cell area, 2.60x the standard slot; 0.89x with TELEMETRY_EN=0).
 - Undo: `git revert <hash>`.
+
+## 16. 2026-10-31 19:39 UTC - docs: commit hash of every changelog entry
+
+- Files: `docs/CHANGELOG_silicluster_v3.md` (this table).
+- Undo: `git revert <hash>` (documentation only).
+
+---
+
+## Commit table
+
+Every entry above is exactly one commit on this branch. To undo one, revert its
+commit (`git revert <commit>`), newest first where entries depend on each
+other, then rerun the gate: `cd sim && make lint && make -B convert && make -j4
+equiv_all`, and for the submission `make package_check && make equiv SPLIT=1`.
+Commit times are UTC and are the times each entry records.
+
+| Entry | Commit | Time (UTC) | Subject |
+|------:|--------|------------|---------|
+|  1 | `d4ab8f4` | 2026-10-31 17:13 | docs: start the Silicluster v3 changelog and area log |
+|  2 | `77c3e12` | 2026-10-31 17:14 | sim: write synthesis statistics with tee -o, add area summary script |
+|  3 | `f76243b` | 2026-10-31 17:17 | pkg: CLK_HZ 50 MHz -> 10 MHz for the Silicluster v3 clock limit |
+|  4 | `a9435bd` | 2026-10-31 17:17 | sim: have yosys write its full log with -l instead of a stdout redirect |
+|  5 | `38714cc` | 2026-10-31 17:19 | pkg: round minimum-time conversion up so MIN_ON_COUNTS holds at 10 MHz |
+|  6 | `3f38794` | 2026-10-31 17:20 | pkg: default soft-start step 16 -> 64 cycles to restore the ramp length |
+|  7 | `456761f` | 2026-10-31 17:23 | top: add TELEMETRY_EN to select the host interface in or out |
+|  8 | `371f431` | 2026-10-31 18:17 | fix(spi_slave): drive SDIO for the whole read data phase |
+|  9 | `0fa1398` | 2026-10-31 18:19 | fix(spi_slave): increment the write address after the strobe, not with it |
+| 10 | `ea2b915` | 2026-10-31 18:35 | tb: scale the pgood_gen and pwm_stats watchdogs with the clock period |
+| 11 | `2207257` | 2026-10-31 18:38 | fix(reg_file): clear the fault log only on a completed read of 0x20 |
+| 12 | `e9bfcdc` | 2026-10-31 18:42 | fix(spi_slave): register sdio_oe from the next state so it tracks S_READ exactly |
+| 13 | `3a586ff` | 2026-10-31 19:14 | tb: add the Silicluster integration testbench pmic_top_tb.v |
+| 14 | `29684c7` | 2026-10-31 19:14 | sim: run the integration testbench from make, in all three flows |
+| 15 | `7a58492` | 2026-10-31 19:39 | package: Silicluster submission tree, README and zip |
+
+Entry 16 is the commit that adds this table, so its own hash is the branch head
+at that point: `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
