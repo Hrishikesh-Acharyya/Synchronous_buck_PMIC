@@ -2211,22 +2211,22 @@ Finding unused cells or wires in module \pmic_top..
 
 3.19.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~132 debug messages>
+<suppressed ~131 debug messages>
 
 3.19.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 775 cells of `\pmic_top'.
+Computing hashes of 774 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Computing hashes of 754 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-<suppressed ~63 debug messages>
-Removed a total of 21 cells.
+<suppressed ~60 debug messages>
+Removed a total of 20 cells.
 
 3.19.3. Executing OPT_DFF pass (perform DFF optimizations).
 
 3.19.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 9 unused cells and 148 unused wires.
+Removed 9 unused cells and 147 unused wires.
 <suppressed ~12 debug messages>
 
 3.19.5. Finished fast OPT passes.
@@ -2258,7 +2258,7 @@ Removed 0 multiplexer ports.
 
 3.21.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
-    New ctrl vector for $pmux cell $flatten\u_spi_slave.$procmux$1075: { $auto$opt_reduce.cc:137:opt_pmux$4677 $flatten\u_spi_slave.$eq$../Build/pmic_full.v:1497$572_Y $flatten\u_spi_slave.$eq$../Build/pmic_full.v:1493$571_Y $flatten\u_spi_slave.$procmux$1080_CMP }
+    New ctrl vector for $pmux cell $flatten\u_spi_slave.$procmux$1075: { $auto$opt_reduce.cc:137:opt_pmux$4675 $flatten\u_spi_slave.$eq$../Build/pmic_full.v:1497$572_Y $flatten\u_spi_slave.$eq$../Build/pmic_full.v:1493$571_Y $flatten\u_spi_slave.$procmux$1080_CMP }
     Consolidated identical input bits for $mux cell $flatten\u_supervisor.$procmux$776:
       Old ports: A=2'11, B=2'01, Y=$flatten\u_supervisor.$9\next_state[1:0]
       New ports: A=1'1, B=1'0, Y=$flatten\u_supervisor.$9\next_state[1:0] [1]
@@ -2426,8 +2426,8 @@ Using template $paramod$5ccf584370207a3ccc3032757a8e590623d4de56\_90_alu for cel
 Using template $paramod$d3f1d4d2f001c39138e51884b0adbec3debd86a5\_90_alu for cells of type $alu.
 Using template $paramod$77511fd6a548f8ed566017c02ef4db095ab5a577\_90_alu for cells of type $alu.
 Using template $paramod$403a3c2fa431a154c52a6a5429d7a6260b5d144f\_90_alu for cells of type $alu.
-Using template $paramod$8742280fdebca84e1c87f2a86ed84f62d558f4cc\_90_alu for cells of type $alu.
 Using template $paramod$65af072f6065f0ed27ad80c8089003dcba6e1c40\_90_alu for cells of type $alu.
+Using template $paramod$8742280fdebca84e1c87f2a86ed84f62d558f4cc\_90_alu for cells of type $alu.
 Using template $paramod$b8c0a997bce700f23568a5ada79cc6781d1f5ca0\_90_alu for cells of type $alu.
 Using template $paramod$b18e16801adf491a64caa0542270798e5d4ac6b6\_90_alu for cells of type $alu.
 Using template $paramod$c2dbecda89be762ad1a456672395b5e77c030907\_90_alu for cells of type $alu.
@@ -2494,37 +2494,37 @@ Using template $paramod\_90_lcu_brent_kung\WIDTH=32'0000000000000000000000000001
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000011000 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000011000 for cells of type $lcu.
 No more expansions possible.
-<suppressed ~6142 debug messages>
+<suppressed ~6150 debug messages>
 
 3.23. Executing OPT pass (performing simple optimizations).
 
 3.23.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~5365 debug messages>
+<suppressed ~5373 debug messages>
 
 3.23.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 5492 cells of `\pmic_top'.
+Computing hashes of 5500 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 5043 cells of `\pmic_top'.
+Computing hashes of 5051 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4891 cells of `\pmic_top'.
+Computing hashes of 4895 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4819 cells of `\pmic_top'.
+Computing hashes of 4821 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4813 cells of `\pmic_top'.
+Computing hashes of 4814 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Computing hashes of 4810 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-<suppressed ~2046 debug messages>
-Removed a total of 682 cells.
+<suppressed ~2070 debug messages>
+Removed a total of 690 cells.
 
 3.23.3. Executing OPT_DFF pass (perform DFF optimizations).
 
 3.23.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 677 unused cells and 4185 unused wires.
-<suppressed ~678 debug messages>
+Removed 682 unused cells and 4196 unused wires.
+<suppressed ~683 debug messages>
 
 3.23.5. Finished fast OPT passes.
 
@@ -2569,8 +2569,8 @@ Removed 677 unused cells and 4185 unused wires.
   44 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4195, arst=!\rst_sync.rst_n_exit, srst={ }
   35 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4181, arst=!\rst_sync.rst_n_exit, srst={ }
   57 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4087, arst=!\rst_sync.rst_n_exit, srst={ }
-  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4084, arst=!\rst_sync.rst_n_exit, srst={ }
-  37 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4079, arst=!\rst_sync.rst_n_exit, srst={ }
+  38 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4084, arst=!\rst_sync.rst_n_exit, srst={ }
+  34 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4079, arst=!\rst_sync.rst_n_exit, srst={ }
   36 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4076, arst=!\rst_sync.rst_n_exit, srst={ }
   36 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4073, arst=!\rst_sync.rst_n_exit, srst={ }
   29 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4070, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -3228,39 +3228,38 @@ Removing temp directory.
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4084, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.40.1. Executed ABC.
-Extracted 32 gates and 44 wires to a netlist network with 10 inputs and 15 outputs.
+Extracted 30 gates and 43 wires to a netlist network with 11 inputs and 13 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.40.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:            ANDNOT cells:        2
+ABC RESULTS:               AND cells:        1
+ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               BUF cells:        3
-ABC RESULTS:              NAND cells:        2
+ABC RESULTS:              NAND cells:        3
 ABC RESULTS:               NOR cells:        2
-ABC RESULTS:               NOT cells:        6
-ABC RESULTS:                OR cells:        3
+ABC RESULTS:               NOT cells:        4
+ABC RESULTS:                OR cells:        2
 ABC RESULTS:        internal signals:       19
-ABC RESULTS:           input signals:       10
-ABC RESULTS:          output signals:       15
+ABC RESULTS:           input signals:       11
+ABC RESULTS:          output signals:       13
 Removing temp directory.
 
 3.24.41. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4079, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.41.1. Executed ABC.
-Extracted 32 gates and 66 wires to a netlist network with 32 inputs and 21 outputs.
+Extracted 29 gates and 61 wires to a netlist network with 30 inputs and 22 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.41.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:       16
+ABC RESULTS:               AND cells:       14
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOR cells:        1
-ABC RESULTS:                OR cells:        1
 ABC RESULTS:             ORNOT cells:        1
 ABC RESULTS:               XOR cells:        9
-ABC RESULTS:        internal signals:       13
-ABC RESULTS:           input signals:       32
-ABC RESULTS:          output signals:       21
+ABC RESULTS:        internal signals:        9
+ABC RESULTS:           input signals:       30
+ABC RESULTS:          output signals:       22
 Removing temp directory.
 
 3.24.42. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -3738,9 +3737,10 @@ Running ABC script: <abc-temp-dir>/abc.script
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        3
 ABC RESULTS:              NAND cells:        1
-ABC RESULTS:               NOR cells:        3
+ABC RESULTS:               NOR cells:        2
 ABC RESULTS:               NOT cells:        5
 ABC RESULTS:                OR cells:        2
+ABC RESULTS:             ORNOT cells:        1
 ABC RESULTS:              XNOR cells:        4
 ABC RESULTS:               XOR cells:        1
 ABC RESULTS:        internal signals:       13
@@ -4166,11 +4166,11 @@ Optimizing module pmic_top.
 
 3.25.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 3604 cells of `\pmic_top'.
-Finding duplicate cells in `\pmic_top'.
 Computing hashes of 3597 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 3596 cells of `\pmic_top'.
+Computing hashes of 3590 cells of `\pmic_top'.
+Finding duplicate cells in `\pmic_top'.
+Computing hashes of 3589 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~24 debug messages>
 Removed a total of 8 cells.
@@ -4179,7 +4179,7 @@ Removed a total of 8 cells.
 
 3.25.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 7 unused cells and 3707 unused wires.
+Removed 7 unused cells and 3701 unused wires.
 <suppressed ~12 debug messages>
 
 3.25.5. Finished fast OPT passes.
@@ -4200,25 +4200,25 @@ Removed 0 unused modules.
 
         +----------Local Count, excluding submodules.
         | 
-     3030 wires
-     4821 wire bits
+     3024 wires
+     4814 wire bits
       441 public wires
      1605 public wire bits
        22 ports
        22 port bits
-     3589 cells
-      205   $_ANDNOT_
-     1237   $_AND_
-      548   $_DFFE_PN0P_
-       32   $_DFFE_PN1P_
+     3582 cells
+      204   $_ANDNOT_
+     1234   $_AND_
+      547   $_DFFE_PN0P_
+       33   $_DFFE_PN1P_
       108   $_DFF_PN0_
        12   $_DFF_PN1_
        67   $_MUX_
-      227   $_NAND_
-      228   $_NOR_
-      183   $_NOT_
-       93   $_ORNOT_
-      346   $_OR_
+      228   $_NAND_
+      227   $_NOR_
+      181   $_NOT_
+       94   $_ORNOT_
+      344   $_OR_
        87   $_XNOR_
       185   $_XOR_
        31   $scopeinfo
@@ -4233,30 +4233,30 @@ Found and reported 0 problems.
 
         +----------Local Count, excluding submodules.
         | 
-     3030 wires
-     4821 wire bits
+     3024 wires
+     4814 wire bits
       441 public wires
      1605 public wire bits
        22 ports
        22 port bits
-     3589 cells
-      205   $_ANDNOT_
-     1237   $_AND_
-      548   $_DFFE_PN0P_
-       32   $_DFFE_PN1P_
+     3582 cells
+      204   $_ANDNOT_
+     1234   $_AND_
+      547   $_DFFE_PN0P_
+       33   $_DFFE_PN1P_
       108   $_DFF_PN0_
        12   $_DFF_PN1_
        67   $_MUX_
-      227   $_NAND_
-      228   $_NOR_
-      183   $_NOT_
-       93   $_ORNOT_
-      346   $_OR_
+      228   $_NAND_
+      227   $_NOR_
+      181   $_NOT_
+       94   $_ORNOT_
+      344   $_OR_
        87   $_XNOR_
       185   $_XOR_
        31   $scopeinfo
 
 Warnings: 1 unique messages, 1 total
-End of script. Logfile hash: c9209e28b1, time: 5.10s, user: 5.10s, system: 0.00s
+End of script. Logfile hash: 16c8c2b7f4, time: 5.23s, user: 5.23s, system: 0.00s
 Yosys 0.70 (git sha1 28ba3cb92, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-Time spent: 71% 1x abc (3 sec), 6% 56x opt_expr (0 sec), ...
+Time spent: 72% 1x abc (3 sec), 5% 56x opt_expr (0 sec), ...

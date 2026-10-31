@@ -26,6 +26,7 @@ an old row; the trend is the useful part.
 |------------------|--------------------------|--------|--------------|-------|------------|------------------|-----------------|---------------|------|
 | 2026-10-31 17:10 | a70e4a9 (main)           | 50 MHz | (n/a, =1)    | 730   | 2,281      | 32,369           | 56,787          | 2.74x         | baseline, `main` as received |
 | 2026-10-31 17:17 | chg 3: CLK_HZ 10 MHz     | 10 MHz | (n/a, =1)    | 700   | 2,137      | 30,821           | 54,072          | 2.61x         | -30 flops from narrowed counters, as derived |
+| 2026-10-31 17:19 | chg 5: ns_to_clks ceil   | 10 MHz | (n/a, =1)    | 700   | 2,132      | 30,845           | 54,113          | 2.61x         | MIN_ON_COUNTS 2 -> 3; width unchanged |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.

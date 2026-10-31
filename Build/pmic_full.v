@@ -124,7 +124,7 @@ module soft_start (
 	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = (10 * ns) / 1000;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
@@ -1020,7 +1020,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = (10 * ns) / 1000;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	function automatic signed [pmic_types_pkg_ON_TIME_W - 1:0] sv2v_cast_D6A01_signed;

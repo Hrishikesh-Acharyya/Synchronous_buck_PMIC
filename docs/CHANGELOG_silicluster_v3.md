@@ -110,3 +110,33 @@ cannot contain its own hash, so the table is filled in by a later commit.
   The numbers in entry 3 came from the `tee -o` summary files and are correct;
   only the full log was short. With `-l`, yosys writes the file itself.
 - Undo: `git revert <hash>` (also restores the partial log from entry 3).
+
+## 5. 2026-10-31 17:19 UTC - pkg: ns_to_clks rounds up (project rules 3.2)
+
+- Files: `rtl/pkg/pmic_types_pkg.sv` (ns_to_clks body and comment,
+  MIN_ON_COUNTS comment), `Build/*` (regenerated), `docs/silicluster_area.md`.
+- What: `ns_to_clks` returns `((CLK_HZ/1e6)*ns + 999) / 1000`, a ceiling,
+  instead of a floor.
+- Why: its only caller is MIN_ON_COUNTS = ns_to_clks(LM5106_SHRINK_NS +
+  MIN_GATE_ON_NS) = ns_to_clks(128 + 112 = 240 ns). Both figures are the
+  package's own (LM5106 at RDT = 10k: max t_HPLH 160 ns - typ t_HPHL 32 ns =
+  128 ns shrinkage; 112 ns wanted at the gate). At 10 MHz 240 ns is 2.4 clocks.
+  Floor gave 2 clocks = 200 ns commanded, 72 ns at the gate - below the 112 ns
+  needed to enhance past the Miller plateau. Ceiling gives 3 clocks = 300 ns
+  commanded, 172 ns at the gate.
+- No-op at 50 MHz, checked: the package elaborated with CLK_HZ = 50 MHz gives
+  MIN_ON_COUNTS = 12 before and after (12000 / 1000 is exact); at 10 MHz 2 -> 3.
+  ON_TIME_W is 5 either way.
+- Observation (not changed): pwm_mask enforces max_on_counts + 1 clocks
+  (documented in pwm_mask.sv), so the realised minimum pulse at PWM_out is
+  4 clocks = 400 ns. The package's MIN_ON comment treats the count itself as
+  the commanded time, so that extra clock is margin, not part of the floor.
+  The integration testbench measures 400 ns.
+- Side effect: the soft-start ramp is 16 - 3 = 13 steps (was 14 with the
+  floor, 71 at 50 MHz).
+- Gate: lint clean; sv2v clean; equiv_all same as entry 3 (6/8 per flow, the
+  two watchdog-limited testbenches pass with the scaled scratch watchdog, all
+  covers, 0 assertion failures).
+- Area: flops 700 -> 700, comb cells 2137 -> 2132, cell area 30,821 -> 30,845
+  um^2.
+- Undo: `git revert <hash>`.
