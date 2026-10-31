@@ -922,6 +922,27 @@ cannot contain its own hash, so the table is filled in by a later commit.
 
 ---
 
+## 33. 2026-10-31 23:44 UTC - rtl: drop the leftover workflow-test line from reset_sync's header
+
+- Files: `rtl/clk_rst/reset_sync.sv`, `submissions_full/rtl/clk_rst/reset_sync.v`
+  (comment only); `submissions_trimmed/rtl/clk_rst/reset_sync.v` already had
+  the fix through the merge below.
+- Why: header line 10 read `#Comment edit to check new workflow`, a CI test
+  edit from `66c9ee8` on main that the annotated copy inherited in entry 15.
+  The user removed it from `submission/rtl/clk_rst/reset_sync.v` on the remote
+  (`6726511`, merged there as `6aaf8f6`). That folder is `submissions_full/`
+  on this branch since entry 31, and merging the remote here (`e7eb661`) put
+  the edit on the trimmed copy, which git took for the rename. This entry
+  makes the full copy and the SV source match: the line becomes `#`, as in
+  the user's commit.
+- What: comment text only. No code token changes, so `make package_check`
+  still passes and `Build/pmic_full.v` is byte-identical.
+- Gate: `make package_check` (17/17 in both packages, two-line rule) and
+  `make signoff` on the committed tree.
+- Undo: `git revert <hash>`.
+
+---
+
 ## Commit table
 
 Every entry above is exactly one commit on this branch. To undo one, revert its
@@ -965,6 +986,9 @@ its commit.
 | 29 | `a64c745` | 2026-10-31 22:38 | docs: repository README covers the whole project; the package README is renamed |
 | 30 | `f47bf1d` | 2026-10-31 23:31 | rtl: correct two comments that still named the 50 MHz clock |
 | 31 | `7f3c034` | 2026-10-31 23:33 | tb: second pass of the integration testbench; package and testbench move to submissions_full/ |
+| 32 | `48ccce2` | 2026-10-31 23:35 | package: a trimmed package beside the full one; make trimmed, zip, signoff |
 
-Entry 32 is the newest commit touching this file, so its own hash is:
+The merge `e7eb661` of the remote's `6726511` (the user's comment fix) is
+not an entry. Entry 33 is the newest commit touching this file, so its own
+hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
