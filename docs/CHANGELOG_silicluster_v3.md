@@ -804,6 +804,27 @@ cannot contain its own hash, so the table is filled in by a later commit.
   build at 180 x 115 um.
 - Undo: `git revert <hash>`.
 
+## 29. 2026-10-31 22:38 UTC - docs: repository README covers the whole project; the package README is renamed
+
+- Files: `README.md` (rewritten), `submission/README.md` renamed to
+  `submission/SILICLUSTER_README.md` (content unchanged), `sim/Makefile` (the
+  zip target copies the new name; CRLF kept). Requested by the user: the
+  repository link goes to Silicluster, so the root README must present the
+  analog design and the digital supervisor together, concisely; the README
+  that travels in the zip gets a distinct name.
+- What: the root README goes from 649 to 233 lines. Kept from the analog
+  README, condensed: specifications, the three-load compensator margins and
+  figures, the single-operating-point lesson, derated output capacitance, the
+  MOSFET pipeline, the protection tiers; the full figure set and circuit
+  schematics move into a collapsed section. Replaced: the digital section,
+  which described an early supervisor (Verilog-2001, 20 checks, I2C, open
+  items since closed), now covers the chip as built - blocks, the
+  TELEMETRY_EN builds, verification figures, synthesis and place-and-route
+  results with layout pictures - plus a system diagram (Mermaid, render
+  checked), a repository map and run commands. Every figure in it was checked
+  against the logs and reports on this branch; every image and link resolves.
+- Undo: `git revert <hash>` (restores the old README and the old file name).
+
 ---
 
 ## Commit table
@@ -845,6 +866,7 @@ its commit.
 | 25 | `87992af` | 2026-10-31 21:11 | package: README for both TELEMETRY_EN builds, the fallback and the area method |
 | 26 | `a2c8a15` | 2026-10-31 21:12 | docs: area-log notes on utilisation and the fallback; commit table for entries 20-25 |
 | 27 | `9f3d553` | 2026-10-31 21:30 | package: stop committing the submission zip |
+| 28 | `10e86d3` | 2026-10-31 22:30 | pnr: place and route of both builds, scripts and results |
 
-Entry 28 is the newest commit touching this file, so its own hash is:
+Entry 29 is the newest commit touching this file, so its own hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.

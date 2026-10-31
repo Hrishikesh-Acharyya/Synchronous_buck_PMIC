@@ -486,7 +486,7 @@ syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
 #                  output once comments and the restored `timescale are
 #                  stripped: proof the annotation changed no code.
 #   zip            package_check, then the zip from the verified files: the
-#                  annotated rtl/, tb/pmic_top_tb.v and the README.
+#                  annotated rtl/, tb/pmic_top_tb.v and SILICLUSTER_README.md.
 # Run `make equiv SPLIT=1` and `make iv_top SPLIT=1` before zipping - the
 # testbenches against the annotated files themselves.
 PKGRAW  := $(SYNDIR)/package_raw
@@ -513,7 +513,7 @@ zip: package_check  ## the Silicluster zip, from the verified annotated files
 	@mkdir -p $(ZIPDIR)/tb
 	@cp -r $(SUBDIR)/rtl $(ZIPDIR)/rtl
 	@cp $(TOP_TB) $(ZIPDIR)/tb/
-	@cp $(SUBDIR)/README.md $(ZIPDIR)/
+	@cp $(SUBDIR)/SILICLUSTER_README.md $(ZIPDIR)/
 	@cd $(SYNDIR) && python3 -m zipfile -c $(ZIPNAME).zip $(ZIPNAME)
 	@rm -rf $(ZIPDIR)
 	@echo "--- $(ZIPDIR).zip ---"
