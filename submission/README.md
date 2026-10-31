@@ -174,7 +174,7 @@ switch; a stuck-high modulator.
 
 It checks in four layers:
 
-- **directed checks** - 215, each printing PASS or FAIL;
+- **directed checks** - 198, each printing PASS or FAIL;
 - **monitors** sampled every clock - `MISO` carrying read data exactly while
   the SPI slave is in its read state and low at every other time, the first read
   bit valid on `MISO` at the start of read data, `switch_supply` equal to
@@ -205,9 +205,10 @@ what they compare. The source repository also has module-level SystemVerilog
 testbenches with bound SVA assertions, which pass against these same Verilog
 files; they are SystemVerilog, so they are not part of this submission.
 
-Results: PASS with all 51 bins on Icarus Verilog 12 and on Verilator 5.052,
-against these files and against the SystemVerilog source, with identical check
-lines between them.
+Results: PASS, 216 checks with 0 failures (the 198 directed checks and 18
+end-of-run monitor and scoreboard verdicts) and all 51 bins, on Icarus Verilog
+12 and on Verilator 5.052, against these files and against the SystemVerilog
+source, with identical check lines between them.
 
 ## Area
 

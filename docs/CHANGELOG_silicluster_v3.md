@@ -647,6 +647,22 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Files: `docs/CHANGELOG_silicluster_v3.md` (the table below).
 - Undo: `git revert <hash>` (documentation only).
 
+## 21. 2026-10-31 20:21 UTC - package: correct the README's check count
+
+- Files: `submission/README.md` (two sentences), `Build/sync_buck_pmic_silicluster_v3.zip`
+  (rebuilt so it carries the corrected README).
+- CORRECTION to entries 15 and 18: the README said "directed checks - 215".
+  That was the total count before the MOSI/MISO change, and entry 18 did not
+  update it when that change added one check. A fresh run of the README's own
+  commands on `submission/rtl` reports 216 checks: 198 directed checks plus 18
+  end-of-run monitor and scoreboard verdicts. The README now gives 198 for the
+  directed layer, and its Results line gives 216 checks, 0 failures, 51/51 bins.
+- Evidence (2026-10-31, before the edit): Icarus 12 216 checks, 0 failed,
+  51/51 (1 min 48 s); Verilator 5.052 the same (8 s); `make tb_top` on the
+  SystemVerilog source the same; all three with identical check lines.
+- No RTL, testbench or Verilog file changed.
+- Undo: `git revert <hash>` (documentation and zip only).
+
 ---
 
 ## Commit table
@@ -678,6 +694,7 @@ Commit times are UTC and are the times each entry records.
 | 17 | `478fd75` | 2026-10-31 20:01 | top: split the bidirectional SDIO pin into MOSI and MISO |
 | 18 | `bc7fba0` | 2026-10-31 20:07 | package: regenerate the submission for MOSI/MISO |
 | 19 | `c767707` | 2026-10-31 20:10 | package: rebuild the zip, which the previous commit left stale |
+| 20 | `5f68f60` | 2026-10-31 20:11 | docs: update the changelog commit table for entries 17-19 |
 
-Entry 20 is the commit that updates this table, so its own hash is the
-newest commit touching this file: `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
+Entry 21 is the newest commit touching this file, so its own hash is:
+`git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
