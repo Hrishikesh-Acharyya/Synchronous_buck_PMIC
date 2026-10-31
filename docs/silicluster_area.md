@@ -30,6 +30,7 @@ an old row; the trend is the useful part.
 | 2026-10-31 17:20 | chg 6: cycles/step 64    | 10 MHz | (n/a, =1)    | 700   | 2,132      | 30,845           | 54,113          | 2.61x         | reset value only; no area change |
 | 2026-10-31 17:23 | chg 7: TELEMETRY_EN      | 10 MHz | 1            | 700   | 2,127      | 30,808           | 54,050          | 2.61x         | submission build |
 | 2026-10-31 17:23 | chg 7: TELEMETRY_EN      | 10 MHz | 0            | 252   | 705        | 10,523           | 18,461          | 0.89x         | cost reference only |
+| 2026-10-31 18:17 | chg 8: fix spi_slave oe  | 10 MHz | 1            | 700   | 2,116      | 30,837           | 54,100          | 2.61x         | spi_slave 312 -> 328 cells, 3,363 -> 3,326 um^2; reg_file unchanged |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.
