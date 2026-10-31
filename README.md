@@ -7,9 +7,11 @@ telemetry. The supervisor is verified, synthesised, and placed and routed in
 **SkyWater SKY130**, and is prepared for fabrication on the
 **Silicluster v3** multi-project chip.
 
-> **This branch, `silicluster-v3`, is the tapeout candidate.** The submitted
-> Verilog package is in [`submissions_full/`](submissions_full/) and described in
-> [`submissions_full/SILICLUSTER_README.md`](submissions_full/SILICLUSTER_README.md).
+> **This branch, `silicluster-v3`, is the tapeout candidate.** Two Verilog
+> packages are submitted: the full chip, [`submissions_full/`](submissions_full/)
+> ([README](submissions_full/SILICLUSTER_README.md)), and the protection-only
+> chip that fits a single slot, [`submissions_trimmed/`](submissions_trimmed/)
+> ([README](submissions_trimmed/SILICLUSTER_README.md)).
 
 ## At a glance
 
@@ -196,7 +198,8 @@ integration flow. Flow, scripts and every run's reports:
 rtl/            supervisor chip, SystemVerilog (17 modules + package)
 tb/, sva/       module testbenches (SystemVerilog) + bound SVA
 sim/            Makefile: lint, convert, equiv_all, top_both, syn_both, package
-submissions_full/     Silicluster v3 package: Verilog-2005 rtl/, tb/, README
+submissions_full/     Silicluster v3 package, full chip: Verilog-2005 rtl/, tb/, README
+submissions_trimmed/  the same, TELEMETRY_EN = 0: protection only, one slot
 Build/          converted single-file Verilog, synthesis summaries
 pnr/            OpenROAD place-and-route flow and results
 docs/           changelog of this branch, area log
@@ -214,6 +217,8 @@ make lint                # strict Verilator lint of the RTL
 make -j4 equiv_all       # every testbench, SystemVerilog and converted Verilog, both builds
 make top_both            # integration testbench, both builds, Verilator and Icarus
 make syn_both            # sky130 area of both builds
+make signoff             # ship check of both packages, ends in SIGNOFF OK
+make zip                 # one zip per package
 ```
 
 The integration testbench also runs straight from each package's own files —

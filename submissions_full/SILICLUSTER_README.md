@@ -3,6 +3,13 @@
 Project type: **digital**. Top-level module: **`pmic_top`** (`rtl/pmic_top.v`).
 Testbench top: **`pmic_top_tb`** (`tb/pmic_top_tb.v`).
 
+> **This package is the full build, `TELEMETRY_EN = 1`**: protection,
+> supervision and the SPI host interface. It needs 2.5-3x the standard slot;
+> additional area is requested. The reduced build, protection only, is
+> submitted alongside as its own package (`..._trimmed`) and fits the standard
+> 180 x 115 um slot; the two are the same files except for the `TELEMETRY_EN`
+> default in `rtl/pmic_top.v` and in `tb/pmic_top_tb.v`.
+
 ## What the design is
 
 The digital supervisor of a 450 kHz synchronous buck converter (10.8-22 V in).
@@ -126,14 +133,13 @@ defaults: overcurrent trip after 12 faulted cycles in 16 (28 in 32 during soft
 start), 5 ms hiccup base doubling per strike, latch after 3 strikes, strikes
 cleared by 1 s of fault-free running, 64 switching cycles per soft-start step.
 
-**If the additional area cannot be granted**, the reduced build can be used
-instead: change the default on line 75 of `rtl/pmic_top.v` from
-`parameter [0:0] TELEMETRY_EN = 1'b1;` to `1'b0`, or set the parameter to 0 at
-synthesis. The testbench takes the same parameter and passes it to `pmic_top`,
-so `-P pmic_top_tb.TELEMETRY_EN=0` (Icarus) or `-GTELEMETRY_EN=0` (Verilator)
-runs the reduced build with its own test sequence. A self-contained package
-of the reduced build sets both defaults to 0: line 75 of `rtl/pmic_top.v` and
-the `TELEMETRY_EN` parameter near the top of `tb/pmic_top_tb.v`.
+**Two packages.** This package is the full build. The reduced build is
+submitted alongside as its own package (`..._trimmed`), for use if the
+additional area cannot be granted: the same files with `TELEMETRY_EN = 0` in
+`rtl/pmic_top.v` (line 75) and in `tb/pmic_top_tb.v`, and not one other line
+different. The testbench passes its parameter to `pmic_top`, so either package
+also runs the other build: `-P pmic_top_tb.TELEMETRY_EN=0` (Icarus) or
+`-GTELEMETRY_EN=0` (Verilator).
 
 With `TELEMETRY_EN = 1`:
 

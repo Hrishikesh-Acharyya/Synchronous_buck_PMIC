@@ -90,11 +90,13 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
 PKG := $(firstword $(RTL))
 
 # SPLIT=1: run the equiv flows against the hand-annotated split tree in
-#          ../submissions_full/rtl - the files that go into the Silicluster zip -
+#          ../submissions_full/rtl - the files that go into the Silicluster
+#          zips (the trimmed package's rtl/ differs in one default only) -
 #          instead of the single-file conversion in ../Build. Results are
 #          listed under the flow name "split".
 SPLIT      ?= 0
 SUBDIR     := ../submissions_full
+SUBDIR_TRIM := ../submissions_trimmed
 SPLIT_SRCS := $(patsubst ../rtl/%.sv,$(SUBDIR)/rtl/%.v,$(filter-out $(PKG),$(RTL)))
 EQUIV_SRCS := $(if $(filter 1,$(SPLIT)),$(SPLIT_SRCS),$(CONVERTED))
 EQUIV_FLOW := $(if $(filter 1,$(SPLIT)),split,equiv)
@@ -230,7 +232,7 @@ $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 # ============================================================
 # Integration testbench - the Silicluster deliverable
 # ============================================================
-# pmic_top_tb.v (in the package folder, tb/) exercises pmic_top as a whole:
+# pmic_top_tb.v (in the package folders, tb/) exercises pmic_top as a whole:
 # plain Verilog-2005, no SVA,
 # self-checking, with its own coverage bins and two scoreboards. It runs in
 # both flows like the module testbenches, and also under Icarus Verilog, the
@@ -475,50 +477,96 @@ syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
 # ============================================================
 # Silicluster submission package
 # ============================================================
-# The call accepts Verilog only, in one .zip. The deliverable is a split tree,
-# one .v per .sv mirroring rtl/, with the comments sv2v discards restored by
-# hand. The annotated tree is committed in ../submissions_full/rtl; this flow never
-# overwrites it.
-#   package        sv2v -w adjacent into a clean staging tree, $(PKGRAW). The
-#                  package converts to two pragmas and nothing else - its
-#                  constants are inlined into every consumer - so
-#                  pmic_types_pkg.v is dropped.
-#   package_check  every annotated file must be code-identical to that fresh
-#                  output once comments and the restored `timescale are
-#                  stripped: proof the annotation changed no code.
-#   zip            package_check, then the zip from the verified files: the
-#                  annotated rtl/, tb/pmic_top_tb.v and SILICLUSTER_README.md.
-# Run `make equiv SPLIT=1` and `make iv_top SPLIT=1` before zipping - the
-# testbenches against the annotated files themselves.
-PKGRAW  := $(SYNDIR)/package_raw
-ZIPNAME ?= sync_buck_pmic_silicluster_v3
-ZIPDIR  := $(SYNDIR)/$(ZIPNAME)
+# The call accepts Verilog only, in one .zip. Two packages go out, both from
+# one source tree and one testbench:
+#   ../submissions_full     TELEMETRY_EN = 1, the full chip (2.5-3x the slot)
+#   ../submissions_trimmed  TELEMETRY_EN = 0, protection only (one slot)
+# Each holds rtl/ (one .v per .sv mirroring rtl/, with the comments sv2v
+# discards restored by hand), tb/pmic_top_tb.v and SILICLUSTER_README.md. The
+# full package is the hand-annotated source of both; the trimmed rtl/ and tb/
+# are generated from it by `make trimmed`, which changes exactly two lines -
+# the TELEMETRY_EN default in rtl/pmic_top.v and in tb/pmic_top_tb.v. The
+# trimmed package keeps the telemetry modules' files: they are not built with
+# TELEMETRY_EN = 0, but Verilator resolves the testbench's references into
+# them even in the branch it does not build.
+#   package        sv2v -w adjacent into clean staging trees, $(PKGRAW) and
+#                  $(PKGRAW_TRIM) (the latter from a copy of rtl/ with the
+#                  default flipped). The package converts to two pragmas and
+#                  nothing else - its constants are inlined into every
+#                  consumer - so pmic_types_pkg.v is dropped.
+#   package_check  every annotated file in both packages must be code-identical
+#                  to that fresh output once comments and the restored
+#                  `timescale are stripped, and the trimmed rtl/ and tb/ must
+#                  differ from the full ones in the two default lines only.
+#   zip            package_check, then one zip per package.
+#   signoff        package_check, the module testbenches against the annotated
+#                  files, both packages simulated exactly as their READMEs say
+#                  (Icarus and Verilator) and synthesised from their own files.
+PKGRAW      := $(SYNDIR)/package_raw
+PKGRAW_TRIM := $(SYNDIR)/package_raw_trimmed
+ZIPNAME     ?= sync_buck_pmic_silicluster_v3
+TEL_PARAM_V := parameter [0:0] TELEMETRY_EN = 1'b
+TEL_RE_V    := parameter \[0:0\] TELEMETRY_EN = 1'b
+TEL_PARAM_SV := parameter bit TELEMETRY_EN = 1'b
 
-.PHONY: package package_check zip
+.PHONY: package package_check trimmed zip signoff
 
-package:  ## sv2v -w adjacent into a clean staging tree (Build/package_raw)
-	@rm -rf $(PKGRAW)
-	@mkdir -p $(PKGRAW)
+package:  ## sv2v -w adjacent into clean staging trees (Build/package_raw*)
+	@rm -rf $(PKGRAW) $(PKGRAW_TRIM)
+	@mkdir -p $(PKGRAW) $(PKGRAW_TRIM)
 	@cp -r ../rtl $(PKGRAW)/rtl
+	@cp -r ../rtl $(PKGRAW_TRIM)/rtl
+	@sed -i "s/$(TEL_PARAM_SV)1/$(TEL_PARAM_SV)0/" $(PKGRAW_TRIM)/rtl/pmic_top.sv
+	@grep -q "$(TEL_PARAM_SV)0" $(PKGRAW_TRIM)/rtl/pmic_top.sv
 	cd $(PKGRAW) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
-	@find $(PKGRAW)/rtl -name '*.sv' -delete
-	@rm -f $(PKGRAW)/rtl/pkg/pmic_types_pkg.v
-	@rmdir $(PKGRAW)/rtl/pkg
-	@echo "--- raw split: $$(find $(PKGRAW)/rtl -name '*.v' | wc -l) files in $(PKGRAW)/rtl ---"
+	cd $(PKGRAW_TRIM) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
+	@for d in $(PKGRAW) $(PKGRAW_TRIM); do \
+	    find $$d/rtl -name '*.sv' -delete; \
+	    rm -f $$d/rtl/pkg/pmic_types_pkg.v; rmdir $$d/rtl/pkg; done
+	@echo "--- raw split: $$(find $(PKGRAW)/rtl -name '*.v' | wc -l) files per package ---"
 
-package_check: package  ## annotated split files must be code-identical to fresh sv2v output
+# trimmed: regenerate the trimmed package's rtl/ and tb/ from the full one.
+#          Its SILICLUSTER_README.md is its own and is not touched.
+trimmed:  ## regenerate submissions_trimmed/rtl and tb from submissions_full
+	@rm -rf $(SUBDIR_TRIM)/rtl $(SUBDIR_TRIM)/tb
+	@mkdir -p $(SUBDIR_TRIM)
+	@cp -r $(SUBDIR)/rtl $(SUBDIR)/tb $(SUBDIR_TRIM)/
+	@sed -i "s/$(TEL_RE_V)1;/$(TEL_PARAM_V)0;/" $(SUBDIR_TRIM)/rtl/pmic_top.v $(SUBDIR_TRIM)/tb/pmic_top_tb.v
+	@echo "--- $(SUBDIR_TRIM): rtl/ and tb/ regenerated with TELEMETRY_EN = 0 ---"
+
+package_check: package  ## both packages code-identical to fresh sv2v output; trimmed = full + two lines
+	@echo "--- full package ---"
 	@python3 $(SCRIPTS)/strip_compare.py $(PKGRAW)/rtl $(SUBDIR)/rtl
+	@echo "--- trimmed package ---"
+	@python3 $(SCRIPTS)/strip_compare.py $(PKGRAW_TRIM)/rtl $(SUBDIR_TRIM)/rtl
+	@n=$$(diff -r $(SUBDIR)/rtl $(SUBDIR_TRIM)/rtl | grep -c '^[<>]'); \
+	 m=$$(diff $(SUBDIR)/tb/pmic_top_tb.v $(SUBDIR_TRIM)/tb/pmic_top_tb.v | grep -c '^[<>]'); \
+	 if [ "$$n" = 2 ] && [ "$$m" = 2 ] && \
+	    grep -qF "$(TEL_PARAM_V)0;" $(SUBDIR_TRIM)/rtl/pmic_top.v && \
+	    grep -q "^$(TEL_RE_V)0;" $(SUBDIR_TRIM)/tb/pmic_top_tb.v; then \
+	   echo "--- trimmed rtl/ and tb/ = full + the TELEMETRY_EN default flipped, nothing else ---"; \
+	 else echo "--- trimmed package out of step with the full one: run make trimmed ---"; exit 1; fi
 
-zip: package_check  ## the Silicluster zip, from the verified annotated files
-	@rm -rf $(ZIPDIR) $(ZIPDIR).zip
-	@mkdir -p $(ZIPDIR)/tb
-	@cp -r $(SUBDIR)/rtl $(ZIPDIR)/rtl
-	@cp $(TOP_TB) $(ZIPDIR)/tb/
-	@cp $(SUBDIR)/SILICLUSTER_README.md $(ZIPDIR)/
-	@cd $(SYNDIR) && python3 -m zipfile -c $(ZIPNAME).zip $(ZIPNAME)
-	@rm -rf $(ZIPDIR)
-	@echo "--- $(ZIPDIR).zip ---"
-	@python3 -m zipfile -l $(ZIPDIR).zip
+zip: package_check  ## one Silicluster zip per package (full and trimmed)
+	@for pkg in full trimmed; do \
+	    src=../submissions_$$pkg; name=$(ZIPNAME)_$$pkg; \
+	    rm -rf $(SYNDIR)/$$name $(SYNDIR)/$$name.zip; mkdir -p $(SYNDIR)/$$name; \
+	    cp -r $$src/rtl $$src/tb $$src/SILICLUSTER_README.md $(SYNDIR)/$$name/; \
+	    (cd $(SYNDIR) && python3 -m zipfile -c $$name.zip $$name); \
+	    rm -rf $(SYNDIR)/$$name; \
+	    echo "--- $(SYNDIR)/$$name.zip ---"; python3 -m zipfile -l $(SYNDIR)/$$name.zip | tail -n +1 | wc -l; done
+
+# signoff: everything that must hold before the zips go out, run on the files
+#          in the two package folders themselves. Prints SIGNOFF OK or fails.
+signoff: package_check  ## ship check of both packages; ends in SIGNOFF OK or fails
+	@$(MAKE) --no-print-directory equiv SPLIT=1 TBBUILD=$(TBBUILD)/signoff
+	@VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' YOSYS='$(YOSYS)' \
+	    bash $(SCRIPTS)/run_package.sh $(SUBDIR) $(TBBUILD)/signoff/pkg_full & \
+	 VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' YOSYS='$(YOSYS)' \
+	    bash $(SCRIPTS)/run_package.sh $(SUBDIR_TRIM) $(TBBUILD)/signoff/pkg_trimmed & \
+	 wait %1; r1=$$?; wait %2; r2=$$?; \
+	 if [ $$r1 = 0 ] && [ $$r2 = 0 ]; then echo "=== SIGNOFF OK: both packages ready to ship ==="; \
+	 else echo "=== SIGNOFF FAILED ==="; exit 1; fi
 
 # ============================================================
 # Housekeeping
