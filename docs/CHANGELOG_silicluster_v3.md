@@ -626,6 +626,22 @@ cannot contain its own hash, so the table is filled in by a later commit.
   zero build warnings, identical check lines.
 - Undo: `git revert <hash>`.
 
+## 19. 2026-10-31 20:10 UTC - package: rebuild the zip, which entry 18 left stale
+
+- Files: `Build/sync_buck_pmic_silicluster_v3.zip`.
+- CORRECTION to entry 18: its zip was NOT rebuilt. In that gate run `make zip`
+  executed from the wrong directory and failed silently, so the committed zip
+  was still the pre-split (SDIO) one from entry 15, and the "zip test" in entry
+  18 extracted and passed that old zip. The annotated files and README in entry
+  18 were correct; only the zip was stale. Caught by checking the zip's
+  contents after the commit.
+- Now: rebuilt by `make zip` (package_check first: 17 of 17 code-identical) and
+  checked to contain the MOSI/MISO files (zipped `pmic_top.v` has MOSI and MISO
+  and no SDIO; README and testbench likewise). Extracted into an empty directory
+  and run with the README's commands: Icarus PASS and Verilator PASS, 216
+  checks, 51/51 bins, zero build warnings, identical check lines.
+- Undo: `git revert <hash>` (restores the stale zip - do not).
+
 ---
 
 ## Commit table
