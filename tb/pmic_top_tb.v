@@ -693,12 +693,19 @@ end
 Purpose:
 ---
 PGOOD coverage. A drop with run_active still high came from the comparator; a
-drop together with run_active came from leaving S_RUN.
+drop together with run_active came from leaving S_RUN. Only a fall from 1 is a
+drop: a four-state simulator (Icarus) also sees PGOOD go x -> 0 at power-on
+reset, which a plain negedge counts and a two-state one (Verilator) never
+sees, so the hit counts would differ between the two.
 */
+reg pgood_q = 1'b0;   // PGOOD's previous level
 always @(posedge PGOOD) cover_bin(C_PG_QUAL);
-always @(negedge PGOOD) begin
-    if (run_active_int) cover_bin(C_PG_COMP);
-    else                cover_bin(C_PG_RUN);
+always @(PGOOD) begin
+    if ((pgood_q === 1'b1) && (PGOOD === 1'b0)) begin
+        if (run_active_int) cover_bin(C_PG_COMP);
+        else                cover_bin(C_PG_RUN);
+    end
+    pgood_q = PGOOD;
 end
 
 /*

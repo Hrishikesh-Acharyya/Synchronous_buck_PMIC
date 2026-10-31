@@ -663,6 +663,22 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - No RTL, testbench or Verilog file changed.
 - Undo: `git revert <hash>` (documentation and zip only).
 
+## 22. 2026-10-31 21:04 UTC - tb: count a PGOOD drop only when PGOOD falls from 1
+
+- Files: `tb/pmic_top_tb.v` (the PGOOD coverage monitor).
+- Why: Icarus and Verilator reported different hit counts for the bin "PGOOD
+  dropped by leaving S_RUN" (4 and 3). Icarus is four-state: PGOOD goes x -> 0
+  when the power-on reset lands, and a plain `negedge` counts that as a drop.
+  Verilator is two-state and never sees it. Only the count differed - both
+  runs hit the bin, and no check depends on the count.
+- What: the monitor keeps PGOOD's previous level and counts a drop only on a
+  1 -> 0 change. Coverage tables are now identical between the simulators,
+  hit counts included.
+- Gate: Verilator, all 216 check lines identical to before and the coverage
+  table identical to the previous Verilator run; Icarus, all 216 check lines
+  identical to before, the bin count now 3 as in Verilator.
+- Undo: `git revert <hash>` (coverage counts only).
+
 ---
 
 ## Commit table
