@@ -47,10 +47,11 @@ module pmic_top #(
     input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
     input  wire logic rst_n_pin,    // asynchronous external reset, active low
 
-    //---SPI pins
+    //---SPI pins: 4-wire, a separate data line each way
     input  wire logic SCK,
     input  wire logic CS_n,
-    inout  wire logic SDIO,          //3 wire SPI
+    input  wire logic MOSI,          // SPI data in, master to supervisor
+    output logic      MISO,          // SPI data out, supervisor to master
 
     // ---- asynchronous inputs from the analog side ----
     input  wire logic Osc_in,       // Master_PWM from the analog modulator
@@ -85,7 +86,7 @@ module pmic_top #(
     // ---- synchronised copies of the asynchronous inputs ----
     logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
     //SPI SIGNALS
-    logic sck_sync,  cs_n_sync,  sdio_sync;
+    logic sck_sync,  cs_n_sync,  mosi_sync;
 
 
     // ============================================================
@@ -104,13 +105,13 @@ module pmic_top #(
     // SPI bus conditioning
     // ============================================================
     // Reset values are each line's IDLE level: CS idles high, Mode 0 SCK idles low,
-    // SDIO idles released and reads low through the pull-down. Resetting to the wrong
-    // level manufactures an edge on the first clock after reset.
+    // MOSI idles low. Resetting to the wrong level manufactures an edge on the first
+    // clock after reset.
     
     if (TELEMETRY_EN) begin : g_spi_sync
         input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
         input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
-        input_sync                      u_sdio_sync (.clk(clk), .rst_n(rst_n), .async_in(SDIO), .sync_out(sdio_sync));
+        input_sync                      u_mosi_sync (.clk(clk), .rst_n(rst_n), .async_in(MOSI), .sync_out(mosi_sync));
     end
 
 
@@ -120,7 +121,7 @@ module pmic_top #(
      logic UVLO_sync_db;
      logic latch_stat_sync_db;
      //spi signals
-     logic sck_filt,  cs_n_filt,  sdio_filt;
+     logic sck_filt,  cs_n_filt,  mosi_filt;
 
     // ============================================================
     // Input debouncers
@@ -141,7 +142,7 @@ module pmic_top #(
     
     // input_debounce instanced SYMMETRIC and SHORT, which is a different regime from
     // the fault flags it was written for. The symmetry is the critical part: spi_slave
-    // samples SDIO on an edge derived from SCK, so unequal delay between the two
+    // samples MOSI on an edge derived from SCK, so unequal delay between the two
     // shifts the data relative to the clock it is sampled against. All three
     // instances must therefore carry IDENTICAL parameters - any future retune of the
     // fault-flag instances must not be copied here.
@@ -159,7 +160,7 @@ module pmic_top #(
             u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
 
         input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-            u_sdio_filt (.clk(clk), .rst_n(rst_n), .flag_in(sdio_sync), .flag_out(sdio_filt));
+            u_mosi_filt (.clk(clk), .rst_n(rst_n), .flag_in(mosi_sync), .flag_out(mosi_filt));
     end
 
    
@@ -199,7 +200,7 @@ module pmic_top #(
     logic       spi_rd_byte_done;   // a read data byte has been clocked out
     logic       spi_integrity_ok;
     logic       spi_abort;
-    logic       sdio_out, sdio_oe;
+    logic       sdio_out, sdio_oe;   // MISO data, and high only while it is read data
 
 
     // ---- reg_file control outputs ----
@@ -324,18 +325,21 @@ module pmic_top #(
     // Host interface
     // ============================================================
     /*
-    The SDIO tri-state lives HERE and nowhere else, so Verilator, ModelSim and the
-    hardware all see the same behaviour. spi_slave exposes sdio_out and sdio_oe and
-    never touches a bidirectional net itself.
+    MISO is driven here and nowhere else. spi_slave's sdio_out carries the read
+    data and sdio_oe is high exactly while spi_slave is in S_READ, so MISO shows read
+    data during the read data phase and is held low at every other time - a plain
+    output, with no tri-state anywhere in the design. Both terms are flops that
+    change on different SCK edges, so MISO does not glitch. The spi_slave port names
+    keep the sdio_ prefix of the original 3-wire bus.
     */
     if (TELEMETRY_EN) begin : g_telemetry
-        assign SDIO = sdio_oe ? sdio_out : 1'bz;
+        assign MISO = sdio_oe & sdio_out;
 
         spi_slave u_spi_slave ( .clk(clk),
                                 .rst_n(rst_n),
                                 .sck(sck_filt),
                                 .cs_n(cs_n_filt),
-                                .sdio_in(sdio_filt),
+                                .sdio_in(mosi_filt),
                                 .sdio_out(sdio_out),
                                 .sdio_oe(sdio_oe),
                                 .addr(spi_addr),
@@ -424,13 +428,13 @@ module pmic_top #(
     end
     else begin : g_no_telemetry
         /*
-        No host interface. SDIO is released permanently, so the pin is a plain
-        input that nothing drives, and every value reg_file would have held
-        is tied to the package constant reg_file resets to. spi_enable is tied
+        No host interface. MISO is held low and MOSI is unused, and every value
+        reg_file would have held is tied to the package constant reg_file resets
+        to. spi_enable is tied
         high so the enable switch alone gates the converter - the same as an
         enabled build whose host has never written CONTROL.
         */
-        assign SDIO             = 1'bz;
+        assign MISO             = 1'b0;
         assign spi_enable       = 1'b1;
         assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
         assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
