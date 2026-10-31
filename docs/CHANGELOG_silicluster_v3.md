@@ -99,3 +99,14 @@ cannot contain its own hash, so the table is filled in by a later commit.
   um^2.
 - Undo: `git revert <hash>`. Later RTL entries build on this value; revert them
   first.
+
+## 4. 2026-10-31 17:17 UTC - sim: yosys writes its own full log with `-l`
+
+- Files: `sim/Makefile`, `Build/stat.txt` (regenerated, complete again)
+- What: `syn` and `syn_area` run yosys with `-q -l <log>` and send stdout to
+  /dev/null, instead of redirecting stdout into the log.
+- Why: follow-up to entry 2. The YoWASP yosys truncation also cut the full log,
+  so the `Build/stat.txt` committed in entry 3 was partial (it ended mid-run).
+  The numbers in entry 3 came from the `tee -o` summary files and are correct;
+  only the full log was short. With `-l`, yosys writes the file itself.
+- Undo: `git revert <hash>` (also restores the partial log from entry 3).
