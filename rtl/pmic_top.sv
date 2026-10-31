@@ -199,6 +199,7 @@ module pmic_top #(
     logic [7:0] spi_wdata;
     logic [7:0] spi_rdata;
     logic       spi_rd_first;
+    logic       spi_rd_byte_done;   // a read data byte has been clocked out
     logic       spi_integrity_ok;
     logic       spi_abort;
     logic       sdio_out, sdio_oe;
@@ -345,6 +346,7 @@ module pmic_top #(
                                 .wdata(spi_wdata),
                                 .rdata(spi_rdata),
                                 .rd_first(spi_rd_first),
+                                .rd_byte_done(spi_rd_byte_done),
                                 .integrity_ok(spi_integrity_ok),
                                 .abort(spi_abort)
                                 );
@@ -358,6 +360,7 @@ module pmic_top #(
                               .wdata(spi_wdata),
                               .rdata(spi_rdata),
                               .rd_first(spi_rd_first),
+                              .rd_byte_done(spi_rd_byte_done),
                               .integrity_OK(spi_integrity_ok),
                               .abort(spi_abort),
 

@@ -779,6 +779,7 @@ module reg_file (
 	wdata,
 	rdata,
 	rd_first,
+	rd_byte_done,
 	integrity_OK,
 	abort,
 	sup_state,
@@ -820,6 +821,7 @@ module reg_file (
 	input wire [7:0] wdata;
 	output reg [7:0] rdata;
 	input wire rd_first;
+	input wire rd_byte_done;
 	input wire integrity_OK;
 	input wire abort;
 	input wire [1:0] sup_state;
@@ -934,17 +936,11 @@ module reg_file (
 	reg [10:0] temp_dirty;
 	reg en_pending;
 	reg en_pending_val;
-	reg [6:0] addr_d;
 	reg [15:0] bus_err_count;
-	always @(posedge clk or negedge rst_n)
-		if (!rst_n)
-			addr_d <= 1'sb0;
-		else
-			addr_d <= addr;
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		fault_reg_read_done = ((addr_d == ADDR_FTIME_2) && (addr == (ADDR_FTIME_2 + 7'd1))) && !wr_en;
+		fault_reg_read_done = rd_byte_done && (addr == ADDR_FTIME_2);
 	end
 	reg [23:0] timestamp_snap;
 	always @(posedge clk or negedge rst_n)
@@ -1358,6 +1354,7 @@ module spi_slave (
 	wdata,
 	rdata,
 	rd_first,
+	rd_byte_done,
 	integrity_ok,
 	abort
 );
@@ -1380,6 +1377,7 @@ module spi_slave (
 	output reg [7:0] wdata;
 	input wire [7:0] rdata;
 	output reg rd_first;
+	output reg rd_byte_done;
 	output reg integrity_ok;
 	output reg abort;
 	reg sck_d;
@@ -1548,6 +1546,11 @@ module spi_slave (
 		if (_sv2v_0)
 			;
 		rd_first = (sck_fall && (spi_state == 3'b011)) && (bit_count == 3'd7);
+	end
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		rd_byte_done = byte_done && (spi_state == 3'b100);
 	end
 	reg [$clog2(SCK_IDLE_TIMEOUT_CLKS + 1) - 1:0] idle_counter;
 	always @(posedge clk or negedge rst_n)
@@ -2042,6 +2045,7 @@ module pmic_top (
 	wire [7:0] spi_wdata;
 	wire [7:0] spi_rdata;
 	wire spi_rd_first;
+	wire spi_rd_byte_done;
 	wire spi_integrity_ok;
 	wire spi_abort;
 	wire sdio_out;
@@ -2197,6 +2201,7 @@ module pmic_top (
 				.wdata(spi_wdata),
 				.rdata(spi_rdata),
 				.rd_first(spi_rd_first),
+				.rd_byte_done(spi_rd_byte_done),
 				.integrity_ok(spi_integrity_ok),
 				.abort(spi_abort)
 			);
@@ -2208,6 +2213,7 @@ module pmic_top (
 				.wdata(spi_wdata),
 				.rdata(spi_rdata),
 				.rd_first(spi_rd_first),
+				.rd_byte_done(spi_rd_byte_done),
 				.integrity_OK(spi_integrity_ok),
 				.abort(spi_abort),
 				.sup_state(sup_state),
