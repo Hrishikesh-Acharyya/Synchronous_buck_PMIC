@@ -61,3 +61,4 @@ Build/*.zip
 # Place and route: fetched platform files and run outputs (pnr/README.md)
 pnr/platform/
 pnr/work/
+Build/package_raw_trimmed/
