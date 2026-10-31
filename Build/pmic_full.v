@@ -1807,7 +1807,8 @@ module pmic_top (
 	rst_n_pin,
 	SCK,
 	CS_n,
-	SDIO,
+	MOSI,
+	MISO,
 	Osc_in,
 	CP_trig,
 	OTP_trig,
@@ -1832,7 +1833,8 @@ module pmic_top (
 	input wire rst_n_pin;
 	input wire SCK;
 	input wire CS_n;
-	inout wire SDIO;
+	input wire MOSI;
+	output wire MISO;
 	input wire Osc_in;
 	input wire CP_trig;
 	input wire OTP_trig;
@@ -1865,7 +1867,7 @@ module pmic_top (
 	wire PGOOD_comp_sync;
 	wire sck_sync;
 	wire cs_n_sync;
-	wire sdio_sync;
+	wire mosi_sync;
 	input_sync u_osc_sync(
 		.clk(clk),
 		.rst_n(rst_n),
@@ -1922,11 +1924,11 @@ module pmic_top (
 				.async_in(CS_n),
 				.sync_out(cs_n_sync)
 			);
-			input_sync u_sdio_sync(
+			input_sync u_mosi_sync(
 				.clk(clk),
 				.rst_n(rst_n),
-				.async_in(SDIO),
-				.sync_out(sdio_sync)
+				.async_in(MOSI),
+				.sync_out(mosi_sync)
 			);
 		end
 	endgenerate
@@ -1936,7 +1938,7 @@ module pmic_top (
 	wire latch_stat_sync_db;
 	wire sck_filt;
 	wire cs_n_filt;
-	wire sdio_filt;
+	wire mosi_filt;
 	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
@@ -1997,11 +1999,11 @@ module pmic_top (
 				.ASSERT_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
 				.RELEASE_CLKS(pmic_types_pkg_SPI_FILTER_CLKS),
 				.RESET_VALUE(1'b0)
-			) u_sdio_filt(
+			) u_mosi_filt(
 				.clk(clk),
 				.rst_n(rst_n),
-				.flag_in(sdio_sync),
-				.flag_out(sdio_filt)
+				.flag_in(mosi_sync),
+				.flag_out(mosi_filt)
 			);
 		end
 	endgenerate
@@ -2187,13 +2189,13 @@ module pmic_top (
 	endfunction
 	generate
 		if (TELEMETRY_EN) begin : g_telemetry
-			assign SDIO = (sdio_oe ? sdio_out : 1'bz);
+			assign MISO = sdio_oe & sdio_out;
 			spi_slave u_spi_slave(
 				.clk(clk),
 				.rst_n(rst_n),
 				.sck(sck_filt),
 				.cs_n(cs_n_filt),
-				.sdio_in(sdio_filt),
+				.sdio_in(mosi_filt),
 				.sdio_out(sdio_out),
 				.sdio_oe(sdio_oe),
 				.addr(spi_addr),
@@ -2267,7 +2269,7 @@ module pmic_top (
 			);
 		end
 		else begin : g_no_telemetry
-			assign SDIO = 1'bz;
+			assign MISO = 1'b0;
 			assign spi_enable = 1'b1;
 			assign trip_run = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_RUN_DEFAULT);
 			assign trip_ss = sv2v_cast_67DF8_signed(pmic_types_pkg_TRIP_SS_DEFAULT);

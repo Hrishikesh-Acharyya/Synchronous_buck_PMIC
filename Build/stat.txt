@@ -10,8 +10,6 @@
 
 1. Executing Verilog-2005 frontend: ../Build/pmic_full.v
 Parsing Verilog input from `../Build/pmic_full.v' to AST representation.
-../Build/pmic_full.v:2190: Warning: Yosys has only limited support for tri-state logic at the moment.
-../Build/pmic_full.v:2270: Warning: Yosys has only limited support for tri-state logic at the moment.
 Generating RTLIL representation for module `\reset_sync'.
 Generating RTLIL representation for module `\input_sync'.
 Generating RTLIL representation for module `\input_debounce'.
@@ -200,7 +198,7 @@ Removed 0 unused modules.
 Found and cleaned up 1 empty switch in `$paramod$f2f7bee1e0e6ab98404c04ba1f6e95e4b2a1cd10\input_debounce.$proc$../Build/pmic_full.v:87$733'.
 Found and cleaned up 1 empty switch in `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\input_debounce.$proc$../Build/pmic_full.v:87$712'.
 Found and cleaned up 1 empty switch in `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:87$693'.
-Found and cleaned up 1 empty switch in `\pmic_top.$proc$../Build/pmic_full.v:2081$684'.
+Found and cleaned up 1 empty switch in `\pmic_top.$proc$../Build/pmic_full.v:2083$684'.
 Found and cleaned up 1 empty switch in `\supervisor.$proc$../Build/pmic_full.v:1796$674'.
 Found and cleaned up 1 empty switch in `\supervisor.$proc$../Build/pmic_full.v:1791$664'.
 Found and cleaned up 1 empty switch in `\supervisor.$proc$../Build/pmic_full.v:1786$662'.
@@ -251,7 +249,7 @@ Marked 1 switch rules as full_case in process $proc$../Build/pmic_full.v:101$720
 Marked 2 switch rules as full_case in process $proc$../Build/pmic_full.v:92$714 in module $paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\input_debounce.
 Marked 1 switch rules as full_case in process $proc$../Build/pmic_full.v:101$701 in module $paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.
 Marked 2 switch rules as full_case in process $proc$../Build/pmic_full.v:92$695 in module $paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.
-Marked 1 switch rules as full_case in process $proc$../Build/pmic_full.v:2076$682 in module pmic_top.
+Marked 1 switch rules as full_case in process $proc$../Build/pmic_full.v:2078$682 in module pmic_top.
 Removed 1 dead cases from process $proc$../Build/pmic_full.v:1764$657 in module supervisor.
 Removed 1 dead cases from process $proc$../Build/pmic_full.v:1727$633 in module supervisor.
 Marked 8 switch rules as full_case in process $proc$../Build/pmic_full.v:1727$633 in module supervisor.
@@ -319,7 +317,7 @@ Found async reset \rst_n in `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\i
 Found async reset \rst_n in `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\input_debounce.$proc$../Build/pmic_full.v:92$714'.
 Found async reset \rst_n in `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:101$701'.
 Found async reset \rst_n in `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:92$695'.
-Found async reset \rst_n in `\pmic_top.$proc$../Build/pmic_full.v:2076$682'.
+Found async reset \rst_n in `\pmic_top.$proc$../Build/pmic_full.v:2078$682'.
 Found async reset \rst_n in `\supervisor.$proc$../Build/pmic_full.v:1722$631'.
 Found async reset \rst_n in `\fault_cause.$proc$../Build/pmic_full.v:1659$626'.
 Found async reset \rst_n in `\fault_cause.$proc$../Build/pmic_full.v:1652$624'.
@@ -392,9 +390,9 @@ Creating decoders for process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217
 Creating decoders for process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:92$695'.
      1/1: $0\disagree_counter[3:0]
 Creating decoders for process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:87$693'.
-Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2316$688'.
-Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2081$684'.
-Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2076$682'.
+Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2318$688'.
+Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2083$684'.
+Creating decoders for process `\pmic_top.$proc$../Build/pmic_full.v:2078$682'.
      1/1: $0\en_from_switch_sync_db_d[0:0]
 Creating decoders for process `\supervisor.$proc$../Build/pmic_full.v:1801$675'.
 Creating decoders for process `\supervisor.$proc$../Build/pmic_full.v:1796$674'.
@@ -780,8 +778,8 @@ No latch inferred for signal `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\
 No latch inferred for signal `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\input_debounce.\target_clks' from process `$paramod$2e3e942600e0928b657ab8896e53d58d0fbac3f1\input_debounce.$proc$../Build/pmic_full.v:87$712'.
 No latch inferred for signal `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.\_sv2v_0' from process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:106$707'.
 No latch inferred for signal `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.\target_clks' from process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:87$693'.
-No latch inferred for signal `\pmic_top.\_sv2v_0' from process `\pmic_top.$proc$../Build/pmic_full.v:2316$688'.
-No latch inferred for signal `\pmic_top.\en_switch_rise' from process `\pmic_top.$proc$../Build/pmic_full.v:2081$684'.
+No latch inferred for signal `\pmic_top.\_sv2v_0' from process `\pmic_top.$proc$../Build/pmic_full.v:2318$688'.
+No latch inferred for signal `\pmic_top.\en_switch_rise' from process `\pmic_top.$proc$../Build/pmic_full.v:2083$684'.
 No latch inferred for signal `\supervisor.\_sv2v_0' from process `\supervisor.$proc$../Build/pmic_full.v:1801$675'.
 No latch inferred for signal `\supervisor.\state_out' from process `\supervisor.$proc$../Build/pmic_full.v:1796$674'.
 No latch inferred for signal `\supervisor.\en' from process `\supervisor.$proc$../Build/pmic_full.v:1791$664'.
@@ -856,7 +854,7 @@ Creating register for signal `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\
   created $adff cell `$procdff$3102' with positive edge clock and positive level reset.
 Creating register for signal `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.\disagree_counter' using process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:92$695'.
   created $adff cell `$procdff$3107' with positive edge clock and positive level reset.
-Creating register for signal `\pmic_top.\en_from_switch_sync_db_d' using process `\pmic_top.$proc$../Build/pmic_full.v:2076$682'.
+Creating register for signal `\pmic_top.\en_from_switch_sync_db_d' using process `\pmic_top.$proc$../Build/pmic_full.v:2078$682'.
   created $adff cell `$procdff$3112' with positive edge clock and positive level reset.
 Creating register for signal `\supervisor.\state' using process `\supervisor.$proc$../Build/pmic_full.v:1722$631'.
   created $adff cell `$procdff$3117' with positive edge clock and positive level reset.
@@ -1127,9 +1125,9 @@ Removing empty process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_
 Found and cleaned up 2 empty switches in `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:92$695'.
 Removing empty process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:92$695'.
 Removing empty process `$paramod$6c78953c7742bee53a45e66310a7dbbbbdb67217\input_debounce.$proc$../Build/pmic_full.v:87$693'.
-Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2316$688'.
-Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2081$684'.
-Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2076$682'.
+Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2318$688'.
+Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2083$684'.
+Removing empty process `pmic_top.$proc$../Build/pmic_full.v:2078$682'.
 Removing empty process `supervisor.$proc$../Build/pmic_full.v:1801$675'.
 Removing empty process `supervisor.$proc$../Build/pmic_full.v:1796$674'.
 Removing empty process `supervisor.$proc$../Build/pmic_full.v:1791$664'.
@@ -1486,7 +1484,7 @@ Running muxtree optimizer on module \pmic_top..
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1575.
     dead port 1/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1573.
 Removed 96 multiplexer ports.
-<suppressed ~590 debug messages>
+<suppressed ~588 debug messages>
 
 3.8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1522,7 +1520,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~491 debug messages>
+<suppressed ~489 debug messages>
 
 3.8.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1552,7 +1550,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~491 debug messages>
+<suppressed ~489 debug messages>
 
 3.8.18. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1614,7 +1612,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~491 debug messages>
+<suppressed ~489 debug messages>
 
 3.10.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1687,9 +1685,9 @@ Adding EN signal on $flatten\g_spi_filt.u_sck_filt.$procdff$3107 ($adff) from mo
 Adding EN signal on $flatten\g_spi_filt.u_sck_filt.$procdff$3102 ($adff) from module pmic_top (D = \g_spi_sync.u_sck_sync.sync_out, Q = \g_spi_filt.u_sck_filt.flag_out).
 Adding EN signal on $flatten\g_spi_filt.u_cs_filt.$procdff$3097 ($adff) from module pmic_top (D = $flatten\g_spi_filt.u_cs_filt.$0\disagree_counter[3:0], Q = \g_spi_filt.u_cs_filt.disagree_counter).
 Adding EN signal on $flatten\g_spi_filt.u_cs_filt.$procdff$3092 ($adff) from module pmic_top (D = \g_spi_sync.u_cs_sync.sync_out, Q = \g_spi_filt.u_cs_filt.flag_out).
-Adding EN signal on $flatten\g_spi_filt.u_sdio_filt.$procdff$3107 ($adff) from module pmic_top (D = $flatten\g_spi_filt.u_sdio_filt.$0\disagree_counter[3:0], Q = \g_spi_filt.u_sdio_filt.disagree_counter).
+Adding EN signal on $flatten\g_spi_filt.u_mosi_filt.$procdff$3107 ($adff) from module pmic_top (D = $flatten\g_spi_filt.u_mosi_filt.$0\disagree_counter[3:0], Q = \g_spi_filt.u_mosi_filt.disagree_counter).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3272 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$7\clamp_cyc_step$func$../Build/pmic_full.v:1262$292.$result[6:0]$502, Q = \g_telemetry.u_reg_file.cycles_per_step).
-Adding EN signal on $flatten\g_spi_filt.u_sdio_filt.$procdff$3102 ($adff) from module pmic_top (D = \g_spi_sync.u_sdio_sync.sync_out, Q = \g_spi_filt.u_sdio_filt.flag_out).
+Adding EN signal on $flatten\g_spi_filt.u_mosi_filt.$procdff$3102 ($adff) from module pmic_top (D = \g_spi_sync.u_mosi_sync.sync_out, Q = \g_spi_filt.u_mosi_filt.flag_out).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3392 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_max_strk).
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3187 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.rx_shift [6], Q = \g_telemetry.u_spi_slave.rw).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3267 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\wd_restored[0:0], Q = \g_telemetry.u_reg_file.wd_restored).
@@ -1702,12 +1700,12 @@ Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3207 ($adff) from 
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3162 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_spi_slave.$procmux$922_Y, Q = \g_telemetry.u_spi_slave.tx_shift).
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3152 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_spi_slave.$procmux$932_Y, Q = \g_telemetry.u_spi_slave.sdio_out).
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3202 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_spi_slave.$0\held_valid[0:0], Q = \g_telemetry.u_spi_slave.held_valid).
-Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3197 ($adff) from module pmic_top (D = { \g_telemetry.u_spi_slave.rx_shift \g_spi_filt.u_sdio_filt.flag_out }, Q = \g_telemetry.u_spi_slave.held_data).
+Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3197 ($adff) from module pmic_top (D = { \g_telemetry.u_spi_slave.rx_shift \g_spi_filt.u_mosi_filt.flag_out }, Q = \g_telemetry.u_spi_slave.held_data).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3257 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\en_pending[0:0], Q = \g_telemetry.u_reg_file.en_pending).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3387 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_trip_ss).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3452 ($adff) from module pmic_top (D = \g_timestamp.u_timestamp.timestamp_ms, Q = \g_telemetry.u_reg_file.timestamp_snap).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3382 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_trip_run).
-Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3192 ($adff) from module pmic_top (D = { \g_telemetry.u_spi_slave.rx_shift [5:0] \g_spi_filt.u_sdio_filt.flag_out }, Q = \g_telemetry.u_spi_slave.rx_shift).
+Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3192 ($adff) from module pmic_top (D = { \g_telemetry.u_spi_slave.rx_shift [5:0] \g_spi_filt.u_mosi_filt.flag_out }, Q = \g_telemetry.u_spi_slave.rx_shift).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3237 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.scratch_r).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3427 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_clean_1).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3232 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\spi_enable[0:0], Q = \g_telemetry.u_reg_file.spi_enable).
@@ -1732,7 +1730,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~360 debug messages>
+<suppressed ~358 debug messages>
 
 3.10.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1767,7 +1765,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~360 debug messages>
+<suppressed ~358 debug messages>
 
 3.10.18. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -1845,10 +1843,10 @@ Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_cs_
 Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719 ($add).
 Removed top 28 bits (of 32) from port Y of cell pmic_top.$flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719 ($add).
 Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718 ($lt).
-Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705 ($ge).
-Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700 ($add).
-Removed top 28 bits (of 32) from port Y of cell pmic_top.$flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700 ($add).
-Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699 ($lt).
+Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_mosi_filt.$ge$../Build/pmic_full.v:104$705 ($ge).
+Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700 ($add).
+Removed top 28 bits (of 32) from port Y of cell pmic_top.$flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700 ($add).
+Removed top 1 bits (of 4) from port B of cell pmic_top.$flatten\g_spi_filt.u_mosi_filt.$lt$../Build/pmic_full.v:96$699 ($lt).
 Removed top 5 bits (of 8) from mux cell pmic_top.$flatten\g_telemetry.u_spi_slave.$procmux$937 ($mux).
 Removed top 1 bits (of 8) from mux cell pmic_top.$flatten\g_telemetry.u_spi_slave.$procmux$922 ($mux).
 Removed top 1 bits (of 8) from mux cell pmic_top.$flatten\g_telemetry.u_spi_slave.$procmux$919 ($mux).
@@ -1920,7 +1918,7 @@ Removed top 1 bits (of 8) from wire pmic_top.$flatten\g_telemetry.u_spi_slave.$p
 Removed top 1 bits (of 8) from wire pmic_top.$flatten\g_telemetry.u_spi_slave.$procmux$922_Y.
 Removed top 1 bits (of 2) from wire pmic_top.$flatten\u_supervisor.$2\next_state[1:0].
 Removed top 1 bits (of 2) from wire pmic_top.$flatten\u_supervisor.$7\next_state[1:0].
-Removed top 28 bits (of 32) from wire pmic_top.$flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700_Y.
+Removed top 28 bits (of 32) from wire pmic_top.$flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700_Y.
 Removed top 26 bits (of 32) from wire pmic_top.$flatten\g_telemetry.u_pwm_stats.$add$../Build/pmic_full.v:766$243_Y.
 Removed top 28 bits (of 32) from wire pmic_top.$flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700_Y.
 Removed top 18 bits (of 32) from wire pmic_top.$flatten\u_latch_stat_sync_db.$add$../Build/pmic_full.v:97$18_Y.
@@ -1942,7 +1940,7 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $macc model for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562 ($add).
   creating $macc model for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566 ($add).
   creating $macc model for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1572$597 ($add).
-  creating $macc model for $flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700 ($add).
+  creating $macc model for $flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700 ($add).
   creating $macc model for $flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719 ($add).
   creating $macc model for $flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700 ($add).
   creating $macc model for $flatten\u_fault_LED.$add$../Build/pmic_full.v:674$211 ($add).
@@ -1999,7 +1997,7 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu model for $macc $flatten\u_fault_LED.$add$../Build/pmic_full.v:674$211.
   creating $alu model for $macc $flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700.
   creating $alu model for $macc $flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719.
-  creating $alu model for $macc $flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700.
+  creating $alu model for $macc $flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700.
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1572$597.
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566.
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562.
@@ -2007,8 +2005,8 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:338$117: $auto$alumacc.cc:427:replace_macc$4193
   creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:342$128: $auto$alumacc.cc:427:replace_macc$4194
   creating $alu model for $flatten\g_telemetry.u_spi_slave.$ge$../Build/pmic_full.v:1583$605 ($ge): new $alu
-  creating $alu model for $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699 ($lt): new $alu
-  creating $alu model for $flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705 ($ge): merged with $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699.
+  creating $alu model for $flatten\g_spi_filt.u_mosi_filt.$lt$../Build/pmic_full.v:96$699 ($lt): new $alu
+  creating $alu model for $flatten\g_spi_filt.u_mosi_filt.$ge$../Build/pmic_full.v:104$705 ($ge): merged with $flatten\g_spi_filt.u_mosi_filt.$lt$../Build/pmic_full.v:96$699.
   creating $alu model for $flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718 ($lt): new $alu
   creating $alu model for $flatten\g_spi_filt.u_cs_filt.$ge$../Build/pmic_full.v:104$724 ($ge): merged with $flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718.
   creating $alu model for $flatten\g_spi_filt.u_sck_filt.$lt$../Build/pmic_full.v:96$699 ($lt): new $alu
@@ -2063,13 +2061,13 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu cell for $flatten\u_pwm_mask.$lt$../Build/pmic_full.v:230$46: $auto$alumacc.cc:578:replace_alu$4424
   creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sck_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4429
   creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718, $flatten\g_spi_filt.u_cs_filt.$ge$../Build/pmic_full.v:104$724: $auto$alumacc.cc:578:replace_alu$4442
-  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4455
+  creating $alu cell for $flatten\g_spi_filt.u_mosi_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_mosi_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4455
   creating $alu cell for $flatten\g_telemetry.u_spi_slave.$ge$../Build/pmic_full.v:1583$605: $auto$alumacc.cc:578:replace_alu$4468
   creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1465$558: $auto$alumacc.cc:578:replace_alu$4481
   creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562: $auto$alumacc.cc:578:replace_alu$4484
   creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566: $auto$alumacc.cc:578:replace_alu$4487
   creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1572$597: $auto$alumacc.cc:578:replace_alu$4490
-  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4493
+  creating $alu cell for $flatten\g_spi_filt.u_mosi_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4493
   creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719: $auto$alumacc.cc:578:replace_alu$4496
   creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4499
   creating $alu cell for $flatten\u_fault_LED.$add$../Build/pmic_full.v:674$211: $auto$alumacc.cc:578:replace_alu$4502
@@ -2117,7 +2115,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~360 debug messages>
+<suppressed ~358 debug messages>
 
 3.16.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -2147,7 +2145,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~360 debug messages>
+<suppressed ~358 debug messages>
 
 3.16.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -2203,13 +2201,13 @@ Finding unused cells or wires in module \pmic_top..
 
 3.19.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~125 debug messages>
+<suppressed ~124 debug messages>
 
 3.19.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 768 cells of `\pmic_top'.
+Computing hashes of 769 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 748 cells of `\pmic_top'.
+Computing hashes of 749 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~60 debug messages>
 Removed a total of 20 cells.
@@ -2218,8 +2216,8 @@ Removed a total of 20 cells.
 
 3.19.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 6 unused cells and 139 unused wires.
-<suppressed ~9 debug messages>
+Removed 4 unused cells and 136 unused wires.
+<suppressed ~5 debug messages>
 
 3.19.5. Finished fast OPT passes.
 
@@ -2233,9 +2231,9 @@ Optimizing module pmic_top.
 
 3.21.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 741 cells of `\pmic_top'.
+Computing hashes of 744 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 739 cells of `\pmic_top'.
+Computing hashes of 742 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~6 debug messages>
 Removed a total of 2 cells.
@@ -2271,14 +2269,13 @@ Performed a total of 4 changes.
 
 3.21.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 739 cells of `\pmic_top'.
+Computing hashes of 742 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
 3.21.6. Executing OPT_SHARE pass.
 
 3.21.7. Executing OPT_DFF pass (perform DFF optimizations).
-Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3217 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.spi_state_next, Q = \g_telemetry.u_spi_slave.spi_state).
 
 3.21.8. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
@@ -2287,7 +2284,7 @@ Removed 0 unused cells and 3 unused wires.
 
 3.21.9. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~105 debug messages>
+<suppressed ~103 debug messages>
 
 3.21.10. Rerunning OPT passes. (Maybe there is more to do..)
 
@@ -2297,19 +2294,17 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~187 debug messages>
+<suppressed ~189 debug messages>
 
 3.21.12. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
-    New ctrl vector for $pmux cell $flatten\g_telemetry.u_spi_slave.$procmux$1067: { $auto$opt_reduce.cc:137:opt_pmux$4800 $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1497$568_Y $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1493$567_Y $flatten\g_telemetry.u_spi_slave.$procmux$1072_CMP }
-  Optimizing cells in module \pmic_top.
-Performed a total of 1 changes.
+Performed a total of 0 changes.
 
 3.21.13. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 753 cells of `\pmic_top'.
+Computing hashes of 754 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 746 cells of `\pmic_top'.
+Computing hashes of 747 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~29 debug messages>
 Removed a total of 7 cells.
@@ -2320,7 +2315,7 @@ Removed a total of 7 cells.
 
 3.21.16. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 6 unused cells and 79 unused wires.
+Removed 6 unused cells and 77 unused wires.
 <suppressed ~7 debug messages>
 
 3.21.17. Executing OPT_EXPR pass (perform const folding).
@@ -2334,7 +2329,7 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~187 debug messages>
+<suppressed ~189 debug messages>
 
 3.21.20. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
@@ -2342,7 +2337,7 @@ Performed a total of 0 changes.
 
 3.21.21. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 740 cells of `\pmic_top'.
+Computing hashes of 741 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -2390,11 +2385,7 @@ Generating RTLIL representation for module `$input_port'.
 Successfully finished Verilog frontend.
 
 3.22.2. Continuing TECHMAP pass.
-Using extmapper simplemap for cells of type $reduce_or.
 Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc\_90_alu for cells of type $alu.
-Using extmapper simplemap for cells of type $reduce_and.
-Using extmapper simplemap for cells of type $ne.
-Using extmapper simplemap for cells of type $adffe.
 Using extmapper simplemap for cells of type $not.
 Using template $paramod$ea402187f386206c0840504755479bf827f47707\_90_alu for cells of type $alu.
 Using template $paramod$713617589782cfade849bb573b5c36106c4b708f\_90_alu for cells of type $alu.
@@ -2415,7 +2406,9 @@ Using template $paramod$93b49458bab1c00eb32aff458c583f46ff61e60f\_90_alu for cel
 Using template $paramod$32a7b7b86c07519b7537abc18e96f0331f97914d\_90_alu for cells of type $alu.
 Using template $paramod$3b7577489eb4433b1d5620cab7f3794743dee5ea\_90_alu for cells of type $alu.
 Using template $paramod$3ef7d3dd227da7627a99c5e5a6a4deb817573e39\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $reduce_or.
 Using extmapper simplemap for cells of type $or.
+Using extmapper simplemap for cells of type $reduce_and.
 Using template $paramod$5ccf584370207a3ccc3032757a8e590623d4de56\_90_alu for cells of type $alu.
 Using template $paramod$f956edc9fe4df758d9fdb10bfc518a364c99e75e\_90_alu for cells of type $alu.
 Using template $paramod$b18e16801adf491a64caa0542270798e5d4ac6b6\_90_alu for cells of type $alu.
@@ -2441,7 +2434,9 @@ Using extmapper maccmap for cells of type $macc_v2.
   add \u_fault_arbiter.cp_delay [4] (1 bits, unsigned)
   sub \u_fault_arbiter.fault_shifter_RUN [15] (1 bits, unsigned)
   packed 1 (1) bits / 1 words into adder tree
+Using extmapper simplemap for cells of type $adffe.
 Using extmapper simplemap for cells of type $reduce_bool.
+Using extmapper simplemap for cells of type $ne.
 Using extmapper simplemap for cells of type $and.
 Using extmapper simplemap for cells of type $adff.
 Using extmapper simplemap for cells of type $mux.
@@ -2457,25 +2452,25 @@ Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000110 for cel
 Using extmapper simplemap for cells of type $pos.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010010 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010010 for cells of type $lcu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010011 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010011 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001111 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001111 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000100 for cells of type $fa.
-Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001110 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000100 for cells of type $lcu.
-Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010011 for cells of type $fa.
-Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010011 for cells of type $lcu.
-Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001110 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000001 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000001 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010100 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010100 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010101 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010101 for cells of type $lcu.
-Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001100 for cells of type $fa.
-Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001100 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000011000 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000011000 for cells of type $lcu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001100 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001100 for cells of type $lcu.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000101 for cells of type $lcu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001110 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001110 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010000 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010000 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000111 for cells of type $fa.
@@ -2488,36 +2483,36 @@ Using template $paramod\_90_lcu_brent_kung\WIDTH=32'0000000000000000000000000000
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000010 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000010 for cells of type $lcu.
 No more expansions possible.
-<suppressed ~6148 debug messages>
+<suppressed ~6149 debug messages>
 
 3.23. Executing OPT pass (performing simple optimizations).
 
 3.23.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~5369 debug messages>
+<suppressed ~5357 debug messages>
 
 3.23.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 5503 cells of `\pmic_top'.
+Computing hashes of 5515 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 5057 cells of `\pmic_top'.
+Computing hashes of 5070 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4903 cells of `\pmic_top'.
+Computing hashes of 4916 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4831 cells of `\pmic_top'.
+Computing hashes of 4844 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4824 cells of `\pmic_top'.
+Computing hashes of 4837 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 4820 cells of `\pmic_top'.
+Computing hashes of 4833 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-<suppressed ~2049 debug messages>
-Removed a total of 683 cells.
+<suppressed ~2046 debug messages>
+Removed a total of 682 cells.
 
 3.23.3. Executing OPT_DFF pass (perform DFF optimizations).
 
 3.23.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 682 unused cells and 4183 unused wires.
+Removed 682 unused cells and 4176 unused wires.
 <suppressed ~683 debug messages>
 
 3.23.5. Finished fast OPT passes.
@@ -2526,13 +2521,12 @@ Removed 682 unused cells and 4183 unused wires.
 
 3.24.1. Summary of detected clock domains:
   31 cells in clk={ }, en={ }, arst={ }, srst={ }
-  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3793, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3828, arst=!\rst_sync.rst_n_exit, srst={ }
+  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3828, arst=!\rst_sync.rst_n_exit, srst={ }
   2 cells in clk=\clk, en={ }, arst=!\rst_n_pin, srst={ }
   7 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3929, arst=!\rst_sync.rst_n_exit, srst={ }
   18 cells in clk=\clk, en=$flatten\u_en_from_switch_db.$logic_and$../Build/pmic_full.v:104$746_Y, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3800, arst=!\rst_sync.rst_n_exit, srst={ }
   14 cells in clk=\clk, en=$flatten\u_OTP_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3800, arst=!\rst_sync.rst_n_exit, srst={ }
   16 cells in clk=\clk, en=$flatten\u_UVLO_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3863, arst=!\rst_sync.rst_n_exit, srst={ }
   16 cells in clk=\clk, en=$flatten\u_latch_stat_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -2540,33 +2534,33 @@ Removed 682 unused cells and 4183 unused wires.
   6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3936, arst=!\rst_sync.rst_n_exit, srst={ }
   6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3835, arst=!\rst_sync.rst_n_exit, srst={ }
   4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3922, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3807, arst=!\rst_sync.rst_n_exit, srst={ }
   3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3908, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3976, arst=!\rst_sync.rst_n_exit, srst={ }
   12 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3982, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3807, arst=!\rst_sync.rst_n_exit, srst={ }
   37 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4003, arst=!\rst_sync.rst_n_exit, srst={ }
   4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3814, arst=!\rst_sync.rst_n_exit, srst={ }
   6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3842, arst=!\rst_sync.rst_n_exit, srst={ }
   4 cells in clk=\clk, en=$flatten\u_fault_LED.$eq$../Build/pmic_full.v:669$209_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3849, arst=!\rst_sync.rst_n_exit, srst={ }
+  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3793, arst=!\rst_sync.rst_n_exit, srst={ }
   7 cells in clk=\clk, en=$flatten\g_spi_filt.u_sck_filt.$logic_and$../Build/pmic_full.v:104$706_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   64 cells in clk=\clk, en=$flatten\g_spi_filt.u_cs_filt.$logic_and$../Build/pmic_full.v:104$725_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  9 cells in clk=\clk, en=$flatten\g_spi_filt.u_sdio_filt.$logic_and$../Build/pmic_full.v:104$706_Y, arst=!\rst_sync.rst_n_exit, srst={ }
+  9 cells in clk=\clk, en=$flatten\g_spi_filt.u_mosi_filt.$logic_and$../Build/pmic_full.v:104$706_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3856, arst=!\rst_sync.rst_n_exit, srst={ }
-  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4056, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4056, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$4059, arst=!\rst_sync.rst_n_exit, srst={ }
   3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3821, arst=!\rst_sync.rst_n_exit, srst={ }
   9 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4112, arst=!\rst_sync.rst_n_exit, srst={ }
   217 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4087, arst=!\rst_sync.rst_n_exit, srst={ }
   8 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3915, arst=!\rst_sync.rst_n_exit, srst={ }
   10 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4155, arst=!\rst_sync.rst_n_exit, srst={ }
-  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4650, arst=!\rst_sync.rst_n_exit, srst={ }
   40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4166, arst=!\rst_sync.rst_n_exit, srst={ }
   78 cells in clk=\clk, en=$flatten\g_telemetry.u_reg_file.$logic_and$../Build/pmic_full.v:973$322_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   28 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4160, arst=!\rst_sync.rst_n_exit, srst={ }
   29 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4148, arst=!\rst_sync.rst_n_exit, srst={ }
   18 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4143, arst=!\rst_sync.rst_n_exit, srst={ }
-  28 cells in clk=\clk, en=\g_telemetry.u_spi_slave.sck_rise, arst=!\rst_sync.rst_n_exit, srst={ }
+  27 cells in clk=\clk, en=\g_telemetry.u_spi_slave.sck_rise, arst=!\rst_sync.rst_n_exit, srst={ }
   39 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4139, arst=!\rst_sync.rst_n_exit, srst={ }
   53 cells in clk=\clk, en=\g_telemetry.u_reg_file.rd_first, arst=!\rst_sync.rst_n_exit, srst={ }
   44 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4133, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -2574,7 +2568,7 @@ Removed 682 unused cells and 4183 unused wires.
   290 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4098, arst=!\rst_sync.rst_n_exit, srst={ }
   39 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$4076, arst=!\rst_sync.rst_n_exit, srst={ }
   24 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4078, arst=!\rst_sync.rst_n_exit, srst={ }
-  26 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4071, arst=!\rst_sync.rst_n_exit, srst={ }
+  25 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4071, arst=!\rst_sync.rst_n_exit, srst={ }
   75 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4064, arst=!\rst_sync.rst_n_exit, srst={ }
   35 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4051, arst=!\rst_sync.rst_n_exit, srst={ }
   55 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4045, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -2610,7 +2604,7 @@ Removed 682 unused cells and 4183 unused wires.
   108 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3772, arst=!\rst_sync.rst_n_exit, srst={ }
   135 cells in clk=\clk, en=$flatten\g_timestamp.u_timestamp.$eq$../Build/pmic_full.v:603$199_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   61 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3768, arst=!\rst_sync.rst_n_exit, srst={ }
-  627 cells in clk=\clk, en={ }, arst=!\rst_sync.rst_n_exit, srst={ }
+  681 cells in clk=\clk, en={ }, arst=!\rst_sync.rst_n_exit, srst={ }
 
 3.24.2. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 No matching clock domain found. Not extracting any FF cells.
@@ -2621,10 +2615,10 @@ Don't call ABC as there is nothing to map.
 Removing temp directory.
 
 3.24.3. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3793, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3828, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.3.1. Executed ABC.
-Extracted 5 gates and 11 wires to a netlist network with 6 inputs and 4 outputs.
+Extracted 5 gates and 10 wires to a netlist network with 5 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.3.2. Re-integrating ABC results.
@@ -2632,41 +2626,26 @@ ABC RESULTS:               AND cells:        2
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        2
 ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        6
+ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
 3.24.4. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3828, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.4.1. Executed ABC.
-Extracted 4 gates and 9 wires to a netlist network with 5 inputs and 3 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.4.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        2
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        5
-ABC RESULTS:          output signals:        3
-Removing temp directory.
-
-3.24.5. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, asynchronously reset by !\rst_n_pin
 
-3.24.5.1. Executed ABC.
+3.24.4.1. Executed ABC.
 Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
 Don't call ABC as there is nothing to map.
 Removing temp directory.
 
-3.24.6. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.5. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3929, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.6.1. Executed ABC.
+3.24.5.1. Executed ABC.
 Extracted 6 gates and 13 wires to a netlist network with 7 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.6.2. Re-integrating ABC results.
+3.24.5.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        3
@@ -2675,19 +2654,34 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
-3.24.7. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.6. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_en_from_switch_db.$logic_and$../Build/pmic_full.v:104$746_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.7.1. Executed ABC.
+3.24.6.1. Executed ABC.
 Extracted 17 gates and 34 wires to a netlist network with 17 inputs and 8 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.7.2. Re-integrating ABC results.
+3.24.6.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       13
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:        internal signals:        9
 ABC RESULTS:           input signals:       17
 ABC RESULTS:          output signals:        8
+Removing temp directory.
+
+3.24.7. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3800, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.7.1. Executed ABC.
+Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.7.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        2
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        6
+ABC RESULTS:          output signals:        3
 Removing temp directory.
 
 3.24.8. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -2708,28 +2702,13 @@ ABC RESULTS:          output signals:        8
 Removing temp directory.
 
 3.24.9. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3800, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.9.1. Executed ABC.
-Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 2 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.9.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        1
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        5
-ABC RESULTS:          output signals:        2
-Removing temp directory.
-
-3.24.10. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_UVLO_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.10.1. Executed ABC.
+3.24.9.1. Executed ABC.
 Extracted 15 gates and 28 wires to a netlist network with 13 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.10.2. Re-integrating ABC results.
+3.24.9.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        4
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOR cells:        1
@@ -2740,14 +2719,14 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.11. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.10. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3863, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.11.1. Executed ABC.
+3.24.10.1. Executed ABC.
 Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.11.2. Re-integrating ABC results.
+3.24.10.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        2
 ABC RESULTS:        internal signals:        1
@@ -2755,14 +2734,14 @@ ABC RESULTS:           input signals:        6
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.12. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.11. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_latch_stat_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.12.1. Executed ABC.
+3.24.11.1. Executed ABC.
 Extracted 15 gates and 28 wires to a netlist network with 13 inputs and 10 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.12.2. Re-integrating ABC results.
+3.24.11.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        5
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        2
@@ -2773,14 +2752,14 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:       10
 Removing temp directory.
 
-3.24.13. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.12. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3870, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.13.1. Executed ABC.
+3.24.12.1. Executed ABC.
 Extracted 11 gates and 25 wires to a netlist network with 13 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.13.2. Re-integrating ABC results.
+3.24.12.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        3
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -2792,14 +2771,14 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.14. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.13. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3936, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.14.1. Executed ABC.
+3.24.13.1. Executed ABC.
 Extracted 5 gates and 12 wires to a netlist network with 7 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.14.2. Re-integrating ABC results.
+3.24.13.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        3
 ABC RESULTS:        internal signals:        2
@@ -2807,14 +2786,14 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.15. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.14. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3835, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.15.1. Executed ABC.
+3.24.14.1. Executed ABC.
 Extracted 5 gates and 12 wires to a netlist network with 7 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.15.2. Re-integrating ABC results.
+3.24.14.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        3
 ABC RESULTS:        internal signals:        1
@@ -2822,18 +2801,33 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
-3.24.16. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.15. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3922, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.16.1. Executed ABC.
+3.24.15.1. Executed ABC.
 Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.16.2. Re-integrating ABC results.
+3.24.15.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        0
 ABC RESULTS:           input signals:        5
+ABC RESULTS:          output signals:        3
+Removing temp directory.
+
+3.24.16. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3807, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.16.1. Executed ABC.
+Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.16.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        2
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        6
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
@@ -2883,28 +2877,13 @@ ABC RESULTS:          output signals:        8
 Removing temp directory.
 
 3.24.20. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3807, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.20.1. Executed ABC.
-Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.20.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        2
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        6
-ABC RESULTS:          output signals:        3
-Removing temp directory.
-
-3.24.21. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4003, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.21.1. Executed ABC.
+3.24.20.1. Executed ABC.
 Extracted 36 gates and 60 wires to a netlist network with 23 inputs and 6 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.21.2. Re-integrating ABC results.
+3.24.20.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -2917,14 +2896,14 @@ ABC RESULTS:           input signals:       23
 ABC RESULTS:          output signals:        6
 Removing temp directory.
 
-3.24.22. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.21. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3814, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.22.1. Executed ABC.
+3.24.21.1. Executed ABC.
 Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 2 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.22.2. Re-integrating ABC results.
+3.24.21.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -2932,14 +2911,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        2
 Removing temp directory.
 
-3.24.23. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.22. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3842, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.23.1. Executed ABC.
+3.24.22.1. Executed ABC.
 Extracted 5 gates and 10 wires to a netlist network with 5 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.23.2. Re-integrating ABC results.
+3.24.22.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               NOT cells:        1
@@ -2949,14 +2928,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
-3.24.24. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.23. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_fault_LED.$eq$../Build/pmic_full.v:669$209_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.24.1. Executed ABC.
+3.24.23.1. Executed ABC.
 Extracted 3 gates and 6 wires to a netlist network with 3 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.24.2. Re-integrating ABC results.
+3.24.23.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:               NOT cells:        2
 ABC RESULTS:        internal signals:        0
@@ -2964,19 +2943,34 @@ ABC RESULTS:           input signals:        3
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.25. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.24. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3849, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.25.1. Executed ABC.
+3.24.24.1. Executed ABC.
 Extracted 4 gates and 9 wires to a netlist network with 5 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.25.2. Re-integrating ABC results.
+3.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        2
 ABC RESULTS:        internal signals:        1
 ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        3
+Removing temp directory.
+
+3.24.25. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3793, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.25.1. Executed ABC.
+Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 2 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.25.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        1
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        5
+ABC RESULTS:          output signals:        2
 Removing temp directory.
 
 3.24.26. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -3015,7 +3009,7 @@ ABC RESULTS:          output signals:       19
 Removing temp directory.
 
 3.24.28. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $flatten\g_spi_filt.u_sdio_filt.$logic_and$../Build/pmic_full.v:104$706_Y, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $flatten\g_spi_filt.u_mosi_filt.$logic_and$../Build/pmic_full.v:104$706_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.28.1. Executed ABC.
 Extracted 8 gates and 18 wires to a netlist network with 10 inputs and 3 outputs.
@@ -3051,15 +3045,15 @@ Removing temp directory.
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4056, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.30.1. Executed ABC.
-Extracted 3 gates and 7 wires to a netlist network with 4 inputs and 2 outputs.
+Extracted 4 gates and 8 wires to a netlist network with 4 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.30.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
-ABC RESULTS:               NOT cells:        1
+ABC RESULTS:               NOT cells:        2
 ABC RESULTS:        internal signals:        1
 ABC RESULTS:           input signals:        4
-ABC RESULTS:          output signals:        2
+ABC RESULTS:          output signals:        3
 Removing temp directory.
 
 3.24.31. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -3163,33 +3157,13 @@ ABC RESULTS:          output signals:        7
 Removing temp directory.
 
 3.24.37. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4650, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.37.1. Executed ABC.
-Extracted 37 gates and 51 wires to a netlist network with 12 inputs and 11 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.37.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        3
-ABC RESULTS:            ANDNOT cells:        5
-ABC RESULTS:              NAND cells:        4
-ABC RESULTS:               NOR cells:        6
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:        3
-ABC RESULTS:             ORNOT cells:        2
-ABC RESULTS:        internal signals:       28
-ABC RESULTS:           input signals:       12
-ABC RESULTS:          output signals:       11
-Removing temp directory.
-
-3.24.38. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4166, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.38.1. Executed ABC.
+3.24.37.1. Executed ABC.
 Extracted 32 gates and 44 wires to a netlist network with 10 inputs and 16 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.38.2. Re-integrating ABC results.
+3.24.37.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -3201,14 +3175,14 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:       16
 Removing temp directory.
 
-3.24.39. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.38. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_telemetry.u_reg_file.$logic_and$../Build/pmic_full.v:973$322_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.39.1. Executed ABC.
+3.24.38.1. Executed ABC.
 Extracted 62 gates and 84 wires to a netlist network with 22 inputs and 39 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.39.2. Re-integrating ABC results.
+3.24.38.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       33
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        2
@@ -3222,14 +3196,14 @@ ABC RESULTS:           input signals:       22
 ABC RESULTS:          output signals:       39
 Removing temp directory.
 
-3.24.40. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.39. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4160, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.40.1. Executed ABC.
+3.24.39.1. Executed ABC.
 Extracted 20 gates and 33 wires to a netlist network with 12 inputs and 17 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.40.2. Re-integrating ABC results.
+3.24.39.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        7
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:                OR cells:        1
@@ -3239,14 +3213,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       17
 Removing temp directory.
 
-3.24.41. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.40. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4148, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.41.1. Executed ABC.
+3.24.40.1. Executed ABC.
 Extracted 21 gates and 34 wires to a netlist network with 12 inputs and 18 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.41.2. Re-integrating ABC results.
+3.24.40.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        7
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:                OR cells:        1
@@ -3256,14 +3230,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       18
 Removing temp directory.
 
-3.24.42. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.41. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4143, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.42.1. Executed ABC.
+3.24.41.1. Executed ABC.
 Extracted 10 gates and 20 wires to a netlist network with 10 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.42.2. Re-integrating ABC results.
+3.24.41.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:               NOR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -3271,31 +3245,30 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.43. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.42. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by \g_telemetry.u_spi_slave.sck_rise, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.43.1. Executed ABC.
-Extracted 21 gates and 44 wires to a netlist network with 23 inputs and 9 outputs.
+3.24.42.1. Executed ABC.
+Extracted 20 gates and 45 wires to a netlist network with 25 inputs and 8 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.43.2. Re-integrating ABC results.
-ABC RESULTS:            ANDNOT cells:        2
-ABC RESULTS:               MUX cells:       12
-ABC RESULTS:               NOT cells:        1
+3.24.42.2. Re-integrating ABC results.
+ABC RESULTS:            ANDNOT cells:        1
+ABC RESULTS:               MUX cells:       13
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:       12
-ABC RESULTS:           input signals:       23
-ABC RESULTS:          output signals:        9
+ABC RESULTS:           input signals:       25
+ABC RESULTS:          output signals:        8
 Removing temp directory.
 
-3.24.44. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.43. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4139, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.44.1. Executed ABC.
+3.24.43.1. Executed ABC.
 Extracted 31 gates and 44 wires to a netlist network with 11 inputs and 15 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.44.2. Re-integrating ABC results.
+3.24.43.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        5
 ABC RESULTS:               NOR cells:        2
@@ -3306,14 +3279,14 @@ ABC RESULTS:           input signals:       11
 ABC RESULTS:          output signals:       15
 Removing temp directory.
 
-3.24.45. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.44. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by \g_telemetry.u_reg_file.rd_first, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.45.1. Executed ABC.
+3.24.44.1. Executed ABC.
 Extracted 29 gates and 80 wires to a netlist network with 51 inputs and 26 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.45.2. Re-integrating ABC results.
+3.24.44.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               MUX cells:       23
@@ -3324,14 +3297,14 @@ ABC RESULTS:           input signals:       51
 ABC RESULTS:          output signals:       26
 Removing temp directory.
 
-3.24.46. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.45. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4133, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.46.1. Executed ABC.
+3.24.45.1. Executed ABC.
 Extracted 36 gates and 48 wires to a netlist network with 10 inputs and 15 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.46.2. Re-integrating ABC results.
+3.24.45.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        3
@@ -3343,28 +3316,28 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:       15
 Removing temp directory.
 
-3.24.47. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.46. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4119, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.47.1. Executed ABC.
+3.24.46.1. Executed ABC.
 Extracted 3 gates and 7 wires to a netlist network with 4 inputs and 2 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.47.2. Re-integrating ABC results.
+3.24.46.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        3
 ABC RESULTS:        internal signals:        1
 ABC RESULTS:           input signals:        4
 ABC RESULTS:          output signals:        2
 Removing temp directory.
 
-3.24.48. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.47. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4098, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.48.1. Executed ABC.
+3.24.47.1. Executed ABC.
 Extracted 282 gates and 513 wires to a netlist network with 230 inputs and 10 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.48.2. Re-integrating ABC results.
+3.24.47.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:      113
 ABC RESULTS:            ANDNOT cells:        5
 ABC RESULTS:              NAND cells:       55
@@ -3377,14 +3350,14 @@ ABC RESULTS:           input signals:      230
 ABC RESULTS:          output signals:       10
 Removing temp directory.
 
-3.24.49. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.48. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4076, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.49.1. Executed ABC.
+3.24.48.1. Executed ABC.
 Extracted 28 gates and 43 wires to a netlist network with 14 inputs and 20 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.49.2. Re-integrating ABC results.
+3.24.48.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        6
 ABC RESULTS:               NOR cells:        5
@@ -3397,14 +3370,14 @@ ABC RESULTS:           input signals:       14
 ABC RESULTS:          output signals:       20
 Removing temp directory.
 
-3.24.50. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.49. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4078, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.50.1. Executed ABC.
+3.24.49.1. Executed ABC.
 Extracted 20 gates and 28 wires to a netlist network with 7 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.50.2. Re-integrating ABC results.
+3.24.49.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        5
 ABC RESULTS:            ANDNOT cells:        4
 ABC RESULTS:              NAND cells:        1
@@ -3416,32 +3389,32 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.51. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.50. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4071, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.51.1. Executed ABC.
-Extracted 18 gates and 33 wires to a netlist network with 14 inputs and 14 outputs.
+3.24.50.1. Executed ABC.
+Extracted 17 gates and 31 wires to a netlist network with 13 inputs and 13 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.51.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        3
+3.24.50.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               NOT cells:        4
 ABC RESULTS:                OR cells:        2
 ABC RESULTS:             ORNOT cells:        5
 ABC RESULTS:        internal signals:        5
-ABC RESULTS:           input signals:       14
-ABC RESULTS:          output signals:       14
+ABC RESULTS:           input signals:       13
+ABC RESULTS:          output signals:       13
 Removing temp directory.
 
-3.24.52. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.51. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4064, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.52.1. Executed ABC.
+3.24.51.1. Executed ABC.
 Extracted 67 gates and 95 wires to a netlist network with 27 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.52.2. Re-integrating ABC results.
+3.24.51.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        3
@@ -3453,14 +3426,14 @@ ABC RESULTS:           input signals:       27
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
-3.24.53. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.52. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4051, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.53.1. Executed ABC.
+3.24.52.1. Executed ABC.
 Extracted 27 gates and 40 wires to a netlist network with 12 inputs and 12 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.53.2. Re-integrating ABC results.
+3.24.52.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:              NAND cells:        4
 ABC RESULTS:               NOR cells:        1
@@ -3471,14 +3444,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       12
 Removing temp directory.
 
-3.24.54. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.53. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4045, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.54.1. Executed ABC.
+3.24.53.1. Executed ABC.
 Extracted 48 gates and 78 wires to a netlist network with 28 inputs and 28 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.54.2. Re-integrating ABC results.
+3.24.53.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       19
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               NOR cells:        1
@@ -3491,8 +3464,26 @@ ABC RESULTS:           input signals:       28
 ABC RESULTS:          output signals:       28
 Removing temp directory.
 
-3.24.55. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.54. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4042, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.54.1. Executed ABC.
+Extracted 17 gates and 23 wires to a netlist network with 5 inputs and 7 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.54.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        4
+ABC RESULTS:            ANDNOT cells:        5
+ABC RESULTS:              NAND cells:        2
+ABC RESULTS:               NOT cells:        1
+ABC RESULTS:                OR cells:        3
+ABC RESULTS:        internal signals:       11
+ABC RESULTS:           input signals:        5
+ABC RESULTS:          output signals:        7
+Removing temp directory.
+
+3.24.55. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4038, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.55.1. Executed ABC.
 Extracted 17 gates and 23 wires to a netlist network with 5 inputs and 7 outputs.
@@ -3510,7 +3501,7 @@ ABC RESULTS:          output signals:        7
 Removing temp directory.
 
 3.24.56. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4038, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4034, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.56.1. Executed ABC.
 Extracted 17 gates and 23 wires to a netlist network with 5 inputs and 7 outputs.
@@ -3528,31 +3519,13 @@ ABC RESULTS:          output signals:        7
 Removing temp directory.
 
 3.24.57. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4034, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.57.1. Executed ABC.
-Extracted 17 gates and 23 wires to a netlist network with 5 inputs and 7 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.57.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        4
-ABC RESULTS:            ANDNOT cells:        5
-ABC RESULTS:              NAND cells:        2
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:        3
-ABC RESULTS:        internal signals:       11
-ABC RESULTS:           input signals:        5
-ABC RESULTS:          output signals:        7
-Removing temp directory.
-
-3.24.58. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4030, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.58.1. Executed ABC.
+3.24.57.1. Executed ABC.
 Extracted 64 gates and 82 wires to a netlist network with 16 inputs and 22 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.58.2. Re-integrating ABC results.
+3.24.57.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       23
 ABC RESULTS:            ANDNOT cells:        4
 ABC RESULTS:              NAND cells:       10
@@ -3566,14 +3539,14 @@ ABC RESULTS:           input signals:       16
 ABC RESULTS:          output signals:       22
 Removing temp directory.
 
-3.24.59. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.58. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4027, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.59.1. Executed ABC.
+3.24.58.1. Executed ABC.
 Extracted 31 gates and 42 wires to a netlist network with 11 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.59.2. Re-integrating ABC results.
+3.24.58.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        5
 ABC RESULTS:              NAND cells:       11
 ABC RESULTS:               NOR cells:        1
@@ -3586,14 +3559,14 @@ ABC RESULTS:           input signals:       11
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
-3.24.60. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.59. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4024, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.60.1. Executed ABC.
+3.24.59.1. Executed ABC.
 Extracted 30 gates and 63 wires to a netlist network with 31 inputs and 23 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.60.2. Re-integrating ABC results.
+3.24.59.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       15
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOR cells:        1
@@ -3604,14 +3577,14 @@ ABC RESULTS:           input signals:       31
 ABC RESULTS:          output signals:       23
 Removing temp directory.
 
-3.24.61. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.60. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4021, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.61.1. Executed ABC.
+3.24.60.1. Executed ABC.
 Extracted 52 gates and 76 wires to a netlist network with 23 inputs and 11 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.61.2. Re-integrating ABC results.
+3.24.60.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       22
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        5
@@ -3625,14 +3598,14 @@ ABC RESULTS:           input signals:       23
 ABC RESULTS:          output signals:       11
 Removing temp directory.
 
-3.24.62. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.61. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4014, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.62.1. Executed ABC.
+3.24.61.1. Executed ABC.
 Extracted 28 gates and 44 wires to a netlist network with 14 inputs and 17 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.62.2. Re-integrating ABC results.
+3.24.61.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        3
 ABC RESULTS:              NAND cells:        1
@@ -3647,14 +3620,14 @@ ABC RESULTS:           input signals:       14
 ABC RESULTS:          output signals:       17
 Removing temp directory.
 
-3.24.63. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.62. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3992, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.63.1. Executed ABC.
+3.24.62.1. Executed ABC.
 Extracted 108 gates and 160 wires to a netlist network with 51 inputs and 39 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.63.2. Re-integrating ABC results.
+3.24.62.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       40
 ABC RESULTS:            ANDNOT cells:        7
 ABC RESULTS:              NAND cells:        3
@@ -3667,14 +3640,14 @@ ABC RESULTS:           input signals:       51
 ABC RESULTS:          output signals:       39
 Removing temp directory.
 
-3.24.64. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.63. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3985, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.64.1. Executed ABC.
+3.24.63.1. Executed ABC.
 Extracted 69 gates and 116 wires to a netlist network with 46 inputs and 31 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.64.2. Re-integrating ABC results.
+3.24.63.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       14
 ABC RESULTS:            ANDNOT cells:        4
 ABC RESULTS:               MUX cells:       33
@@ -3689,14 +3662,14 @@ ABC RESULTS:           input signals:       46
 ABC RESULTS:          output signals:       31
 Removing temp directory.
 
-3.24.65. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.64. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3979, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.65.1. Executed ABC.
+3.24.64.1. Executed ABC.
 Extracted 111 gates and 154 wires to a netlist network with 42 inputs and 23 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.65.2. Re-integrating ABC results.
+3.24.64.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       57
 ABC RESULTS:            ANDNOT cells:       18
 ABC RESULTS:              NAND cells:        2
@@ -3710,14 +3683,14 @@ ABC RESULTS:           input signals:       42
 ABC RESULTS:          output signals:       23
 Removing temp directory.
 
-3.24.66. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.65. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by \g_telemetry.u_pwm_stats.pwm_rise, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.66.1. Executed ABC.
+3.24.65.1. Executed ABC.
 Extracted 8 gates and 16 wires to a netlist network with 8 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.66.2. Re-integrating ABC results.
+3.24.65.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:               NOR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -3725,14 +3698,14 @@ ABC RESULTS:           input signals:        8
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
-3.24.67. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.66. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3958, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.67.1. Executed ABC.
+3.24.66.1. Executed ABC.
 Extracted 70 gates and 105 wires to a netlist network with 34 inputs and 39 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.67.2. Re-integrating ABC results.
+3.24.66.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       36
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        6
@@ -3746,14 +3719,14 @@ ABC RESULTS:           input signals:       34
 ABC RESULTS:          output signals:       39
 Removing temp directory.
 
-3.24.68. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.67. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3951, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.68.1. Executed ABC.
+3.24.67.1. Executed ABC.
 Extracted 95 gates and 148 wires to a netlist network with 52 inputs and 59 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.68.2. Re-integrating ABC results.
+3.24.67.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       56
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               MUX cells:        1
@@ -3768,14 +3741,14 @@ ABC RESULTS:           input signals:       52
 ABC RESULTS:          output signals:       59
 Removing temp directory.
 
-3.24.69. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.68. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3944, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.69.1. Executed ABC.
+3.24.68.1. Executed ABC.
 Extracted 11 gates and 22 wires to a netlist network with 11 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.69.2. Re-integrating ABC results.
+3.24.68.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               NOR cells:        1
@@ -3785,14 +3758,14 @@ ABC RESULTS:           input signals:       11
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.70. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.69. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3939, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.70.1. Executed ABC.
+3.24.69.1. Executed ABC.
 Extracted 28 gates and 36 wires to a netlist network with 7 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.70.2. Re-integrating ABC results.
+3.24.69.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        5
 ABC RESULTS:            ANDNOT cells:        4
 ABC RESULTS:              NAND cells:        1
@@ -3803,14 +3776,14 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
-3.24.71. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.70. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3901, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.71.1. Executed ABC.
+3.24.70.1. Executed ABC.
 Extracted 63 gates and 124 wires to a netlist network with 60 inputs and 53 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.71.2. Re-integrating ABC results.
+3.24.70.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       48
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        3
@@ -3822,14 +3795,14 @@ ABC RESULTS:           input signals:       60
 ABC RESULTS:          output signals:       53
 Removing temp directory.
 
-3.24.72. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.71. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3898, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.72.1. Executed ABC.
+3.24.71.1. Executed ABC.
 Extracted 29 gates and 55 wires to a netlist network with 24 inputs and 21 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.72.2. Re-integrating ABC results.
+3.24.71.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       17
 ABC RESULTS:               NOR cells:        1
 ABC RESULTS:               NOT cells:        6
@@ -3840,14 +3813,14 @@ ABC RESULTS:           input signals:       24
 ABC RESULTS:          output signals:       21
 Removing temp directory.
 
-3.24.73. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.72. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3895, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.73.1. Executed ABC.
+3.24.72.1. Executed ABC.
 Extracted 29 gates and 43 wires to a netlist network with 12 inputs and 14 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.73.2. Re-integrating ABC results.
+3.24.72.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        6
@@ -3859,14 +3832,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       14
 Removing temp directory.
 
-3.24.74. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.73. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3890, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.74.1. Executed ABC.
+3.24.73.1. Executed ABC.
 Extracted 30 gates and 57 wires to a netlist network with 25 inputs and 21 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.74.2. Re-integrating ABC results.
+3.24.73.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       16
 ABC RESULTS:               NOR cells:        1
 ABC RESULTS:               NOT cells:        6
@@ -3877,14 +3850,14 @@ ABC RESULTS:           input signals:       25
 ABC RESULTS:          output signals:       21
 Removing temp directory.
 
-3.24.75. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.74. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3887, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.75.1. Executed ABC.
+3.24.74.1. Executed ABC.
 Extracted 20 gates and 40 wires to a netlist network with 18 inputs and 11 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.75.2. Re-integrating ABC results.
+3.24.74.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        9
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOR cells:        2
@@ -3897,14 +3870,14 @@ ABC RESULTS:           input signals:       18
 ABC RESULTS:          output signals:       11
 Removing temp directory.
 
-3.24.76. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.75. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3884, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.76.1. Executed ABC.
+3.24.75.1. Executed ABC.
 Extracted 25 gates and 51 wires to a netlist network with 26 inputs and 25 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.76.2. Re-integrating ABC results.
+3.24.75.2. Re-integrating ABC results.
 ABC RESULTS:               NOT cells:       24
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        0
@@ -3912,14 +3885,14 @@ ABC RESULTS:           input signals:       26
 ABC RESULTS:          output signals:       25
 Removing temp directory.
 
-3.24.77. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.76. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3881, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.77.1. Executed ABC.
+3.24.76.1. Executed ABC.
 Extracted 52 gates and 104 wires to a netlist network with 50 inputs and 47 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.77.2. Re-integrating ABC results.
+3.24.76.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       33
 ABC RESULTS:               NOR cells:        3
 ABC RESULTS:                OR cells:        3
@@ -3930,14 +3903,14 @@ ABC RESULTS:           input signals:       50
 ABC RESULTS:          output signals:       47
 Removing temp directory.
 
-3.24.78. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.77. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3878, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.78.1. Executed ABC.
+3.24.77.1. Executed ABC.
 Extracted 21 gates and 34 wires to a netlist network with 11 inputs and 20 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.78.2. Re-integrating ABC results.
+3.24.77.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               NOT cells:        8
@@ -3948,14 +3921,14 @@ ABC RESULTS:           input signals:       11
 ABC RESULTS:          output signals:       20
 Removing temp directory.
 
-3.24.79. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.78. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3873, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.79.1. Executed ABC.
+3.24.78.1. Executed ABC.
 Extracted 71 gates and 137 wires to a netlist network with 64 inputs and 50 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.79.2. Re-integrating ABC results.
+3.24.78.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       45
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               MUX cells:        1
@@ -3969,8 +3942,29 @@ ABC RESULTS:           input signals:       64
 ABC RESULTS:          output signals:       50
 Removing temp directory.
 
-3.24.80. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.79. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3867, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.79.1. Executed ABC.
+Extracted 75 gates and 97 wires to a netlist network with 21 inputs and 20 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.79.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:       35
+ABC RESULTS:            ANDNOT cells:       12
+ABC RESULTS:              NAND cells:        7
+ABC RESULTS:               NOR cells:        2
+ABC RESULTS:               NOT cells:        1
+ABC RESULTS:                OR cells:       13
+ABC RESULTS:             ORNOT cells:        3
+ABC RESULTS:              XNOR cells:        1
+ABC RESULTS:        internal signals:       56
+ABC RESULTS:           input signals:       21
+ABC RESULTS:          output signals:       20
+Removing temp directory.
+
+3.24.80. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3786, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.80.1. Executed ABC.
 Extracted 75 gates and 97 wires to a netlist network with 21 inputs and 20 outputs.
@@ -3991,34 +3985,13 @@ ABC RESULTS:          output signals:       20
 Removing temp directory.
 
 3.24.81. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3786, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.81.1. Executed ABC.
-Extracted 75 gates and 97 wires to a netlist network with 21 inputs and 20 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.81.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:       35
-ABC RESULTS:            ANDNOT cells:       12
-ABC RESULTS:              NAND cells:        7
-ABC RESULTS:               NOR cells:        2
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:       13
-ABC RESULTS:             ORNOT cells:        3
-ABC RESULTS:              XNOR cells:        1
-ABC RESULTS:        internal signals:       56
-ABC RESULTS:           input signals:       21
-ABC RESULTS:          output signals:       20
-Removing temp directory.
-
-3.24.82. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3782, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.82.1. Executed ABC.
+3.24.81.1. Executed ABC.
 Extracted 33 gates and 50 wires to a netlist network with 15 inputs and 21 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.82.2. Re-integrating ABC results.
+3.24.81.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       14
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               NOT cells:        4
@@ -4029,14 +4002,14 @@ ABC RESULTS:           input signals:       15
 ABC RESULTS:          output signals:       21
 Removing temp directory.
 
-3.24.83. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.82. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3777, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.83.1. Executed ABC.
+3.24.82.1. Executed ABC.
 Extracted 75 gates and 97 wires to a netlist network with 21 inputs and 20 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.83.2. Re-integrating ABC results.
+3.24.82.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       35
 ABC RESULTS:            ANDNOT cells:       12
 ABC RESULTS:              NAND cells:        7
@@ -4050,14 +4023,14 @@ ABC RESULTS:           input signals:       21
 ABC RESULTS:          output signals:       20
 Removing temp directory.
 
-3.24.84. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.83. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3772, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.84.1. Executed ABC.
+3.24.83.1. Executed ABC.
 Extracted 90 gates and 114 wires to a netlist network with 23 inputs and 31 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.84.2. Re-integrating ABC results.
+3.24.83.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       40
 ABC RESULTS:            ANDNOT cells:       16
 ABC RESULTS:              NAND cells:        8
@@ -4070,14 +4043,14 @@ ABC RESULTS:           input signals:       23
 ABC RESULTS:          output signals:       31
 Removing temp directory.
 
-3.24.85. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.84. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_timestamp.u_timestamp.$eq$../Build/pmic_full.v:603$199_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.85.1. Executed ABC.
+3.24.84.1. Executed ABC.
 Extracted 111 gates and 164 wires to a netlist network with 52 inputs and 74 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.85.2. Re-integrating ABC results.
+3.24.84.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       44
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               MUX cells:        1
@@ -4090,14 +4063,14 @@ ABC RESULTS:           input signals:       52
 ABC RESULTS:          output signals:       74
 Removing temp directory.
 
-3.24.86. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.85. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3768, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.86.1. Executed ABC.
+3.24.85.1. Executed ABC.
 Extracted 53 gates and 83 wires to a netlist network with 29 inputs and 16 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.86.2. Re-integrating ABC results.
+3.24.85.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       22
 ABC RESULTS:              NAND cells:        4
 ABC RESULTS:               NOR cells:        1
@@ -4108,28 +4081,28 @@ ABC RESULTS:           input signals:       29
 ABC RESULTS:          output signals:       16
 Removing temp directory.
 
-3.24.87. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.86. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.87.1. Executed ABC.
-Extracted 509 gates and 713 wires to a netlist network with 202 inputs and 204 outputs.
+3.24.86.1. Executed ABC.
+Extracted 559 gates and 770 wires to a netlist network with 209 inputs and 214 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.87.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:      158
-ABC RESULTS:            ANDNOT cells:       32
+3.24.86.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:      167
+ABC RESULTS:            ANDNOT cells:       35
 ABC RESULTS:               MUX cells:       13
-ABC RESULTS:              NAND cells:       32
-ABC RESULTS:               NOR cells:       23
-ABC RESULTS:               NOT cells:       29
-ABC RESULTS:                OR cells:       30
-ABC RESULTS:             ORNOT cells:       13
+ABC RESULTS:              NAND cells:       44
+ABC RESULTS:               NOR cells:       26
+ABC RESULTS:               NOT cells:       32
+ABC RESULTS:                OR cells:       41
+ABC RESULTS:             ORNOT cells:       15
 ABC RESULTS:              XNOR cells:       13
-ABC RESULTS:               XOR cells:       59
+ABC RESULTS:               XOR cells:       58
 ABC RESULTS:              ZERO cells:        1
-ABC RESULTS:        internal signals:      307
-ABC RESULTS:           input signals:      202
-ABC RESULTS:          output signals:      204
+ABC RESULTS:        internal signals:      347
+ABC RESULTS:           input signals:      209
+ABC RESULTS:          output signals:      214
 Removing temp directory.
 Removing global temp directory.
 
@@ -4137,15 +4110,15 @@ Removing global temp directory.
 
 3.25.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~18 debug messages>
+<suppressed ~19 debug messages>
 
 3.25.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 3610 cells of `\pmic_top'.
+Computing hashes of 3627 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 3603 cells of `\pmic_top'.
+Computing hashes of 3620 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 3602 cells of `\pmic_top'.
+Computing hashes of 3619 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~24 debug messages>
 Removed a total of 8 cells.
@@ -4154,7 +4127,7 @@ Removed a total of 8 cells.
 
 3.25.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 7 unused cells and 3684 unused wires.
+Removed 7 unused cells and 3688 unused wires.
 <suppressed ~15 debug messages>
 
 3.25.5. Finished fast OPT passes.
@@ -4175,27 +4148,27 @@ Removed 0 unused modules.
 
         +----------Local Count, excluding submodules.
         | 
-     3045 wires
-     4832 wire bits
-      440 public wires
-     1598 public wire bits
-       22 ports
-       22 port bits
-     3595 cells
-      204   $_ANDNOT_
-     1236   $_AND_
-      540   $_DFFE_PN0P_
+     3063 wires
+     4850 wire bits
+      443 public wires
+     1601 public wire bits
+       23 ports
+       23 port bits
+     3612 cells
+      201   $_ANDNOT_
+     1241   $_AND_
+      537   $_DFFE_PN0P_
        33   $_DFFE_PN1P_
-      108   $_DFF_PN0_
+      112   $_DFF_PN0_
        12   $_DFF_PN1_
-       84   $_MUX_
-      232   $_NAND_
-      226   $_NOR_
-      180   $_NOT_
+       85   $_MUX_
+      240   $_NAND_
+      223   $_NOR_
+      181   $_NOT_
        98   $_ORNOT_
-      338   $_OR_
+      346   $_OR_
        86   $_XNOR_
-      187   $_XOR_
+      186   $_XOR_
        31   $scopeinfo
 
 3.28. Executing CHECK pass (checking for obvious problems).
@@ -4208,30 +4181,29 @@ Found and reported 0 problems.
 
         +----------Local Count, excluding submodules.
         | 
-     3045 wires
-     4832 wire bits
-      440 public wires
-     1598 public wire bits
-       22 ports
-       22 port bits
-     3595 cells
-      204   $_ANDNOT_
-     1236   $_AND_
-      540   $_DFFE_PN0P_
+     3063 wires
+     4850 wire bits
+      443 public wires
+     1601 public wire bits
+       23 ports
+       23 port bits
+     3612 cells
+      201   $_ANDNOT_
+     1241   $_AND_
+      537   $_DFFE_PN0P_
        33   $_DFFE_PN1P_
-      108   $_DFF_PN0_
+      112   $_DFF_PN0_
        12   $_DFF_PN1_
-       84   $_MUX_
-      232   $_NAND_
-      226   $_NOR_
-      180   $_NOT_
+       85   $_MUX_
+      240   $_NAND_
+      223   $_NOR_
+      181   $_NOT_
        98   $_ORNOT_
-      338   $_OR_
+      346   $_OR_
        86   $_XNOR_
-      187   $_XOR_
+      186   $_XOR_
        31   $scopeinfo
 
-Warnings: 1 unique messages, 2 total
-End of script. Logfile hash: 7271f899a9, time: 5.17s, user: 5.17s, system: 0.00s
+End of script. Logfile hash: b599026de9, time: 5.59s, user: 5.69s, system: 0.00s
 Yosys 0.70 (git sha1 28ba3cb92, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-Time spent: 71% 1x abc (3 sec), 6% 56x opt_expr (0 sec), ...
+Time spent: 70% 1x abc (3 sec), 7% 56x opt_expr (0 sec), ...

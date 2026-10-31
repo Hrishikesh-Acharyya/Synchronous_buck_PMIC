@@ -2,13 +2,17 @@
 
 # Filename:         spi_slave.sv
 
-# File Description: Three-wire SPI slave front end for the PMIC supervisor. Converts
+# File Description: SPI slave front end for the PMIC supervisor. Converts
 #                   bus transactions into addr / wr_en / wdata / rdata accesses on
 #                   reg_file.
 #
-#                   Mode 0 (CPOL = 0, CPHA = 0), MSB first, half duplex on a single
-#                   bidirectional SDIO line. SCK, CS and SDIO are oversampled in the
-#                   50 MHz domain rather than SCK being used as a clock: that keeps
+#                   Mode 0 (CPOL = 0, CPHA = 0), MSB first, 4-wire: data arrives on
+#                   MOSI (port sdio_in) and leaves on MISO (sdio_out, enabled by
+#                   sdio_oe, which pmic_top gates onto the pin). Frames are half
+#                   duplex - the slave never sends while it receives - the framing of
+#                   the original 3-wire bus, kept so the host protocol did not change
+#                   when the data line was split. SCK, CS and MOSI are oversampled in
+#                   the supervisor clock domain rather than SCK being used as a clock: that keeps
 #                   the design in one clock domain, keeps SCK off the global clock
 #                   network, and is what makes digital filtering of SCK possible at
 #                   all. Filtering required as a 450 kHz half-bridge large voltage swings
@@ -19,9 +23,10 @@
 #
 #                   The turnaround BYTE, rather than a single dummy bit, exists
 #                   because MCU hardware SPI peripherals clock whole 8- or 16-bit
-#                   frames and cannot generate a lone 9th clock. It also gives eight
-#                   clocks of dead time for the master to release SDIO before the
-#                   slave drives it, instead of half a bit period.
+#                   frames and cannot generate a lone 9th clock. On the original
+#                   shared data line it also gave the master eight clocks to release
+#                   the line before the slave drove it; with separate MOSI and MISO
+#                   it is simply the dummy byte a host clocks before read data.
 
 # Global variables: None
 
@@ -34,7 +39,7 @@ module spi_slave
 #(
     // SCK_IDLE_TIMEOUT_CLKS: SCK silent this long with CS still low means the master
     //                        died mid-transaction. Without this the slave can sit
-    //                        waiting forever, and on a read it would hold SDIO driven.
+    //                        waiting forever, and on a read it would keep MISO active.
     parameter int SCK_IDLE_TIMEOUT_CLKS = ms_to_clks(2)
 )(
     input  wire logic       clk,
@@ -43,13 +48,14 @@ module spi_slave
     // ---------------- bus side ----------------
     // Already synchronised AND filtered in pmic_top. This module never sees a raw
     // pin, and all three lines must use IDENTICAL filter settings - unequal delay
-    // between sck and sdio_in shifts the data relative to the clock.
+    // between sck and sdio_in (MOSI) shifts the data relative to the clock.
     input  wire logic       sck,
     input  wire logic       cs_n,
-    input  wire logic       sdio_in,
+    input  wire logic       sdio_in,     // MOSI, synchronised and filtered
+    // sdio_out: MISO data. sdio_oe: high exactly while in S_READ; pmic_top drives
+    //           MISO = sdio_out only then and holds it low at every other time.
+    //           The sdio_ names are kept from the original 3-wire bus.
     output logic            sdio_out,
-    // sdio_oe: drive enable. High only while shifting out read data. The tri-state
-    //          itself lives in pmic_top so simulation and hardware agree.
     output logic            sdio_oe,
 
     // ---------------- reg_file side ----------------
@@ -74,8 +80,8 @@ module spi_slave
     logic sck_d, cs_n_d;
 
     // One-clock enable pulses derived from them.
-    logic sck_rise;   // master samples SDIO here, so the slave shifts IN here
-    logic sck_fall;   // slave changes SDIO here, so it is stable across the rise
+    logic sck_rise;   // master samples MISO here, so the slave shifts MOSI in here
+    logic sck_fall;   // slave changes MISO here, so it is stable across the rise
     logic cs_fall;    // start of a transaction
     logic cs_rise;    // end of a transaction - the only commit/discard decision point
     // bit_count: bits received within the present byte, 0..7. Nonzero at cs_rise
@@ -100,7 +106,7 @@ module spi_slave
     // S_IDLE      : CS high, nothing happening
     // S_CMD       : receiving the command byte
     // S_WRITE     : receiving data bytes, then the CRC byte
-    // S_TURN      : read turnaround byte; nobody drives SDIO
+    // S_TURN      : read turnaround (dummy) byte; MISO held low
     // S_READ      : shifting read data out
     // S_DEAD      : transaction poisoned (timeout, or illegal length); wait for CS
     //               to rise, commit nothing
@@ -112,7 +118,7 @@ module spi_slave
       S_IDLE = 3'b000,    // CS high, nothing happening
       S_CMD = 3'b001,     // receiving the command byte
       S_WRITE = 3'b010,   // receiving data bytes, then the CRC byte
-      S_TURN = 3'b011,    // read turnaround byte; nobody drives SDIO
+      S_TURN = 3'b011,    // read turnaround (dummy) byte; MISO held low
       S_READ = 3'b100,    // shifting read data out
       S_DEAD = 3'b101     // poisoned; wait for CS to rise, commit nothing
 
@@ -219,7 +225,7 @@ module spi_slave
     outlive its chip select.
 
     sck_timeout poisons the transaction to S_DEAD rather than returning to idle. 
-    S_DEAD holds until CS actually rises, so SDIO stays released
+    S_DEAD holds until CS actually rises, so MISO stays low
     and BLOCK 9 sees a state it can refuse to commit. Dropping straight to S_IDLE
     would leave the FSM ready to misread the next edges of a transaction that is still
     physically in progress.
@@ -255,10 +261,10 @@ module spi_slave
         // Data bytes then the CRC byte. The CRC is not distinguished here -
         // delay line is what keeps it from reaching reg_file.
         S_WRITE : spi_state_next = S_WRITE;
-        // One full byte during which NOBODY drives SDIO. The master needs
-        // time to release the line before the slave drives it; contention
-        // on a push-pull line is a short between a driver sourcing and one
-        // sinking.
+        // One full byte, the dummy byte, during which MISO stays low. On the
+        // original 3-wire bus it was the master's time to release the shared
+        // line; it is kept so the read frame, and the host protocol, are
+        // unchanged.
         S_TURN  : if (byte_done) spi_state_next = S_READ;
         S_READ  : spi_state_next = S_READ;
         // Poisoned. Only cs_rise leaves, handled above.
@@ -348,10 +354,10 @@ module spi_slave
     /*
     Purpose:
     ---
-    Shift SDIO in on each rising SCK edge, capture the command byte, and release data
+    Shift MOSI in on each rising SCK edge, capture the command byte, and release data
     bytes to reg_file one byte late.
 
-    Sampling on the RISING edge is Mode 0: the master changes SDIO on falling edges,
+    Sampling on the RISING edge is Mode 0: the master changes MOSI on falling edges,
     so by the rising edge the bit has had half a period to settle.
 
     rx_shift is NOT cleared between bytes. Each byte pushes the previous one out and
@@ -476,8 +482,8 @@ module spi_slave
     which exists and is free.
 
     sdio_oe is asserted only in S_READ. During S_CMD, S_TURN, S_WRITE, S_DEAD and
-    S_IDLE the slave leaves SDIO entirely alone, so the master owns the line for the
-    whole command byte and the whole turnaround byte.
+    S_IDLE MISO is held low, so nothing is sent while the master is still sending:
+    not during the command byte, not during the turnaround byte.
 
     rd_first pulses on the load of the first read byte. reg_file uses it to snapshot
     multi-byte values so a burst read cannot tear.
@@ -491,24 +497,24 @@ module spi_slave
         end
         else begin
 
-            // ---- drive the line exactly while spi_state is S_READ ----
+            // ---- send exactly while spi_state is S_READ ----
             // Registered from the NEXT state, so sdio_oe changes on the same
-            // edge as spi_state: the slave takes SDIO on the edge it enters
-            // S_READ and lets go on the edge it leaves - including the edge
-            // that sees CS rise - with no clock of overhang onto a deselected
-            // bus. The first data bit is already on sdio_out at the take-over
+            // edge as spi_state: MISO starts carrying data on the edge the slave
+            // enters S_READ and returns low on the edge it leaves - including
+            // the edge that sees CS rise - with no clock of overhang after the
+            // transaction ends. The first data bit is already on sdio_out at that
             // edge, loaded on the last falling edge of the turnaround byte.
             // The load below no longer sets it: a set in S_TURN was cleared on
             // the next clock, because the state is still S_TURN until the
             // eighth rising edge, and nothing set it again in S_READ - so no
-            // read ever drove SDIO.
+            // read ever sent its data.
             sdio_oe <= (spi_state_next == S_READ);
 
             if (sck_fall) begin
 
                 // Last falling edge of the turnaround byte: load the FIRST read byte.
-                // The line is not taken here - the master owns SDIO for the whole
-                // turnaround byte; sdio_oe follows once the state reaches S_READ.
+                // MISO is not enabled here - it stays low for the whole turnaround
+                // byte; sdio_oe follows once the state reaches S_READ.
                 // bit_count is 7 here, the pre-edge value for the turnaround
                 // byte's eighth bit.
                 if ((spi_state == S_TURN) && (bit_count == 3'd7)) begin
@@ -595,16 +601,16 @@ module spi_slave
     mid-burst, a yanked header. The board is detachable, so this is routine rather
     than exotic.
 
-    Without it the slave sits waiting forever, and on a read it would hold SDIO
-    driven - blocking the line for anything else and, on silicon, sinking current
-    into whatever the master's pad does when unpowered.
+    Without it the slave sits waiting forever, and on a read it would keep MISO
+    active indefinitely, sending stale data to a master that may no longer be
+    there.
 
     The counter is held at zero whenever CS is high, so it measures silence WITHIN a
     transaction, not idle bus time. Either SCK edge resets it: a master clocking at
     any rate above roughly 4 kHz never trips it.
 
     sck_timeout is a one-clock pulse. BLOCK 2 consumes it and moves to S_DEAD, which
-    is what actually releases the line and refuses the commit.
+    is what actually returns MISO low and refuses the commit.
     */
 
     if (!rst_n) begin

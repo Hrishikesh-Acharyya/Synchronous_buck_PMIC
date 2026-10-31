@@ -563,6 +563,51 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Files: `docs/CHANGELOG_silicluster_v3.md` (this table).
 - Undo: `git revert <hash>` (documentation only).
 
+## 17. 2026-10-31 20:01 UTC - top: split the bidirectional SDIO pin into MOSI and MISO
+
+- Files: `rtl/pmic_top.sv` (ports and wiring), `rtl/telemetry/spi_slave.sv`
+  (comments only), `tb/pmic_top_tb.v`, `Build/*` (regenerated),
+  `docs/silicluster_area.md`. Requested by the user.
+- Why: the Silicluster call offers 14 digital inputs and 14 digital outputs and
+  never mentions bidirectional pins or output enables, and the project's
+  `pmic_top` is not the chip top - the integration harness sits between its
+  ports and the pads, so the `1'bz` inside it would be an internal tri-state.
+  Synthesis already warned "Yosys has only limited support for tri-state
+  logic", and the old netlist shows why that matters: yosys kept no tri-state
+  buffer and deleted the `sdio_oe` enable flop, so the synthesised chip would
+  have driven SDIO permanently and fought the host on every command and write.
+- What: `inout SDIO` becomes `input MOSI` and `output MISO`. MOSI feeds the
+  same synchroniser and filter SDIO did (instances and nets renamed `mosi_*`).
+  `MISO = sdio_oe & sdio_out`: read data while spi_slave is in S_READ, low at
+  every other time; tied low when TELEMETRY_EN = 0. No tri-state remains.
+  spi_slave keeps its ports (`sdio_in`, `sdio_out`, `sdio_oe`) and every line of
+  logic; only its comments were updated from the shared line to MOSI/MISO.
+- SPI behaviour unchanged, as the user required: same mode 0 framing, CRC-8,
+  dummy turnaround byte and timing. Proof: (1) the converted `spi_slave`,
+  `reg_file`, `supervisor`, `fault_arbiter`, `soft_start` and `pwm_mask` modules
+  are byte-identical to before; the only converted-code difference is
+  `pmic_top`'s ports and wiring. (2) Every check of the integration testbench
+  gives the same result at the same timestamp as before the split; the only
+  differing lines are renamed labels and one new check.
+- Pins: 10 inputs (SCK, CS_n, MOSI, Osc_in, CP_trig, OTP_trig, UVLO_trig,
+  latch_stat, PGOOD_comp, en_from_switch) and 11 outputs (MISO plus the
+  existing 10), with clk and rst on their own pins: 10/14 and 11/14.
+- MISO is always driven, low when idle, so sharing it with other SPI devices
+  needs an external buffer; one device on the bus is unaffected.
+- Testbench: the master drives MOSI and samples MISO; new pin-level checks that
+  MISO is low whenever the slave is not in S_READ and never x or z; the exact
+  sdio_oe-to-S_READ alignment check is kept.
+- Gate: `make lint` and `make lint_notel` clean; `make -B convert` clean (2320
+  lines); `make equiv_all` 9/9 in both tables; integration testbench PASS with
+  51/51 bins at 10 MHz (Verilator SV source, Icarus converted) and 50 MHz;
+  synthesis log no longer has a tri-state warning.
+- Area: flops 693 -> 694 (the sdio_oe flop the old flow deleted), comb cells
+  2,113 -> 2,119, cell area 30,644 -> 30,737 um^2 (2.61x the slot). Per module:
+  spi_slave unchanged (307 cells, 80 flops); pmic_top +1 cell, the AND gate.
+  TELEMETRY_EN = 0 unchanged (252 flops, 10,523 um^2).
+- Undo: `git revert <hash>` (entry 18 regenerates the submission from this;
+  revert that first).
+
 ---
 
 ## Commit table

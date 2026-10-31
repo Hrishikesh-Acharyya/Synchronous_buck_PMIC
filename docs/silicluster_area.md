@@ -34,6 +34,7 @@ an old row; the trend is the useful part.
 | 2026-10-31 18:19 | chg 9: fix spi_slave addr | 10 MHz | 1            | 700   | 2,130      | 30,827           | 54,083          | 2.61x         | spi_slave 328 -> 308 cells, 3,326 -> 3,323 um^2; reg_file unchanged |
 | 2026-10-31 18:38 | chg 11: fix reg_file clear | 10 MHz | 1           | 693   | 2,086      | 30,522           | 53,547          | 2.59x         | addr_d removed (-7 flops); reg_file 1,093 -> 1,071 cells, spi_slave 308 -> 306 cells (+36 um^2) |
 | 2026-10-31 18:42 | chg 12: sdio_oe aligned   | 10 MHz | 1            | 693   | 2,113      | 30,644           | 53,762          | 2.60x         | spi_slave 306 -> 307 cells, 3,360 -> 3,353 um^2; flattened +122 um^2 is ABC variation |
+| 2026-10-31 20:01 | chg 17: SDIO -> MOSI/MISO | 10 MHz | 1            | 694   | 2,119      | 30,737           | 53,925          | 2.61x         | +1 flop is sdio_oe, which yosys had dropped with the tri-state; spi_slave unchanged |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.

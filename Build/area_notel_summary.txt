@@ -6,12 +6,12 @@
         +----------Local Count, excluding submodules.
         |        +-Local Area, excluding submodules.
         |        | 
-      926        - wires
-     1367        - wire bits
-      223        - public wires
-      664        - public wire bits
-       22        - ports
-       22        - port bits
+      927        - wires
+     1368        - wire bits
+      224        - public wires
+      665        - public wire bits
+       23        - ports
+       23        - port bits
       977 1.05E+04 cells
        20        -   $scopeinfo
         1    8.758   sky130_fd_sc_hd__a2111oi_0

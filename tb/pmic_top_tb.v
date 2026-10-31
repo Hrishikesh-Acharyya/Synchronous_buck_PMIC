@@ -12,7 +12,7 @@
 #                   modulator on Osc_in, the SCR protection latch read back on
 #                   latch_stat, comparator levels on CP_trig / OTP_trig /
 #                   UVLO_trig / PGOOD_comp, the enable switch, and an SPI master
-#                   with CRC-8 on SCK / CS_n / SDIO. Every configuration the run
+#                   with CRC-8 on SCK / CS_n / MOSI / MISO. Every configuration the run
 #                   needs is written over SPI into the register map, as a host
 #                   would; no timer in the RTL is shortened.
 #
@@ -185,17 +185,12 @@ reg  UVLO_trig      = 1'b0;
 reg  PGOOD_comp     = 1'b0;
 reg  en_from_switch = 1'b0;
 reg  Osc_in         = 1'b0;
-// master_oe / master_out: the master's half of the shared SDIO line
-reg  master_oe      = 1'b0;
-reg  master_out     = 1'b0;
-wire SDIO;
+// MOSI: driven by the SPI master. MISO: driven by the DUT.
+reg  MOSI           = 1'b0;
+wire MISO;
 wire latch_stat;
 wire PWM_out, En, PGOOD, latch_out, switch_supply;
 wire Green_LED, pgood_LED, Red_LED1, Red_LED2, Red_LED3;
-
-assign SDIO = master_oe ? master_out : 1'bz;
-// SDIO idles low through the board pull-down whenever nobody drives it
-pulldown (SDIO);
 
 integer checks_run    = 0;
 integer checks_failed = 0;
@@ -206,7 +201,7 @@ integer checks_failed = 0;
 // ============================================================
 pmic_top u_dut (
     .clk(clk), .rst_n_pin(rst_n_pin),
-    .SCK(SCK), .CS_n(CS_n), .SDIO(SDIO),
+    .SCK(SCK), .CS_n(CS_n), .MOSI(MOSI), .MISO(MISO),
     .Osc_in(Osc_in), .CP_trig(CP_trig), .OTP_trig(OTP_trig), .UVLO_trig(UVLO_trig),
     .latch_stat(latch_stat), .PGOOD_comp(PGOOD_comp), .en_from_switch(en_from_switch),
     .PWM_out(PWM_out), .En(En), .PGOOD(PGOOD), .latch_out(latch_out),
@@ -520,15 +515,15 @@ assign #(SCR_DELAY_NS) latch_stat = scr_latched;
 // ============================================================
 // Run-long monitors
 // ============================================================
-// SDIO ownership. The slave must drive SDIO exactly while spi_state is S_READ:
-// never while the master owns the line (command byte, turnaround byte, write
-// data) and never after the read ends. No tolerance, so a change that delays
-// the take-over or the release by one clock trips it.
+// MISO. The slave's read-data enable must track spi_state == S_READ exactly:
+// never on while the master is sending (command byte, turnaround byte, write
+// data) and never after the read ends, with no tolerance, so a change that
+// delays the take-over or the release by one clock trips it. At the pin, MISO
+// must be low whenever the slave is not in S_READ.
 integer oe_misaligned      = 0;   // clocks with sdio_oe != (spi_state == S_READ)
 integer oe_in_master_phase = 0;   // ... of which sdio_oe high in S_CMD, S_TURN, S_WRITE
 integer oe_rises           = 0;   // times the slave took the line
-integer oe_rise_bad        = 0;   // ... without the first data bit on SDIO, or onto
-                                  //     a line the master was still driving
+integer oe_rise_bad        = 0;   // ... without the first data bit on MISO
 integer read_exits         = 0;   // transitions out of S_READ, by destination:
 integer exit_to_idle       = 0;   //   CS deasserted
 integer exit_to_dead       = 0;   //   SCK idle timeout
@@ -540,16 +535,17 @@ integer pgood_no_en        = 0;   // PGOOD high with En low for 2+ clocks
 integer pgood_no_en_run    = 0;
 integer backstop_errors    = 0;   // a PWM_out pulse longer than the ceiling
 integer latch_drops        = 0;   // latch_out fell without a reset
-integer contention         = 0;   // SDIO x while the master drives (4-state only)
+integer miso_idle          = 0;   // MISO high while the slave is not in S_READ
+integer miso_xz            = 0;   // MISO x or z after reset (4-state simulators)
 reg [2:0] spi_state_prev   = 3'd0;
 
 /*
 Purpose:
 ---
 Protocol and invariant monitor, sampled on every rising clock edge with the
-values the DUT registers are about to update from: SDIO ownership against the
-SPI state, the S_READ exit tally, switch_supply mirroring PGOOD, PGOOD never
-outliving En, and contention on SDIO.
+values the DUT registers are about to update from: the MISO enable against the
+SPI state, MISO low outside S_READ, the S_READ exit tally, switch_supply
+mirroring PGOOD, PGOOD never outliving En, and MISO never x or z.
 */
 always @(posedge clk) begin
     if (rst_n_pin) begin
@@ -576,7 +572,8 @@ always @(posedge clk) begin
         if (PGOOD && !En) pgood_no_en_run = pgood_no_en_run + 1;
         else              pgood_no_en_run = 0;
         if (pgood_no_en_run == 2) pgood_no_en = pgood_no_en + 1;
-        if (master_oe && (SDIO === 1'bx)) contention = contention + 1;
+        if ((spi_state_int != SPI_READ) && (MISO !== 1'b0)) miso_idle = miso_idle + 1;
+        if ((MISO !== 1'b0) && (MISO !== 1'b1)) miso_xz = miso_xz + 1;
     end
     spi_state_prev = spi_state_int;
 end
@@ -589,7 +586,7 @@ integer first_bit_errors = 0;    // reads whose first bit was not driven in time
 /*
 Purpose:
 ---
-Time-stamp the slave taking and releasing SDIO, for the latency checks.
+Time-stamp the read-data enable rising and falling, for the latency checks.
 */
 always @(posedge sdio_oe_int) oe_rise_t = $realtime;
 always @(negedge sdio_oe_int) oe_fall_t = $realtime;
@@ -597,21 +594,21 @@ always @(negedge sdio_oe_int) oe_fall_t = $realtime;
 /*
 Purpose:
 ---
-At the moment the slave takes SDIO the first data bit must already be on it.
-sdio_out and tx_shift are loaded on the last falling SCK edge of the turnaround
-byte and change only on falling edges, so 1 ns after sdio_oe rises the net must
-carry sdio_out, sdio_out must be the MSB of the loaded byte, and the master must
-already have released the line.
+At the moment MISO starts carrying read data the first data bit must already
+be on it. sdio_out and tx_shift are loaded on the last falling SCK edge of the
+turnaround byte and change only on falling edges, so 1 ns after sdio_oe rises
+the MISO pin must carry sdio_out, and sdio_out must be the MSB of the loaded
+byte.
 */
 always @(posedge sdio_oe_int) begin
     #(1.0);
     oe_rises = oe_rises + 1;
-    if ((SDIO !== sdio_out_int) || (sdio_out_int !== tx_shift7_int) || (master_oe !== 1'b0)) begin
+    if ((MISO !== sdio_out_int) || (sdio_out_int !== tx_shift7_int)) begin
         oe_rise_bad = oe_rise_bad + 1;
-        $display("[%0t] MONITOR: slave took SDIO without the first data bit (SDIO=%b sdio_out=%b tx_shift[7]=%b master_oe=%b)",
-                 $time, SDIO, sdio_out_int, tx_shift7_int, master_oe);
-        if (log_fd != 0) $fdisplay(log_fd, "[%0t] MONITOR: slave took SDIO without the first data bit (SDIO=%b sdio_out=%b tx_shift[7]=%b master_oe=%b)",
-                 $time, SDIO, sdio_out_int, tx_shift7_int, master_oe);
+        $display("[%0t] MONITOR: MISO enabled without the first data bit (MISO=%b sdio_out=%b tx_shift[7]=%b)",
+                 $time, MISO, sdio_out_int, tx_shift7_int);
+        if (log_fd != 0) $fdisplay(log_fd, "[%0t] MONITOR: MISO enabled without the first data bit (MISO=%b sdio_out=%b tx_shift[7]=%b)",
+                 $time, MISO, sdio_out_int, tx_shift7_int);
     end
 end
 
@@ -1090,14 +1087,13 @@ function [7:0] crc8(input [7:0] crc_in, input [7:0] data);
     end
 endfunction
 
-// spi_send_bits: the master drives each bit while SCK is low and the slave
-//                samples it on the rising edge; nbits from the MSB down
+// spi_send_bits: the master puts each bit on MOSI while SCK is low and the
+//                slave samples it on the rising edge; nbits from the MSB down
 task spi_send_bits(input [7:0] data, input integer nbits);
     integer bit_idx;
     begin
         for (bit_idx = 7; bit_idx > 7 - nbits; bit_idx = bit_idx - 1) begin
-            master_oe  = 1'b1;
-            master_out = data[bit_idx];
+            MOSI = data[bit_idx];
             #(SPI_HALF_NS) SCK = 1'b1;
             #(SPI_HALF_NS) SCK = 1'b0;
         end
@@ -1108,15 +1104,16 @@ task spi_send_byte(input [7:0] data);
     spi_send_bits(data, 8);
 endtask
 
-// spi_recv_byte: SDIO released; sample on each rising edge. check_first also
-//                asserts that the slave is driving at the first data edge.
+// spi_recv_byte: sample MISO on each rising edge, MOSI held low (a don't-care
+//                here). check_first also asserts that MISO is carrying read
+//                data at the first data edge.
 task spi_recv_byte(output [7:0] data, input check_first);
     integer bit_idx;
     begin
-        master_oe = 1'b0;
+        MOSI = 1'b0;
         for (bit_idx = 7; bit_idx >= 0; bit_idx = bit_idx - 1) begin
             #(SPI_HALF_NS) SCK = 1'b1;
-            data[bit_idx] = SDIO;
+            data[bit_idx] = MISO;
             if (check_first && (bit_idx == 7)) begin
                 if (sdio_oe_int !== 1'b1) first_bit_errors = first_bit_errors + 1;
                 else if ($realtime - oe_rise_t < first_bit_margin)
@@ -1139,7 +1136,7 @@ endtask
 
 task spi_end;
     begin
-        master_oe = 1'b0;
+        MOSI = 1'b0;
         #(SPI_HALF_NS) CS_n = 1'b1;
     end
 endtask
@@ -1213,8 +1210,9 @@ task spi_write_misaligned(input [6:0] addr, input [7:0] data);
     end
 endtask
 
-// spi_read: [cmd][turnaround][n data bytes]. The master releases SDIO after the
-//           command byte, so nobody drives it through the turnaround byte.
+// spi_read: [cmd][turnaround][n data bytes]. After the command byte MOSI is a
+//           don't-care; the master holds it low through the turnaround and
+//           data bytes while the slave answers on MISO.
 //           Every byte at an address the shadow predicts is compared.
 task spi_read(input [6:0] addr, input integer nbytes);
     integer idx;
@@ -1627,7 +1625,7 @@ initial begin
     check("in reset: En low",                 En === 1'b0);
     check("in reset: PGOOD low",              PGOOD === 1'b0);
     check("in reset: latch_out low",          latch_out === 1'b0);
-    check("in reset: SDIO not driven by DUT", sdio_oe_int === 1'b0);
+    check("in reset: MISO low",               MISO === 1'b0);
     rst_n_pin = 1'b1;
     #(10.0 * CLK_PERIOD_NS);
     spi_busy = 1'b0;
@@ -1714,13 +1712,13 @@ initial begin
     #(SPI_HALF_NS);
     spi_send_byte({1'b1, A_ID});
     spi_recv_byte(rd_val, 1'b0);
-    master_oe = 1'b0;
+    MOSI = 1'b0;
     reads_issued = reads_issued + 1;
     for (idx = 0; idx < 3; idx = idx + 1) begin
         #(SPI_HALF_NS) SCK = 1'b1;
         #(SPI_HALF_NS) SCK = 1'b0;
     end
-    check("mid-read: slave driving SDIO before CS rises", sdio_oe_int === 1'b1);
+    check("mid-read: slave sending read data before CS rises", sdio_oe_int === 1'b1);
     CS_n = 1'b1;
     t_event = $realtime;
     // Timed from edge-stamped monitors: polling on the edge where the DUT
@@ -1741,7 +1739,7 @@ initial begin
     #(SPI_HALF_NS);
     spi_send_byte({1'b1, A_ID});
     spi_recv_byte(rd_val, 1'b0);
-    master_oe = 1'b0;
+    MOSI = 1'b0;
     reads_issued = reads_issued + 1;
     for (idx = 0; idx < 2; idx = idx + 1) begin
         #(SPI_HALF_NS) SCK = 1'b1;
@@ -1758,7 +1756,7 @@ initial begin
 
     // An illegal spi_slave state. The encoding has six states in three bits,
     // so 3'b110 is unreachable by any stimulus; force it for one clock. The
-    // FSM's default arm must send it to S_DEAD, with SDIO released, and the
+    // FSM's default arm must send it to S_DEAD, with MISO held low, and the
     // next transaction must recover through cs_fall.
     @(posedge clk);
     #(1.0);
@@ -1770,7 +1768,7 @@ initial begin
     @(posedge clk);
     #(1.0);
     check_eq("illegal spi_state 6 falls to S_DEAD", spi_state_int, SPI_DEAD);
-    check("illegal spi_state: SDIO stays released", sdio_oe_int === 1'b0);
+    check("illegal spi_state: MISO stays low", (sdio_oe_int === 1'b0) && (MISO === 1'b0));
     reg_read(A_ID);        check_eq("illegal spi_state: next transaction recovers", rd_val, 8'hB5);
     if (rd_val == 8'hB5) cover_bin(C_SPI_ILLEG);
 
@@ -2189,9 +2187,10 @@ initial begin
     // ---------------------------------------------------------------
     note("Run-long invariants and scoreboards");
     check_eq("clocks with sdio_oe != (spi_state == S_READ)", oe_misaligned, 0);
-    check_eq("... of which sdio_oe high while the master owns SDIO", oe_in_master_phase, 0);
-    check_eq("drive starts without the first data bit on SDIO", oe_rise_bad, 0);
-    check_eq("drive starts = reads that reached the data phase", oe_rises, reads_issued);
+    check_eq("... of which sdio_oe high while the master is sending", oe_in_master_phase, 0);
+    check_eq("MISO high while the slave is not in S_READ (clocks)", miso_idle, 0);
+    check_eq("read data starts without the first bit on MISO", oe_rise_bad, 0);
+    check_eq("read data starts = reads that reached the data phase", oe_rises, reads_issued);
     check_eq("exits from S_READ = reads that reached the data phase", read_exits, reads_issued);
     $sformat(msg, "              (S_READ exits: %0d to S_IDLE on CS, %0d to S_DEAD on timeout, %0d to S_CMD, %0d other)",
              exit_to_idle, exit_to_dead, exit_to_cmd, exit_to_other);
@@ -2204,7 +2203,7 @@ initial begin
     check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
     check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
     check_eq("latch_out falls without a reset", latch_drops, 0);
-    check_eq("SDIO contention while the master drives", contention, 0);
+    check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
     check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
     check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
     $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
