@@ -608,6 +608,24 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Undo: `git revert <hash>` (entry 18 regenerates the submission from this;
   revert that first).
 
+## 18. 2026-10-31 20:07 UTC - package: regenerate the submission for MOSI/MISO
+
+- Files: `submission/rtl/**` (regenerated and re-annotated), `submission/README.md`,
+  `Build/sync_buck_pmic_silicluster_v3.zip`, `rtl/pkg/pmic_types_pkg.sv` (one
+  comment: the SPI filter note said "SCK and SDIO", now "SCK and MOSI";
+  sv2v drops comments, so the converted file is byte-identical).
+- What: `make package` from the entry-17 RTL, the same comment restoration as
+  entry 15 with the pmic_top texts updated from the shared SDIO line to MOSI and
+  MISO, and the README's pin table (10 inputs, 11 outputs, no bidirectional
+  pin), SPI description, monitor description, area figures and a new known
+  limitation (MISO is always driven) updated.
+- Gate: `make package_check` 17 of 17 files code-identical to fresh sv2v output;
+  `make equiv SPLIT=1` 9/9 PASS (pmic_top_tb 51/51 bins); `make iv_top SPLIT=1`
+  PASS 51/51. The rebuilt zip, extracted into an empty directory and run with
+  the README's commands: Icarus PASS 51/51 and Verilator PASS 51/51, both with
+  zero build warnings, identical check lines.
+- Undo: `git revert <hash>`.
+
 ---
 
 ## Commit table
