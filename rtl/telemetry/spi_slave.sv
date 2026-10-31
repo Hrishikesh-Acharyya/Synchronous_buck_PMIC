@@ -484,21 +484,23 @@ module spi_slave
         end
         else begin
 
-            // ---- release the line outside S_READ ----
-            if (spi_state != S_READ) begin
-                sdio_oe <= 1'b0;
-            end
+            // ---- drive the line only in S_READ ----
+            // Decided from the state alone, every clock. The load below no
+            // longer sets it: a set in S_TURN was cleared on the next clock,
+            // because the state is still S_TURN until the eighth rising edge,
+            // and nothing set it again in S_READ - so no read ever drove SDIO.
+            sdio_oe <= (spi_state == S_READ);
 
             if (sck_fall) begin
 
-                // Last falling edge of the turnaround byte: load the FIRST read byte
-                // and take the line. bit_count is 7 here, the pre-edge value for the
-                // turnaround byte's eighth bit.
+                // Last falling edge of the turnaround byte: load the FIRST read byte.
+                // The line is not taken here - the master owns SDIO for the whole
+                // turnaround byte; sdio_oe follows once the state reaches S_READ.
+                // bit_count is 7 here, the pre-edge value for the turnaround
+                // byte's eighth bit.
                 if ((spi_state == S_TURN) && (bit_count == 3'd7)) begin
                     tx_shift <= rdata;
                     sdio_out <= rdata[7];
-                    sdio_oe  <= 1'b1;
-                    
                 end
 
                 else if (spi_state == S_READ) begin

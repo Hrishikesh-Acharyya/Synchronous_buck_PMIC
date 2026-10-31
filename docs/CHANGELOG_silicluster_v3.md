@@ -192,3 +192,55 @@ cannot contain its own hash, so the table is filled in by a later commit.
   enabled is 2.61x.
 - Undo: `git revert <hash>`. Entry 8's testbench needs the enabled build only,
   so it survives this revert.
+
+## 8. 2026-10-31 18:17 UTC - fix(spi_slave): SDIO is never driven during a read
+
+- File and lines: `rtl/telemetry/spi_slave.sv`, BLOCK 7 (transmit shift),
+  lines 487-506 after the change (`sdio_oe <= (spi_state == S_READ);` at
+  line 492, the S_TURN load at lines 501-504). Also `Build/*` regenerated,
+  `docs/silicluster_area.md`.
+- Symptom: every SPI read returns 0x00 - PMIC_ID reads 0x00 instead of 0xB5 -
+  at 10 MHz and at 50 MHz, in Verilator and Icarus. This is not related to the
+  clock change; `spi_slave` has no unit testbench, so it was never exercised.
+- Root cause: `sdio_oe` was set at the last falling SCK edge of the
+  turnaround byte, cleared again one clock later by the "release outside
+  S_READ" rule because the state is still S_TURN until the eighth rising edge,
+  and never set again in S_READ.
+- Fix (as specified by the reviewer): `sdio_oe <= (spi_state == S_READ);`
+  every clock, and the `sdio_oe <= 1'b1` removed from the S_TURN load. The
+  S_TURN load of `tx_shift` and `sdio_out` is kept, so the first data bit is
+  already on `sdio_out` when the line is taken. The master owns SDIO for the
+  whole turnaround byte, as the module contract states.
+- Evidence (`tb/pmic_top_tb.v`, Verilator on the SV source):
+  - before: PMIC_ID 0x00; `sdio_oe` high in S_TURN on 471 clocks (10 MHz) /
+    524 (50 MHz); the first data bit not driven at the master's first sampling
+    edge in 469 / 522 reads; 74 FAIL lines.
+  - after: PMIC_ID 0xB5, VERSION 0x01, CAPABILITY 0x3D and every register
+    default read back correctly; `sdio_oe` never high while the master owns
+    SDIO (S_CMD, S_TURN, S_WRITE); released within one clock of leaving S_READ
+    on every read; overhang clocks = S_READ exits = reads issued (118 at
+    10 MHz, 330 at 50 MHz); first data bit driven 2.8 us (10 MHz) / 3.8 us
+    (50 MHz) before the master samples it at 250 kHz SCK. CS dropped mid-byte:
+    `sdio_oe` low exactly 2 clocks after the filtered CS rises. Abandoned read:
+    S_DEAD with `sdio_oe` low after the 2 ms SCK timeout, then recovery. The 26
+    FAIL lines left are all the write path (entry 9).
+  - Monitor wording: a registered `sdio_oe` trails `spi_state` by one clock,
+    so SDIO stays driven for exactly one clock after S_READ is left. Per the
+    reviewer, the monitor asserts the invariant that matters - low throughout
+    the master-owned phases, falling within ONE clock of leaving S_READ (bound
+    kept at one so a longer overhang trips it) - and checks that the overhang
+    count equals the read count.
+  - S_READ exits, enumerated: CS deasserted -> S_IDLE (117 at 10 MHz), SCK
+    idle timeout -> S_DEAD (1), CS re-asserted -> S_CMD (0: through the 8-clock
+    CS filter a fall can only follow a rise that already left S_READ). The CS
+    exit means the slave drives SDIO for one clock after its own filtered view
+    of CS has deasserted - reported separately, pending a decision.
+- Regression: `make lint` clean; `make -B convert` clean (2311 lines);
+  `make equiv_all` 6/8 per table, the two failures being the known
+  nanosecond-watchdog limit of `pgood_gen_tb` / `pwm_stats_tb` from entry 3
+  (both PASS with the scaled scratch watchdog, all covers, 0 assertion
+  failures); `spi_slave` has no unit testbench of its own in `tb/`.
+- Cells: `spi_slave` 312 -> 328 sky130 cells (80 flops, unchanged), area
+  3,363.2 -> 3,325.7 um^2; `reg_file` unchanged (1,093 cells). Flattened:
+  flops 700 -> 700, comb cells 2,127 -> 2,116, cell area 30,808 -> 30,837 um^2.
+- Undo: `git revert <hash>` (reads stop working again).
