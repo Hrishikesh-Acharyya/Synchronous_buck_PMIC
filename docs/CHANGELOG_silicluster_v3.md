@@ -330,3 +330,52 @@ cannot contain its own hash, so the table is filled in by a later commit.
   and 9.
 - No RTL change, no area change.
 - Undo: `git revert <hash>` (equiv_all returns to 6/8 at 10 MHz).
+
+## 11. 2026-10-31 18:38 UTC - fix(reg_file): clear the fault log only on a completed read of 0x20
+
+- Files and lines: `rtl/telemetry/reg_file.sv` (input `rd_byte_done` at line
+  56; `fault_reg_read_done` at line 245; `addr_d` and its always_ff removed),
+  `rtl/telemetry/spi_slave.sv` (output `rd_byte_done` at line 65, its own
+  always_comb with a Purpose block, line 568), `rtl/pmic_top.sv` (one internal
+  wire `spi_rd_byte_done`, connected to both instances inside `g_telemetry`; no
+  port change). `Build/*` regenerated, `docs/silicluster_area.md`.
+- Symptom: a host WRITE that touches read-only 0x20 clears the fault log
+  (0x1D-0x20), and so does a command byte that loads 0x21 while the pointer was
+  left at 0x20 by the previous transaction. The testbench check "write to
+  read-only 0x20 leaves the fault record" failed after entry 9.
+- Root cause: reg_file inferred "the record has been read" from the address
+  moving 0x20 -> 0x21 between two clocks with `wr_en` low, but the address also
+  moves on command loads and write releases, and the `!wr_en` mask only lined up
+  with writes while spi_slave stepped `addr` on the same clock as `wr_en` - the
+  alignment that put every write one address high (entry 9).
+- Fix, approved by the reviewer: define the clear by what happened rather than by
+  address timing. spi_slave exports `rd_byte_done = byte_done && (spi_state ==
+  S_READ)`, the eighth rising SCK edge of a READ data byte, while `addr` still
+  names that byte. reg_file clears on `rd_byte_done && (addr == 0x20)`. The
+  address-history register `addr_d` is no longer needed and is removed.
+- Behaviour kept, recorded as asked: reading 0x20 ALONE still clears the log. A
+  one-byte read of 0x20 is a completed read of the record's top byte, which is
+  what triggers the clear; a host that wants the whole record must read
+  0x1D-0x20 as one burst. Stopping before 0x20 loses nothing.
+- Every other use of `addr` and `wr_en` in reg_file was checked: the read mux,
+  the threshold temp-register writes, the scratch/key/CONTROL writes and the key
+  arming. None depended on when `addr` increments; they were simply wrong before
+  entry 9 and correct after. Only this guard had been timed against the bug.
+- Evidence:
+  - Isolated trace of `fault_reg_read_done` on five paths (Icarus, converted
+    Verilog). Before (entry 9 state): clears on A (4-byte read sweep), B (1-byte
+    write to 0x20), C (read of 0x1F then a command to 0x21), D (1-byte read of
+    0x20), E (2-byte write 0x1F..0x20). After: clears on A and D only.
+  - Integration testbench: "write to read-only 0x20 leaves the fault record" FAIL
+    -> PASS, and with it the following "fault log: OTP" read. Full run PASS, 0
+    FAIL lines, at 10 MHz (Verilator on the SV source, Icarus on the converted
+    Verilog) and at 50 MHz (Verilator).
+- Regression: `make lint` clean; `make lint_notel` clean; `make -B convert`
+  clean (2318 lines); `make equiv_all` 8/8 in both tables, every cover hit, 0
+  assertion failures.
+- Cells: flops 700 -> 693 (`addr_d`), comb cells 2,130 -> 2,086, cell area
+  30,827 -> 30,522 um^2. Per module: reg_file 1,093 -> 1,071 cells (264 -> 257
+  flops), 12,085 -> 11,825 um^2; spi_slave 308 -> 306 cells, 3,323 -> 3,360
+  um^2 (the strobe decode).
+- Undo: `git revert <hash>` (writes to 0x20 and the stray command load clear
+  the log again).

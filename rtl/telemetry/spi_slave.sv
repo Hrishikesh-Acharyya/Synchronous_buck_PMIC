@@ -60,6 +60,9 @@ module spi_slave
     output logic [7:0]      wdata,
     input  wire logic [7:0] rdata,
     output logic            rd_first,
+    // rd_byte_done: one-clock pulse when a READ data byte has been fully clocked out,
+    //               on its eighth rising SCK edge, while addr still names that byte
+    output logic            rd_byte_done,
     // integrity_ok: CS rose on a byte boundary, length was legal, CRC checked out
     output logic            integrity_ok,
     // abort: write transaction ended any other way
@@ -545,6 +548,24 @@ module spi_slave
     */
 
         rd_first = sck_fall && (spi_state == S_TURN) && (bit_count == 3'd7);
+
+    end
+
+        always_comb begin
+    /*
+    Purpose:
+    ---
+    Flag the completion of each READ data byte: its eighth rising SCK edge, which
+    is where the master samples the last bit. addr still names the byte that has
+    just gone out on this clock and advances on the edge that ends it, so a
+    consumer can tell exactly which address the host has finished reading.
+
+    This is the only event that means "the host has read this byte". An address
+    change alone does not: addr also moves when a command byte loads it and when a
+    write releases a data byte, and reg_file must not mistake either for a read.
+    */
+
+        rd_byte_done = byte_done && (spi_state == S_READ);
 
     end
 

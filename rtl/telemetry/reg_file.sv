@@ -52,6 +52,8 @@ module reg_file
     output logic [7:0] rdata,
     // rd_first : first data byte of a read  -> triggers snapshot
     input wire logic rd_first,   
+    // rd_byte_done : the read data byte at addr has just been clocked out to the host
+    input wire logic rd_byte_done,
     // integrity_OK   : write transaction passed length check and CRC
     input wire logic integrity_OK,
     // abort    : transaction ended unvalidated -> discard temporary flop data. 
@@ -206,9 +208,6 @@ module reg_file
     logic en_pending;
     logic en_pending_val;
 
-    //addr_d: Delayed copy of addr;
-    logic[6:0] addr_d; 
-
     // bus_err_count: failed transactions seen on the host bus - CRC mismatch, CS
     //                rising off a byte boundary, illegal length, or an SCK timeout
     //                poisoning the frame to S_DEAD. A healthy link leaves this at
@@ -220,33 +219,30 @@ module reg_file
     // ==================================================================
     // Fault cause register read signal generation
     // ==================================================================
-    always_ff @ (posedge clk or negedge rst_n) begin
-      
-      /*
-      Purpose: Generate delayed copy of addr
-      */
-
-      if(!rst_n) addr_d <= '0;
-      else addr_d <= addr;
-
-    end
-
     always_comb begin
 
     /* 
       Purpose: 
                The output signal is used by fault_cause module to clear
-               the fault cause register and start logging a new episode
-               The pulse fires when the pointer leaves the last byte of
-               the four-byte record, so the whole record is delivered before
-               anything is destroyed, and that a host reading fewer than four
-               bytes gets a partial view but loses nothing.
+               the fault cause register and start logging a new episode.
+               It fires on what happened, not on how the address moved: a
+               READ data byte has just been clocked out (rd_byte_done) and
+               that byte was 0x20, the top of the four-byte record. The whole
+               record is therefore delivered before anything is destroyed,
+               and a host that stops before 0x20 gets a partial view but
+               loses nothing. A read that covers 0x20 clears the record,
+               including a one-byte read of 0x20 alone.
+
+               A command byte loading the address, or a write releasing a
+               byte, moves addr but is not a read, and cannot clear it. The
+               earlier form compared the address one clock apart and masked
+               writes with !wr_en; that only held while spi_slave stepped
+               addr on the same clock as wr_en, which was also what put
+               every write one address high.
     
     */
 
-      fault_reg_read_done = (addr_d == ADDR_FTIME_2)
-                            &&(addr   == ADDR_FTIME_2 + 7'd1)
-                            &&(!wr_en);
+      fault_reg_read_done = rd_byte_done && (addr == ADDR_FTIME_2);
 
     end
 
