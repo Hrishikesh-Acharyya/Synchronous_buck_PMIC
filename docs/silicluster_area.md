@@ -57,3 +57,17 @@ Commit hashes for each changelog entry are in the table at the end of
   telemetry the design fits the standard 20,700 um^2 slot (0.89x); with it,
   the submission needs about 2.6x the slot - an additional-area request of
   roughly 33,400 um^2 of die, almost all of it the host interface.
+- **2026-10-31, what the die figure can and cannot say.** The 57% utilisation
+  is an assumption carried over from `main`; the Silicluster call gives only
+  the slot (180 um x 115 um) and leaves the check to the designer's own
+  synthesis, place and route or estimate. Two statements need no assumption:
+  the full build's cell area alone, 30,737 um^2, is 1.48x the slot, so it
+  cannot fit one slot at any utilisation; the reduced build's cells fill 51%
+  of the slot, so it fits only if the layout reaches at least 51% utilisation
+  - or more, if the slot's usable core is smaller than its outline. Everything
+  between is for place and route to settle; no P&R run has been made here.
+- **2026-10-31, the reduced build is the verified fallback.** Since changelog
+  entry 23 the integration testbench runs TELEMETRY_EN = 0 too (pins-only, on
+  the default timers), so the 0.89x configuration is a tested submission
+  option, not only a cost reference. Area unchanged: 252 flops, 705 comb cells,
+  10,523 um^2.
