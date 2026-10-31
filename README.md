@@ -8,8 +8,8 @@ telemetry. The supervisor is verified, synthesised, and placed and routed in
 **Silicluster v3** multi-project chip.
 
 > **This branch, `silicluster-v3`, is the tapeout candidate.** The submitted
-> Verilog package is in [`submission/`](submission/) and described in
-> [`submission/SILICLUSTER_README.md`](submission/SILICLUSTER_README.md).
+> Verilog package is in [`submissions_full/`](submissions_full/) and described in
+> [`submissions_full/SILICLUSTER_README.md`](submissions_full/SILICLUSTER_README.md).
 
 ## At a glance
 
@@ -19,7 +19,7 @@ telemetry. The supervisor is verified, synthesised, and placed and routed in
 | **Analog loop** | Type III voltage mode: 19.2–19.3 dB gain margin and 61.9–63.9° phase margin at every load from µA to 5 A, crossover ~56 kHz |
 | **Supervisor chip** | 17 RTL modules: 4-state supervisor, soft start, PWM backstop, overcurrent windows, escalating hiccup, SCR-latch control, OTP/UVLO, power-good, status LEDs, SPI telemetry with CRC-8 |
 | **Chip interface** | 10 inputs, 11 outputs, `clk` and `rst` (of 14 / 14 available), 10 MHz, 1.8 V |
-| **Verification** | Plain Verilog-2005 integration testbench: 216 checks, 51 coverage bins, two scoreboards checked every clock; 8 module testbenches with 52 SVA assertions; identical results on Icarus and Verilator, on the SystemVerilog source and the submitted Verilog |
+| **Verification** | Plain Verilog-2005 integration testbench: 277 checks, 86 coverage bins including every fault crossed with every state, two scoreboards checked every clock; 8 module testbenches with 52 SVA assertions; identical results on Icarus and Verilator, on the SystemVerilog source and the submitted Verilog |
 | **Physical design** | Yosys + OpenROAD on `sky130_fd_sc_hd`: routed with 0 router DRC violations; 10 MHz timing met with ~95 ns of slack |
 | **Scalable area** | One parameter, `TELEMETRY_EN`: the full chip routes in 2.5–3× the standard slot; the protection-only chip routes in a single 180 × 115 µm slot |
 
@@ -134,7 +134,7 @@ the same testbench verifies both.
 
 ## Verification
 
-The submission testbench, [`tb/pmic_top_tb.v`](tb/pmic_top_tb.v), is a single
+The submission testbench, [`pmic_top_tb.v`](submissions_full/tb/pmic_top_tb.v), is a single
 plain Verilog-2005 module. It drives only the chip's pins, with behavioural
 models of the modulator, the comparators, the SCR latch and an SPI host, and
 checks in four layers: directed checks; per-clock monitors; two scoreboards —
@@ -144,12 +144,17 @@ if any is missed.
 
 | Build | Checks | Coverage | Simulated | Scoreboard comparisons |
 |---|---|---|---|---|
-| `TELEMETRY_EN = 1` | 216, 0 failed | 51 / 51 | 360 ms | 3.6 M clocks |
-| `TELEMETRY_EN = 0` | 134, 0 failed | 31 / 31 | 1.19 s, default timers | 11.9 M clocks |
+| `TELEMETRY_EN = 1` | 277, 0 failed | 86 / 86 | 0.79 s | 7.9 M clocks |
+| `TELEMETRY_EN = 0` | 173, 0 failed | 54 / 54 | 1.43 s, default timers | 14.3 M clocks |
 
 - Both builds pass on **Icarus Verilog and Verilator**, against the
   **SystemVerilog source and the submitted Verilog**, at 10 and 50 MHz, with
   identical check lines.
+- Beyond the directed phases: every fault cause crossed with every state it
+  can arrive in, the overcurrent window's exact threshold, strike escalation
+  and the clean-run window restarting, glitch and chatter rejection,
+  overlapping faults, reset while running, programmed thresholds reaching the
+  protection, and SPI corner cases.
 - Module level: **8 testbenches with 52 bound SVA assertions and 53 cover
   properties**, run against both the source and the converted Verilog.
 - CI (GitHub Actions) lints the RTL and runs the full regression in both
@@ -189,9 +194,9 @@ integration flow. Flow, scripts and every run's reports:
 
 ```
 rtl/            supervisor chip, SystemVerilog (17 modules + package)
-tb/, sva/       module testbenches + SVA; tb/pmic_top_tb.v is the integration testbench
+tb/, sva/       module testbenches (SystemVerilog) + bound SVA
 sim/            Makefile: lint, convert, equiv_all, top_both, syn_both, package
-submission/     Silicluster v3 package: Verilog-2005 tree + SILICLUSTER_README.md
+submissions_full/     Silicluster v3 package: Verilog-2005 rtl/, tb/, README
 Build/          converted single-file Verilog, synthesis summaries
 pnr/            OpenROAD place-and-route flow and results
 docs/           changelog of this branch, area log
@@ -211,8 +216,8 @@ make top_both            # integration testbench, both builds, Verilator and Ica
 make syn_both            # sky130 area of both builds
 ```
 
-The integration testbench also runs straight from the submission files —
-see [`submission/SILICLUSTER_README.md`](submission/SILICLUSTER_README.md).
+The integration testbench also runs straight from each package's own files —
+see [`submissions_full/SILICLUSTER_README.md`](submissions_full/SILICLUSTER_README.md).
 
 ## Status
 

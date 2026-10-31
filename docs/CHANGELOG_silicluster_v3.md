@@ -835,6 +835,63 @@ cannot contain its own hash, so the table is filled in by a later commit.
   package copies receive the same two edits with entry 31.
 - Undo: `git revert <hash>` (comments only).
 
+## 31. 2026-10-31 23:33 UTC - tb: second pass of the integration testbench; package and testbench move to submissions_full/
+
+- Files: `tb/pmic_top_tb.v` moved to `submissions_full/tb/pmic_top_tb.v` and
+  `submission/` renamed `submissions_full/` (requested: the testbench lives in
+  the package folder, and the package becomes the first of two);
+  `submissions_full/rtl/telemetry/spi_slave.v` and
+  `submissions_full/rtl/protect/strike_counter.v` (entry 30's two comments);
+  `sim/Makefile` (the paths only); `submissions_full/SILICLUSTER_README.md`
+  and `README.md` (testbench description and figures).
+- What - a second review of the stimulus, requested by the user ("new
+  scenarios that may have been missed"), implemented as phases 14-20, run by
+  both sequences after phase 13:
+  - 14 reset while running: every output safe in the same instant, restart
+    only after the 20 ms switch debounce; with telemetry, a write frame cut
+    in half by the reset, and the next transaction works;
+  - 15 every fault from every state it can arrive in: OTP and OVP in soft
+    start, UVLO and OVP in a hiccup, the enable switch in soft start and in a
+    hiccup, the host disable in both - each checked against the state the
+    supervisor left for S_OFF;
+  - 16 the overcurrent window's exact threshold: 11 faulted cycles in every 16
+    peak at 11 and hold; consecutive faulted cycles trip on exactly the 12th;
+  - 17 a second strike inside the clean-run window: the cool-down doubles, the
+    strike stays, the window restarts from the latest S_RUN entry (the
+    pins-only sequence does this in its phase 7, on the default timers);
+  - 18 UVLO and latch-readback glitches under the debounce, enable-switch
+    chatter under its 20 ms debounce, overlapping OTP and UVLO, strikes kept
+    across a fault-off;
+  - 19 (telemetry) programmed thresholds reach the protection - TRIP_SS,
+    CYCLES_PER_STEP, MAX_ON, TRIP_RUN, MAX_STRIKES - not just the registers;
+  - 20 (telemetry) SPI corners: a read-only register, unmapped addresses, a
+    burst read wrapping 0x7F -> 0x00, SCK and CS_n glitches under the filter.
+- Five new run-long monitors: PGOOD only in S_RUN; Green_LED, Red_LED2 and
+  Red_LED3 equal to the state and the debounced faults one clock later; no
+  PWM_out pulse longer than the ceiling in force when it started; latch_out
+  only on the strike that reaches MAX_STRIKES.
+- Coverage: 51 -> 86 bins - every fault cause crossed with the state it
+  arrives in (16), and 19 for the new scenarios. Without telemetry 32 are n/a.
+- The SPI sequence's phases 1-13 are unchanged: their 198 check lines are
+  identical to before.
+- Testbench mistakes found and fixed on the way, none in the design: the
+  scoreboard's record of the last S_OFF source and its S_RUN-entry stamp were
+  read a clock or two before it wrote them; a comparator level set mid
+  off-time missed the sample at 90% duty (now set just after each rise);
+  phase 19's MAX_ON and the SPI glitch width assumed 10 MHz (failed at
+  50 MHz, now derived from the clock); and a same-instant race in Icarus -
+  waiting for En to fall the moment soft start began - found by the
+  sign-off run (a 100 us settle added).
+- Gate: TELEMETRY_EN = 1 - 277 checks, 0 failures, 86/86 bins;
+  TELEMETRY_EN = 0 - 173 checks, 0 failures, 54/54 applicable bins. Both on
+  Icarus 12 and Verilator 5.052, on the SystemVerilog source, the converted
+  single file and the annotated split files, with identical check lines and
+  coverage tables; both at 50 MHz; `make lint`, `make lint_notel`;
+  `make -j2 equiv_all` 9/9 in both tables and 54/54 for both TELEMETRY_EN = 0
+  flows; `make package_check` 17/17.
+- Undo: `git revert <hash>` (entry 32 builds on the new paths; revert that
+  first).
+
 ---
 
 ## Commit table

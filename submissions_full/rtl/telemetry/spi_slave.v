@@ -161,7 +161,7 @@ module spi_slave (
 	Purpose:
 	---
 	Delayed copies of sck and cs_n so the four edges below can be detected
-	combinationally. Everything in this module is an enable on the 50 MHz domain;
+	combinationally. Everything in this module is an enable on the clk domain;
 	sck is never used as a clock.
 	*/
 	always @(posedge clk or negedge rst_n)
