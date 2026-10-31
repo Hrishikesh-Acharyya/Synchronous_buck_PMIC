@@ -491,12 +491,18 @@ module spi_slave
         end
         else begin
 
-            // ---- drive the line only in S_READ ----
-            // Decided from the state alone, every clock. The load below no
-            // longer sets it: a set in S_TURN was cleared on the next clock,
-            // because the state is still S_TURN until the eighth rising edge,
-            // and nothing set it again in S_READ - so no read ever drove SDIO.
-            sdio_oe <= (spi_state == S_READ);
+            // ---- drive the line exactly while spi_state is S_READ ----
+            // Registered from the NEXT state, so sdio_oe changes on the same
+            // edge as spi_state: the slave takes SDIO on the edge it enters
+            // S_READ and lets go on the edge it leaves - including the edge
+            // that sees CS rise - with no clock of overhang onto a deselected
+            // bus. The first data bit is already on sdio_out at the take-over
+            // edge, loaded on the last falling edge of the turnaround byte.
+            // The load below no longer sets it: a set in S_TURN was cleared on
+            // the next clock, because the state is still S_TURN until the
+            // eighth rising edge, and nothing set it again in S_READ - so no
+            // read ever drove SDIO.
+            sdio_oe <= (spi_state_next == S_READ);
 
             if (sck_fall) begin
 

@@ -379,3 +379,46 @@ cannot contain its own hash, so the table is filled in by a later commit.
   um^2 (the strobe decode).
 - Undo: `git revert <hash>` (writes to 0x20 and the stray command load clear
   the log again).
+
+## 12. 2026-10-31 18:42 UTC - fix(spi_slave): sdio_oe exactly aligned with S_READ
+
+- File and line: `rtl/telemetry/spi_slave.sv`, BLOCK 7, line 505
+  (`sdio_oe <= (spi_state_next == S_READ);`) and its comment. `Build/*`
+  regenerated, `docs/silicluster_area.md`, and the SDIO monitor in
+  `tb/pmic_top_tb.v`.
+- Symptom: after entry 8, `sdio_oe` trailed `spi_state` by one clock on both
+  edges. On every exit from S_READ the slave kept driving SDIO for one clock -
+  and the exits are CS deasserted -> S_IDLE (110 of 111 reads at 10 MHz) and SCK
+  timeout -> S_DEAD (1); CS re-asserted -> S_CMD cannot occur through the CS
+  filter. The CS exit meant one clock of drive onto a bus the slave itself
+  already saw as deselected.
+- Root cause: `sdio_oe` was registered from the current state, so it could only
+  follow a state change one clock after it.
+- Fix, approved by the reviewer: register it from the next state. `sdio_oe` and
+  `spi_state` now change on the same edge - the slave takes SDIO on the edge it
+  enters S_READ and lets go on the edge it leaves. Still a flop, so the
+  tri-state enable stays glitch-free.
+- Reviewer's condition, checked: the drive now starts one clock earlier, on the
+  edge `spi_state` enters S_READ. The first data bit is on SDIO at that edge -
+  `sdio_out` is loaded on the last falling SCK edge of the turnaround byte and
+  only changes on falling edges. The testbench checks, 1 ns after every drive
+  start, that the net carries `sdio_out`, that `sdio_out` is the MSB of the
+  loaded byte, and that the master has already released the line: 0 failures in
+  111 drive starts at 10 MHz and 376 at 50 MHz.
+- Monitor tightened, as asked, from "falls within one clock" to exact alignment:
+  any clock with `sdio_oe != (spi_state == S_READ)` fails, with no tolerance.
+- Evidence, before -> after: misaligned clocks 222 -> 0 at 10 MHz and 752 -> 0
+  at 50 MHz (two per read before: one late take-over, one late release); every
+  read test passes at both clocks; release after the filtered CS rises 2 -> 1
+  clock; setup margin of the first data bit at the master's sampling edge 2.8 ->
+  2.9 us (10 MHz) and 3.76 -> 3.78 us (50 MHz) at 250 kHz SCK. Full integration
+  testbench PASS, 0 FAIL lines, at 10 MHz (Verilator SV, Icarus converted) and
+  50 MHz (Verilator SV).
+- Regression: `make lint` and `make lint_notel` clean; `make -B convert` clean
+  (2318 lines); `make equiv_all` 8/8 in both tables, every cover, 0 assertion
+  failures.
+- Cells: spi_slave 306 -> 307 cells (80 flops), 3,359.5 -> 3,353.2 um^2;
+  reg_file unchanged. Flattened: flops 693 -> 693, comb cells 2,086 -> 2,113,
+  cell area 30,522 -> 30,644 um^2 - ABC result variation across module
+  boundaries, since the module itself shrank.
+- Undo: `git revert <hash>` (back to one clock of trailing drive).

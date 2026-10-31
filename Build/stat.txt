@@ -1375,20 +1375,21 @@ Optimizing module pmic_top.
 Finding identical cells in module `\pmic_top'.
 Computing hashes of 937 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 842 cells of `\pmic_top'.
+Computing hashes of 843 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 836 cells of `\pmic_top'.
+Computing hashes of 837 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 834 cells of `\pmic_top'.
+Computing hashes of 835 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-<suppressed ~309 debug messages>
-Removed a total of 103 cells.
+<suppressed ~306 debug messages>
+Removed a total of 102 cells.
 
 3.8.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
 Running muxtree optimizer on module \pmic_top..
   Creating internal representation of mux trees.
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
+    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1540.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1538.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1536.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1533.
@@ -1450,8 +1451,8 @@ Running muxtree optimizer on module \pmic_top..
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1188.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1185.
     dead port 1/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1181.
+    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1632.
     dead port 1/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1630.
-    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1540.
     dead port 1/2 on $mux $flatten\u_supervisor.$procmux$778.
     dead port 2/2 on $mux $flatten\u_supervisor.$procmux$780.
     dead port 2/2 on $mux $flatten\u_supervisor.$procmux$785.
@@ -1464,8 +1465,8 @@ Running muxtree optimizer on module \pmic_top..
     dead port 1/2 on $mux $flatten\u_supervisor.$procmux$821.
     dead port 2/2 on $mux $flatten\u_supervisor.$procmux$823.
     dead port 2/2 on $mux $flatten\u_supervisor.$procmux$830.
-    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1654.
     dead port 2/2 on $mux $flatten\u_supervisor.$procmux$838.
+    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1654.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1652.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1650.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1647.
@@ -1477,14 +1478,13 @@ Running muxtree optimizer on module \pmic_top..
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1593.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1590.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1582.
-    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1580.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1278.
-    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1578.
+    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1580.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1192.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1183.
+    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1578.
     dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1575.
     dead port 1/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1573.
-    dead port 2/2 on $mux $flatten\g_telemetry.u_reg_file.$procmux$1632.
 Removed 96 multiplexer ports.
 <suppressed ~590 debug messages>
 
@@ -1496,9 +1496,9 @@ Performed a total of 2 changes.
 
 3.8.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 739 cells of `\pmic_top'.
+Computing hashes of 740 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 738 cells of `\pmic_top'.
+Computing hashes of 739 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~3 debug messages>
 Removed a total of 1 cells.
@@ -1507,7 +1507,7 @@ Removed a total of 1 cells.
 
 3.8.7. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 0 unused cells and 193 unused wires.
+Removed 0 unused cells and 192 unused wires.
 <suppressed ~1 debug messages>
 
 3.8.8. Executing OPT_EXPR pass (perform const folding).
@@ -1530,7 +1530,7 @@ Performed a total of 0 changes.
 
 3.8.12. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 737 cells of `\pmic_top'.
+Computing hashes of 738 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -1560,7 +1560,7 @@ Performed a total of 0 changes.
 
 3.8.19. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 737 cells of `\pmic_top'.
+Computing hashes of 738 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -1604,7 +1604,7 @@ Optimizing module pmic_top.
 
 3.10.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 737 cells of `\pmic_top'.
+Computing hashes of 738 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -1622,7 +1622,7 @@ Performed a total of 0 changes.
 
 3.10.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 737 cells of `\pmic_top'.
+Computing hashes of 738 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -1636,8 +1636,6 @@ Adding EN signal on $flatten\u_OTP_sync_db.$procdff$3707 ($adff) from module pmi
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3407 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_hiccup_1).
 Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$3702 ($adff) from module pmic_top (D = \u_uvlo_sync.sync_out, Q = \u_UVLO_sync_db.flag_out).
 Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$3707 ($adff) from module pmic_top (D = $flatten\u_UVLO_sync_db.$0\disagree_counter[13:0], Q = \u_UVLO_sync_db.disagree_counter).
-Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$3702 ($adff) from module pmic_top (D = \u_latch_stat_sync.sync_out, Q = \u_latch_stat_sync_db.flag_out).
-Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$3707 ($adff) from module pmic_top (D = $flatten\u_latch_stat_sync_db.$0\disagree_counter[13:0], Q = \u_latch_stat_sync_db.disagree_counter).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [0], Q = \g_telemetry.u_reg_file.temp_dirty [0]).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [1], Q = \g_telemetry.u_reg_file.temp_dirty [1]).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [2], Q = \g_telemetry.u_reg_file.temp_dirty [2]).
@@ -1649,6 +1647,8 @@ Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from m
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [8], Q = \g_telemetry.u_reg_file.temp_dirty [8]).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [9], Q = \g_telemetry.u_reg_file.temp_dirty [9]).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3437 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\temp_dirty[10:0] [10], Q = \g_telemetry.u_reg_file.temp_dirty [10]).
+Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$3702 ($adff) from module pmic_top (D = \u_latch_stat_sync.sync_out, Q = \u_latch_stat_sync_db.flag_out).
+Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$3707 ($adff) from module pmic_top (D = $flatten\u_latch_stat_sync_db.$0\disagree_counter[13:0], Q = \u_latch_stat_sync_db.disagree_counter).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3307 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$procmux$1953_Y, Q = \g_telemetry.u_reg_file.write_rejected).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3302 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$7\clamp_hiccup$func$../Build/pmic_full.v:1268$296.$result[17:0]$511, Q = \g_telemetry.u_reg_file.hiccup_base).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3402 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_hiccup_0).
@@ -1703,7 +1703,6 @@ Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3162 ($adff) from 
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3152 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_spi_slave.$procmux$932_Y, Q = \g_telemetry.u_spi_slave.sdio_out).
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3202 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_spi_slave.$0\held_valid[0:0], Q = \g_telemetry.u_spi_slave.held_valid).
 Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3197 ($adff) from module pmic_top (D = { \g_telemetry.u_spi_slave.rx_shift \g_spi_filt.u_sdio_filt.flag_out }, Q = \g_telemetry.u_spi_slave.held_data).
-Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3217 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.spi_state_next, Q = \g_telemetry.u_spi_slave.spi_state).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3257 ($adff) from module pmic_top (D = $flatten\g_telemetry.u_reg_file.$0\en_pending[0:0], Q = \g_telemetry.u_reg_file.en_pending).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3387 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.wdata, Q = \g_telemetry.u_reg_file.temp_trip_ss).
 Adding EN signal on $flatten\g_telemetry.u_reg_file.$procdff$3452 ($adff) from module pmic_top (D = \g_timestamp.u_timestamp.timestamp_ms, Q = \g_telemetry.u_reg_file.timestamp_snap).
@@ -1741,11 +1740,11 @@ Performed a total of 0 changes.
 
 3.10.12. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 811 cells of `\pmic_top'.
+Computing hashes of 809 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 768 cells of `\pmic_top'.
+Computing hashes of 766 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 764 cells of `\pmic_top'.
+Computing hashes of 762 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~141 debug messages>
 Removed a total of 47 cells.
@@ -1776,7 +1775,7 @@ Performed a total of 0 changes.
 
 3.10.19. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 764 cells of `\pmic_top'.
+Computing hashes of 762 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -1791,18 +1790,16 @@ Optimizing module pmic_top.
 3.10.23. Finished fast OPT passes. (There is nothing left to do.)
 
 3.11. Executing WREDUCE pass (reducing word size of cells).
-Removed top 4 bits (of 5) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4125 ($ne).
-Removed top 4 bits (of 5) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4123 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4109 ($ne).
 Removed top 1 bits (of 8) from FF cell pmic_top.$auto$ff.cc:337:slice$4095 ($adffe).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4043 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4039 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4035 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4028 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4013 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$4002 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3955 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3940 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3791 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3868 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3787 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3778 ($ne).
 Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:194:make_patterns_logic$3773 ($ne).
@@ -1925,8 +1922,8 @@ Removed top 1 bits (of 2) from wire pmic_top.$flatten\u_supervisor.$2\next_state
 Removed top 1 bits (of 2) from wire pmic_top.$flatten\u_supervisor.$7\next_state[1:0].
 Removed top 28 bits (of 32) from wire pmic_top.$flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700_Y.
 Removed top 26 bits (of 32) from wire pmic_top.$flatten\g_telemetry.u_pwm_stats.$add$../Build/pmic_full.v:766$243_Y.
-Removed top 18 bits (of 32) from wire pmic_top.$flatten\u_latch_stat_sync_db.$add$../Build/pmic_full.v:97$18_Y.
 Removed top 28 bits (of 32) from wire pmic_top.$flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700_Y.
+Removed top 18 bits (of 32) from wire pmic_top.$flatten\u_latch_stat_sync_db.$add$../Build/pmic_full.v:97$18_Y.
 Removed top 18 bits (of 32) from wire pmic_top.$flatten\u_UVLO_sync_db.$add$../Build/pmic_full.v:97$18_Y.
 Removed top 18 bits (of 32) from wire pmic_top.$flatten\u_OTP_sync_db.$add$../Build/pmic_full.v:97$18_Y.
 Removed top 14 bits (of 32) from wire pmic_top.$flatten\u_en_from_switch_db.$add$../Build/pmic_full.v:97$740_Y.
@@ -2007,8 +2004,8 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566.
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562.
   creating $alu model for $macc $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1465$558.
-  creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:338$117: $auto$alumacc.cc:427:replace_macc$4200
-  creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:342$128: $auto$alumacc.cc:427:replace_macc$4201
+  creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:338$117: $auto$alumacc.cc:427:replace_macc$4193
+  creating $macc cell for $flatten\u_fault_arbiter.$sub$../Build/pmic_full.v:342$128: $auto$alumacc.cc:427:replace_macc$4194
   creating $alu model for $flatten\g_telemetry.u_spi_slave.$ge$../Build/pmic_full.v:1583$605 ($ge): new $alu
   creating $alu model for $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699 ($lt): new $alu
   creating $alu model for $flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705 ($ge): merged with $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699.
@@ -2042,62 +2039,62 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu model for $flatten\u_en_from_switch_db.$lt$../Build/pmic_full.v:96$739 ($lt): new $alu
   creating $alu model for $flatten\u_en_from_switch_db.$ge$../Build/pmic_full.v:104$745 ($ge): merged with $flatten\u_en_from_switch_db.$lt$../Build/pmic_full.v:96$739.
   creating $alu model for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1041$501 ($lt): new $alu
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1041$501: $auto$alumacc.cc:578:replace_alu$4228
-  creating $alu cell for $flatten\u_en_from_switch_db.$lt$../Build/pmic_full.v:96$739, $flatten\u_en_from_switch_db.$ge$../Build/pmic_full.v:104$745: $auto$alumacc.cc:578:replace_alu$4233
-  creating $alu cell for $flatten\u_OTP_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_OTP_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4246
-  creating $alu cell for $flatten\u_UVLO_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_UVLO_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4259
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_latch_stat_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4272
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$ge$../Build/pmic_full.v:968$316: $auto$alumacc.cc:578:replace_alu$4285
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:986$475: $auto$alumacc.cc:578:replace_alu$4298
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:988$477: $auto$alumacc.cc:578:replace_alu$4303
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:995$481: $auto$alumacc.cc:578:replace_alu$4314
-  creating $alu cell for $flatten\u_fault_arbiter.$ge$../Build/pmic_full.v:363$139: $auto$alumacc.cc:578:replace_alu$4319
-  creating $alu cell for $flatten\u_fault_arbiter.$ge$../Build/pmic_full.v:358$137: $auto$alumacc.cc:578:replace_alu$4332
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:997$483: $auto$alumacc.cc:578:replace_alu$4345
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1008$487: $auto$alumacc.cc:578:replace_alu$4356
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1010$489: $auto$alumacc.cc:578:replace_alu$4361
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1028$493: $auto$alumacc.cc:578:replace_alu$4372
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1030$495: $auto$alumacc.cc:578:replace_alu$4383
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1043$503: $auto$alumacc.cc:578:replace_alu$4388
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1055$510: $auto$alumacc.cc:578:replace_alu$4399
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1057$512: $auto$alumacc.cc:578:replace_alu$4404
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1069$519: $auto$alumacc.cc:578:replace_alu$4415
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1071$521: $auto$alumacc.cc:578:replace_alu$4420
-  creating $alu cell for $flatten\u_pwm_mask.$lt$../Build/pmic_full.v:230$46: $auto$alumacc.cc:578:replace_alu$4431
-  creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sck_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4436
-  creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718, $flatten\g_spi_filt.u_cs_filt.$ge$../Build/pmic_full.v:104$724: $auto$alumacc.cc:578:replace_alu$4449
-  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4462
-  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$ge$../Build/pmic_full.v:1583$605: $auto$alumacc.cc:578:replace_alu$4475
-  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1465$558: $auto$alumacc.cc:578:replace_alu$4488
-  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562: $auto$alumacc.cc:578:replace_alu$4491
-  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566: $auto$alumacc.cc:578:replace_alu$4494
-  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1572$597: $auto$alumacc.cc:578:replace_alu$4497
-  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4500
-  creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719: $auto$alumacc.cc:578:replace_alu$4503
-  creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4506
-  creating $alu cell for $flatten\u_fault_LED.$add$../Build/pmic_full.v:674$211: $auto$alumacc.cc:578:replace_alu$4509
-  creating $alu cell for $flatten\u_pgood_gen.$add$../Build/pmic_full.v:569$189: $auto$alumacc.cc:578:replace_alu$4512
-  creating $alu cell for $flatten\u_pwm_mask.$add$../Build/pmic_full.v:231$47: $auto$alumacc.cc:578:replace_alu$4515
-  creating $alu cell for $flatten\u_soft_start.$sub$../Build/pmic_full.v:174$35: $auto$alumacc.cc:578:replace_alu$4518
-  creating $alu cell for $flatten\u_soft_start.$add$../Build/pmic_full.v:179$38: $auto$alumacc.cc:578:replace_alu$4521
-  creating $alu cell for $flatten\u_soft_start.$add$../Build/pmic_full.v:185$41: $auto$alumacc.cc:578:replace_alu$4524
-  creating $alu cell for $flatten\u_strike_counter.$add$../Build/pmic_full.v:497$165: $auto$alumacc.cc:578:replace_alu$4527
-  creating $alu cell for $flatten\u_strike_counter.$sub$../Build/pmic_full.v:498$166: $auto$alumacc.cc:578:replace_alu$4530
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$add$../Build/pmic_full.v:1294$526: $auto$alumacc.cc:578:replace_alu$4533
-  creating $alu cell for $flatten\u_strike_counter.$add$../Build/pmic_full.v:512$174: $auto$alumacc.cc:578:replace_alu$4536
-  creating $alu cell for $flatten\u_hiccup_timer.$add$../Build/pmic_full.v:431$153: $auto$alumacc.cc:578:replace_alu$4539
-  creating $alu cell for $flatten\g_timestamp.u_timestamp.$add$../Build/pmic_full.v:611$204: $auto$alumacc.cc:578:replace_alu$4542
-  creating $alu cell for $flatten\g_timestamp.u_timestamp.$add$../Build/pmic_full.v:606$200: $auto$alumacc.cc:578:replace_alu$4545
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$add$../Build/pmic_full.v:974$323: $auto$alumacc.cc:578:replace_alu$4548
-  creating $alu cell for $flatten\g_telemetry.u_reg_file.$sub$../Build/pmic_full.v:968$315: $auto$alumacc.cc:578:replace_alu$4551
-  creating $alu cell for $flatten\g_telemetry.u_pwm_stats.$add$../Build/pmic_full.v:769$244: $auto$alumacc.cc:578:replace_alu$4554
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4557
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4560
-  creating $alu cell for $flatten\u_UVLO_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4563
-  creating $alu cell for $flatten\u_UVLO_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4566
-  creating $alu cell for $flatten\u_OTP_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4569
-  creating $alu cell for $flatten\u_OTP_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4572
-  creating $alu cell for $flatten\u_en_from_switch_db.$add$../Build/pmic_full.v:97$740: $auto$alumacc.cc:578:replace_alu$4575
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1041$501: $auto$alumacc.cc:578:replace_alu$4221
+  creating $alu cell for $flatten\u_en_from_switch_db.$lt$../Build/pmic_full.v:96$739, $flatten\u_en_from_switch_db.$ge$../Build/pmic_full.v:104$745: $auto$alumacc.cc:578:replace_alu$4226
+  creating $alu cell for $flatten\u_OTP_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_OTP_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4239
+  creating $alu cell for $flatten\u_UVLO_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_UVLO_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4252
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$lt$../Build/pmic_full.v:96$17, $flatten\u_latch_stat_sync_db.$ge$../Build/pmic_full.v:104$23: $auto$alumacc.cc:578:replace_alu$4265
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$ge$../Build/pmic_full.v:968$316: $auto$alumacc.cc:578:replace_alu$4278
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:986$475: $auto$alumacc.cc:578:replace_alu$4291
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:988$477: $auto$alumacc.cc:578:replace_alu$4296
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:995$481: $auto$alumacc.cc:578:replace_alu$4307
+  creating $alu cell for $flatten\u_fault_arbiter.$ge$../Build/pmic_full.v:363$139: $auto$alumacc.cc:578:replace_alu$4312
+  creating $alu cell for $flatten\u_fault_arbiter.$ge$../Build/pmic_full.v:358$137: $auto$alumacc.cc:578:replace_alu$4325
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:997$483: $auto$alumacc.cc:578:replace_alu$4338
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1008$487: $auto$alumacc.cc:578:replace_alu$4349
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1010$489: $auto$alumacc.cc:578:replace_alu$4354
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1028$493: $auto$alumacc.cc:578:replace_alu$4365
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1030$495: $auto$alumacc.cc:578:replace_alu$4376
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1043$503: $auto$alumacc.cc:578:replace_alu$4381
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1055$510: $auto$alumacc.cc:578:replace_alu$4392
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1057$512: $auto$alumacc.cc:578:replace_alu$4397
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$lt$../Build/pmic_full.v:1069$519: $auto$alumacc.cc:578:replace_alu$4408
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$gt$../Build/pmic_full.v:1071$521: $auto$alumacc.cc:578:replace_alu$4413
+  creating $alu cell for $flatten\u_pwm_mask.$lt$../Build/pmic_full.v:230$46: $auto$alumacc.cc:578:replace_alu$4424
+  creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sck_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4429
+  creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$lt$../Build/pmic_full.v:96$718, $flatten\g_spi_filt.u_cs_filt.$ge$../Build/pmic_full.v:104$724: $auto$alumacc.cc:578:replace_alu$4442
+  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$lt$../Build/pmic_full.v:96$699, $flatten\g_spi_filt.u_sdio_filt.$ge$../Build/pmic_full.v:104$705: $auto$alumacc.cc:578:replace_alu$4455
+  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$ge$../Build/pmic_full.v:1583$605: $auto$alumacc.cc:578:replace_alu$4468
+  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1465$558: $auto$alumacc.cc:578:replace_alu$4481
+  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1467$562: $auto$alumacc.cc:578:replace_alu$4484
+  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1487$566: $auto$alumacc.cc:578:replace_alu$4487
+  creating $alu cell for $flatten\g_telemetry.u_spi_slave.$add$../Build/pmic_full.v:1572$597: $auto$alumacc.cc:578:replace_alu$4490
+  creating $alu cell for $flatten\g_spi_filt.u_sdio_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4493
+  creating $alu cell for $flatten\g_spi_filt.u_cs_filt.$add$../Build/pmic_full.v:97$719: $auto$alumacc.cc:578:replace_alu$4496
+  creating $alu cell for $flatten\g_spi_filt.u_sck_filt.$add$../Build/pmic_full.v:97$700: $auto$alumacc.cc:578:replace_alu$4499
+  creating $alu cell for $flatten\u_fault_LED.$add$../Build/pmic_full.v:674$211: $auto$alumacc.cc:578:replace_alu$4502
+  creating $alu cell for $flatten\u_pgood_gen.$add$../Build/pmic_full.v:569$189: $auto$alumacc.cc:578:replace_alu$4505
+  creating $alu cell for $flatten\u_pwm_mask.$add$../Build/pmic_full.v:231$47: $auto$alumacc.cc:578:replace_alu$4508
+  creating $alu cell for $flatten\u_soft_start.$sub$../Build/pmic_full.v:174$35: $auto$alumacc.cc:578:replace_alu$4511
+  creating $alu cell for $flatten\u_soft_start.$add$../Build/pmic_full.v:179$38: $auto$alumacc.cc:578:replace_alu$4514
+  creating $alu cell for $flatten\u_soft_start.$add$../Build/pmic_full.v:185$41: $auto$alumacc.cc:578:replace_alu$4517
+  creating $alu cell for $flatten\u_strike_counter.$add$../Build/pmic_full.v:497$165: $auto$alumacc.cc:578:replace_alu$4520
+  creating $alu cell for $flatten\u_strike_counter.$sub$../Build/pmic_full.v:498$166: $auto$alumacc.cc:578:replace_alu$4523
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$add$../Build/pmic_full.v:1294$526: $auto$alumacc.cc:578:replace_alu$4526
+  creating $alu cell for $flatten\u_strike_counter.$add$../Build/pmic_full.v:512$174: $auto$alumacc.cc:578:replace_alu$4529
+  creating $alu cell for $flatten\u_hiccup_timer.$add$../Build/pmic_full.v:431$153: $auto$alumacc.cc:578:replace_alu$4532
+  creating $alu cell for $flatten\g_timestamp.u_timestamp.$add$../Build/pmic_full.v:611$204: $auto$alumacc.cc:578:replace_alu$4535
+  creating $alu cell for $flatten\g_timestamp.u_timestamp.$add$../Build/pmic_full.v:606$200: $auto$alumacc.cc:578:replace_alu$4538
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$add$../Build/pmic_full.v:974$323: $auto$alumacc.cc:578:replace_alu$4541
+  creating $alu cell for $flatten\g_telemetry.u_reg_file.$sub$../Build/pmic_full.v:968$315: $auto$alumacc.cc:578:replace_alu$4544
+  creating $alu cell for $flatten\g_telemetry.u_pwm_stats.$add$../Build/pmic_full.v:769$244: $auto$alumacc.cc:578:replace_alu$4547
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4550
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4553
+  creating $alu cell for $flatten\u_UVLO_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4556
+  creating $alu cell for $flatten\u_UVLO_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4559
+  creating $alu cell for $flatten\u_OTP_sync_db.$sub$../Build/pmic_full.v:96$16: $auto$alumacc.cc:578:replace_alu$4562
+  creating $alu cell for $flatten\u_OTP_sync_db.$add$../Build/pmic_full.v:97$18: $auto$alumacc.cc:578:replace_alu$4565
+  creating $alu cell for $flatten\u_en_from_switch_db.$add$../Build/pmic_full.v:97$740: $auto$alumacc.cc:578:replace_alu$4568
   created 56 $alu and 2 $macc cells.
 
 3.15. Executing SHARE pass (SAT-based resource sharing).
@@ -2110,7 +2107,7 @@ Optimizing module pmic_top.
 
 3.16.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 848 cells of `\pmic_top'.
+Computing hashes of 846 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -2128,7 +2125,7 @@ Performed a total of 0 changes.
 
 3.16.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 848 cells of `\pmic_top'.
+Computing hashes of 846 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -2158,7 +2155,7 @@ Performed a total of 0 changes.
 
 3.16.12. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 832 cells of `\pmic_top'.
+Computing hashes of 830 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
@@ -2206,7 +2203,7 @@ Finding unused cells or wires in module \pmic_top..
 
 3.19.1. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~127 debug messages>
+<suppressed ~125 debug messages>
 
 3.19.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
@@ -2221,8 +2218,8 @@ Removed a total of 20 cells.
 
 3.19.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 5 unused cells and 140 unused wires.
-<suppressed ~8 debug messages>
+Removed 6 unused cells and 139 unused wires.
+<suppressed ~9 debug messages>
 
 3.19.5. Finished fast OPT passes.
 
@@ -2236,9 +2233,9 @@ Optimizing module pmic_top.
 
 3.21.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 742 cells of `\pmic_top'.
+Computing hashes of 741 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
-Computing hashes of 740 cells of `\pmic_top'.
+Computing hashes of 739 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~6 debug messages>
 Removed a total of 2 cells.
@@ -2249,11 +2246,10 @@ Running muxtree optimizer on module \pmic_top..
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
 Removed 0 multiplexer ports.
-<suppressed ~188 debug messages>
+<suppressed ~190 debug messages>
 
 3.21.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
-    New ctrl vector for $pmux cell $flatten\g_telemetry.u_spi_slave.$procmux$1067: { $auto$opt_reduce.cc:137:opt_pmux$4653 $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1497$568_Y $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1493$567_Y $flatten\g_telemetry.u_spi_slave.$procmux$1072_CMP }
     Consolidated identical input bits for $mux cell $flatten\u_supervisor.$procmux$775:
       Old ports: A=2'11, B=2'01, Y=$flatten\u_supervisor.$9\next_state[1:0]
       New ports: A=1'1, B=1'0, Y=$flatten\u_supervisor.$9\next_state[1:0] [1]
@@ -2271,17 +2267,18 @@ Removed 0 multiplexer ports.
       New ports: A=2'01, B=2'10, Y={ \u_OTP_sync_db.target_clks [13] \u_OTP_sync_db.target_clks [6] }
       New connections: { \u_OTP_sync_db.target_clks [12:7] \u_OTP_sync_db.target_clks [5:0] } = { 5'00111 \u_OTP_sync_db.target_clks [6] 6'010000 }
   Optimizing cells in module \pmic_top.
-Performed a total of 5 changes.
+Performed a total of 4 changes.
 
 3.21.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 741 cells of `\pmic_top'.
+Computing hashes of 739 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
 3.21.6. Executing OPT_SHARE pass.
 
 3.21.7. Executing OPT_DFF pass (perform DFF optimizations).
+Adding EN signal on $flatten\g_telemetry.u_spi_slave.$procdff$3217 ($adff) from module pmic_top (D = \g_telemetry.u_spi_slave.spi_state_next, Q = \g_telemetry.u_spi_slave.spi_state).
 
 3.21.8. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
@@ -2290,7 +2287,7 @@ Removed 0 unused cells and 3 unused wires.
 
 3.21.9. Executing OPT_EXPR pass (perform const folding).
 Optimizing module pmic_top.
-<suppressed ~103 debug messages>
+<suppressed ~105 debug messages>
 
 3.21.10. Rerunning OPT passes. (Maybe there is more to do..)
 
@@ -2304,7 +2301,9 @@ Removed 0 multiplexer ports.
 
 3.21.12. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
-Performed a total of 0 changes.
+    New ctrl vector for $pmux cell $flatten\g_telemetry.u_spi_slave.$procmux$1067: { $auto$opt_reduce.cc:137:opt_pmux$4800 $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1497$568_Y $flatten\g_telemetry.u_spi_slave.$eq$../Build/pmic_full.v:1493$567_Y $flatten\g_telemetry.u_spi_slave.$procmux$1072_CMP }
+  Optimizing cells in module \pmic_top.
+Performed a total of 1 changes.
 
 3.21.13. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
@@ -2321,7 +2320,7 @@ Removed a total of 7 cells.
 
 3.21.16. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 6 unused cells and 77 unused wires.
+Removed 6 unused cells and 79 unused wires.
 <suppressed ~7 debug messages>
 
 3.21.17. Executing OPT_EXPR pass (perform const folding).
@@ -2391,8 +2390,11 @@ Generating RTLIL representation for module `$input_port'.
 Successfully finished Verilog frontend.
 
 3.22.2. Continuing TECHMAP pass.
-Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc\_90_alu for cells of type $alu.
 Using extmapper simplemap for cells of type $reduce_or.
+Using template $paramod$fc972a7a46956c1788f3cb5257b53c8f1df2d0cc\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $reduce_and.
+Using extmapper simplemap for cells of type $ne.
+Using extmapper simplemap for cells of type $adffe.
 Using extmapper simplemap for cells of type $not.
 Using template $paramod$ea402187f386206c0840504755479bf827f47707\_90_alu for cells of type $alu.
 Using template $paramod$713617589782cfade849bb573b5c36106c4b708f\_90_alu for cells of type $alu.
@@ -2414,7 +2416,6 @@ Using template $paramod$32a7b7b86c07519b7537abc18e96f0331f97914d\_90_alu for cel
 Using template $paramod$3b7577489eb4433b1d5620cab7f3794743dee5ea\_90_alu for cells of type $alu.
 Using template $paramod$3ef7d3dd227da7627a99c5e5a6a4deb817573e39\_90_alu for cells of type $alu.
 Using extmapper simplemap for cells of type $or.
-Using extmapper simplemap for cells of type $reduce_and.
 Using template $paramod$5ccf584370207a3ccc3032757a8e590623d4de56\_90_alu for cells of type $alu.
 Using template $paramod$f956edc9fe4df758d9fdb10bfc518a364c99e75e\_90_alu for cells of type $alu.
 Using template $paramod$b18e16801adf491a64caa0542270798e5d4ac6b6\_90_alu for cells of type $alu.
@@ -2440,9 +2441,7 @@ Using extmapper maccmap for cells of type $macc_v2.
   add \u_fault_arbiter.cp_delay [4] (1 bits, unsigned)
   sub \u_fault_arbiter.fault_shifter_RUN [15] (1 bits, unsigned)
   packed 1 (1) bits / 1 words into adder tree
-Using extmapper simplemap for cells of type $adffe.
 Using extmapper simplemap for cells of type $reduce_bool.
-Using extmapper simplemap for cells of type $ne.
 Using extmapper simplemap for cells of type $and.
 Using extmapper simplemap for cells of type $adff.
 Using extmapper simplemap for cells of type $mux.
@@ -2458,14 +2457,14 @@ Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000110 for cel
 Using extmapper simplemap for cells of type $pos.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010010 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010010 for cells of type $lcu.
-Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001110 for cells of type $fa.
-Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010011 for cells of type $fa.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001111 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001111 for cells of type $lcu.
-Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001110 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000100 for cells of type $fa.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001110 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000100 for cells of type $lcu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010011 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010011 for cells of type $lcu.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001110 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000001 for cells of type $fa.
 Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000001 for cells of type $lcu.
 Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010100 for cells of type $fa.
@@ -2527,50 +2526,50 @@ Removed 682 unused cells and 4183 unused wires.
 
 3.24.1. Summary of detected clock domains:
   31 cells in clk={ }, en={ }, arst={ }, srst={ }
-  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3797, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3832, arst=!\rst_sync.rst_n_exit, srst={ }
-  7 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3929, arst=!\rst_sync.rst_n_exit, srst={ }
+  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3793, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3828, arst=!\rst_sync.rst_n_exit, srst={ }
   2 cells in clk=\clk, en={ }, arst=!\rst_n_pin, srst={ }
-  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3839, arst=!\rst_sync.rst_n_exit, srst={ }
-  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3922, arst=!\rst_sync.rst_n_exit, srst={ }
+  7 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3929, arst=!\rst_sync.rst_n_exit, srst={ }
   18 cells in clk=\clk, en=$flatten\u_en_from_switch_db.$logic_and$../Build/pmic_full.v:104$746_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   14 cells in clk=\clk, en=$flatten\u_OTP_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3804, arst=!\rst_sync.rst_n_exit, srst={ }
+  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3800, arst=!\rst_sync.rst_n_exit, srst={ }
   16 cells in clk=\clk, en=$flatten\u_UVLO_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3863, arst=!\rst_sync.rst_n_exit, srst={ }
   16 cells in clk=\clk, en=$flatten\u_latch_stat_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3867, arst=!\rst_sync.rst_n_exit, srst={ }
   12 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3870, arst=!\rst_sync.rst_n_exit, srst={ }
-  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3846, arst=!\rst_sync.rst_n_exit, srst={ }
   6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3936, arst=!\rst_sync.rst_n_exit, srst={ }
+  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3835, arst=!\rst_sync.rst_n_exit, srst={ }
+  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3922, arst=!\rst_sync.rst_n_exit, srst={ }
+  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3908, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3976, arst=!\rst_sync.rst_n_exit, srst={ }
   12 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3982, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3811, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3807, arst=!\rst_sync.rst_n_exit, srst={ }
   37 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4003, arst=!\rst_sync.rst_n_exit, srst={ }
-  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3818, arst=!\rst_sync.rst_n_exit, srst={ }
-  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3825, arst=!\rst_sync.rst_n_exit, srst={ }
+  4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3814, arst=!\rst_sync.rst_n_exit, srst={ }
+  6 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3842, arst=!\rst_sync.rst_n_exit, srst={ }
   4 cells in clk=\clk, en=$flatten\u_fault_LED.$eq$../Build/pmic_full.v:669$209_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3853, arst=!\rst_sync.rst_n_exit, srst={ }
-  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3915, arst=!\rst_sync.rst_n_exit, srst={ }
-  8 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3908, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3849, arst=!\rst_sync.rst_n_exit, srst={ }
   7 cells in clk=\clk, en=$flatten\g_spi_filt.u_sck_filt.$logic_and$../Build/pmic_full.v:104$706_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   64 cells in clk=\clk, en=$flatten\g_spi_filt.u_cs_filt.$logic_and$../Build/pmic_full.v:104$725_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   9 cells in clk=\clk, en=$flatten\g_spi_filt.u_sdio_filt.$logic_and$../Build/pmic_full.v:104$706_Y, arst=!\rst_sync.rst_n_exit, srst={ }
+  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3856, arst=!\rst_sync.rst_n_exit, srst={ }
   4 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4056, arst=!\rst_sync.rst_n_exit, srst={ }
   5 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$4059, arst=!\rst_sync.rst_n_exit, srst={ }
-  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3860, arst=!\rst_sync.rst_n_exit, srst={ }
+  3 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3821, arst=!\rst_sync.rst_n_exit, srst={ }
   9 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4112, arst=!\rst_sync.rst_n_exit, srst={ }
   217 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4087, arst=!\rst_sync.rst_n_exit, srst={ }
-  10 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4162, arst=!\rst_sync.rst_n_exit, srst={ }
-  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4173, arst=!\rst_sync.rst_n_exit, srst={ }
+  8 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3915, arst=!\rst_sync.rst_n_exit, srst={ }
+  10 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4155, arst=!\rst_sync.rst_n_exit, srst={ }
+  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4650, arst=!\rst_sync.rst_n_exit, srst={ }
+  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4166, arst=!\rst_sync.rst_n_exit, srst={ }
   78 cells in clk=\clk, en=$flatten\g_telemetry.u_reg_file.$logic_and$../Build/pmic_full.v:973$322_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  28 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4167, arst=!\rst_sync.rst_n_exit, srst={ }
-  29 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4155, arst=!\rst_sync.rst_n_exit, srst={ }
-  18 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4150, arst=!\rst_sync.rst_n_exit, srst={ }
+  28 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4160, arst=!\rst_sync.rst_n_exit, srst={ }
+  29 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4148, arst=!\rst_sync.rst_n_exit, srst={ }
+  18 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4143, arst=!\rst_sync.rst_n_exit, srst={ }
   28 cells in clk=\clk, en=\g_telemetry.u_spi_slave.sck_rise, arst=!\rst_sync.rst_n_exit, srst={ }
-  39 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4146, arst=!\rst_sync.rst_n_exit, srst={ }
+  39 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4139, arst=!\rst_sync.rst_n_exit, srst={ }
   53 cells in clk=\clk, en=\g_telemetry.u_reg_file.rd_first, arst=!\rst_sync.rst_n_exit, srst={ }
-  44 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4140, arst=!\rst_sync.rst_n_exit, srst={ }
-  40 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4126, arst=!\rst_sync.rst_n_exit, srst={ }
+  44 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4133, arst=!\rst_sync.rst_n_exit, srst={ }
   11 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4119, arst=!\rst_sync.rst_n_exit, srst={ }
   290 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$4098, arst=!\rst_sync.rst_n_exit, srst={ }
   39 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$4076, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -2604,7 +2603,7 @@ Removed 682 unused cells and 4183 unused wires.
   71 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3881, arst=!\rst_sync.rst_n_exit, srst={ }
   29 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3878, arst=!\rst_sync.rst_n_exit, srst={ }
   89 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3873, arst=!\rst_sync.rst_n_exit, srst={ }
-  89 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3790, arst=!\rst_sync.rst_n_exit, srst={ }
+  89 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3867, arst=!\rst_sync.rst_n_exit, srst={ }
   89 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3786, arst=!\rst_sync.rst_n_exit, srst={ }
   41 cells in clk=\clk, en=$auto$simple.cc:210:make_patterns_logic$3782, arst=!\rst_sync.rst_n_exit, srst={ }
   89 cells in clk=\clk, en=$auto$simple.cc:193:make_patterns_logic$3777, arst=!\rst_sync.rst_n_exit, srst={ }
@@ -2622,7 +2621,7 @@ Don't call ABC as there is nothing to map.
 Removing temp directory.
 
 3.24.3. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3797, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3793, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.3.1. Executed ABC.
 Extracted 5 gates and 11 wires to a netlist network with 6 inputs and 4 outputs.
@@ -2638,7 +2637,7 @@ ABC RESULTS:          output signals:        4
 Removing temp directory.
 
 3.24.4. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3832, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3828, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.4.1. Executed ABC.
 Extracted 4 gates and 9 wires to a netlist network with 5 inputs and 3 outputs.
@@ -2653,13 +2652,21 @@ ABC RESULTS:          output signals:        3
 Removing temp directory.
 
 3.24.5. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3929, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, asynchronously reset by !\rst_n_pin
 
 3.24.5.1. Executed ABC.
+Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
+Don't call ABC as there is nothing to map.
+Removing temp directory.
+
+3.24.6. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3929, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.6.1. Executed ABC.
 Extracted 6 gates and 13 wires to a netlist network with 7 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.5.2. Re-integrating ABC results.
+3.24.6.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        3
@@ -2668,52 +2675,14 @@ ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
-3.24.6. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, asynchronously reset by !\rst_n_pin
-
-3.24.6.1. Executed ABC.
-Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
-Don't call ABC as there is nothing to map.
-Removing temp directory.
-
 3.24.7. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3839, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.7.1. Executed ABC.
-Extracted 5 gates and 12 wires to a netlist network with 7 inputs and 4 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.7.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        3
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        7
-ABC RESULTS:          output signals:        4
-Removing temp directory.
-
-3.24.8. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3922, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.8.1. Executed ABC.
-Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 3 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.8.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        1
-ABC RESULTS:        internal signals:        0
-ABC RESULTS:           input signals:        5
-ABC RESULTS:          output signals:        3
-Removing temp directory.
-
-3.24.9. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_en_from_switch_db.$logic_and$../Build/pmic_full.v:104$746_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.9.1. Executed ABC.
+3.24.7.1. Executed ABC.
 Extracted 17 gates and 34 wires to a netlist network with 17 inputs and 8 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.9.2. Re-integrating ABC results.
+3.24.7.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       13
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:        internal signals:        9
@@ -2721,14 +2690,14 @@ ABC RESULTS:           input signals:       17
 ABC RESULTS:          output signals:        8
 Removing temp directory.
 
-3.24.10. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.8. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_OTP_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.10.1. Executed ABC.
+3.24.8.1. Executed ABC.
 Extracted 13 gates and 25 wires to a netlist network with 12 inputs and 8 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.10.2. Re-integrating ABC results.
+3.24.8.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        4
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        1
@@ -2738,14 +2707,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:        8
 Removing temp directory.
 
-3.24.11. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3804, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.9. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3800, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.11.1. Executed ABC.
+3.24.9.1. Executed ABC.
 Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 2 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.11.2. Re-integrating ABC results.
+3.24.9.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -2753,14 +2722,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        2
 Removing temp directory.
 
-3.24.12. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.10. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_UVLO_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.12.1. Executed ABC.
+3.24.10.1. Executed ABC.
 Extracted 15 gates and 28 wires to a netlist network with 13 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.12.2. Re-integrating ABC results.
+3.24.10.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        4
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOR cells:        1
@@ -2771,14 +2740,29 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.13. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.11. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3863, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.11.1. Executed ABC.
+Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.11.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        2
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        6
+ABC RESULTS:          output signals:        3
+Removing temp directory.
+
+3.24.12. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_latch_stat_sync_db.$logic_and$../Build/pmic_full.v:104$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.13.1. Executed ABC.
+3.24.12.1. Executed ABC.
 Extracted 15 gates and 28 wires to a netlist network with 13 inputs and 10 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.13.2. Re-integrating ABC results.
+3.24.12.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        5
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        2
@@ -2789,29 +2773,14 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:       10
 Removing temp directory.
 
-3.24.14. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3867, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.14.1. Executed ABC.
-Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.14.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:                OR cells:        2
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        6
-ABC RESULTS:          output signals:        3
-Removing temp directory.
-
-3.24.15. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.13. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3870, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.15.1. Executed ABC.
+3.24.13.1. Executed ABC.
 Extracted 11 gates and 25 wires to a netlist network with 13 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.15.2. Re-integrating ABC results.
+3.24.13.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        3
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -2823,36 +2792,63 @@ ABC RESULTS:           input signals:       13
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.16. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3846, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.16.1. Executed ABC.
-Extracted 5 gates and 10 wires to a netlist network with 5 inputs and 4 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.16.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:            ANDNOT cells:        1
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:        1
-ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        5
-ABC RESULTS:          output signals:        4
-Removing temp directory.
-
-3.24.17. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.14. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3936, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.17.1. Executed ABC.
+3.24.14.1. Executed ABC.
 Extracted 5 gates and 12 wires to a netlist network with 7 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.17.2. Re-integrating ABC results.
+3.24.14.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:                OR cells:        3
 ABC RESULTS:        internal signals:        2
 ABC RESULTS:           input signals:        7
 ABC RESULTS:          output signals:        3
+Removing temp directory.
+
+3.24.15. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3835, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.15.1. Executed ABC.
+Extracted 5 gates and 12 wires to a netlist network with 7 inputs and 4 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.15.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        3
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        7
+ABC RESULTS:          output signals:        4
+Removing temp directory.
+
+3.24.16. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3922, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.16.1. Executed ABC.
+Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 3 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.16.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:                OR cells:        1
+ABC RESULTS:        internal signals:        0
+ABC RESULTS:           input signals:        5
+ABC RESULTS:          output signals:        3
+Removing temp directory.
+
+3.24.17. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3908, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.17.1. Executed ABC.
+Extracted 2 gates and 6 wires to a netlist network with 4 inputs and 2 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.17.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:        internal signals:        0
+ABC RESULTS:           input signals:        4
+ABC RESULTS:          output signals:        2
 Removing temp directory.
 
 3.24.18. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -2887,7 +2883,7 @@ ABC RESULTS:          output signals:        8
 Removing temp directory.
 
 3.24.20. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3811, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3807, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.20.1. Executed ABC.
 Extracted 4 gates and 10 wires to a netlist network with 6 inputs and 3 outputs.
@@ -2922,7 +2918,7 @@ ABC RESULTS:          output signals:        6
 Removing temp directory.
 
 3.24.22. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3818, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3814, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.22.1. Executed ABC.
 Extracted 3 gates and 8 wires to a netlist network with 5 inputs and 2 outputs.
@@ -2937,18 +2933,20 @@ ABC RESULTS:          output signals:        2
 Removing temp directory.
 
 3.24.23. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3825, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3842, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.23.1. Executed ABC.
-Extracted 2 gates and 5 wires to a netlist network with 3 inputs and 1 outputs.
+Extracted 5 gates and 10 wires to a netlist network with 5 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.23.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        1
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:            ANDNOT cells:        1
+ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        1
-ABC RESULTS:           input signals:        3
-ABC RESULTS:          output signals:        1
+ABC RESULTS:           input signals:        5
+ABC RESULTS:          output signals:        4
 Removing temp directory.
 
 3.24.24. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -2967,7 +2965,7 @@ ABC RESULTS:          output signals:        3
 Removing temp directory.
 
 3.24.25. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3853, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3849, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.25.1. Executed ABC.
 Extracted 4 gates and 9 wires to a netlist network with 5 inputs and 3 outputs.
@@ -2982,43 +2980,13 @@ ABC RESULTS:          output signals:        3
 Removing temp directory.
 
 3.24.26. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3915, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.26.1. Executed ABC.
-Extracted 2 gates and 6 wires to a netlist network with 4 inputs and 2 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.26.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:        internal signals:        0
-ABC RESULTS:           input signals:        4
-ABC RESULTS:          output signals:        2
-Removing temp directory.
-
-3.24.27. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3908, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.27.1. Executed ABC.
-Extracted 7 gates and 15 wires to a netlist network with 8 inputs and 5 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.27.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        2
-ABC RESULTS:               NOR cells:        1
-ABC RESULTS:                OR cells:        3
-ABC RESULTS:        internal signals:        2
-ABC RESULTS:           input signals:        8
-ABC RESULTS:          output signals:        5
-Removing temp directory.
-
-3.24.28. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_spi_filt.u_sck_filt.$logic_and$../Build/pmic_full.v:104$706_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.28.1. Executed ABC.
+3.24.26.1. Executed ABC.
 Extracted 6 gates and 11 wires to a netlist network with 5 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.28.2. Re-integrating ABC results.
+3.24.26.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:             ORNOT cells:        1
@@ -3027,14 +2995,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.29. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.27. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_spi_filt.u_cs_filt.$logic_and$../Build/pmic_full.v:104$725_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.29.1. Executed ABC.
+3.24.27.1. Executed ABC.
 Extracted 63 gates and 95 wires to a netlist network with 31 inputs and 19 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.29.2. Re-integrating ABC results.
+3.24.27.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       34
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        1
@@ -3046,14 +3014,14 @@ ABC RESULTS:           input signals:       31
 ABC RESULTS:          output signals:       19
 Removing temp directory.
 
-3.24.30. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.28. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_spi_filt.u_sdio_filt.$logic_and$../Build/pmic_full.v:104$706_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.30.1. Executed ABC.
+3.24.28.1. Executed ABC.
 Extracted 8 gates and 18 wires to a netlist network with 10 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.30.2. Re-integrating ABC results.
+3.24.28.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:                OR cells:        1
@@ -3064,14 +3032,29 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.31. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.29. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3856, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.29.1. Executed ABC.
+Extracted 2 gates and 5 wires to a netlist network with 3 inputs and 1 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.29.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        1
+ABC RESULTS:                OR cells:        1
+ABC RESULTS:        internal signals:        1
+ABC RESULTS:           input signals:        3
+ABC RESULTS:          output signals:        1
+Removing temp directory.
+
+3.24.30. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4056, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.31.1. Executed ABC.
+3.24.30.1. Executed ABC.
 Extracted 3 gates and 7 wires to a netlist network with 4 inputs and 2 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.31.2. Re-integrating ABC results.
+3.24.30.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        2
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:        internal signals:        1
@@ -3079,14 +3062,14 @@ ABC RESULTS:           input signals:        4
 ABC RESULTS:          output signals:        2
 Removing temp directory.
 
-3.24.32. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.31. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$4059, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.32.1. Executed ABC.
+3.24.31.1. Executed ABC.
 Extracted 4 gates and 9 wires to a netlist network with 5 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.32.2. Re-integrating ABC results.
+3.24.31.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:              NAND cells:        1
 ABC RESULTS:             ORNOT cells:        1
@@ -3095,14 +3078,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-3.24.33. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3860, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.32. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3821, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.33.1. Executed ABC.
+3.24.32.1. Executed ABC.
 Extracted 2 gates and 5 wires to a netlist network with 3 inputs and 1 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.33.2. Re-integrating ABC results.
+3.24.32.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -3110,14 +3093,14 @@ ABC RESULTS:           input signals:        3
 ABC RESULTS:          output signals:        1
 Removing temp directory.
 
-3.24.34. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.33. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4112, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.34.1. Executed ABC.
+3.24.33.1. Executed ABC.
 Extracted 8 gates and 13 wires to a netlist network with 5 inputs and 4 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.34.2. Re-integrating ABC results.
+3.24.33.2. Re-integrating ABC results.
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        2
@@ -3126,14 +3109,14 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:        4
 Removing temp directory.
 
-3.24.35. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.34. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4087, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.35.1. Executed ABC.
+3.24.34.1. Executed ABC.
 Extracted 215 gates and 272 wires to a netlist network with 56 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.35.2. Re-integrating ABC results.
+3.24.34.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       41
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        5
@@ -3146,8 +3129,24 @@ ABC RESULTS:           input signals:       56
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
+3.24.35. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$3915, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.35.1. Executed ABC.
+Extracted 7 gates and 15 wires to a netlist network with 8 inputs and 5 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.35.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        2
+ABC RESULTS:               NOR cells:        1
+ABC RESULTS:                OR cells:        3
+ABC RESULTS:        internal signals:        2
+ABC RESULTS:           input signals:        8
+ABC RESULTS:          output signals:        5
+Removing temp directory.
+
 3.24.36. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4162, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4155, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.36.1. Executed ABC.
 Extracted 9 gates and 19 wires to a netlist network with 10 inputs and 7 outputs.
@@ -3164,13 +3163,33 @@ ABC RESULTS:          output signals:        7
 Removing temp directory.
 
 3.24.37. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4173, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4650, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.37.1. Executed ABC.
-Extracted 32 gates and 44 wires to a netlist network with 10 inputs and 16 outputs.
+Extracted 37 gates and 51 wires to a netlist network with 12 inputs and 11 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.37.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        3
+ABC RESULTS:            ANDNOT cells:        5
+ABC RESULTS:              NAND cells:        4
+ABC RESULTS:               NOR cells:        6
+ABC RESULTS:               NOT cells:        1
+ABC RESULTS:                OR cells:        3
+ABC RESULTS:             ORNOT cells:        2
+ABC RESULTS:        internal signals:       28
+ABC RESULTS:           input signals:       12
+ABC RESULTS:          output signals:       11
+Removing temp directory.
+
+3.24.38. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4166, asynchronously reset by !\rst_sync.rst_n_exit
+
+3.24.38.1. Executed ABC.
+Extracted 32 gates and 44 wires to a netlist network with 10 inputs and 16 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+3.24.38.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -3182,14 +3201,14 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:       16
 Removing temp directory.
 
-3.24.38. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.39. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\g_telemetry.u_reg_file.$logic_and$../Build/pmic_full.v:973$322_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.38.1. Executed ABC.
+3.24.39.1. Executed ABC.
 Extracted 62 gates and 84 wires to a netlist network with 22 inputs and 39 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.38.2. Re-integrating ABC results.
+3.24.39.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       33
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        2
@@ -3203,14 +3222,14 @@ ABC RESULTS:           input signals:       22
 ABC RESULTS:          output signals:       39
 Removing temp directory.
 
-3.24.39. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4167, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.40. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4160, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.39.1. Executed ABC.
+3.24.40.1. Executed ABC.
 Extracted 20 gates and 33 wires to a netlist network with 12 inputs and 17 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.39.2. Re-integrating ABC results.
+3.24.40.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        7
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:                OR cells:        1
@@ -3220,14 +3239,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       17
 Removing temp directory.
 
-3.24.40. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4155, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.41. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4148, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.40.1. Executed ABC.
+3.24.41.1. Executed ABC.
 Extracted 21 gates and 34 wires to a netlist network with 12 inputs and 18 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.40.2. Re-integrating ABC results.
+3.24.41.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        7
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:                OR cells:        1
@@ -3237,14 +3256,14 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       18
 Removing temp directory.
 
-3.24.41. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4150, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.42. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4143, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.41.1. Executed ABC.
+3.24.42.1. Executed ABC.
 Extracted 10 gates and 20 wires to a netlist network with 10 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.41.2. Re-integrating ABC results.
+3.24.42.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        8
 ABC RESULTS:               NOR cells:        1
 ABC RESULTS:        internal signals:        1
@@ -3252,14 +3271,14 @@ ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.42. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.43. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by \g_telemetry.u_spi_slave.sck_rise, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.42.1. Executed ABC.
+3.24.43.1. Executed ABC.
 Extracted 21 gates and 44 wires to a netlist network with 23 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.42.2. Re-integrating ABC results.
+3.24.43.2. Re-integrating ABC results.
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               MUX cells:       12
 ABC RESULTS:               NOT cells:        1
@@ -3269,14 +3288,14 @@ ABC RESULTS:           input signals:       23
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-3.24.43. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4146, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.44. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4139, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.43.1. Executed ABC.
+3.24.44.1. Executed ABC.
 Extracted 31 gates and 44 wires to a netlist network with 11 inputs and 15 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.43.2. Re-integrating ABC results.
+3.24.44.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        5
 ABC RESULTS:               NOR cells:        2
@@ -3287,14 +3306,14 @@ ABC RESULTS:           input signals:       11
 ABC RESULTS:          output signals:       15
 Removing temp directory.
 
-3.24.44. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+3.24.45. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by \g_telemetry.u_reg_file.rd_first, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.44.1. Executed ABC.
+3.24.45.1. Executed ABC.
 Extracted 29 gates and 80 wires to a netlist network with 51 inputs and 26 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.44.2. Re-integrating ABC results.
+3.24.45.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               MUX cells:       23
@@ -3305,14 +3324,14 @@ ABC RESULTS:           input signals:       51
 ABC RESULTS:          output signals:       26
 Removing temp directory.
 
-3.24.45. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4140, asynchronously reset by !\rst_sync.rst_n_exit
+3.24.46. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4133, asynchronously reset by !\rst_sync.rst_n_exit
 
-3.24.45.1. Executed ABC.
+3.24.46.1. Executed ABC.
 Extracted 36 gates and 48 wires to a netlist network with 10 inputs and 15 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 
-3.24.45.2. Re-integrating ABC results.
+3.24.46.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:              NAND cells:        3
@@ -3322,26 +3341,6 @@ ABC RESULTS:                OR cells:        2
 ABC RESULTS:        internal signals:       23
 ABC RESULTS:           input signals:       10
 ABC RESULTS:          output signals:       15
-Removing temp directory.
-
-3.24.46. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:210:make_patterns_logic$4126, asynchronously reset by !\rst_sync.rst_n_exit
-
-3.24.46.1. Executed ABC.
-Extracted 37 gates and 51 wires to a netlist network with 12 inputs and 11 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-
-3.24.46.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        3
-ABC RESULTS:            ANDNOT cells:        5
-ABC RESULTS:              NAND cells:        4
-ABC RESULTS:               NOR cells:        6
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:        3
-ABC RESULTS:             ORNOT cells:        2
-ABC RESULTS:        internal signals:       28
-ABC RESULTS:           input signals:       12
-ABC RESULTS:          output signals:       11
 Removing temp directory.
 
 3.24.47. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
@@ -3971,7 +3970,7 @@ ABC RESULTS:          output signals:       50
 Removing temp directory.
 
 3.24.80. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3790, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:193:make_patterns_logic$3867, asynchronously reset by !\rst_sync.rst_n_exit
 
 3.24.80.1. Executed ABC.
 Extracted 75 gates and 97 wires to a netlist network with 21 inputs and 20 outputs.
@@ -4118,15 +4117,15 @@ Running ABC script: <abc-temp-dir>/abc.script
 
 3.24.87.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:      158
-ABC RESULTS:            ANDNOT cells:       33
+ABC RESULTS:            ANDNOT cells:       32
 ABC RESULTS:               MUX cells:       13
 ABC RESULTS:              NAND cells:       32
 ABC RESULTS:               NOR cells:       23
 ABC RESULTS:               NOT cells:       29
-ABC RESULTS:                OR cells:       31
+ABC RESULTS:                OR cells:       30
 ABC RESULTS:             ORNOT cells:       13
 ABC RESULTS:              XNOR cells:       13
-ABC RESULTS:               XOR cells:       58
+ABC RESULTS:               XOR cells:       59
 ABC RESULTS:              ZERO cells:        1
 ABC RESULTS:        internal signals:      307
 ABC RESULTS:           input signals:      202
@@ -4142,11 +4141,11 @@ Optimizing module pmic_top.
 
 3.25.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\pmic_top'.
-Computing hashes of 3611 cells of `\pmic_top'.
-Finding duplicate cells in `\pmic_top'.
-Computing hashes of 3604 cells of `\pmic_top'.
+Computing hashes of 3610 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 Computing hashes of 3603 cells of `\pmic_top'.
+Finding duplicate cells in `\pmic_top'.
+Computing hashes of 3602 cells of `\pmic_top'.
 Finding duplicate cells in `\pmic_top'.
 <suppressed ~24 debug messages>
 Removed a total of 8 cells.
@@ -4176,14 +4175,14 @@ Removed 0 unused modules.
 
         +----------Local Count, excluding submodules.
         | 
-     3046 wires
-     4833 wire bits
+     3045 wires
+     4832 wire bits
       440 public wires
      1598 public wire bits
        22 ports
        22 port bits
-     3596 cells
-      205   $_ANDNOT_
+     3595 cells
+      204   $_ANDNOT_
      1236   $_AND_
       540   $_DFFE_PN0P_
        33   $_DFFE_PN1P_
@@ -4194,9 +4193,9 @@ Removed 0 unused modules.
       226   $_NOR_
       180   $_NOT_
        98   $_ORNOT_
-      339   $_OR_
+      338   $_OR_
        86   $_XNOR_
-      186   $_XOR_
+      187   $_XOR_
        31   $scopeinfo
 
 3.28. Executing CHECK pass (checking for obvious problems).
@@ -4209,14 +4208,14 @@ Found and reported 0 problems.
 
         +----------Local Count, excluding submodules.
         | 
-     3046 wires
-     4833 wire bits
+     3045 wires
+     4832 wire bits
       440 public wires
      1598 public wire bits
        22 ports
        22 port bits
-     3596 cells
-      205   $_ANDNOT_
+     3595 cells
+      204   $_ANDNOT_
      1236   $_AND_
       540   $_DFFE_PN0P_
        33   $_DFFE_PN1P_
@@ -4227,12 +4226,12 @@ Found and reported 0 problems.
       226   $_NOR_
       180   $_NOT_
        98   $_ORNOT_
-      339   $_OR_
+      338   $_OR_
        86   $_XNOR_
-      186   $_XOR_
+      187   $_XOR_
        31   $scopeinfo
 
 Warnings: 1 unique messages, 2 total
-End of script. Logfile hash: 590c5f15be, time: 5.10s, user: 5.19s, system: 0.00s
+End of script. Logfile hash: 7271f899a9, time: 5.17s, user: 5.17s, system: 0.00s
 Yosys 0.70 (git sha1 28ba3cb92, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-Time spent: 72% 1x abc (3 sec), 6% 56x opt_expr (0 sec), ...
+Time spent: 71% 1x abc (3 sec), 6% 56x opt_expr (0 sec), ...

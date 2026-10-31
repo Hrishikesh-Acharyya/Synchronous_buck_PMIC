@@ -1524,7 +1524,7 @@ module spi_slave (
 			sdio_oe <= 1'b0;
 		end
 		else begin
-			sdio_oe <= spi_state == 3'b100;
+			sdio_oe <= spi_state_next == 3'b100;
 			if (sck_fall) begin
 				if ((spi_state == 3'b011) && (bit_count == 3'd7)) begin
 					tx_shift <= rdata;
