@@ -249,7 +249,7 @@ list:  ## list registered testbenches and their files
 # ============================================================
 # Lint
 # ============================================================
-.PHONY: lint
+.PHONY: lint lint_notel
 # if/else rather than `command -v ... && ... || echo`: in that form a lint
 # failure falls through to the fallback and make exits 0.
 lint:  ## strict Verilator lint over the RTL (what CI runs)
@@ -264,12 +264,22 @@ lint:  ## strict Verilator lint over the RTL (what CI runs)
 	  echo "verilator not installed - skipping lint"; \
 	fi
 
+# lint_notel: the TELEMETRY_EN=0 configuration, which exists only to cost the
+#             telemetry. UNUSEDSIGNAL is waived for this configuration alone:
+#             with the host interface compiled out, the SCK and CS_n pins and
+#             the nets that fed the telemetry blocks are legitimately unread.
+#             Any other warning still fails.
+lint_notel:  ## lint the TELEMETRY_EN=0 build (UNUSEDSIGNAL waived)
+	$(VERILATOR) --lint-only -Wall $(LINT_WAIVERS) -Wno-UNUSEDSIGNAL $(RTL) \
+	    --top-module pmic_top -GTELEMETRY_EN=0
+	@echo "--- lint passed (TELEMETRY_EN=0) ---"
+
 # ============================================================
 # ASIC conversion and synthesis
 # ============================================================
 # Silicluster v3 accepts Verilog only, so the submitted source is the sv2v
 # output. The equiv_ targets are the evidence the two are the same design.
-.PHONY: convert syn syn_area
+.PHONY: convert syn syn_area syn_notel syn_area_notel syn_both
 
 convert: $(CONVERTED)  ## sv2v the RTL into one Verilog-2005 file
 
@@ -312,6 +322,35 @@ syn_area: $(CONVERTED)  ## sky130-mapped area (needs LIBERTY)
 	@python3 $(SCRIPTS)/area_counts.py $(SYNDIR)/area_summary.txt syn_area
 	@echo "--- Silicluster v3 standard slot is 180 x 115 = 20700 um2 ---"
 
+# syn_notel / syn_area_notel: the same flows on the TELEMETRY_EN=0 build.
+#   sv2v keeps TELEMETRY_EN as a Verilog parameter and the generate blocks as
+#   Verilog generates, so the one converted file serves both configurations;
+#   chparam selects before elaboration. Outputs carry a _notel suffix so the
+#   submission build's files are never overwritten. The submitted design is
+#   always the default, TELEMETRY_EN=1.
+syn_notel: $(CONVERTED)  ## generic synthesis of the TELEMETRY_EN=0 build
+	$(YOSYS) -q -l $(SYNDIR)/stat_notel.txt -p "read_verilog $(CONVERTED); \
+	             chparam -set TELEMETRY_EN 0 pmic_top; \
+	             hierarchy -top pmic_top; \
+	             synth -top pmic_top -flatten; \
+	             tee -o $(SYNDIR)/stat_notel_summary.txt stat" > /dev/null 2>&1
+	@cat $(SYNDIR)/stat_notel_summary.txt
+
+syn_area_notel: $(CONVERTED)  ## sky130-mapped area of the TELEMETRY_EN=0 build
+	@test -f $(LIBERTY) || { echo "no liberty file at $(LIBERTY)"; exit 1; }
+	$(YOSYS) -q -l $(SYNDIR)/area_notel.txt -p "read_verilog $(CONVERTED); \
+	             chparam -set TELEMETRY_EN 0 pmic_top; \
+	             hierarchy -top pmic_top; \
+	             synth -top pmic_top -flatten; \
+	             dfflibmap -liberty $(LIBERTY); \
+	             abc -liberty $(LIBERTY); \
+	             opt_clean; \
+	             tee -o $(SYNDIR)/area_notel_summary.txt stat -liberty $(LIBERTY)" > /dev/null 2>&1
+	@python3 $(SCRIPTS)/area_counts.py $(SYNDIR)/area_notel_summary.txt syn_area_notel
+
+# syn_both: the two area figures the Silicluster area request rests on
+syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
+
 # ============================================================
 # Housekeeping
 # ============================================================
@@ -324,7 +363,8 @@ tb_clean:  ## remove all testbench build output
 
 syn_clean:  ## remove conversion and synthesis output
 	rm -f $(CONVERTED) $(SYNDIR)/stat.txt $(SYNDIR)/area.txt \
-	      $(SYNDIR)/stat_summary.txt $(SYNDIR)/area_summary.txt
+	      $(SYNDIR)/stat_summary.txt $(SYNDIR)/area_summary.txt \
+	      $(SYNDIR)/stat_notel*.txt $(SYNDIR)/area_notel*.txt
 
 clean: tb_clean syn_clean  ## both of the above
 

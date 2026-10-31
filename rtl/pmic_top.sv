@@ -20,6 +20,15 @@
 #                    PGOOD_comp does not either: pgood_gen's deassert is
 #                    immediate by design so the rail hands back before the
 #                    output collapses.
+#
+#                    TELEMETRY_EN selects the host-facing blocks in or out:
+#                    SPI slave, register file, fault log, timestamp and PWM
+#                    statistics, with the SPI line synchronisers and filters
+#                    that exist only for them. With it 0 the control path runs
+#                    on the package defaults - the same values reg_file resets
+#                    to - so a disabled build behaves exactly as an enabled one
+#                    the host never writes. The Silicluster submission is the
+#                    enabled build; the disabled build only costs the telemetry.
 
 # Global variables: None
 
@@ -27,7 +36,13 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-module pmic_top (
+module pmic_top #(
+    // TELEMETRY_EN: 1 builds the SPI host interface, register file, fault log,
+    //               timestamp and PWM statistics; 0 leaves them out and ties the
+    //               control values to their package defaults. A generate
+    //               condition, so sv2v and synthesis see only one configuration.
+    parameter bit TELEMETRY_EN = 1'b1
+) (
     // ---- clock and reset ----
     input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
     input  wire logic rst_n_pin,    // asynchronous external reset, active low
@@ -92,9 +107,11 @@ module pmic_top (
     // SDIO idles released and reads low through the pull-down. Resetting to the wrong
     // level manufactures an edge on the first clock after reset.
     
-    input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
-    input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
-    input_sync                      u_sdio_sync (.clk(clk), .rst_n(rst_n), .async_in(SDIO), .sync_out(sdio_sync));
+    if (TELEMETRY_EN) begin : g_spi_sync
+        input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
+        input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
+        input_sync                      u_sdio_sync (.clk(clk), .rst_n(rst_n), .async_in(SDIO), .sync_out(sdio_sync));
+    end
 
 
     //-- debounced and filtered inputs--//
@@ -134,14 +151,16 @@ module pmic_top (
     // longer than the window is not a glitch and is not this layer's job - CRC-8 in
     // spi_slave catches it and the transaction is discarded.    
 
-    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-        u_sck_filt  (.clk(clk), .rst_n(rst_n), .flag_in(sck_sync),  .flag_out(sck_filt));
+    if (TELEMETRY_EN) begin : g_spi_filt
+        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+            u_sck_filt  (.clk(clk), .rst_n(rst_n), .flag_in(sck_sync),  .flag_out(sck_filt));
 
-    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
-        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
+        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
+            u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
 
-    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-        u_sdio_filt (.clk(clk), .rst_n(rst_n), .flag_in(sdio_sync), .flag_out(sdio_filt));
+        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+            u_sdio_filt (.clk(clk), .rst_n(rst_n), .flag_in(sdio_sync), .flag_out(sdio_filt));
+    end
 
    
     // ---- inter-module signals ----
@@ -195,28 +214,32 @@ module pmic_top (
     
     logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
 
-    always_ff @(posedge clk or negedge rst_n) begin
-        /*
-        Purpose: Stores delayed copy of en_from_switch_sync_db for edge detection
+    // Edge detect on the debounced switch. Its only consumer is reg_file, which
+    // re-asserts spi_enable on a fresh switch press, so it goes with telemetry.
+    if (TELEMETRY_EN) begin : g_en_switch_edge
+        always_ff @(posedge clk or negedge rst_n) begin
+            /*
+            Purpose: Stores delayed copy of en_from_switch_sync_db for edge detection
         
-        */
-        if(!rst_n)begin
-            en_from_switch_sync_db_d <= 0;
+            */
+            if(!rst_n)begin
+                en_from_switch_sync_db_d <= 0;
+            end
+
+            else
+                en_from_switch_sync_db_d <= en_from_switch_sync_db;
+
         end
 
-        else
-            en_from_switch_sync_db_d <= en_from_switch_sync_db;
+        always_comb begin
 
-    end
+            /*
+            Purpose: Edge detection on the physical enable switch signal synced and debounced
+            */
 
-    always_comb begin
+            en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
 
-        /*
-        Purpose: Edge detection on the physical enable switch signal synced and debounced
-        */
-
-        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
-
+        end
     end
     // ============================================================
     // Supervisor FSM
@@ -304,96 +327,116 @@ module pmic_top (
     hardware all see the same behaviour. spi_slave exposes sdio_out and sdio_oe and
     never touches a bidirectional net itself.
     */
-    assign SDIO = sdio_oe ? sdio_out : 1'bz;
+    if (TELEMETRY_EN) begin : g_telemetry
+        assign SDIO = sdio_oe ? sdio_out : 1'bz;
 
-    spi_slave u_spi_slave ( .clk(clk),
-                            .rst_n(rst_n),
-                            .sck(sck_filt),
-                            .cs_n(cs_n_filt),
-                            .sdio_in(sdio_filt),
-                            .sdio_out(sdio_out),
-                            .sdio_oe(sdio_oe),
-                            .addr(spi_addr),
-                            .wr_en(spi_wr_en),
-                            .wdata(spi_wdata),
-                            .rdata(spi_rdata),
-                            .rd_first(spi_rd_first),
-                            .integrity_ok(spi_integrity_ok),
-                            .abort(spi_abort)
-                            );
-
-    reg_file u_reg_file ( .clk(clk),
-                          .rst_n(rst_n),
-
-                          // host access port
-                          .addr(spi_addr),
-                          .wr_en(spi_wr_en),
-                          .wdata(spi_wdata),
-                          .rdata(spi_rdata),
-                          .rd_first(spi_rd_first),
-                          .integrity_OK(spi_integrity_ok),
-                          .abort(spi_abort),
-
-                          // status in - debounced copies, so telemetry matches what
-                          // the supervisor is actually acting on
-                          .sup_state(sup_state),
-                          .pgood(PGOOD),
-                          .latch_state(latch_stat_sync_db),
-                          .en_switch(en_from_switch_sync_db),
-                          .en_switch_rise(en_switch_rise),
-                          .cp_state(CP_sync),
-                          .otp_state(OTP_sync_db),
-                          .uvlo_state(UVLO_sync_db),
-                          .strike_level(strike_level),
-                          .duty_count(duty_count),          
-                          .prev_period(prev_period),         
-                          .fault_count_run(fault_count_run),
-                          .fault_count_ss(fault_count_ss),
-                          .fault_reg(fault_reg),
-                          .timestamp_ms(timestamp_ms),
-                          .fault_time(fault_time),
-                          .fault_reg_read_done(fault_reg_read_done),
-                          
-                          // control out
-                          .spi_enable(spi_enable),
-                          .trip_run(trip_run),
-                          .trip_ss(trip_ss),
-                          .max_strikes(max_strikes),
-                          .max_on_limit(max_on_limit),
-                          .hiccup_base(hiccup_base),
-                          .cycles_per_step(cycles_per_step),
-                          .clean_run_target(clean_run_target)
-                          );
-
-    /*
-    Telemetry only. pwm_stats drives no control path and takes no part in any
-    protection timing, so it runs unconditionally from the synchronised PWM rather
-    than being gated on any supervisor state - duty and period are as interesting
-    during a fault as during normal running.
-    */
-    pwm_stats u_pwm_stats ( .clk(clk),
-                            .rst_n(rst_n),
-                            .pwm_sync(Osc_sync),
-                            .duty_count(duty_count),
-                            .prev_period(prev_period)
-                            );
-
-     fault_cause u_fault_cause (
-                                .clk(clk),
+        spi_slave u_spi_slave ( .clk(clk),
                                 .rst_n(rst_n),
-                                .otp_state(OTP_sync_db),
-                                .uvlo_state(UVLO_sync_db),
-                                .latch_state(latch_stat_sync_db),
-                                .latch_assert(latch_out),
-                                .window_trip(window_trip),
-                                .window_trip_SS(window_trip_SS),
-                                .ss_active(ss_active),
-                                .run_active(run_active),
-                                .fault_reg_read_done(fault_reg_read_done),
-                                .timestamp_ms(timestamp_ms),
-                                .fault_time(fault_time),
-                                .fault_reg(fault_reg)
-                            );
+                                .sck(sck_filt),
+                                .cs_n(cs_n_filt),
+                                .sdio_in(sdio_filt),
+                                .sdio_out(sdio_out),
+                                .sdio_oe(sdio_oe),
+                                .addr(spi_addr),
+                                .wr_en(spi_wr_en),
+                                .wdata(spi_wdata),
+                                .rdata(spi_rdata),
+                                .rd_first(spi_rd_first),
+                                .integrity_ok(spi_integrity_ok),
+                                .abort(spi_abort)
+                                );
+
+        reg_file u_reg_file ( .clk(clk),
+                              .rst_n(rst_n),
+
+                              // host access port
+                              .addr(spi_addr),
+                              .wr_en(spi_wr_en),
+                              .wdata(spi_wdata),
+                              .rdata(spi_rdata),
+                              .rd_first(spi_rd_first),
+                              .integrity_OK(spi_integrity_ok),
+                              .abort(spi_abort),
+
+                              // status in - debounced copies, so telemetry matches what
+                              // the supervisor is actually acting on
+                              .sup_state(sup_state),
+                              .pgood(PGOOD),
+                              .latch_state(latch_stat_sync_db),
+                              .en_switch(en_from_switch_sync_db),
+                              .en_switch_rise(en_switch_rise),
+                              .cp_state(CP_sync),
+                              .otp_state(OTP_sync_db),
+                              .uvlo_state(UVLO_sync_db),
+                              .strike_level(strike_level),
+                              .duty_count(duty_count),          
+                              .prev_period(prev_period),         
+                              .fault_count_run(fault_count_run),
+                              .fault_count_ss(fault_count_ss),
+                              .fault_reg(fault_reg),
+                              .timestamp_ms(timestamp_ms),
+                              .fault_time(fault_time),
+                              .fault_reg_read_done(fault_reg_read_done),
+                          
+                              // control out
+                              .spi_enable(spi_enable),
+                              .trip_run(trip_run),
+                              .trip_ss(trip_ss),
+                              .max_strikes(max_strikes),
+                              .max_on_limit(max_on_limit),
+                              .hiccup_base(hiccup_base),
+                              .cycles_per_step(cycles_per_step),
+                              .clean_run_target(clean_run_target)
+                              );
+
+        /*
+        Telemetry only. pwm_stats drives no control path and takes no part in any
+        protection timing, so it runs unconditionally from the synchronised PWM rather
+        than being gated on any supervisor state - duty and period are as interesting
+        during a fault as during normal running.
+        */
+        pwm_stats u_pwm_stats ( .clk(clk),
+                                .rst_n(rst_n),
+                                .pwm_sync(Osc_sync),
+                                .duty_count(duty_count),
+                                .prev_period(prev_period)
+                                );
+
+         fault_cause u_fault_cause (
+                                    .clk(clk),
+                                    .rst_n(rst_n),
+                                    .otp_state(OTP_sync_db),
+                                    .uvlo_state(UVLO_sync_db),
+                                    .latch_state(latch_stat_sync_db),
+                                    .latch_assert(latch_out),
+                                    .window_trip(window_trip),
+                                    .window_trip_SS(window_trip_SS),
+                                    .ss_active(ss_active),
+                                    .run_active(run_active),
+                                    .fault_reg_read_done(fault_reg_read_done),
+                                    .timestamp_ms(timestamp_ms),
+                                    .fault_time(fault_time),
+                                    .fault_reg(fault_reg)
+                                );
+    end
+    else begin : g_no_telemetry
+        /*
+        No host interface. SDIO is released permanently, so the pin is a plain
+        input that nothing drives, and every value reg_file would have held
+        is tied to the package constant reg_file resets to. spi_enable is tied
+        high so the enable switch alone gates the converter - the same as an
+        enabled build whose host has never written CONTROL.
+        */
+        assign SDIO             = 1'bz;
+        assign spi_enable       = 1'b1;
+        assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
+        assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
+        assign max_strikes      = STRIKE_W'(MAX_STRIKES_DEFAULT);
+        assign max_on_limit     = ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
+        assign hiccup_base      = HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
+        assign cycles_per_step  = CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
+        assign clean_run_target = CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
+    end
 
     // ============================================================
     // Status
@@ -410,11 +453,14 @@ module pmic_top (
     
 
    
-    timestamp u_timestamp       (
-                                    .clk(clk),
-                                    .rst_n(rst_n),
-                                    .timestamp_ms(timestamp_ms)
-                                );
+    // Time base for the fault log only, so it goes with telemetry.
+    if (TELEMETRY_EN) begin : g_timestamp
+        timestamp u_timestamp       (
+                                        .clk(clk),
+                                        .rst_n(rst_n),
+                                        .timestamp_ms(timestamp_ms)
+                                    );
+    end
 
     fault_LED u_fault_LED       (   .clk(clk),
                                     .rst_n(rst_n),
