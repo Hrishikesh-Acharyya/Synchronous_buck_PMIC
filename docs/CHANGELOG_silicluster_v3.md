@@ -504,3 +504,56 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - No RTL or area change. CI (`rtl.yml`) runs `equiv_all`, so it now runs the
   integration testbench too, with Verilator only.
 - Undo: `git revert <hash>`.
+
+## 15. 2026-10-31 19:39 UTC - package: the Silicluster submission tree and zip
+
+- Files: `submission/rtl/**` (17 new `.v` files, the annotated split tree),
+  `submission/README.md` (new), `Build/sync_buck_pmic_silicluster_v3.zip`
+  (new, the file to email), `sim/Makefile` (`package`, `package_check`, `zip`,
+  `SPLIT=1`), `sim/scripts/strip_compare.py` (new), `.gitignore`
+  (`Build/package_raw/`, and `Build/area_notel.txt` untracked like `area.txt`).
+- What, following project rules section 7:
+  - `make package` runs `sv2v -w adjacent` on a copy of `rtl/` in a clean staging
+    tree, `Build/package_raw`, and drops `pmic_types_pkg.v` (two pragmas and
+    nothing else - the package is inlined into its consumers). 17 files.
+  - Comments restored into `submission/rtl/`: every file header, every Purpose
+    block on its matching `always`, and the signal and parameter descriptions.
+    Method, stated plainly: a first pass placed by a script that matches each
+    `always` and each declaration to its SystemVerilog counterpart, then every
+    file reviewed and edited by hand. Adapted where the conversion changed the
+    code: inlined package constants and functions carry the package's
+    descriptions; `_sv2v_0`, the `sv2v_cast_*` helpers, the converted `$error`
+    checks and `(* full_case, parallel_case *)` are explained where they occur;
+    the enum names the conversion replaced with literals are tabulated at each
+    state register and named on every use; `pmic_top`'s section, instance and
+    generate comments restored; one stale sentence about package imports
+    removed. `supervisor.sv` has no header or Purpose blocks, so `supervisor.v`
+    got new ones from its state comments, and the few one-line blocks the source
+    leaves without a Purpose got short ones - every `always` in the tree has one.
+  - The one non-comment line added is `timescale 1ns/1ps`, which every source
+    file carries and sv2v drops; with it neither simulator warns about a missing
+    timescale. Two source comments that were already wrong are corrected in the
+    submission copy only (the `.sv` keep theirs): fault_cause's window_trip_SS
+    port said "in S_RUN" (it is S_SS), and fault_LED named a state S_LATCHED
+    that does not exist.
+  - `make package_check` strips comments and the timescale line from both trees
+    and requires identical token streams: 17 of 17 files code-identical to fresh
+    sv2v output. Negative test: a one-token edit is reported.
+- Re-verification on the annotated files themselves (project rules 7.3):
+  `make equiv SPLIT=1` - all 8 module testbenches with their SVA and
+  `pmic_top_tb` (51/51 bins) PASS; `make iv_top SPLIT=1` - PASS 51/51. The
+  check lines are identical, timestamps included, to the run on the
+  SystemVerilog source.
+- The zip: `README.md`, `rtl/` (the annotated files), `tb/pmic_top_tb.v`. Built
+  by `make zip`, which runs `package_check` first. Verified by extracting it into
+  an empty directory and running exactly the README's commands: Icarus 12 PASS
+  51/51; Verilator 5.052 PASS 51/51, warning-free with the README's flags;
+  identical check lines between the two.
+- README (project rules 7.4): the design, every pin, clock and reset
+  expectations, the SPI frame format and host speed limit, how to compile and
+  run the testbench in both simulators, what the coverage table does and does
+  not mean, `TELEMETRY_EN = 1` as submitted, area with the basis for the
+  additional-area request, known limitations.
+- No RTL or area change: the netlist is that of entry 12 (693 flops, 30,644
+  um^2 cell area, 2.60x the standard slot; 0.89x with TELEMETRY_EN=0).
+- Undo: `git revert <hash>`.

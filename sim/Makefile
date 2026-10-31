@@ -89,6 +89,16 @@ RTL := ../rtl/pkg/pmic_types_pkg.sv \
 #      converted RTL. Taken from RTL so the path has one owner.
 PKG := $(firstword $(RTL))
 
+# SPLIT=1: run the equiv flows against the hand-annotated split tree in
+#          ../submission/rtl - the files that go into the Silicluster zip -
+#          instead of the single-file conversion in ../Build. Results are
+#          listed under the flow name "split".
+SPLIT      ?= 0
+SUBDIR     := ../submission
+SPLIT_SRCS := $(patsubst ../rtl/%.sv,$(SUBDIR)/rtl/%.v,$(filter-out $(PKG),$(RTL)))
+EQUIV_SRCS := $(if $(filter 1,$(SPLIT)),$(SPLIT_SRCS),$(CONVERTED))
+EQUIV_FLOW := $(if $(filter 1,$(SPLIT)),split,equiv)
+
 # SVA_SRCS: bound checkers, compiled into every testbench. Order matters -
 #           sva_pkg defines note_failure() and must come first; bind_sva.sv
 #           names the checkers and must come last. Never in any lint or
@@ -200,8 +210,8 @@ define TB_RULES
 tb_$(2):
 	@$$(call run_tb,$(2)_tb,sv,$$(RTL) $$(SVA_SRCS) ../tb/$(1)_tb.sv,$$(VFLAGS))
 
-equiv_$(2): $$(CONVERTED)
-	@$$(call run_tb,$(2)_tb,equiv,$$(PKG) $$(CONVERTED) $$(SVA_SRCS) ../tb/$(1)_tb.sv,$$(VFLAGS) $$(EQUIV_WAIVERS))
+equiv_$(2): $$(EQUIV_SRCS)
+	@$$(call run_tb,$(2)_tb,$$(EQUIV_FLOW),$$(PKG) $$(EQUIV_SRCS) $$(SVA_SRCS) ../tb/$(1)_tb.sv,$$(VFLAGS) $$(EQUIV_WAIVERS))
 
 wave_$(2): WAVES := 1
 wave_$(2): tb_$(2)
@@ -273,11 +283,11 @@ run_top = VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' \
 tb_top:  ## integration testbench, Verilator, SystemVerilog source
 	@$(call run_top,verilator,sv,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
 
-equiv_top: $(CONVERTED)  ## integration testbench, Verilator, converted Verilog
-	@$(call run_top,verilator,equiv,$(CONVERTED) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
+equiv_top: $(EQUIV_SRCS)  ## integration testbench, Verilator, converted Verilog
+	@$(call run_top,verilator,$(EQUIV_FLOW),$(EQUIV_SRCS) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
 
-iv_top: $(CONVERTED)  ## integration testbench, Icarus Verilog, converted Verilog
-	@$(call run_top,iverilog,iv,$(CONVERTED) $(TOP_TB),)
+iv_top: $(EQUIV_SRCS)  ## integration testbench, Icarus Verilog, converted Verilog
+	@$(call run_top,iverilog,$(if $(filter 1,$(SPLIT)),iv_split,iv),$(EQUIV_SRCS) $(TOP_TB),)
 
 top_all: QUIET  := 1
 top_all: NOFAIL := 1
@@ -298,8 +308,8 @@ tb_all: $(addprefix tb_,$(TB_MODULES)) tb_top  ## run every testbench (use -j), 
 
 equiv: QUIET  := 1
 equiv: NOFAIL := 1
-equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output
-	@bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS)
+equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output (SPLIT=1: the zip's files)
+	@bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS)
 
 # equiv_all: both flows as one parallel job graph, then both tables. Report
 #            failures are collected so the second table always prints.
@@ -423,6 +433,54 @@ syn_area_notel: $(CONVERTED)  ## sky130-mapped area of the TELEMETRY_EN=0 build
 
 # syn_both: the two area figures the Silicluster area request rests on
 syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
+
+# ============================================================
+# Silicluster submission package
+# ============================================================
+# The call accepts Verilog only, in one .zip. The deliverable is a split tree,
+# one .v per .sv mirroring rtl/, with the comments sv2v discards restored by
+# hand. The annotated tree is committed in ../submission/rtl; this flow never
+# overwrites it.
+#   package        sv2v -w adjacent into a clean staging tree, $(PKGRAW). The
+#                  package converts to two pragmas and nothing else - its
+#                  constants are inlined into every consumer - so
+#                  pmic_types_pkg.v is dropped.
+#   package_check  every annotated file must be code-identical to that fresh
+#                  output once comments and the restored `timescale are
+#                  stripped: proof the annotation changed no code.
+#   zip            package_check, then the zip from the verified files: the
+#                  annotated rtl/, tb/pmic_top_tb.v and the README.
+# Run `make equiv SPLIT=1` and `make iv_top SPLIT=1` before zipping - the
+# testbenches against the annotated files themselves.
+PKGRAW  := $(SYNDIR)/package_raw
+ZIPNAME ?= sync_buck_pmic_silicluster_v3
+ZIPDIR  := $(SYNDIR)/$(ZIPNAME)
+
+.PHONY: package package_check zip
+
+package:  ## sv2v -w adjacent into a clean staging tree (Build/package_raw)
+	@rm -rf $(PKGRAW)
+	@mkdir -p $(PKGRAW)
+	@cp -r ../rtl $(PKGRAW)/rtl
+	cd $(PKGRAW) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
+	@find $(PKGRAW)/rtl -name '*.sv' -delete
+	@rm -f $(PKGRAW)/rtl/pkg/pmic_types_pkg.v
+	@rmdir $(PKGRAW)/rtl/pkg
+	@echo "--- raw split: $$(find $(PKGRAW)/rtl -name '*.v' | wc -l) files in $(PKGRAW)/rtl ---"
+
+package_check: package  ## annotated split files must be code-identical to fresh sv2v output
+	@python3 $(SCRIPTS)/strip_compare.py $(PKGRAW)/rtl $(SUBDIR)/rtl
+
+zip: package_check  ## the Silicluster zip, from the verified annotated files
+	@rm -rf $(ZIPDIR) $(ZIPDIR).zip
+	@mkdir -p $(ZIPDIR)/tb
+	@cp -r $(SUBDIR)/rtl $(ZIPDIR)/rtl
+	@cp $(TOP_TB) $(ZIPDIR)/tb/
+	@cp $(SUBDIR)/README.md $(ZIPDIR)/
+	@cd $(SYNDIR) && python3 -m zipfile -c $(ZIPNAME).zip $(ZIPNAME)
+	@rm -rf $(ZIPDIR)
+	@echo "--- $(ZIPDIR).zip ---"
+	@python3 -m zipfile -l $(ZIPDIR).zip
 
 # ============================================================
 # Housekeeping

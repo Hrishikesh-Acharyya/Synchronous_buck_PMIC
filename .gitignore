@@ -53,3 +53,6 @@ vivado/
 
 # Full yosys logs of the liberty-mapped run; the summary is committed instead
 Build/area.txt
+Build/area_notel.txt
+# Staging tree of make package; regenerated on every run
+Build/package_raw/
