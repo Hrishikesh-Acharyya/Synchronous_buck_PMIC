@@ -272,13 +272,23 @@ TOP_EQUIV_WAIVERS := $(EQUIV_WAIVERS) -Wno-TIMESCALEMOD
 TOP_VFLAGS     := --binary --timing -Wall $(LINT_WAIVERS) $(TB_WAIVERS) $(TOP_TB_WAIVERS)
 TOP_IVFLAGS    := -g2005
 
+# TOP_TEL: TELEMETRY_EN for the integration testbench, which passes it on to
+#          pmic_top, so one value selects the build and the sequence that fits
+#          it: 1 (default) the full build and its SPI sequence, 0 the reduced
+#          build and its pins-only sequence on the default timers. The _notel
+#          targets set 0 and record under their own flow names (sv_notel,
+#          equiv_notel, iv_notel), so both configurations report side by side.
+TOP_TEL ?= 1
+IV_FLOW := $(if $(filter 1,$(SPLIT)),iv_split,iv)
+
 # run_top: $(1) simulator, $(2) flow, $(3) sources, $(4) Verilator flags
 run_top = VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' \
-          TOP_VFLAGS='$(4)' TOP_IVFLAGS='$(TOP_IVFLAGS)' \
+          TOP_VFLAGS='$(4) -GTELEMETRY_EN=$(TOP_TEL)' \
+          TOP_IVFLAGS='$(TOP_IVFLAGS) -Ppmic_top_tb.TELEMETRY_EN=$(TOP_TEL)' \
           QUIET='$(QUIET)' NOFAIL='$(NOFAIL)' WAVES='$(WAVES)' \
           bash $(SCRIPTS)/run_top_tb.sh $(1) $(TBBUILD)/$(2)/pmic_top_tb $(2) $(3)
 
-.PHONY: tb_top equiv_top iv_top top_all
+.PHONY: tb_top equiv_top iv_top top_all tb_top_notel equiv_top_notel iv_top_notel top_notel top_both
 
 tb_top:  ## integration testbench, Verilator, SystemVerilog source
 	@$(call run_top,verilator,sv,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
@@ -287,7 +297,19 @@ equiv_top: $(EQUIV_SRCS)  ## integration testbench, Verilator, converted Verilog
 	@$(call run_top,verilator,$(EQUIV_FLOW),$(EQUIV_SRCS) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
 
 iv_top: $(EQUIV_SRCS)  ## integration testbench, Icarus Verilog, converted Verilog
-	@$(call run_top,iverilog,$(if $(filter 1,$(SPLIT)),iv_split,iv),$(EQUIV_SRCS) $(TOP_TB),)
+	@$(call run_top,iverilog,$(IV_FLOW),$(EQUIV_SRCS) $(TOP_TB),)
+
+tb_top_notel: TOP_TEL := 0
+tb_top_notel:  ## integration testbench, TELEMETRY_EN=0, Verilator, SystemVerilog source
+	@$(call run_top,verilator,sv_notel,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
+
+equiv_top_notel: TOP_TEL := 0
+equiv_top_notel: $(EQUIV_SRCS)  ## integration testbench, TELEMETRY_EN=0, Verilator, converted Verilog
+	@$(call run_top,verilator,$(EQUIV_FLOW)_notel,$(EQUIV_SRCS) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
+
+iv_top_notel: TOP_TEL := 0
+iv_top_notel: $(EQUIV_SRCS)  ## integration testbench, TELEMETRY_EN=0, Icarus Verilog, converted Verilog
+	@$(call run_top,iverilog,$(IV_FLOW)_notel,$(EQUIV_SRCS) $(TOP_TB),)
 
 top_all: QUIET  := 1
 top_all: NOFAIL := 1
@@ -295,6 +317,16 @@ top_all: tb_top equiv_top iv_top  ## integration testbench in all three flows
 	@rc=0; \
 	for f in sv equiv iv; do bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
 	exit $$rc
+
+top_notel: QUIET  := 1
+top_notel: NOFAIL := 1
+top_notel: tb_top_notel equiv_top_notel iv_top_notel  ## integration testbench, TELEMETRY_EN=0, all three flows
+	@rc=0; \
+	for f in sv_notel $(EQUIV_FLOW)_notel $(IV_FLOW)_notel; do \
+	    bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
+	exit $$rc
+
+top_both: top_all top_notel  ## integration testbench, both TELEMETRY_EN values, all three flows
 
 # ============================================================
 # Suite targets
@@ -311,14 +343,18 @@ equiv: NOFAIL := 1
 equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output (SPLIT=1: the zip's files)
 	@bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS)
 
-# equiv_all: both flows as one parallel job graph, then both tables. Report
-#            failures are collected so the second table always prints.
+# equiv_all: both flows as one parallel job graph, then both tables, then the
+#            integration testbench on the TELEMETRY_EN=0 build in both flows.
+#            Report failures are collected so every table always prints.
 equiv_all: QUIET  := 1
 equiv_all: NOFAIL := 1
-equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top  ## pre-submission gate: tb_all + equiv
+equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top \
+           tb_top_notel equiv_top_notel  ## pre-submission gate: tb_all + equiv, both TELEMETRY_EN builds
 	@rc=0; \
 	bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(SUITE_TOPS) || rc=1; \
 	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS) || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) sv_notel    pmic_top_tb || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv_notel pmic_top_tb || rc=1; \
 	exit $$rc
 
 report:  ## reprint both tables from the last results, without re-running
@@ -347,8 +383,9 @@ lint:  ## strict Verilator lint over the RTL (what CI runs)
 	  echo "verilator not installed - skipping lint"; \
 	fi
 
-# lint_notel: the TELEMETRY_EN=0 configuration, which exists only to cost the
-#             telemetry. UNUSEDSIGNAL is waived for this configuration alone:
+# lint_notel: the TELEMETRY_EN=0 configuration - the reduced build, which costs
+#             the telemetry and is the fallback submission should the extra
+#             area not be granted. UNUSEDSIGNAL is waived for it alone:
 #             with the host interface compiled out, the SCK and CS_n pins and
 #             the nets that fed the telemetry blocks are legitimately unread.
 #             Any other warning still fails.
@@ -409,8 +446,8 @@ syn_area: $(CONVERTED)  ## sky130-mapped area (needs LIBERTY)
 #   sv2v keeps TELEMETRY_EN as a Verilog parameter and the generate blocks as
 #   Verilog generates, so the one converted file serves both configurations;
 #   chparam selects before elaboration. Outputs carry a _notel suffix so the
-#   submission build's files are never overwritten. The submitted design is
-#   always the default, TELEMETRY_EN=1.
+#   default build's files are never overwritten. The default is
+#   TELEMETRY_EN=1; the reduced build is the fallback submission.
 syn_notel: $(CONVERTED)  ## generic synthesis of the TELEMETRY_EN=0 build
 	$(YOSYS) -q -l $(SYNDIR)/stat_notel.txt -p "read_verilog $(CONVERTED); \
 	             chparam -set TELEMETRY_EN 0 pmic_top; \

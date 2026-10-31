@@ -726,6 +726,22 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Undo: `git revert <hash>` (entry 24's make targets use the parameter;
   revert that first).
 
+## 24. 2026-10-31 21:07 UTC - sim: integration testbench targets for TELEMETRY_EN=0; the gate runs both builds
+
+- Files: `sim/Makefile` (CRLF kept).
+- What: `TOP_TEL` (default 1) is passed to the integration testbench as
+  `-GTELEMETRY_EN` (Verilator) and `-Ppmic_top_tb.TELEMETRY_EN` (Icarus). New
+  targets `tb_top_notel`, `equiv_top_notel`, `iv_top_notel` (TOP_TEL = 0,
+  results under the flow names `sv_notel`, `equiv_notel`, `iv_notel`),
+  `top_notel` (all three) and `top_both` (both builds, all flows).
+  `equiv_all`, the pre-submission gate, now also runs the reduced build in
+  both Verilator flows and prints its two tables. Comments that called the
+  reduced build a cost reference only now name it the fallback.
+- Gate: `make -j4 equiv_all` - 9/9 PASS in the SystemVerilog and converted
+  tables, and pmic_top_tb PASS 31/31 in `sv_notel` and `equiv_notel`;
+  `make iv_top_notel` PASS 31/31.
+- Undo: `git revert <hash>`.
+
 ---
 
 ## Commit table
