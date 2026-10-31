@@ -742,6 +742,25 @@ cannot contain its own hash, so the table is filled in by a later commit.
   `make iv_top_notel` PASS 31/31.
 - Undo: `git revert <hash>`.
 
+## 25. 2026-10-31 21:11 UTC - package: README for both TELEMETRY_EN builds, the fallback and the area method
+
+- Files: `submission/README.md`, `Build/sync_buck_pmic_silicluster_v3.zip`
+  (rebuilt: it carries the README and the testbench, both changed).
+- What: "Configuration as submitted" becomes "Configuration": a table of the
+  two builds, the default thresholds, and how to use the reduced build if the
+  additional area cannot be granted (line 75 of `rtl/pmic_top.v`, or the
+  parameter at synthesis; both defaults to 0 for a self-contained reduced
+  package). Run commands for TELEMETRY_EN = 0. A section on the pins-only
+  sequence and its results (134 checks, 31/31 applicable bins). The area
+  section now says what the 57% utilisation is - an assumption, not a figure
+  from the call or from place and route - and what it implies (the reduced
+  build needs at least 51% utilisation to fit the slot; the full build 2.6x
+  the slot at 57%, 3x at 50%). A known limitation for TELEMETRY_EN = 0.
+- CORRECTION to entry 18: two places still called the SPI slave 3-wire; it is
+  4-wire since entry 17.
+- No RTL or Verilog file changed; `make package_check` 17/17 before the zip.
+- Undo: `git revert <hash>` (documentation and zip only).
+
 ---
 
 ## Commit table
