@@ -482,3 +482,25 @@ cannot contain its own hash, so the table is filled in by a later commit.
   scoreboard ~4.7 M clocks and 87 read-back bytes, 0 mismatches.
 - No RTL or area change.
 - Undo: `git revert <hash>` (entry 14 runs it from make; revert that first).
+
+## 14. 2026-10-31 19:14 UTC - sim: run the integration testbench from make
+
+- Files: `sim/Makefile`, `sim/scripts/run_top_tb.sh` (new).
+- What: targets `tb_top` (Verilator, SV source), `equiv_top` (Verilator,
+  converted Verilog), `iv_top` (Icarus, converted Verilog) and `top_all`.
+  `tb_all`, `equiv` and `equiv_all` now include it, listed as `pmic_top_tb`
+  with its coverage bins in the covers column; `make list` shows it.
+- The runner takes the verdict from the testbench's last line and writes the
+  record `report.sh` reads. It is also what gives Icarus a non-zero exit on a
+  FAIL: vvp exits 0 from `$stop` and Verilog-2005 cannot set an exit code.
+  Checked with stand-in testbenches: FAIL -> exit 1, PASS -> exit 0.
+- Lint waivers, testbench code only, each documented in the Makefile: BLKSEQ,
+  PROCASSINIT, WIDTHTRUNC, ZERODLY, REALCVT, UNUSEDSIGNAL, MULTIDRIVEN (the
+  deliberate force/release); ENUMVALUE for the SV source only (the forced
+  illegal state lands in an enum register there); TIMESCALEMOD for the
+  converted single file only (sv2v drops `timescale; the RTL has no delays).
+- Evidence: `make -j4 equiv_all` 9/9 PASS in both tables (the 8 module
+  testbenches plus pmic_top_tb at 51/51 bins); `make iv_top` PASS 51/51.
+- No RTL or area change. CI (`rtl.yml`) runs `equiv_all`, so it now runs the
+  integration testbench too, with Verilator only.
+- Undo: `git revert <hash>`.
