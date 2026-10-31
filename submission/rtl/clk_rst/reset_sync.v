@@ -7,7 +7,7 @@
 #                   falls, and releases synchronously two clocks after
 #                   rst_n_enter rises, so every flop clocked by clk comes
 #                   out of reset on the same edge.
-#Comment edit to check new workflow
+#
 #                   Verilog-2005, converted from rtl/clk_rst/reset_sync.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
