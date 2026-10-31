@@ -679,6 +679,53 @@ cannot contain its own hash, so the table is filled in by a later commit.
   identical to before, the bin count now 3 as in Verilator.
 - Undo: `git revert <hash>` (coverage counts only).
 
+## 23. 2026-10-31 21:05 UTC - tb: TELEMETRY_EN parameter and a pins-only sequence for the reduced build
+
+- Files: `tb/pmic_top_tb.v`. Requested by the user: the testbench takes the
+  same parameter as `pmic_top`, so one setting selects the build and its test,
+  and the reduced build is verified as a fallback in case the additional area
+  is not granted.
+- What:
+  - `parameter [0:0] TELEMETRY_EN = 1'b1`, passed to `pmic_top`. Set with
+    `iverilog -P pmic_top_tb.TELEMETRY_EN=0`, `verilator -GTELEMETRY_EN=0`, or
+    by editing the default.
+  - The probes into the SPI slave and register file, and of the top-level nets
+    those blocks drive, are built in a generate branch; without telemetry they
+    hold their at-rest values. Every probe now resolves in both builds.
+  - The existing SPI sequence moved, unchanged, into `g_seq_tel`; it forces two
+    registers that exist only in the full build, so it cannot be elaborated
+    against the reduced one.
+  - New `g_seq_notel`: a pins-only sequence on the package default timers
+    (5 ms hiccup base, 1 s clean-run window, 64 cycles per ramp step), with
+    the same phase numbers. It proves the host interface is absent, not just
+    idle: the configuration the SPI sequence writes (1 ms hiccup base, 100 ms
+    window) is sent as a valid keyed frame and the hiccup and window are then
+    timed at their defaults (10.0 ms, 1000.0 ms); keyed disables are sent while
+    running and En must never fall; every MISO bit read back must be 0. Also
+    the strikes-to-latch path on the default 10 + 20 ms hiccups (30.2 ms),
+    Red_LED1's 4 Hz blink through an outstanding strike, and the rest of the
+    protection exactly as in the SPI sequence.
+  - Coverage: bins for hardware the reduced build lacks (host disable, SPI,
+    timestamp, fault log, bus errors, watchdog, PWM statistics; 20 of 51) are
+    reported "n/a"; the other 31 must all be hit. The verdict lines name the
+    configuration.
+  - Time-zero race removed: `osc_high_ns` and `log_fd` were each written at
+    time 0 by both a declaration initialiser and the sequence. Verilog-2005
+    leaves that order to the simulator, and once the sequence sat in a generate
+    block Icarus ran it first, so the initialiser overwrote the 90% duty and
+    the ramp checks failed (5 failures, Icarus only). Each now has one writer.
+  - The SPI master comment said 3-wire; it is 4-wire since entry 17.
+- Gate: TELEMETRY_EN = 1 - all 216 check lines identical to before, in Icarus
+  and Verilator, on the submitted files, the converted single file and the
+  SystemVerilog source. TELEMETRY_EN = 0 - PASS, 134 checks, 0 failures, 31/31
+  applicable bins, on Icarus (219 s) and Verilator (13 s run) against the
+  submitted files, Verilator against the SystemVerilog source and the
+  converted single file, and Verilator at 50 MHz; check lines and coverage
+  tables identical between all of them. Both configurations warning-free under
+  the Makefile's strict Verilator flags.
+- Undo: `git revert <hash>` (entry 24's make targets use the parameter;
+  revert that first).
+
 ---
 
 ## Commit table

@@ -16,6 +16,22 @@
 #                   needs is written over SPI into the register map, as a host
 #                   would; no timer in the RTL is shortened.
 #
+#                   TELEMETRY_EN: the same parameter as pmic_top's, passed down to
+#                   the DUT, so one setting selects both the build and the test
+#                   sequence that fits it:
+#                     1 (default) the full build. The sequence below configures
+#                       short timers over SPI and checks the host interface too.
+#                     0 the reduced build: no SPI slave, register file, fault
+#                       log, timestamp or PWM statistics; MISO tied low. A
+#                       pins-only sequence runs instead, on the package default
+#                       timers (5 ms hiccup base, 1 s clean-run window), and
+#                       proves SPI frames have no effect. Phases 2, 3 and 10
+#                       have no counterpart there; the others keep their numbers.
+#                   Set it with  iverilog -P pmic_top_tb.TELEMETRY_EN=0  or
+#                   verilator -GTELEMETRY_EN=0, or by editing the default below.
+#                   The synthesised configuration is pmic_top's own default, so
+#                   a submission must set both to the same value.
+#
 #                   Checking happens in four layers:
 #                     check tasks   every directed claim prints PASS or FAIL
 #                     monitors      run-long invariants, sampled every clock
@@ -62,7 +78,12 @@
 #                   the supervisor's state and inputs (for the FSM scoreboard)
 #                   and the register-file contents (for the register-map
 #                   scoreboard). All names exist in both the SystemVerilog source
-#                   and the sv2v output, which keeps generate-block names.
+#                   and the sv2v output, which keeps generate-block names. The
+#                   probes into the SPI slave and register file exist only when
+#                   TELEMETRY_EN = 1, so they sit in a generate block; with
+#                   TELEMETRY_EN = 0 they are tied to the values those blocks
+#                   would hold at rest, and the monitors that read them become
+#                   checks that MISO never leaves 0.
 #
 #                   force/release is used twice, only where a state is otherwise
 #                   unreachable: an illegal spi_slave state encoding, and the
@@ -99,6 +120,10 @@ module pmic_top_tb;
 // CLK_HZ: supervisor clock. Must equal pmic_types_pkg::CLK_HZ of the build
 //         under test; override for a 50 MHz build.
 parameter integer CLK_HZ = 10_000_000;
+// TELEMETRY_EN: configuration under test, passed to pmic_top (see the header).
+//               1 = full build and the SPI sequence, 0 = reduced build and the
+//               pins-only sequence.
+parameter [0:0] TELEMETRY_EN = 1'b1;
 // CLK_PERIOD_NS: real division, so a clock that does not divide 1e9 exactly
 //                is still generated at the right rate
 localparam real    CLK_PERIOD_NS   = 1.0e9 / CLK_HZ;
@@ -137,8 +162,9 @@ localparam real    US              = 1.0e3;
 //              leaves 0.8 us of setup at the master's sampling edge.
 localparam real    SPI_HALF_NS     = 2000.0;
 localparam real    SPI_GAP_NS      = 6000.0;
-// WATCHDOG_NS: the full run is about 380 ms of simulated time
-localparam real    WATCHDOG_NS     = 600.0 * MS;
+// WATCHDOG_NS: the full run is about 380 ms of simulated time; the pins-only
+//              run about 1.2 s, most of it the default 1 s clean-run window
+localparam real    WATCHDOG_NS     = (TELEMETRY_EN ? 600.0 : 2000.0) * MS;
 // SCR_DELAY_NS: SCR latch and readback path
 localparam real    SCR_DELAY_NS    = 500.0;
 // OSC_PHASE_NS: start offset of the modulator. Half its period is 1111.111 ns,
@@ -199,7 +225,7 @@ integer checks_failed = 0;
 // ============================================================
 // DUT
 // ============================================================
-pmic_top u_dut (
+pmic_top #(.TELEMETRY_EN(TELEMETRY_EN)) u_dut (
     .clk(clk), .rst_n_pin(rst_n_pin),
     .SCK(SCK), .CS_n(CS_n), .MOSI(MOSI), .MISO(MISO),
     .Osc_in(Osc_in), .CP_trig(CP_trig), .OTP_trig(OTP_trig), .UVLO_trig(UVLO_trig),
@@ -210,18 +236,18 @@ pmic_top u_dut (
     .Red_LED1(Red_LED1), .Red_LED2(Red_LED2), .Red_LED3(Red_LED3));
 
 // ---- internal probes (see the file header for why each exists) ----
-// SPI slave
-wire [2:0]  spi_state_int  = u_dut.g_telemetry.u_spi_slave.spi_state;
-wire        sdio_oe_int    = u_dut.g_telemetry.u_spi_slave.sdio_oe;
-wire        sdio_out_int   = u_dut.g_telemetry.u_spi_slave.sdio_out;
-wire        tx_shift7_int  = u_dut.g_telemetry.u_spi_slave.tx_shift[7];
-wire        cs_filt_int    = u_dut.cs_n_filt;
-wire        integrity_int  = u_dut.spi_integrity_ok;
-wire        abort_int      = u_dut.spi_abort;
-wire        rd_first_int   = u_dut.spi_rd_first;
-// millisecond counter and its read snapshot
-wire [23:0] ts_live_int    = u_dut.timestamp_ms;
-wire [23:0] ts_snap_int    = u_dut.g_telemetry.u_reg_file.timestamp_snap;
+// SPI slave and its filtered CS and strobes (all assigned in g_tel_probes below)
+wire [2:0]  spi_state_int;
+wire        sdio_oe_int;
+wire        sdio_out_int;
+wire        tx_shift7_int;
+wire        cs_filt_int;
+wire        integrity_int;
+wire        abort_int;
+wire        rd_first_int;
+// millisecond counter and its read snapshot (g_tel_probes)
+wire [23:0] ts_live_int;
+wire [23:0] ts_snap_int;
 // supervisor state and every input it decides on
 wire        dut_rst_n      = u_dut.rst_n;
 wire [1:0]  sup_state      = u_dut.u_supervisor.state;
@@ -244,21 +270,74 @@ wire        osc_sync_int   = u_dut.Osc_sync;
 wire        otp_sync_int   = u_dut.OTP_sync;
 wire        otp_db_int     = u_dut.OTP_sync_db;
 wire        latch_db_int   = u_dut.latch_stat_sync_db;
-wire        sw_rise_int    = u_dut.en_switch_rise;
-wire        flog_clear_int = u_dut.fault_reg_read_done;
-// register file contents, for the register-map scoreboard
-wire [7:0]  rf_scratch     = u_dut.g_telemetry.u_reg_file.scratch_r;
-wire [7:0]  rf_trip_run    = u_dut.g_telemetry.u_reg_file.trip_run;
-wire [7:0]  rf_trip_ss     = u_dut.g_telemetry.u_reg_file.trip_ss;
-wire [7:0]  rf_max_strikes = u_dut.g_telemetry.u_reg_file.max_strikes;
-wire [7:0]  rf_max_on      = u_dut.g_telemetry.u_reg_file.max_on_limit;
-wire [23:0] rf_hiccup      = u_dut.g_telemetry.u_reg_file.hiccup_base;
-wire [7:0]  rf_cyc_step    = u_dut.g_telemetry.u_reg_file.cycles_per_step;
-wire [23:0] rf_clean       = u_dut.g_telemetry.u_reg_file.clean_run_target;
-wire        rf_spi_enable  = u_dut.g_telemetry.u_reg_file.spi_enable;
-wire        rf_write_rej   = u_dut.g_telemetry.u_reg_file.write_rejected;
-wire [15:0] rf_bus_err     = u_dut.g_telemetry.u_reg_file.bus_err_count;
-wire        rf_wd_restored = u_dut.g_telemetry.u_reg_file.wd_restored;
+wire        sw_rise_int;      // this and the next: g_tel_probes
+wire        flog_clear_int;
+// register file contents, for the register-map scoreboard (g_tel_probes)
+wire [7:0]  rf_scratch, rf_trip_run, rf_trip_ss, rf_max_strikes, rf_max_on, rf_cyc_step;
+wire [23:0] rf_hiccup, rf_clean;
+wire        rf_spi_enable, rf_write_rej, rf_wd_restored;
+wire [15:0] rf_bus_err;
+
+// The SPI slave, the register file and their conditioning exist only with
+// TELEMETRY_EN = 1, so the probes into them are built only then - including
+// the top-level nets those blocks drive, which the reduced build declares but
+// leaves undriven. Without them each probe holds the value its block would
+// hold at rest: CS high, slave idle and not driving, no strobes, registers at
+// their package defaults.
+generate
+    if (TELEMETRY_EN) begin : g_tel_probes
+        assign cs_filt_int    = u_dut.cs_n_filt;
+        assign integrity_int  = u_dut.spi_integrity_ok;
+        assign abort_int      = u_dut.spi_abort;
+        assign rd_first_int   = u_dut.spi_rd_first;
+        assign ts_live_int    = u_dut.timestamp_ms;
+        assign sw_rise_int    = u_dut.en_switch_rise;
+        assign flog_clear_int = u_dut.fault_reg_read_done;
+        assign spi_state_int  = u_dut.g_telemetry.u_spi_slave.spi_state;
+        assign sdio_oe_int    = u_dut.g_telemetry.u_spi_slave.sdio_oe;
+        assign sdio_out_int   = u_dut.g_telemetry.u_spi_slave.sdio_out;
+        assign tx_shift7_int  = u_dut.g_telemetry.u_spi_slave.tx_shift[7];
+        assign ts_snap_int    = u_dut.g_telemetry.u_reg_file.timestamp_snap;
+        assign rf_scratch     = u_dut.g_telemetry.u_reg_file.scratch_r;
+        assign rf_trip_run    = u_dut.g_telemetry.u_reg_file.trip_run;
+        assign rf_trip_ss     = u_dut.g_telemetry.u_reg_file.trip_ss;
+        assign rf_max_strikes = u_dut.g_telemetry.u_reg_file.max_strikes;
+        assign rf_max_on      = u_dut.g_telemetry.u_reg_file.max_on_limit;
+        assign rf_hiccup      = u_dut.g_telemetry.u_reg_file.hiccup_base;
+        assign rf_cyc_step    = u_dut.g_telemetry.u_reg_file.cycles_per_step;
+        assign rf_clean       = u_dut.g_telemetry.u_reg_file.clean_run_target;
+        assign rf_spi_enable  = u_dut.g_telemetry.u_reg_file.spi_enable;
+        assign rf_write_rej   = u_dut.g_telemetry.u_reg_file.write_rejected;
+        assign rf_bus_err     = u_dut.g_telemetry.u_reg_file.bus_err_count;
+        assign rf_wd_restored = u_dut.g_telemetry.u_reg_file.wd_restored;
+    end
+    else begin : g_notel_probes
+        assign cs_filt_int    = 1'b1;
+        assign integrity_int  = 1'b0;
+        assign abort_int      = 1'b0;
+        assign rd_first_int   = 1'b0;
+        assign ts_live_int    = 24'd0;
+        assign sw_rise_int    = 1'b0;
+        assign flog_clear_int = 1'b0;
+        assign spi_state_int  = SPI_IDLE;
+        assign sdio_oe_int    = 1'b0;
+        assign sdio_out_int   = 1'b0;
+        assign tx_shift7_int  = 1'b0;
+        assign ts_snap_int    = 24'd0;
+        assign rf_scratch     = 8'h00;
+        assign rf_trip_run    = TRIP_RUN_DEF[7:0];
+        assign rf_trip_ss     = TRIP_SS_DEF[7:0];
+        assign rf_max_strikes = MAX_STRIKES_DEF[7:0];
+        assign rf_max_on      = MAX_ON_COUNTS[7:0];
+        assign rf_hiccup      = HICCUP_DEF[23:0];
+        assign rf_cyc_step    = CYC_STEP_DEF[7:0];
+        assign rf_clean       = CLEAN_DEF[23:0];
+        assign rf_spi_enable  = 1'b1;
+        assign rf_write_rej   = 1'b0;
+        assign rf_bus_err     = 16'd0;
+        assign rf_wd_restored = 1'b0;
+    end
+endgenerate
 
 
 /*
@@ -272,7 +351,12 @@ always #(CLK_PERIOD_NS / 2.0) clk = ~clk;
 // ============================================================
 // Logging - every line goes to the terminal and to pmic_top_tb.log
 // ============================================================
-integer       log_fd = 0;
+// log_fd: no declaration initialiser. The sequence opens the log at time 0, and
+//         Verilog-2005 leaves the order of a declaration initialiser and an
+//         initial block at time 0 to the simulator - Icarus runs a generate
+//         block's initial first - so an "= 0" here could close the log again.
+//         Until the open, an x (Icarus) or 0 (Verilator) both skip the writes.
+integer       log_fd;
 reg [8*240:1] msg;       // message buffer of the stimulus thread and its tasks; monitors
                          // print directly, so no two processes share it
 
@@ -359,7 +443,20 @@ localparam integer NB           = 51;
 reg  [NB-1:0] cov = {NB{1'b0}};
 integer       cov_hits [0:NB-1];
 integer       cov_missed = 0;
+integer       cov_applicable = NB;   // bins that exist in the build under test
 integer       cov_idx;
+
+// cov_applies: whether a bin exists in the build under test. Without telemetry
+//              there is no host disable, SPI protocol, timestamp, fault log,
+//              bus-error counter, watchdog or PWM statistics: 20 of the 51 bins
+//              name hardware that is not built, and they are reported "n/a".
+function cov_applies(input integer bin);
+    begin
+        if (TELEMETRY_EN) cov_applies = 1'b1;
+        else cov_applies = !((bin == C_OFF_HOST) || (bin == C_RE_HOST) ||
+                             ((bin >= C_RD_SINGLE) && (bin <= C_STATS)));
+    end
+endfunction
 
 /*
 Purpose:
@@ -439,13 +536,23 @@ task print_coverage;
     integer b;
     begin
         cov_missed = 0;
+        cov_applicable = 0;
         emit("---------------------------- coverage ----------------------------");
         for (b = 0; b < NB; b = b + 1) begin
-            if (!cov[b]) cov_missed = cov_missed + 1;
-            $sformat(msg, "  %0s %7d  %0s", cov[b] ? "HIT " : "MISS", cov_hits[b], cov_name(b));
+            if (cov_applies(b)) begin
+                cov_applicable = cov_applicable + 1;
+                if (!cov[b]) cov_missed = cov_missed + 1;
+                $sformat(msg, "  %0s %7d  %0s", cov[b] ? "HIT " : "MISS", cov_hits[b], cov_name(b));
+            end
+            else
+                $sformat(msg, "  n/a  %7d  %0s", cov_hits[b], cov_name(b));
             emit(msg);
         end
-        $sformat(msg, "  %0d of %0d bins hit", NB - cov_missed, NB);
+        if (cov_applicable == NB)
+            $sformat(msg, "  %0d of %0d bins hit", NB - cov_missed, NB);
+        else
+            $sformat(msg, "  %0d of %0d bins hit (%0d n/a: not built with TELEMETRY_EN = 0)",
+                     cov_applicable - cov_missed, cov_applicable, NB - cov_applicable);
         emit(msg);
         emit("------------------------------------------------------------------");
     end
@@ -460,7 +567,9 @@ endtask
 reg  osc_enable     = 1'b1;
 reg  osc_stuck_high = 1'b0;
 reg  osc_started    = 1'b0;
-real osc_high_ns    = 1111.1;
+// osc_high_ns starts at 90% duty, 2000 ns, and keeps it until phase 4 says
+// otherwise. Set here and nowhere else at time 0: see log_fd for why.
+real osc_high_ns    = 2000.0;
 
 /*
 Purpose:
@@ -729,6 +838,10 @@ always @(posedge Red_LED1) begin
     if (latch_out || latch_db_int) cover_bin(C_SOLID);
     else if (strike_int != 2'd0)   cover_bin(C_BLINK);
 end
+
+// red1_rises: Red_LED1 rising edges, for the pins-only blink-rate check
+integer red1_rises = 0;
+always @(posedge Red_LED1) red1_rises = red1_rises + 1;
 
 /*
 Purpose:
@@ -1046,7 +1159,7 @@ the shadow here, after the compare: a fresh enable-switch press re-enables
 spi_enable on the same edge the DUT does.
 */
 always @(posedge clk) begin : regmap_scoreboard
-    if (!spi_busy && (dut_rst_n === 1'b1)) begin
+    if (TELEMETRY_EN && !spi_busy && (dut_rst_n === 1'b1)) begin
         rm_compares = rm_compares + 1;
         if ((rf_scratch !== sh_scratch) || (rf_trip_run !== sh_trip_run) ||
             (rf_trip_ss !== sh_trip_ss) || (rf_max_strikes !== sh_max_strikes) ||
@@ -1075,7 +1188,7 @@ end
 
 
 // ============================================================
-// SPI master - Mode 0, MSB first, 3-wire, CRC-8 poly 0x07 init 0x00
+// SPI master - Mode 0, MSB first, 4-wire (MOSI, MISO), CRC-8 poly 0x07 init 0x00
 // ============================================================
 reg [7:0] spi_tx [0:15];   // bytes to write, after the command byte
 reg [7:0] spi_rx [0:15];   // bytes read back
@@ -1370,6 +1483,76 @@ endtask
 
 
 // ============================================================
+// Pins-only helpers - the reduced build (TELEMETRY_EN = 0) has no register map
+// to poll and no SPI slave, so its sequence waits on the supervisor through
+// the probe and sends SPI frames only to show they change nothing
+// ============================================================
+// wait_sup_state: wait for the supervisor's state register, read through the
+//                 probe, with the same timeout behaviour as the other waits
+task wait_sup_state(input [1:0] state, input real timeout_ns);
+    begin
+        timed_out = 1'b0;
+        fork : wait_sup_blk
+            begin wait (sup_state === state); disable wait_sup_blk; end
+            begin #(timeout_ns); timed_out = 1'b1; disable wait_sup_blk; end
+        join
+        last_state = sup_state;
+    end
+endtask
+
+// spi_frames_sent / miso_high_bits: SPI traffic sent to the reduced build, and
+//                                   bits sampled high on MISO while reading
+integer spi_frames_sent = 0;
+integer miso_high_bits  = 0;
+
+// spi_frame_ignored: a well-formed write frame, [cmd][spi_tx[0..n-1]][CRC] -
+//                    one a full build would accept. No shadow update and no
+//                    outcome check: the reduced build has no slave to decide.
+task spi_frame_ignored(input [6:0] addr, input integer nbytes);
+    integer   idx;
+    reg [7:0] crc_acc;
+    begin
+        crc_acc = crc8(8'h00, {1'b0, addr});
+        for (idx = 0; idx < nbytes; idx = idx + 1) crc_acc = crc8(crc_acc, spi_tx[idx]);
+        CS_n = 1'b0;
+        #(SPI_HALF_NS);
+        spi_send_byte({1'b0, addr});
+        for (idx = 0; idx < nbytes; idx = idx + 1) spi_send_byte(spi_tx[idx]);
+        spi_send_byte(crc_acc);
+        spi_end;
+        #(SPI_GAP_NS);
+        spi_frames_sent = spi_frames_sent + 1;
+    end
+endtask
+
+// spi_read_ignored: a read frame, [cmd][turnaround][n data bytes], counting
+//                   every bit sampled high on MISO. A full build answers (the
+//                   ID register alone is 0xB5); the reduced build must not.
+task spi_read_ignored(input [6:0] addr, input integer nbytes);
+    integer   idx, b;
+    reg [7:0] rx;
+    begin
+        CS_n = 1'b0;
+        #(SPI_HALF_NS);
+        spi_send_byte({1'b1, addr});
+        for (idx = 0; idx <= nbytes; idx = idx + 1) begin
+            spi_recv_byte(rx, 1'b0);
+            for (b = 0; b < 8; b = b + 1)
+                if (rx[b] !== 1'b0) miso_high_bits = miso_high_bits + 1;
+        end
+        #(SPI_HALF_NS) CS_n = 1'b1;
+        #(SPI_GAP_NS);
+        spi_frames_sent = spi_frames_sent + 1;
+    end
+endtask
+
+// en_falls: falling edges of En, so a window can show the converter never
+//           stopped while frames that would disable a full build arrived
+integer en_falls = 0;
+always @(negedge En) en_falls = en_falls + 1;
+
+
+// ============================================================
 // Soft-start ramp measurement
 // ============================================================
 integer ramp_levels;       // distinct ceiling levels seen
@@ -1548,6 +1731,51 @@ task random_glitch_corners(input integer n);
     end
 endtask
 
+/*
+random_ignored_traffic: n random SPI frames for the reduced build - keyed
+disables, keyed threshold writes of random values, SCRATCH writes and reads.
+A full build would act on many of them; the reduced build has no slave, so the
+window this runs in checks that En never drops, the strike clears on the
+default 1 s schedule and every read returns nothing on MISO.
+*/
+task random_ignored_traffic(input integer n);
+    integer t, kind, k, value;
+    begin
+        for (t = 0; t < n; t = t + 1) begin
+            rand_below(4, kind);
+            case (kind)
+                0: begin       // keyed disable: DISKEY, then CONTROL = 0
+                    spi_tx[0] = DISABLE_KEY;
+                    spi_tx[1] = 8'h00;
+                    spi_frame_ignored(A_DISKEY, 2);
+                end
+                1: begin       // keyed write of the four run-time thresholds
+                    spi_tx[0] = WRITE_KEY;
+                    for (k = 1; k <= 4; k = k + 1) begin
+                        rand_below(256, value);
+                        spi_tx[k] = value;
+                    end
+                    spi_frame_ignored(A_WRKEY, 5);
+                end
+                2: begin       // SCRATCH write
+                    rand_below(256, value);
+                    spi_tx[0] = value;
+                    spi_frame_ignored(A_SCRATCH, 1);
+                end
+                default: begin // two-byte read of ID, STATUS, thresholds or SCRATCH
+                    rand_below(4, k);
+                    case (k)
+                        0:       spi_read_ignored(A_ID, 2);
+                        1:       spi_read_ignored(A_STATUS, 2);
+                        2:       spi_read_ignored(A_TRIP_RUN, 2);
+                        default: spi_read_ignored(A_SCRATCH, 2);
+                    endcase
+                end
+            endcase
+        end
+    end
+endtask
+
 
 // ============================================================
 // Verdict
@@ -1558,10 +1786,17 @@ task finish_run(input [8*48:1] reason);
         emit("--------------------------------------------------");
         $sformat(msg, "exit            : %0s", reason);       emit(msg);
         $sformat(msg, "clock           : %0d Hz", CLK_HZ);    emit(msg);
+        if (TELEMETRY_EN) emit("TELEMETRY_EN    : 1 (full build, SPI sequence)");
+        else              emit("TELEMETRY_EN    : 0 (reduced build, pins-only sequence)");
         $sformat(msg, "random seed     : 0x%h", LFSR_SEED);   emit(msg);
         $sformat(msg, "checks run      : %0d", checks_run);   emit(msg);
         $sformat(msg, "checks failed   : %0d", checks_failed); emit(msg);
-        $sformat(msg, "coverage        : %0d of %0d bins", NB - cov_missed, NB); emit(msg);
+        if (cov_applicable == NB)
+            $sformat(msg, "coverage        : %0d of %0d bins", NB - cov_missed, NB);
+        else
+            $sformat(msg, "coverage        : %0d of %0d bins (%0d n/a without telemetry)",
+                     cov_applicable - cov_missed, cov_applicable, NB - cov_applicable);
+        emit(msg);
         if ((checks_failed == 0) && (cov_missed == 0)) emit("pmic_top_tb: PASS");
         else                                           emit("pmic_top_tb: FAIL");
         emit("--------------------------------------------------");
@@ -1604,23 +1839,30 @@ integer bus_err_before;
 integer strike_hiccups;
 integer value24;
 integer pulses_before;
-real    t_event, t_en_rise, t_cs_filt;
+integer red1_before, en_falls_before;
+real    t_event, t_en_rise, t_cs_filt, t_strike;
 reg [23:0] ts_force;
 reg [23:0] carry_at;
+
+// The two sequences sit in generate branches: the SPI sequence forces two
+// registers inside the SPI slave and the register file, which exist only in
+// the full build, so it cannot even be elaborated against the reduced one.
+generate
+if (TELEMETRY_EN) begin : g_seq_tel
 
 /*
 Purpose:
 ---
-The directed phases, in order. Most checks are inline; the monitors,
-scoreboards and coverage run underneath for the whole run.
+The SPI sequence, for the full build (TELEMETRY_EN = 1): the directed phases,
+in order. Most checks are inline; the monitors, scoreboards and coverage run
+underneath for the whole run.
 */
 initial begin
     log_fd = $fopen("pmic_top_tb.log", "w");
     shadow_reset;
-    $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks ====",
+    $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 1 ====",
              CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
     emit(msg);
-    osc_high_ns = 2000.0;   // the modulator asks for 90% duty until phase 4 says otherwise
 
     // ---------------------------------------------------------------
     // Phase 1: reset, fail-safe outputs, identity, defaults
@@ -2226,6 +2468,398 @@ initial begin
 
     finish_run("normal end");
 end
+
+end
+else begin : g_seq_notel
+
+/*
+Purpose:
+---
+The pins-only sequence, for the reduced build (TELEMETRY_EN = 0). There is no
+register map, so nothing is configured: every timer runs at its package
+default - the 5 ms hiccup base, the 1 s clean-run window, 64 cycles per ramp
+step - and the SPI pins are driven only to show they change nothing. Phases
+keep the SPI sequence's numbers; phase 2 becomes the SPI-has-no-effect check,
+and 3 (configuration) and 10 (timestamp) have no counterpart. The FSM
+scoreboard, the run-long monitors and the coverage bins that exist in this
+build run underneath, as in the SPI sequence.
+*/
+initial begin
+    log_fd = $fopen("pmic_top_tb.log", "w");
+    shadow_reset;
+    $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 0 ====",
+             CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
+    emit(msg);
+
+    // ---------------------------------------------------------------
+    // Phase 1: reset, fail-safe outputs, no host interface
+    // ---------------------------------------------------------------
+    note("Phase 1: power-on reset, fail-safe outputs, no host interface");
+    #1;
+    rst_n_pin = 1'b0;
+    #(10.0 * CLK_PERIOD_NS);
+    check("in reset: En low",                 En === 1'b0);
+    check("in reset: PGOOD low",              PGOOD === 1'b0);
+    check("in reset: latch_out low",          latch_out === 1'b0);
+    check("in reset: MISO low",               MISO === 1'b0);
+    rst_n_pin = 1'b1;
+    #(10.0 * CLK_PERIOD_NS);
+    #(20.0 * US);
+    check("after reset: Red_LED2 (OTP) fail-safe lit",  Red_LED2 === 1'b1);
+    check("after reset: Red_LED3 (UVLO) fail-safe lit", Red_LED3 === 1'b1);
+    #(250.0 * US);
+    check("Red_LED2 cleared after 200 us release", Red_LED2 === 1'b0);
+    check("Red_LED3 cleared after 200 us release", Red_LED3 === 1'b0);
+    check("switch off: En stays low", En === 1'b0);
+    check_range("PWM_out pulse in S_OFF (ns) = (MIN_ON_COUNTS+1) clocks", pwm_width_ns,
+                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+    check("minimum gate pulse >= 240 ns commanded (LM5106 128 ns + 112 ns)", pwm_width_ns >= 240.0);
+    check_eq("supervisor in S_OFF (probe)", sup_state, ST_OFF);
+    check("no host interface: the supervisor's spi_enable is tied high", sup_spi_en === 1'b1);
+    spi_read_ignored(A_ID, 1);
+    check_eq("no host interface: read of PMIC_ID (0xB5 in a full build), MISO bits high",
+             miso_high_bits, 0);
+
+    // ---------------------------------------------------------------
+    // Phase 2: SPI frames in S_OFF have no effect
+    // ---------------------------------------------------------------
+    note("Phase 2: SPI frames have no effect (no slave built)");
+    // The configuration the SPI sequence writes in its phase 3 - a 1 ms hiccup
+    // base and a 100 ms clean-run window - as the same valid keyed frame. A
+    // full build in S_OFF would commit it. Phases 6 and 7 time the default
+    // 10 ms first hiccup and 1 s window, which shows it was not.
+    spi_tx[0]  = WRITE_KEY;
+    spi_tx[1]  = TRIP_RUN_DEF[7:0];      spi_tx[2]  = TRIP_SS_DEF[7:0];
+    spi_tx[3]  = MAX_STRIKES_DEF[7:0];   spi_tx[4]  = MAX_ON_COUNTS[7:0];
+    spi_tx[5]  = HICCUP_MIN[7:0];        spi_tx[6]  = HICCUP_MIN[15:8];   spi_tx[7]  = HICCUP_MIN[23:16];
+    spi_tx[8]  = CYC_STEP_DEF[7:0];
+    spi_tx[9]  = CLEAN_SHORT[7:0];       spi_tx[10] = CLEAN_SHORT[15:8];  spi_tx[11] = CLEAN_SHORT[23:16];
+    spi_frame_ignored(A_WRKEY, 12);
+    spi_read_ignored(A_TRIP_RUN, 11);
+    check_eq("threshold read-back after the keyed write: MISO bits high", miso_high_bits, 0);
+    check_eq("SPI frames: supervisor still in S_OFF (probe)", sup_state, ST_OFF);
+    check("SPI frames: En still low", En === 1'b0);
+
+    // ---------------------------------------------------------------
+    // Phase 4: start-up
+    // ---------------------------------------------------------------
+    note("Phase 4: enable switch, soft start, duty backstop");
+    en_from_switch = 1'b1;
+    t_event = $realtime;
+    #(19.8 * MS);
+    check("En still low 19.8 ms after the switch (20 ms debounce)", En === 1'b0);
+    wait_en(1'b1, 1.0 * MS);
+    t_en_rise = $realtime;
+    check_range("En rise after switch (ms)", (t_en_rise - t_event) / MS, 19.99, 20.05);
+    #(2.0 * CLK_PERIOD_NS);
+    check("Green_LED lit in soft start", Green_LED === 1'b1);
+    measure_ramp(20.0 * MS);
+    check_eq("ramp starts at MIN_ON_COUNTS+1 clocks", ramp_first_level, MIN_ON_COUNTS + 1);
+    check_eq("ramp levels MIN..MAX (one clock per step)", ramp_levels, MAX_ON_COUNTS - MIN_ON_COUNTS + 1);
+    check_eq("ramp plateaus of the default 64 cycles per step (bad count)", ramp_bad_plateau, 0);
+    check_eq("ramp never steps backwards", ramp_backwards, 0);
+    check_range("ramp duration En->ceiling (switching cycles)",
+                (ramp_t_ceiling - t_en_rise) / SW_PERIOD_NS,
+                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF - 2.0,
+                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF + 2.0);
+    check("Green_LED lit while switching", Green_LED === 1'b1);
+    wait_sup_state(ST_RUN, 1.0 * MS);
+    check_eq("S_RUN reached after the ramp (probe)", last_state, ST_RUN);
+    // 90% commanded in S_RUN: the backstop truncates every pulse
+    #(50.0 * US);
+    check_range("90% commanded in S_RUN: PWM_out truncated (ns)", pwm_width_ns,
+                (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+    // 50% commanded: passes through, quantised to whole clocks
+    osc_high_ns = SW_PERIOD_NS / 2.0;
+    #(50.0 * US);
+    check_range("50% commanded: PWM_out passes through (ns)", pwm_width_ns,
+                osc_high_ns - CLK_PERIOD_NS - 1.0, osc_high_ns + CLK_PERIOD_NS + 1.0);
+
+    // ---------------------------------------------------------------
+    // Phase 5: PGOOD
+    // ---------------------------------------------------------------
+    note("Phase 5: PGOOD qualification");
+    PGOOD_comp = 1'b1;
+    t_event = $realtime;
+    #(8.8 * MS);
+    check("PGOOD still low 8.8 ms after the rail is good", PGOOD === 1'b0);
+    wait_pgood(1'b1, 1.0 * MS);
+    check_range("PGOOD qualify delay (switching cycles)", ($realtime - t_event) / SW_PERIOD_NS,
+                PGOOD_CYCLES - 2.0, PGOOD_CYCLES + 2.0);
+    #(2.0 * CLK_PERIOD_NS);
+    check("pgood_LED follows PGOOD", pgood_LED === 1'b1);
+    check("switch_supply follows PGOOD", switch_supply === 1'b1);
+    PGOOD_comp = 1'b0;
+    t_event = $realtime;
+    wait_pgood(1'b0, 1.0 * US);
+    check_range("PGOOD deassert after the comparator drops (clocks)",
+                ($realtime - t_event) / CLK_PERIOD_NS, 0.0, 3.5);
+    #(2.0 * US);
+    PGOOD_comp = 1'b1;
+    #(5.0 * MS);
+    check("PGOOD requalifies from zero, not from where it left off", PGOOD === 1'b0);
+
+    // ---------------------------------------------------------------
+    // Phase 6: overcurrent in S_RUN -> hiccup on the default base -> retry
+    // ---------------------------------------------------------------
+    note("Phase 6: overcurrent in S_RUN, hiccup on the default 5 ms base, retry");
+    red1_before = red1_rises;
+    CP_trig = 1'b1;
+    t_event = $realtime;
+    wait_en(1'b0, 100.0 * US);
+    t_strike = $realtime;
+    check_range("En drops after TRIP_RUN faulted cycles (switching cycles)",
+                ($realtime - t_event) / SW_PERIOD_NS, TRIP_RUN_DEF - 2.0, TRIP_RUN_DEF + 2.0);
+    check("PGOOD dropped with S_RUN", PGOOD === 1'b0);
+    CP_trig = 1'b0;
+    t_event = $realtime;
+    // strike 1: the default 5 ms base shifted by the strike level, 10 ms. The
+    // 1 ms base sent over SPI in phase 2 would have made it 2 ms.
+    #(9.9 * MS);
+    check("still cooling down 9.9 ms into the first hiccup", En === 1'b0);
+    wait_en(1'b1, 0.5 * MS);
+    check_range("first hiccup duration (ms) = 2 x the default 5 ms base", ($realtime - t_event) / MS,
+                9.99, 10.05);
+    @(negedge PWM_out);
+            #(1.0);   // let the pulse monitor, woken by the same edge, record it
+    @(negedge PWM_out);
+            #(1.0);   // let the pulse monitor, woken by the same edge, record it
+    check_range("retry re-ramps from MIN (ns)", pwm_width_ns,
+                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+    wait_sup_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
+    check_eq("retry reaches S_RUN (probe)", last_state, ST_RUN);
+    check_eq("strike level after one hiccup (probe)", strike_int, 1);
+
+    // ---------------------------------------------------------------
+    // Phase 7: the default 1 s clean-run window, concurrent with corners
+    // ---------------------------------------------------------------
+    note("Phase 7: default 1 s clean-run window || duty corners, glitch corners, ignored SPI traffic");
+    // The window runs from the retry's S_RUN entry. The strike stays out
+    // for all of it, so Red_LED1 blinks at its 125 ms half-period: lit in the
+    // second quarter-second after reset, dark in the third. Alongside it, the
+    // same duty and glitch corners as the SPI sequence, and random SPI frames
+    // - keyed disables among them - that a full build would act on.
+    en_falls_before = en_falls;
+    fork
+        begin : window_notel
+            if ($realtime < 130.0 * MS) #(130.0 * MS - $realtime);
+            check("Red_LED1 blinking while a strike is outstanding (lit at 130 ms)", Red_LED1 === 1'b1);
+            check("Green_LED also lit: running with a strike outstanding", Green_LED === 1'b1);
+            if ($realtime < 255.0 * MS) #(255.0 * MS - $realtime);
+            check("Red_LED1 blinking: dark at 255 ms, in the off half-period", Red_LED1 === 1'b0);
+            wait_strike(2'd0, t_last_run_entry + CLEAN_DEF * SW_PERIOD_NS + 5.0 * MS - $realtime);
+            check("strike cleared by the default clean-run window", timed_out === 1'b0);
+            check_range("clean-run window from S_RUN entry (ms) = the default 1 s",
+                        ($realtime - t_last_run_entry) / MS,
+                        CLEAN_DEF * SW_PERIOD_NS / MS - 0.5, CLEAN_DEF * SW_PERIOD_NS / MS + 0.5);
+            #(2.0 * CLK_PERIOD_NS);
+            check("Red_LED1 dark once the strike clears", Red_LED1 === 1'b0);
+        end
+        begin : corner_notel
+            random_duty_corners(16);
+            random_glitch_corners(6);
+            random_ignored_traffic(48);
+        end
+    join
+    $sformat(msg, "Red_LED1 blinked through the outstanding strike (rising edges in %0.1f ms)",
+             ($realtime - t_strike) / MS);
+    check_range(msg, red1_rises - red1_before,
+                ($realtime - t_strike) / (250.0 * MS) - 1.0, ($realtime - t_strike) / (250.0 * MS) + 1.0);
+    check_eq("En never fell during the window, keyed SPI disables included", en_falls - en_falls_before, 0);
+    check_eq("ignored SPI reads during the window: MISO bits high", miso_high_bits, 0);
+
+    // ---------------------------------------------------------------
+    // Phase 8: OTP and UVLO shutdown and recovery
+    // ---------------------------------------------------------------
+    note("Phase 8: OTP and UVLO shutdown and recovery, UVLO in soft start");
+    OTP_trig = 1'b1;
+    t_event = $realtime;
+    #(0.9 * MS);
+    check("OTP: En still high at 0.9 ms (1 ms debounce)", En === 1'b1);
+    wait_en(1'b0, 0.5 * MS);
+    check_range("OTP: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+    #(1.0 * US);
+    check("OTP: Red_LED2 lit", Red_LED2 === 1'b1);
+    check("OTP: Green_LED dark", Green_LED === 1'b0);
+    check_eq("OTP: supervisor in S_OFF (probe)", sup_state, ST_OFF);
+    OTP_trig = 1'b0;
+    t_event = $realtime;
+    #(150.0 * US);
+    check("OTP cleared: still off at 150 us (200 us release)", En === 1'b0);
+    wait_en(1'b1, 0.5 * MS);
+    check_range("OTP cleared: automatic restart after (us)", ($realtime - t_event) / US, 199.0, 205.0);
+    wait_sup_state(ST_RUN, 15.0 * MS);
+    check_eq("back in S_RUN after OTP (probe)", last_state, ST_RUN);
+
+    UVLO_trig = 1'b1;
+    t_event = $realtime;
+    wait_en(1'b0, 2.0 * MS);
+    check_range("UVLO: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+    #(1.0 * US);
+    check("UVLO: Red_LED3 lit", Red_LED3 === 1'b1);
+    UVLO_trig = 1'b0;
+    wait_en(1'b1, 0.5 * MS);
+    check("UVLO cleared: restart", En === 1'b1);
+    check("UVLO cleared: Red_LED3 dark", Red_LED3 === 1'b0);
+    // Undervoltage again while the ramp is still running: S_SS -> S_OFF.
+    #(100.0 * US);
+    check("soft start still in progress", ss_active_int === 1'b1);
+    UVLO_trig = 1'b1;
+    wait_en(1'b0, 2.0 * MS);
+    check("UVLO during soft start: off before the ramp completes", run_active_int === 1'b0);
+    UVLO_trig = 1'b0;
+    wait_en(1'b1, 0.5 * MS);
+    wait_sup_state(ST_RUN, 15.0 * MS);
+    check_eq("back in S_RUN after UVLO in soft start (probe)", last_state, ST_RUN);
+
+    // ---------------------------------------------------------------
+    // Phase 9: SPI disable ignored, OTP during a hiccup
+    // ---------------------------------------------------------------
+    note("Phase 9: keyed SPI disable ignored while running, OTP in a hiccup");
+    // The frames that stop a full build in its phase 9
+    spi_tx[0] = 8'h00;
+    spi_frame_ignored(A_CONTROL, 1);
+    spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
+    spi_frame_ignored(A_DISKEY, 2);
+    #(1.0 * US);
+    check("keyed SPI disable has no effect: En still high", En === 1'b1);
+    check_eq("keyed SPI disable has no effect: still S_RUN (probe)", sup_state, ST_RUN);
+    check("spi_enable still tied high (probe)", sup_spi_en === 1'b1);
+
+    // Over-temperature arriving during a hiccup cool-down: S_HICCUP -> S_OFF.
+    CP_trig = 1'b1;
+    wait_en(1'b0, 100.0 * US);
+    CP_trig = 1'b0;
+    OTP_trig = 1'b1;
+    #(1.5 * MS);
+    check("OTP during the cool-down: still off", En === 1'b0);
+    check_eq("OTP during the cool-down: S_OFF, not a retry (probe)", sup_state, ST_OFF);
+    OTP_trig = 1'b0;
+    wait_en(1'b1, 1.0 * MS);
+    check("OTP cleared after the cool-down: restart", En === 1'b1);
+    wait_sup_state(ST_RUN, 15.0 * MS);
+    check_eq("back in S_RUN (probe)", last_state, ST_RUN);
+
+    // ---------------------------------------------------------------
+    // Phase 11: analog OVP trips the SCR
+    // ---------------------------------------------------------------
+    note("Phase 11: analog OVP trip, reset-button recovery");
+    ovp_event = 1'b1;
+    t_event = $realtime;
+    wait_en(1'b0, 2.0 * MS);
+    check_range("OVP: off after latch_stat debounce (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+    check("OVP: the CPLD's own latch_out stays low", latch_out === 1'b0);
+    #(1.0 * US);
+    check("OVP: Red_LED1 solid", Red_LED1 === 1'b1);
+    ovp_event = 1'b0;
+    #(2.0 * MS);
+    check("OVP: no restart while the SCR is latched", En === 1'b0);
+    do_reset;
+    #(300.0 * US);
+    check("reset button: SCR cleared", latch_stat === 1'b0);
+    check("reset button: Red_LED1 dark", Red_LED1 === 1'b0);
+    check_eq("reset button: strike level cleared (probe)", strike_int, 0);
+    wait_en(1'b1, 21.0 * MS);
+    check("restart after reset (20 ms switch debounce again)", En === 1'b1);
+    wait_sup_state(ST_RUN, 15.0 * MS);
+    check_eq("S_RUN after reset (probe)", last_state, ST_RUN);
+
+    // ---------------------------------------------------------------
+    // Phase 12: strikes accumulate to latch, on the default hiccup times
+    // ---------------------------------------------------------------
+    note("Phase 12: persistent overcurrent, strikes to latch, default hiccup times");
+    CP_trig = 1'b1;
+    strike_hiccups = 0;
+    t_event = $realtime;
+    // RUN trip -> hiccup (10 ms) -> SS trip -> hiccup (20 ms) -> SS trip -> latch
+    while ((latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS)) begin
+        wait_en(1'b0, 60.0 * MS - ($realtime - t_event));
+        // latch_assert lands one clock after the hiccup entry that earns it,
+        // so look a few clocks later before deciding this was a retry
+        #(5.0 * CLK_PERIOD_NS);
+        if (latch_out !== 1'b1) strike_hiccups = strike_hiccups + 1;
+        while ((En !== 1'b1) && (latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS))
+            @(posedge clk);
+    end
+    check("latch_out asserted by repeated overcurrent", latch_out === 1'b1);
+    check_eq("retries before the latch = MAX_STRIKES-1", strike_hiccups, MAX_STRIKES_DEF - 1);
+    check_range("first trip to latch (ms): 10 + 20 ms of hiccups and three trips",
+                ($realtime - t_event) / MS, 30.0, 30.4);
+    check("En low once latched", En === 1'b0);
+    CP_trig = 1'b0;
+    #(10.0 * MS);
+    check("no restart 10 ms after the fault clears", En === 1'b0);
+    check("latch_out still set", latch_out === 1'b1);
+    check("SCR read back latched", latch_stat === 1'b1);
+    check("Red_LED1 solid", Red_LED1 === 1'b1);
+    check_eq("strike level at latch (probe)", strike_int, MAX_STRIKES_DEF);
+    do_reset;
+    #(10.0 * US);
+    check("reset clears latch_out", latch_out === 1'b0);
+    #(300.0 * US);
+    check("reset clears the SCR", latch_stat === 1'b0);
+    check_eq("reset clears the strike level (probe)", strike_int, 0);
+
+    // ---------------------------------------------------------------
+    // Phase 13: restart after a latch, enable switch, stuck modulator
+    // ---------------------------------------------------------------
+    note("Phase 13: restart after a latch, enable switch off and on, modulator stuck high");
+    wait_en(1'b1, 21.0 * MS);
+    check("latched part restarts after the reset button", En === 1'b1);
+    wait_sup_state(ST_RUN, 15.0 * MS);
+    check_eq("S_RUN after the latch is cleared (probe)", last_state, ST_RUN);
+    // A modulator stuck high: one pulse cut at the ceiling, then nothing until
+    // the modulator falls - pwm_mask holds the envelope closed.
+    @(negedge PWM_out);
+            #(1.0);   // let the pulse monitor, woken by the same edge, record it
+    pulses_before = pwm_pulses;
+    osc_stuck_high = 1'b1;
+    #(20.0 * SW_PERIOD_NS);
+    check("stuck modulator: at most one PWM_out pulse", pwm_pulses - pulses_before <= 1);
+    check("stuck modulator: PWM_out held low", PWM_out === 1'b0);
+    check_range("stuck modulator: that pulse capped at MAX_ON+1 clocks (ns)", pwm_width_ns,
+                0.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+    if ((pwm_pulses - pulses_before <= 1) && (PWM_out === 1'b0)) cover_bin(C_STUCK);
+    osc_stuck_high = 1'b0;
+    #(5.0 * SW_PERIOD_NS);
+    // enable switch: release and press, 20 ms of debounce each way
+    en_from_switch = 1'b0;
+    t_event = $realtime;
+    #(19.8 * MS);
+    check("switch released: En still high at 19.8 ms", En === 1'b1);
+    wait_en(1'b0, 1.0 * MS);
+    check_range("switch released: off after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+    en_from_switch = 1'b1;
+    t_event = $realtime;
+    wait_en(1'b1, 21.0 * MS);
+    check_range("switch pressed: restart after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+    #(10.0 * US);
+    check("switch pressed: back in soft start", ss_active_int === 1'b1);
+
+    // ---------------------------------------------------------------
+    // Run-long invariants, scoreboard
+    // ---------------------------------------------------------------
+    note("Run-long invariants and scoreboard");
+    check_eq("MISO high at any time after reset (clocks; tied low without telemetry)", miso_idle, 0);
+    check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
+    check_eq("MISO bits sampled high during every ignored SPI read", miso_high_bits, 0);
+    $sformat(msg, "              (%0d SPI frames sent to the reduced build, none with any effect)",
+             spi_frames_sent);
+    emit(msg);
+    check_eq("switch_supply mirrored PGOOD on every clock (mismatches)", mirror_errors, 0);
+    check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
+    check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
+    check_eq("latch_out falls without a reset", latch_drops, 0);
+    check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
+    check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
+    $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
+    emit(msg);
+
+    finish_run("normal end");
+end
+
+end
+endgenerate
 
 endmodule
 
