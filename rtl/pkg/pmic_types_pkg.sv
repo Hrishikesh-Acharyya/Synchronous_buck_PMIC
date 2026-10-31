@@ -49,8 +49,15 @@ package pmic_types_pkg;
     // ns_to_clks: nanoseconds -> clk counts. Split into two steps because
     //             clocks-per-nanosecond is less than one and would truncate
     //             to zero in integer arithmetic.
+    //             Rounds UP. Every caller asks for a MINIMUM time, and a
+    //             floored count delivers less than was asked for: at 10 MHz
+    //             240 ns is 2.4 clocks, and the floor of 2 commands 200 ns,
+    //             leaving 72 ns at the gate after the LM5106 shrinkage
+    //             instead of the 112 ns MIN_GATE_ON_NS requires. The +999
+    //             is a ceiling for the /1000 and changes nothing when the
+    //             division is exact, as it is at 50 MHz (12000 / 1000).
     function automatic int ns_to_clks(input int ns);
-        return ((CLK_HZ / 1_000_000) * ns) / 1000;
+        return (((CLK_HZ / 1_000_000) * ns) + 999) / 1000;
     endfunction
 
     // ms_to_clks: milliseconds -> clk counts
@@ -111,8 +118,9 @@ package pmic_types_pkg;
     localparam int MAX_ON_COUNTS_DEFAULT    = duty_to_counts(DIGITAL_DUTY_PCT);
     // MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
     //                the driver shrinkage before any of it reaches the gate,
-    //                so the floor is the sum of the two figures above - about
-    //                10.8% commanded duty. 
+    //                so the floor is the sum of the two figures above, rounded
+    //                up to whole clocks: 3 clocks (300 ns) at 10 MHz, about
+    //                13.5% commanded duty.
     localparam int MIN_ON_COUNTS    = ns_to_clks(LM5106_SHRINK_NS + MIN_GATE_ON_NS);
     // ON_TIME_W: width of the on-time ceiling bus, shared by soft_start and
     //            pwm_mask. Sized to hold MAX_ON_COUNTS, hence the +1.
