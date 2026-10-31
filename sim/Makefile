@@ -170,6 +170,9 @@ WAVES  ?= 0
 
 TB_MODULES := $(notdir $(TESTBENCHES))
 TB_TOPS    := $(addsuffix _tb,$(TB_MODULES))
+# SUITE_TOPS: what the suite tables list - every module testbench, then the
+#             integration testbench
+SUITE_TOPS := $(TB_TOPS) pmic_top_tb
 
 # run_tb: $(1) top, $(2) flow, $(3) sources, $(4) Verilator flags.
 #         `bash script` rather than executing it, so a lost exec bit on the
@@ -215,36 +218,106 @@ endef
 $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 
 # ============================================================
+# Integration testbench - the Silicluster deliverable
+# ============================================================
+# tb/pmic_top_tb.v exercises pmic_top as a whole: plain Verilog-2005, no SVA,
+# self-checking, with its own coverage bins and two scoreboards. It runs in
+# both flows like the module testbenches, and also under Icarus Verilog, the
+# open-source simulator a reviewer is most likely to have:
+#   tb_top     Verilator, SystemVerilog source
+#   equiv_top  Verilator, converted Verilog
+#   iv_top     Icarus Verilog, converted Verilog
+# It joins tb_all / equiv / equiv_all, listed as pmic_top_tb with its coverage
+# bins in the covers column. scripts/run_top_tb.sh takes the verdict from the
+# testbench's last line, which is also what gives Icarus a non-zero exit on
+# FAIL - vvp exits 0 from $stop.
+TOP_TB      := ../tb/pmic_top_tb.v
+IVERILOG    ?= iverilog
+VVP         ?= vvp
+
+# TOP_TB_WAIVERS: lint classes that fire on testbench code only, never on RTL.
+#   BLKSEQ:       monitors and scoreboards use blocking assignments in clocked
+#                 blocks on purpose - they compute, then compare, in order.
+#   PROCASSINIT:  variables initialised at their declaration.
+#   WIDTHTRUNC:   integer constants assigned into byte-wide registers.
+#   ZERODLY:      delays computed at run time.
+#   REALCVT:      pulse widths are rounded from real time to whole clocks.
+#   UNUSEDSIGNAL: the discarded turnaround byte, and unused upper bits of
+#                 integer task arguments.
+#   MULTIDRIVEN:  the testbench's force/release of spi_state and wd_mark counts
+#                 as a second writer of those registers. The force is the point:
+#                 both states are unreachable by stimulus.
+TOP_TB_WAIVERS := -Wno-BLKSEQ -Wno-PROCASSINIT -Wno-WIDTHTRUNC -Wno-ZERODLY \
+                  -Wno-REALCVT -Wno-UNUSEDSIGNAL -Wno-MULTIDRIVEN
+# TOP_SV_WAIVERS: SystemVerilog source only.
+#   ENUMVALUE: the testbench forces an illegal encoding into the spi_slave state
+#              register to prove the FSM recovers. In the source that register
+#              is an enum; in the converted Verilog it is a plain reg.
+TOP_SV_WAIVERS := -Wno-ENUMVALUE
+# TOP_EQUIV_WAIVERS: converted Verilog only.
+#   TIMESCALEMOD: sv2v drops the `timescale every SV source carries, while the
+#                 testbench keeps one. The RTL contains no delays, so the time
+#                 unit it runs under is immaterial.
+TOP_EQUIV_WAIVERS := $(EQUIV_WAIVERS) -Wno-TIMESCALEMOD
+TOP_VFLAGS     := --binary --timing -Wall $(LINT_WAIVERS) $(TB_WAIVERS) $(TOP_TB_WAIVERS)
+TOP_IVFLAGS    := -g2005
+
+# run_top: $(1) simulator, $(2) flow, $(3) sources, $(4) Verilator flags
+run_top = VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' \
+          TOP_VFLAGS='$(4)' TOP_IVFLAGS='$(TOP_IVFLAGS)' \
+          QUIET='$(QUIET)' NOFAIL='$(NOFAIL)' WAVES='$(WAVES)' \
+          bash $(SCRIPTS)/run_top_tb.sh $(1) $(TBBUILD)/$(2)/pmic_top_tb $(2) $(3)
+
+.PHONY: tb_top equiv_top iv_top top_all
+
+tb_top:  ## integration testbench, Verilator, SystemVerilog source
+	@$(call run_top,verilator,sv,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
+
+equiv_top: $(CONVERTED)  ## integration testbench, Verilator, converted Verilog
+	@$(call run_top,verilator,equiv,$(CONVERTED) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
+
+iv_top: $(CONVERTED)  ## integration testbench, Icarus Verilog, converted Verilog
+	@$(call run_top,iverilog,iv,$(CONVERTED) $(TOP_TB),)
+
+top_all: QUIET  := 1
+top_all: NOFAIL := 1
+top_all: tb_top equiv_top iv_top  ## integration testbench in all three flows
+	@rc=0; \
+	for f in sv equiv iv; do bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
+	exit $$rc
+
+# ============================================================
 # Suite targets
 # ============================================================
 .PHONY: tb_all equiv equiv_all report list
 
 tb_all: QUIET  := 1
 tb_all: NOFAIL := 1
-tb_all: $(addprefix tb_,$(TB_MODULES))  ## run every testbench (use -j), print the table
-	@bash $(SCRIPTS)/report.sh $(TBBUILD) sv $(TB_TOPS)
+tb_all: $(addprefix tb_,$(TB_MODULES)) tb_top  ## run every testbench (use -j), print the table
+	@bash $(SCRIPTS)/report.sh $(TBBUILD) sv $(SUITE_TOPS)
 
 equiv: QUIET  := 1
 equiv: NOFAIL := 1
-equiv: $(addprefix equiv_,$(TB_MODULES))  ## every testbench against the sv2v output
-	@bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(TB_TOPS)
+equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output
+	@bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS)
 
 # equiv_all: both flows as one parallel job graph, then both tables. Report
 #            failures are collected so the second table always prints.
 equiv_all: QUIET  := 1
 equiv_all: NOFAIL := 1
-equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES))  ## pre-submission gate: tb_all + equiv
+equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top  ## pre-submission gate: tb_all + equiv
 	@rc=0; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(TB_TOPS) || rc=1; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(TB_TOPS) || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(SUITE_TOPS) || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS) || rc=1; \
 	exit $$rc
 
 report:  ## reprint both tables from the last results, without re-running
-	@-bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(TB_TOPS)
-	@-bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(TB_TOPS)
+	@-bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(SUITE_TOPS)
+	@-bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS)
 
 list:  ## list registered testbenches and their files
 	@$(foreach t,$(TESTBENCHES),printf '%-18s ../tb/%s_tb.sv\n' $(notdir $(t)) $(t);)
+	@printf '%-18s %s\n' pmic_top $(TOP_TB)
 
 # ============================================================
 # Lint
