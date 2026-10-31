@@ -1485,6 +1485,8 @@ module spi_slave (
 		end
 		else begin
 			wr_en <= 1'b0;
+			if (wr_en)
+				addr <= addr + 7'd1;
 			if (sck_rise)
 				rx_shift <= {rx_shift[5:0], sdio_in};
 			if (cs_fall)
@@ -1498,7 +1500,6 @@ module spi_slave (
 					if (held_valid) begin
 						wdata <= held_data;
 						wr_en <= 1'b1;
-						addr <= addr + 7'd1;
 					end
 					held_data <= rx_byte;
 					held_valid <= 1'b1;

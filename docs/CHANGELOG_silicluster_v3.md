@@ -244,3 +244,69 @@ cannot contain its own hash, so the table is filled in by a later commit.
   3,363.2 -> 3,325.7 um^2; `reg_file` unchanged (1,093 cells). Flattened:
   flops 700 -> 700, comb cells 2,127 -> 2,116, cell area 30,808 -> 30,837 um^2.
 - Undo: `git revert <hash>` (reads stop working again).
+
+## 9. 2026-10-31 18:19 UTC - fix(spi_slave): writes land at the addressed register
+
+- File and lines: `rtl/telemetry/spi_slave.sv`, BLOCK 4 (receive shift and
+  write delay line): the increment at line 384 (`if (wr_en) addr <= addr +
+  7'd1;`) and the release branch at lines 403-406. Also `Build/*`
+  regenerated, `docs/silicluster_area.md`.
+- Symptom: every SPI write lands one address high - a write to SCRATCH 0x03
+  reads back 0x00; a keyed write to TRIP_RUN 0x50 is taken as a write of the key
+  value into TRIP_RUN and leaves the bank locked; a burst to HICCUP_BASE
+  0x54-0x56 does not commit. At 10 MHz and at 50 MHz.
+- Root cause: the delay line raised `wr_en` and incremented `addr` on the same
+  edge, so reg_file sampled each write strobe together with the NEXT address.
+- Fix (option A, as specified by the reviewer): the increment is removed from
+  the release branch and applied on the clock after the strobe, `if (wr_en)
+  addr <= addr + 7'd1;`, so reg_file sees `wr_en` with the address the byte
+  belongs to.
+- Why not the alternative that was offered (load `addr` with cmd - 1 for
+  writes, keep the release-edge increment) - the reviewer's rationale, recorded
+  as given: option A is correct at the spi_slave level. The minus-one variant
+  stores a wrong value in `addr` for the whole write data phase and relies on
+  the release-edge increment to cancel it; two offsets cancelling is a second
+  bug positioned to hide the first. Anything that reads `addr` during a write
+  (write decode, addr_d, bus-error attribution, readback) would see a bogus
+  address. "Stays inside spi_slave.sv" is not a reason to prefer it; file
+  boundaries are not correctness boundaries.
+- Evidence (`tb/pmic_top_tb.v`), before (entry 8 state) -> after:
+  - 10 MHz: SCRATCH 0x00 -> 0x5A; TRIP_RUN keyed write 12 -> 9 (neighbour
+    TRIP_SS untouched); 3-byte HICCUP_BASE burst 50000 -> 84565 (read back as a
+    3-byte burst); configuration for the protection phases 50000 -> 10000.
+    Bad-CRC write: nothing commits, BUS_ERR counts it, the next good write
+    commits. Clamped writes read back clamped (TRIP_RUN 200 -> 16, TRIP_SS 0 ->
+    1, MAX_STRIKES 9 -> 3, MAX_ON 250 -> 16, HICCUP_BASE 1 -> 10000,
+    CYCLES_PER_STEP 0 -> 1, CLEAN_RUN 5 -> 45000).
+  - 50 MHz: the same set passes (MAX_ON clamps to 83, HICCUP_BASE to 50000).
+  - Icarus on the converted Verilog at 10 MHz: identical results.
+  - Timestamp burst from 0x18 started so the 255 -> 256 ms tick lands between
+    byte 0 and byte 1: reads 0x0000FF (one snapshot); an unsnapshotted read
+    would give 0x0001FF.
+- KNOWN DEFECT EXPOSED, NOT A REGRESSION OF UNKNOWN CAUSE - pending approval:
+  the testbench check "write to read-only 0x20 leaves the fault record" PASSES
+  before this commit and FAILS after it, by design of the old timing. reg_file
+  generates `fault_reg_read_done` from `addr_d == 0x20 && addr == 0x21 &&
+  !wr_en`; the `!wr_en` term only masked writes because the old spi_slave
+  stepped `addr` on the same clock it raised `wr_en` - the same alignment
+  that put every write one address high. With the increment now one clock
+  after the strobe, a host WRITE that touches 0x20 clears the fault log.
+  Traced in isolation: a 1-byte write to 0x20 and a 2-byte write 0x1F..0x20
+  both clear the record after this fix and did not before. The same trace
+  shows a pre-existing clear path that does not depend on this fix: a command
+  that loads 0x21 while the pointer was left at 0x20 by the previous
+  transaction (for example a 1-byte read of 0x1F) clears the record at the
+  command byte. Fixing reg_file is outside this change; the analysis and a
+  proposed guard are with the reviewer. Until then this check is expected to
+  fail, together with the following "fault log: OTP" read, which finds the
+  record already cleared.
+- Regression: `make lint` clean; `make -B convert` clean (2312 lines);
+  `make equiv_all` 6/8 per table (the entry-3 watchdog limit; both PASS
+  scaled, all covers, 0 assertion failures). Integration testbench at 10 MHz
+  (Verilator SV, Icarus converted) and 50 MHz (Verilator SV): 2 FAIL lines
+  each, both the known 0x20 defect above; every other check passes.
+- Cells: `spi_slave` 328 -> 308 sky130 cells (80 flops, unchanged), area
+  3,325.7 -> 3,323.2 um^2; `reg_file` unchanged (1,093 cells). Flattened:
+  flops 700 -> 700, comb cells 2,116 -> 2,130, cell area 30,837 -> 30,827 um^2.
+- Undo: `git revert <hash>` (writes land one address high again, and the 0x20
+  check passes again for the wrong reason).

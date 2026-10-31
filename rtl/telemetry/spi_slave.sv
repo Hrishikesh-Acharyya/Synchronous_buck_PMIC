@@ -378,6 +378,11 @@ module spi_slave
 
             wr_en <= 1'b0;                      // one-clock pulse, default low
 
+            // Auto-increment on the clock AFTER the write strobe, so reg_file sees
+            // wr_en together with the address the byte belongs to. Incrementing on
+            // the same edge that raised wr_en put every write one address high.
+            if (wr_en) addr <= addr + 7'd1;
+
             if (sck_rise) begin
                 rx_shift <= {rx_shift[5:0], sdio_in};
             end
@@ -397,8 +402,7 @@ module spi_slave
                 else if (spi_state == S_WRITE) begin
                     if (held_valid) begin
                         wdata <= held_data;
-                        wr_en <= 1'b1;
-                        addr  <= addr + 7'd1;   // auto-increment for the NEXT byte
+                        wr_en <= 1'b1;          // addr advances on the next clock
                     end
 
                     held_data  <= rx_byte;
