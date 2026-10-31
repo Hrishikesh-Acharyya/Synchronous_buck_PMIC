@@ -71,3 +71,12 @@ Commit hashes for each changelog entry are in the table at the end of
   the default timers), so the 0.89x configuration is a tested submission
   option, not only a cost reference. Area unchanged: 252 flops, 705 comb cells,
   10,523 um^2.
+- **2026-10-31, placed and routed.** OpenROAD (sky130_fd_sc_hd, typical
+  corner) settles what the 57% assumption could not; flow and results in
+  `pnr/`. The reduced build routes in the 180 x 115 um slot with no DRC
+  violations at 66% utilisation, still with 10 um reserved all round (84%),
+  and in a die as small as 180 x 90 um (0.78x the slot, 84%); 180 x 80 um does
+  not route. The full build does not route at 2x the slot (90%), routes at 2.5x
+  (180 x 288 um, 72%, only after 41 router passes) and comfortably at 3x
+  (180 x 345 um, 61%). Excluding the don't-use lpflow cells the earlier syn_area
+  runs had mapped (63 full, 21 reduced) changes cell area by under 0.2%.

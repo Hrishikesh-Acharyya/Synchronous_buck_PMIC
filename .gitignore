@@ -58,3 +58,6 @@ Build/area_notel.txt
 Build/package_raw/
 # The submission zip; make zip regenerates it on demand and it is not committed
 Build/*.zip
+# Place and route: fetched platform files and run outputs (pnr/README.md)
+pnr/platform/
+pnr/work/
