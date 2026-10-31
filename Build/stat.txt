@@ -4257,6 +4257,6 @@ Found and reported 0 problems.
        31   $scopeinfo
 
 Warnings: 1 unique messages, 1 total
-End of script. Logfile hash: 16c8c2b7f4, time: 5.23s, user: 5.23s, system: 0.00s
+End of script. Logfile hash: 16c8c2b7f4, time: 5.65s, user: 5.66s, system: 0.00s
 Yosys 0.70 (git sha1 28ba3cb92, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
-Time spent: 72% 1x abc (3 sec), 5% 56x opt_expr (0 sec), ...
+Time spent: 71% 1x abc (4 sec), 6% 56x opt_expr (0 sec), ...

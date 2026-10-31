@@ -242,8 +242,17 @@ package pmic_types_pkg;
 
 
     // CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
-    //                          the reset value of the writable register
-    localparam int CYCLES_PER_STEP_DEFAULT = 16;
+    //                          the reset value of the writable register.
+    //                          At 10 MHz the ramp has only 13 steps (MIN_ON 3 to
+    //                          MAX_ON 16, against 71 at 50 MHz), so the old 16
+    //                          would finish in 208 cycles, 0.46 ms, five times
+    //                          sooner. Restoring the 50 MHz ramp of 71 x 16 =
+    //                          1136 cycles needs 87 per step, above the
+    //                          CYCLES_PER_STEP_MAX ceiling below, so the default
+    //                          sits AT the ceiling: 13 x 64 = 832 cycles, 1.85 ms,
+    //                          73% of the original ramp. The host can still
+    //                          shorten it, never lengthen it.
+    localparam int CYCLES_PER_STEP_DEFAULT = 64;
     // CYCLES_PER_STEP_MAX: ceiling for host writes. cycle_counter in soft_start
     //                      must be sized for the largest legal value, not the
     //                      default, or a legal write would truncate it.

@@ -1231,7 +1231,7 @@ module reg_file (
 			;
 		off_ok = sup_state == 2'b00;
 	end
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
 	localparam signed [31:0] pmic_types_pkg_TRIP_RUN_DEFAULT = 12;

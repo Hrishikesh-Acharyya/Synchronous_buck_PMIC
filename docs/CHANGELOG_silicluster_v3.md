@@ -140,3 +140,21 @@ cannot contain its own hash, so the table is filled in by a later commit.
 - Area: flops 700 -> 700, comb cells 2137 -> 2132, cell area 30,821 -> 30,845
   um^2.
 - Undo: `git revert <hash>`.
+
+## 6. 2026-10-31 17:20 UTC - pkg: CYCLES_PER_STEP_DEFAULT 16 -> 64 (project rules 3.3)
+
+- Files: `rtl/pkg/pmic_types_pkg.sv`, `Build/*` (regenerated),
+  `docs/silicluster_area.md`.
+- What: the reset value of the writable cycles-per-step register is 64.
+- Why: at 10 MHz the ramp has 13 steps (3 -> 16) against 71 at 50 MHz. With 16
+  cycles per step it would last 208 cycles (0.46 ms) instead of 1136 cycles
+  (2.52 ms). Matching 1136 needs 87 per step, above CYCLES_PER_STEP_MAX = 64,
+  which stays untouched as instructed. 64 is the largest legal value: 13 x 64 =
+  832 cycles = 1.85 ms, 73% of the original. No dithering or fractional scheme.
+  CYC_STEP_W stays 7 bits (sized from the max, not the default).
+- Verified in the integration testbench (entry 9 onwards): the measured ramp
+  from En rising to the ceiling is 13 steps of 64 cycles.
+- Gate: as entry 5.
+- Area: unchanged (700 flops, 2,132 comb cells, 30,845 um^2).
+- Depends on entries 3 and 5 for the 13-step arithmetic; on its own it is safe.
+- Undo: `git revert <hash>`.
