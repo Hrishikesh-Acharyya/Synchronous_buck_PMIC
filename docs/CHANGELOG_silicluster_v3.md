@@ -771,6 +771,14 @@ cannot contain its own hash, so the table is filled in by a later commit.
   and that the reduced build is a verified fallback since entry 23.
 - Undo: `git revert <hash>` (documentation only).
 
+## 27. 2026-10-31 21:30 UTC - package: stop committing the submission zip
+
+- Files: `Build/sync_buck_pmic_silicluster_v3.zip` (deleted), `.gitignore`
+  (`Build/*.zip`), this changelog. Requested by the user, who builds the zip
+  that is sent. `make zip` still produces one on demand, after
+  `package_check`; it is no longer tracked.
+- Undo: `git revert <hash>` (restores the zip as of entry 25).
+
 ---
 
 ## Commit table
@@ -810,6 +818,7 @@ its commit.
 | 23 | `8899a75` | 2026-10-31 21:06 | tb: TELEMETRY_EN parameter and a pins-only sequence for the reduced build |
 | 24 | `fb1b37c` | 2026-10-31 21:10 | sim: integration testbench targets for TELEMETRY_EN=0; the gate runs both builds |
 | 25 | `87992af` | 2026-10-31 21:11 | package: README for both TELEMETRY_EN builds, the fallback and the area method |
+| 26 | `a2c8a15` | 2026-10-31 21:12 | docs: area-log notes on utilisation and the fallback; commit table for entries 20-25 |
 
-Entry 26 is the newest commit touching this file, so its own hash is:
+Entry 27 is the newest commit touching this file, so its own hash is:
 `git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
