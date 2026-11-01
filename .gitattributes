@@ -3,3 +3,9 @@
 *.sh text eol=lf
 *.yml text eol=lf
 *.py text eol=lf
+
+# Makefiles, their includes and the help script: LF everywhere. A CRLF recipe
+# line passes a stray \r to the shell.
+Makefile text eol=lf
+*.mk text eol=lf
+*.awk text eol=lf

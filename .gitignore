@@ -58,6 +58,8 @@ Build/area_notel.txt
 Build/split_raw/
 Build/split_raw_notel/
 Build/rtl-verilog-notel/
+# make convert_notel output; regenerated from Build/pmic_full.v on demand
+Build/pmic_full_notel.v
 # Bundles from make bundle / bundle_notel; regenerated on demand
 Build/*.zip
 # Place and route, for when it is redone: fetched platform files and run outputs

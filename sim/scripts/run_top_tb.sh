@@ -29,6 +29,7 @@
 #                   QUIET  - 1: logs to file only, one status line printed
 #                   NOFAIL - 1: always exit 0; the suite report decides
 #                   WAVES  - 1: pass +WAVES so the testbench dumps a VCD
+#                   COLOR  - 1 colour, 0 plain; unset: colour on a terminal
 
 set -uo pipefail
 
@@ -48,7 +49,10 @@ NOFAIL=${NOFAIL:-0}
 WAVES=${WAVES:-0}
 TOP=pmic_top_tb
 
-if [[ -t 1 ]]; then
+# COLOR comes from the Makefile (mk/config.mk): under --output-sync stdout is
+# never a terminal, so the script cannot decide for itself. Run by hand, with
+# COLOR unset, it falls back to testing its own stdout.
+if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
     C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_OFF=$'\e[0m'
 else
     C_RED=''; C_GRN=''; C_OFF=''
