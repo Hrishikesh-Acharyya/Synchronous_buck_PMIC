@@ -50,3 +50,21 @@ sim/*.wlf
 *.bak
 # Local Vivado projects (regenerate from fpga/ + rtl/)
 vivado/
+
+# Full yosys logs of the liberty-mapped run; the summary is committed instead
+Build/area.txt
+Build/area_notel.txt
+# Staging trees of make split / make verilog_notel; regenerated on every run
+Build/split_raw/
+Build/split_raw_notel/
+Build/rtl-verilog-notel/
+# Left behind by the retired make package (Silicluster flow); make clean removes them
+Build/package_raw/
+Build/package_raw_trimmed/
+# make convert_notel output; regenerated from Build/pmic_full.v on demand
+Build/pmic_full_notel.v
+# Bundles from make bundle / bundle_notel; regenerated on demand
+Build/*.zip
+# Place and route, for when it is redone: fetched platform files and run outputs
+pnr/platform/
+pnr/work/

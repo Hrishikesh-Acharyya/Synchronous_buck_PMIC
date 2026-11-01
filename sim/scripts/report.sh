@@ -12,6 +12,7 @@
 #                   Usage: report.sh <build_root> <flow> <top...>
 #
 # Global variables: STRICT - 1: INCONCLUSIVE fails the suite as well (CI)
+#                   COLOR  - 1 colour, 0 plain; unset: colour on a terminal
 
 set -uo pipefail
 
@@ -20,7 +21,10 @@ FLOW=$2
 shift 2
 STRICT=${STRICT:-0}
 
-if [[ -t 1 ]]; then
+# COLOR comes from the Makefile (mk/config.mk): under --output-sync stdout is
+# never a terminal, so the script cannot decide for itself. Run by hand, with
+# COLOR unset, it falls back to testing its own stdout.
+if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
     C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_OFF=$'\e[0m'
 else
     C_RED=''; C_GRN=''; C_YEL=''; C_OFF=''

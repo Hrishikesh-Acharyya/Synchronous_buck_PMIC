@@ -1,0 +1,173 @@
+# Commands
+
+Everything runs through `make` from the `sim/` folder:
+
+```bash
+cd sim
+make help        # every target, grouped, in colour
+make doctor      # which tools are installed, and what each missing one disables
+```
+
+`make` on its own runs `lint`. Add `-j8` (or `-j$(nproc)`) to any suite to run the testbenches in parallel.
+
+The module testbenches take seconds; the integration testbench (`pmic_top_tb`) takes a couple of minutes - about a minute to build, one to two to run at 50 MHz. Under `-j` a target's output appears only when it finishes, so a `[RUNNING]` line is printed when it starts; it has not hung.
+
+---
+
+## Everyday loop
+
+| What you want | Command |
+|---|---|
+| Lint the RTL | `make lint` |
+| Run one module testbench | `make tb_pwm_mask` |
+| Run it and open the waveform | `make wave_pwm_mask` |
+| Run every testbench on the SV source | `make -j8 tb_all` |
+| Run every testbench on the source **and** the converted Verilog (the gate) | `make -j8 equiv_all` |
+| Reprint the last results table | `make report` |
+| Run exactly what GitHub CI runs, before pushing | `make -j8 ci` |
+| After editing the RTL: refresh the Verilog copies | `make convert verilog` |
+
+---
+
+## Module testbenches
+
+One family of targets per entry in `TESTBENCHES` (top of `sim/Makefile`). `make list` shows them all.
+
+| Command | What it does |
+|---|---|
+| `make tb_<m>` | build and run `tb/<group>/<m>_tb.sv` against the SystemVerilog source |
+| `make equiv_<m>` | the same testbench and SVA checkers against the sv2v output |
+| `make wave_<m>` | `tb_<m>` with a VCD, then open GTKWave |
+| `make view_<m>` | open the last VCD without re-running |
+| `make cov_<m>` | list the cover hits of the last run |
+| `make new_tb M=<group>/<m>` | create `tb/<group>/<m>_tb.sv` from `tb/template_tb.sv` with the name filled in; it prints the line to add to `TESTBENCHES` |
+
+Example: `make new_tb M=protect/soft_start`, fill in the markers, add `protect/soft_start` to `TESTBENCHES`, then `make tb_soft_start`.
+
+## Suites
+
+| Command | What it does |
+|---|---|
+| `make -j8 tb_all` | every module testbench + the integration testbench on the SV source, then a table |
+| `make -j8 equiv` | the same on the sv2v output (`SPLIT=1`: on the `rtl-verilog/` files instead) |
+| `make -j8 equiv_all` | both of the above in one parallel run - what CI runs |
+| `make report` | reprint the tables from the last runs |
+| `make list` | list the registered testbenches and their files |
+
+## Integration testbench (`tb/pmic_top_tb.v`)
+
+The whole chip, in plain Verilog. `_notel` = the SPI-less build (`TELEMETRY_EN=0`), which runs the testbench's pins-only sequence.
+
+| Full build | SPI-less build | Simulator, source |
+|---|---|---|
+| `make tb_top` | `make tb_top_notel` | Verilator, SystemVerilog source |
+| `make equiv_top` | `make equiv_top_notel` | Verilator, converted Verilog |
+| `make iv_top` | `make iv_top_notel` | Icarus Verilog, converted Verilog (slow at 50 MHz) |
+| `make top_all` | `make top_notel` | all three, then a table |
+| `make top_both` | | both builds, all three simulators |
+| `make wave_top` / `make view_top` | | VCD of the full run (large) / reopen it |
+
+The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types_pkg.sv`, so changing the clock is a one-line edit there. `CYC_STEP_DEF` in the testbench must still match `CYCLES_PER_STEP_DEFAULT` in the package.
+
+## Lint and script checks
+
+| Command | What it does |
+|---|---|
+| `make lint` | strict Verilator lint of the RTL, from `pmic_top` |
+| `make lint_notel` | the same for the SPI-less build |
+| `make lint_all` | both |
+| `make check_scripts` | `bash -n` + shellcheck (if installed) on `sim/scripts/*.sh`, syntax check of every Python script |
+
+## Conversion and synthesis
+
+| Command | What it does |
+|---|---|
+| `make convert` | sv2v the RTL into one file, `Build/pmic_full.v` (committed) |
+| `make convert_notel` | a copy with `TELEMETRY_EN` defaulting to 0, `Build/pmic_full_notel.v` (not committed) |
+| `make syn` | yosys synthesis: generic cell and flop counts |
+| `make syn_notel` | the same for the SPI-less build |
+| `make syn_area` / `make syn_area_notel` / `make syn_both` | sky130-mapped area - needs the liberty file (`LIBERTY=path`) |
+| `make syn_compare` | cell counts of this tree vs `origin/main` (`BASE=<branch, tag or commit>` to pick another) - the same table CI posts on a pull request |
+
+## The Verilog copy (`rtl-verilog/`)
+
+`rtl-verilog/` holds one Verilog-2005 file per SystemVerilog module, with the comments sv2v throws away carried over. Its code must always be exactly what sv2v makes from the current source - CI checks this.
+
+| Command | What it does |
+|---|---|
+| `make verilog` | regenerate `rtl-verilog/` from the source, keeping every comment. Refuses a file if more than a constant or a path changed (a new port or block needs its comments written by hand) and lists comments that mention a clock frequency, for you to review |
+| `make verilog_check` | prove `rtl-verilog/` matches a fresh sv2v split |
+| `make split` | just the fresh split, without comments, in `Build/split_raw/` |
+
+The staging folders (`Build/split_raw*`) are scratch: `verilog`, `verilog_check` and `verilog_notel` delete theirs when they succeed and keep it when they fail, so you can diff against it. `KEEP_SPLIT=1` keeps it always.
+
+**After any RTL edit:** `make convert verilog`, review the listed comments, commit `Build/pmic_full.v` and `rtl-verilog/` with the change.
+
+## SPI-less (TELEMETRY_EN=0) versions, on demand
+
+Nothing here is committed; each command regenerates its output in `Build/`.
+
+| Command | Output |
+|---|---|
+| `make verilog_notel` | commented SPI-less Verilog in `Build/rtl-verilog-notel/`, proven against a split of the flipped source |
+| `make convert_notel` | `Build/pmic_full_notel.v` |
+| `make bundle_notel` | `Build/sync_buck_pmic_notel.zip`: SPI-less Verilog + the testbench set to the SPI-less sequence |
+| `make bundle` | `Build/sync_buck_pmic.zip`: the full build, the same way |
+| `make ci_notel` | the SPI-less CI job: lint + integration testbench on source and converted |
+
+`BUNDLE=<name>` renames the zips.
+
+## Housekeeping
+
+| Command | What it does |
+|---|---|
+| `make doctor` | tools found / missing with versions, liberty file, output paths, colour setting |
+| `make tb_clean` | delete testbench build output (`~/build/sync_buck`) |
+| `make syn_clean` | delete conversion and synthesis output |
+| `make clean` | both, plus every generated tree and bundle, and the `Build/package_raw*` folders the old Silicluster flow left behind. Note: like `main`'s version, it also deletes the committed `Build/pmic_full.v` and `Build/stat*.txt` - `make convert syn` brings them back |
+
+---
+
+## Options
+
+Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `QUIET=1` | 0 (suites set 1) | log to file only, one status line per testbench |
+| `STRICT=1` | 0 | a testbench whose covers never fired fails instead of reading INCONCLUSIVE (CI uses this) |
+| `NOFAIL=1` | 0 (suites set 1) | single runs always exit 0; the suite table decides |
+| `WAVES=1` | 0 | dump a VCD |
+| `SPLIT=1` | 0 | run the `equiv` flows on `rtl-verilog/` instead of `Build/pmic_full.v` |
+| `COLOR=0` / `NO_COLOR=1` | colour in a terminal | plain output; `COLOR=1` forces colour |
+| `TBBUILD=` | `~/build/sync_buck` | where testbench builds go (outside the repo: faster on the WSL mount) |
+| `YOSYS=` | `~/oss-cad-suite/bin/yosys` | yosys binary |
+| `LIBERTY=` | sky130 hd tt via volare | liberty file for the area targets |
+| `BASE=` | `origin/main` | revision `syn_compare` compares against |
+| `BUNDLE=` | `sync_buck_pmic` | zip name for `bundle` / `bundle_notel` |
+| `KEEP_SPLIT=1` | 0 | keep the `Build/split_raw*` staging trees after a successful check |
+| `VJOBS=` | all cores (`nproc`) | parallel C++ compile jobs inside each Verilator build |
+| `M=` | - | `<group>/<module>` for `new_tb` |
+
+## CI (GitHub Actions)
+
+| Workflow | When | What |
+|---|---|---|
+| RTL (`rtl.yml`) | every pull request, pushes to main | lint (both builds) + script check; `rtl-verilog` sync check + `equiv_all`; SPI-less integration testbench |
+| Synthesis trend (`synth.yml`) | pull requests touching the RTL or the Makefile | yosys cell counts, base vs head, posted as a PR comment |
+| Full regression (`full.yml`) | Actions tab > Run workflow, and weekly on main | everything above, plus Icarus in both builds, synthesis of both builds, and the two Verilog bundles as a downloadable artifact |
+
+`make ci` and `make ci_notel` run the RTL workflow's steps locally.
+
+## Where things live
+
+```
+rtl-systemverilog/   the design, SystemVerilog - what you edit
+rtl-verilog/         its Verilog-2005 copy, one file per module (make verilog)
+tb/                  module testbenches (*_tb.sv), template_tb.sv, pmic_top_tb.v
+sva/                 bound assertion checkers
+sim/Makefile         TESTBENCHES list + includes
+sim/mk/              the Makefile, by topic (config, sources, tb, top, lint, syn, verilog, util)
+sim/scripts/         the scripts behind the targets
+Build/               pmic_full.v and synthesis records (committed); generated trees and zips (ignored)
+```

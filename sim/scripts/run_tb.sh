@@ -25,6 +25,7 @@
 #                   VFLAGS  - full Verilator flag string (word-split on purpose)
 #                   QUIET   - 1: logs to file only, one status line printed
 #                   WAVES   - 1: pass +WAVES to the model so it dumps a VCD
+#                   COLOR   - 1 colour, 0 plain; unset: colour on a terminal
 #                   NOFAIL  - 1: always exit 0 so a suite run continues and
 #                                the report owns the exit status
 #                   STRICT  - 1: INCONCLUSIVE exits non-zero as well
@@ -46,7 +47,10 @@ NOFAIL=${NOFAIL:-0}
 STRICT=${STRICT:-0}
 
 # Colour only when talking to a terminal, so CI logs stay clean.
-if [[ -t 1 ]]; then
+# COLOR comes from the Makefile (mk/config.mk): under --output-sync stdout is
+# never a terminal, so the script cannot decide for itself. Run by hand, with
+# COLOR unset, it falls back to testing its own stdout.
+if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
     C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_OFF=$'\e[0m'
 else
     C_RED=''; C_GRN=''; C_YEL=''; C_OFF=''
@@ -78,6 +82,7 @@ covers_zero=0
 
 # shellcheck disable=SC2086  # VFLAGS is a flag list and must word-split
 if ! run_logged "$DIR/build.log" \
+        env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
         "$VERILATOR" $VFLAGS --Mdir "$DIR" --top-module "$TOP" "${SRCS[@]}"; then
     verdict="FAIL"
     fail_log="$DIR/build.log"
