@@ -44,6 +44,14 @@ One family of targets per entry in `TESTBENCHES` (top of `sim/Makefile`). `make 
 
 Example: `make new_tb M=protect/soft_start`, fill in the markers, add `protect/soft_start` to `TESTBENCHES`, then `make tb_soft_start`.
 
+### SVA checkers
+
+| Command | What it does |
+|---|---|
+| `make new_sva M=<group>/<m>` | create `sva/<group>/<m>_sva.sv` from `sva/template_sva.sv`, with the module's parameters and ports copied in from its RTL header (outputs become checker inputs too), and print the `bind` line to add to `sva/bind_sva.sv` |
+
+Every `sva/<group>/*.sv` is compiled into every testbench automatically, so a generated checker is written to compile as it stands - its example PAC group is commented out - and does nothing until its `bind` line is added. Then write one PAC group (property, assertion, cover) per claim from the module header, and read DUT internals through `dut_<signal>` ports, connected by name in the bind. A module with no group folder (`make new_sva M=supervisor`) gets `sva/top/`.
+
 ## Suites
 
 | Command | What it does |

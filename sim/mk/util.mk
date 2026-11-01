@@ -6,11 +6,11 @@
 #                   grouped help screen built from the `##@` and `##` notes in
 #                   every mk file.
 #
-# Global variables: M - module for new_tb, as <group>/<module>
+# Global variables: M - module for new_tb / new_sva, as <group>/<module>
 
 ##@ Helpers
 
-.PHONY: all doctor ci ci_notel new_tb clean help
+.PHONY: all doctor ci ci_notel new_tb new_sva clean help
 
 all: lint  ## default goal: lint
 
@@ -46,6 +46,13 @@ new_tb:  ## scaffold tb/<group>/<module>_tb.sv from the template: make new_tb M=
 
 # clean also sweeps the staging trees of the old Silicluster flow
 # (Build/package_raw, Build/package_raw_trimmed), left behind by `make package`.
+# new_sva: copies sva/template_sva.sv to sva/<group>/<module>_sva.sv with the
+#          DUT's parameters and ports filled in from its RTL header, and prints
+#          the bind line for sva/bind_sva.sv rather than editing that file.
+new_sva:  ## scaffold sva/<group>/<module>_sva.sv from the RTL header: make new_sva M=protect/soft_start
+	@test -n "$(M)" || { $(call err,usage: make new_sva M=group/module); exit 1; }
+	@$(PYTHON) $(SCRIPTS)/new_sva.py "$(M)"
+
 clean: tb_clean syn_clean  ## remove testbench output, synthesis output and every generated tree
 	rm -rf $(SPLITRAW) $(SPLITRAW_NOTEL) $(V_DIR_NOTEL) $(SYNDIR)/*.zip \
 	       $(SYNDIR)/package_raw $(SYNDIR)/package_raw_trimmed
