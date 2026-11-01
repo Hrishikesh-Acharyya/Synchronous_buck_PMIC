@@ -2,7 +2,7 @@
 
 # Filename:         soft_start.sv
 
-# File Description: Generates the ramping on-time count ceiling used during
+# File Description:  Generates the ramping on-time count ceiling used during
 #                    soft start. Counts switching cycles of the incoming PWM
 #                    and widens max_on_counts by one clk count every
 #                    cycles_per_step cycles, from MIN_ON_COUNTS up to
