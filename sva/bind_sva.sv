@@ -63,6 +63,13 @@ bind pwm_stats pwm_stats_sva #(
     .*
 );
 
+bind soft_start soft_start_sva #(
+    .MIN_ON_COUNTS(MIN_ON_COUNTS),
+    .ON_TIME_W(ON_TIME_W)
+) u_sva (.*);
+
+
+
 
 
 
