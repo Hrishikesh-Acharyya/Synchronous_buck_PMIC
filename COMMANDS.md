@@ -39,8 +39,10 @@ One family of targets per entry in `TESTBENCHES` (top of `sim/Makefile`). `make 
 | `make equiv_<m>` | the same testbench and SVA checkers against the sv2v output |
 | `make wave_<m>` | `tb_<m>` with a VCD, then open GTKWave |
 | `make view_<m>` | open the last VCD without re-running |
-| `make cov_<m>` | list the cover hits of the last run |
+| `make cov_<m>` | the cover table of the last run, every condition in full |
 | `make new_tb M=<group>/<m>` | create `tb/<group>/<m>_tb.sv` from `tb/template_tb.sv` with the name filled in; it prints the line to add to `TESTBENCHES` |
+
+What a single run prints: the build result (Verilator's output only if the build fails), the simulation output as it runs (failures in red, repeats of one failing assertion folded after `FAIL_SHOW` lines), the cover table (hits, a log-scale activity bar, each cover's condition), then a summary card - verdict and why, assertions armed and failed, procedural checks, covers hit, simulated time and the log paths. Suites print one status line per testbench, then a table per flow. Everything is still in `build.log` and `run.log` in the testbench's build directory.
 
 Example: `make new_tb M=protect/soft_start`, fill in the markers, add `protect/soft_start` to `TESTBENCHES`, then `make tb_soft_start`.
 
@@ -146,6 +148,9 @@ Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
 | `STRICT=1` | 0 | a testbench whose covers never fired fails instead of reading INCONCLUSIVE (CI uses this) |
 | `NOFAIL=1` | 0 (suites set 1) | single runs always exit 0; the suite table decides |
 | `WAVES=1` | 0 | dump a VCD |
+| `RAW=1` | 0 | stream the simulation output untouched (no colouring, no folding of repeated failures) |
+| `FAIL_SHOW=` | 5 | failure lines shown per assertion or check before the rest are only counted (all are in `run.log`) |
+| `THIN=` | 10 | covers hit fewer times than this are marked as thinly exercised in the cover table |
 | `SPLIT=1` | 0 | run the `equiv` flows on `rtl-verilog/` instead of `Build/pmic_full.v` |
 | `COLOR=0` / `NO_COLOR=1` | colour in a terminal | plain output; `COLOR=1` forces colour |
 | `TBBUILD=` | `~/build/sync_buck` | where testbench builds go (outside the repo: faster on the WSL mount) |

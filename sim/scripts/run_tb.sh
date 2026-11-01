@@ -20,6 +20,12 @@
 #                                   assertions behind them proved nothing
 #                     PASS          clean, and every cover hit
 #
+#                   On an interactive run the build output is kept in
+#                   build.log and shown only if the build fails, the
+#                   simulation output is coloured as it streams, and the run
+#                   ends with the cover table and a summary card (ui.sh,
+#                   covers.sh). The verdict is still taken from the raw logs.
+#
 # Global variables: Read from the environment, set per recipe by the Makefile:
 #                   VERILATOR, VERILATOR_COVERAGE - tool paths
 #                   VFLAGS  - full Verilator flag string (word-split on purpose)
@@ -29,6 +35,7 @@
 #                   NOFAIL  - 1: always exit 0 so a suite run continues and
 #                                the report owns the exit status
 #                   STRICT  - 1: INCONCLUSIVE exits non-zero as well
+#                   RAW     - 1: stream the simulation output unfiltered
 
 set -uo pipefail
 
@@ -46,27 +53,31 @@ WAVES=${WAVES:-0}
 NOFAIL=${NOFAIL:-0}
 STRICT=${STRICT:-0}
 
-# Colour only when talking to a terminal, so CI logs stay clean.
-# COLOR comes from the Makefile (mk/config.mk): under --output-sync stdout is
-# never a terminal, so the script cannot decide for itself. Run by hand, with
-# COLOR unset, it falls back to testing its own stdout.
-if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
-    C_RED=$'\e[31m'; C_GRN=$'\e[32m'; C_YEL=$'\e[33m'; C_OFF=$'\e[0m'
-else
-    C_RED=''; C_GRN=''; C_YEL=''; C_OFF=''
-fi
+# Colours, badges and the output filter. COLOR comes from the Makefile
+# (mk/config.mk): under --output-sync stdout is never a terminal, so the
+# script cannot decide for itself; run by hand with COLOR unset, ui.sh tests
+# its own stdout.
+SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=ui.sh
+source "$SCRIPTS_DIR/ui.sh"
 
 # run_logged: runs a command with its output in a log file, and on the
-#             terminal too unless QUIET. Returns the command's own exit code,
-#             not tee's - that is what pipefail and PIPESTATUS are for.
+#             terminal too unless QUIET - through ui_paint, so the log keeps
+#             the raw text the verdict greps read. Returns the command's own
+#             exit code, not tee's - that is what PIPESTATUS is for.
 run_logged() {
     local log=$1; shift
     if [[ $QUIET == 1 ]]; then
         "$@" >"$log" 2>&1
     else
-        "$@" 2>&1 | tee "$log"
+        "$@" 2>&1 | tee "$log" | ui_paint
         return "${PIPESTATUS[0]}"
     fi
+}
+
+# step: the "  > build" line an interactive run prints before each stage
+step() {
+    [[ $QUIET == 1 ]] || printf '  %s>%s %-9s' "$UI_BLD$UI_BLU" "$UI_OFF" "$1"
 }
 
 # Wiped every time: Verilator's timestamp-based incremental build is
@@ -76,17 +87,35 @@ mkdir -p "$DIR"
 start=$(date +%s)
 
 verdict=""
+fail_why=""
 sva_fails=0
 covers_total=0
 covers_zero=0
+build_secs=0
 
+[[ $QUIET == 1 ]] || ui_header "$TOP" "$FLOW flow"
+
+# Build output goes to build.log only: with -Wall every diagnostic is fatal,
+# so a build that succeeds has nothing to say. On failure the log is shown.
+step build
 # shellcheck disable=SC2086  # VFLAGS is a flag list and must word-split
-if ! run_logged "$DIR/build.log" \
-        env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
-        "$VERILATOR" $VFLAGS --Mdir "$DIR" --top-module "$TOP" "${SRCS[@]}"; then
+if ! env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
+        "$VERILATOR" $VFLAGS --Mdir "$DIR" --top-module "$TOP" "${SRCS[@]}" \
+        >"$DIR/build.log" 2>&1; then
     verdict="FAIL"
+    fail_why="build failed - see the diagnostics above"
     fail_log="$DIR/build.log"
+    build_secs=$(( $(date +%s) - start ))
+    if [[ $QUIET != 1 ]]; then
+        printf '%s%s failed%s  %ds\n\n' "$UI_BLD$UI_RED" "$UI_CROSS" "$UI_OFF" "$build_secs"
+        grep -vE '^(make|g\+\+|ccache|echo|rm |ar |- V e r i l a t i o n)' "$DIR/build.log" \
+            | ui_paint | sed 's/^/    /'
+    fi
 else
+    build_secs=$(( $(date +%s) - start ))
+    [[ $QUIET == 1 ]] || printf '%s%s%s  %s%ds%s\n' "$UI_GRN" "$UI_TICK" "$UI_OFF" "$UI_DIM" "$build_secs" "$UI_OFF"
+    step simulate
+    [[ $QUIET == 1 ]] || echo
     plusargs=()
     [[ $WAVES == 1 ]] && plusargs+=("+WAVES")
 
@@ -105,14 +134,20 @@ else
     if [[ -f $DIR/coverage.dat ]]; then
         "$VERILATOR_COVERAGE" --annotate "$DIR/annotated" --annotate-all \
             --annotate-min 1 "$DIR/coverage.dat" >/dev/null 2>&1
-        grep -rh "cover property" "$DIR/annotated/" 2>/dev/null \
-            | sed 's/^[[:space:]]*//' >"$DIR/covers.txt"
-        covers_total=$(wc -l <"$DIR/covers.txt")
-        covers_zero=$(grep -c "%000000" "$DIR/covers.txt")
+        # covers.tsv / covers.txt: one record per cover, multi-line
+        # properties joined (covers.sh)
+        bash "$SCRIPTS_DIR/covers.sh" parse "$DIR"
+        covers_total=$(wc -l <"$DIR/covers.tsv")
+        covers_zero=$(awk -F'\t' '$2 == 0' "$DIR/covers.tsv" | wc -l)
     fi
 
+    checks_failed=$(ui_logval "checks failed" "$DIR/run.log")
     if [[ $sim_rc -ne 0 || $sva_fails -ne 0 ]]; then
         verdict="FAIL"
+        if   [[ $sva_fails -ne 0 ]];          then fail_why="$sva_fails assertion failure(s) - the SVA FAIL lines above"
+        elif [[ ${checks_failed:-0} != 0 ]];  then fail_why="$checks_failed procedural check(s) failed"
+        else fail_why="the simulation exited with status $sim_rc"
+        fi
     elif [[ $covers_total -eq 0 || $covers_zero -ne 0 ]]; then
         verdict="INCONCLUSIVE"
     else
@@ -128,23 +163,59 @@ covers_hit=$(( covers_total - covers_zero ))
 printf '%s\t%s\t%s\t%d\t%d\t%d\t%d\n' "$FLOW" "$TOP" "$verdict" \
     "$sva_fails" "$covers_hit" "$covers_total" "$secs" >"$DIR/result.tsv"
 
-# Full cover listing on interactive runs, as the old run_tb printed.
-if [[ $QUIET != 1 && -s $DIR/covers.txt ]]; then
-    echo "--------------------------------------------------"
-    echo "cover directives - $TOP"
-    echo "--------------------------------------------------"
-    cat "$DIR/covers.txt"
-    echo "--------------------------------------------------"
+# Interactive runs: the cover table, then the summary card.
+if [[ $QUIET != 1 && -s $DIR/covers.tsv ]]; then
+    bash "$SCRIPTS_DIR/covers.sh" table "$DIR"
+fi
+if [[ $QUIET != 1 ]]; then
+    asserts=0
+    [[ -s $DIR/asserts.tsv ]] && asserts=$(awk -F'\t' '{ s += $2 } END { print s + 0 }' "$DIR/asserts.tsv")
+    checkers=$( [[ -s $DIR/asserts.tsv ]] && wc -l <"$DIR/asserts.tsv" || echo 0)
+    checks_run=$(ui_logval "checks run" "$DIR/run.log" 2>/dev/null)
+    checks_failed=$(ui_logval "checks failed" "$DIR/run.log" 2>/dev/null)
+    exit_why=$(ui_logval "exit" "$DIR/run.log" 2>/dev/null)
+    simtime=$(sed -nE 's/.*\$finish at ([^;]+);.*/\1/p' "$DIR/run.log" 2>/dev/null | tail -1)
+    thin=$( [[ -s $DIR/covers.tsv ]] && awk -F'\t' -v t="${THIN:-10}" '$2 > 0 && $2 < t' "$DIR/covers.tsv" | wc -l || echo 0)
+
+    case $verdict in
+        PASS)         why="no assertion or check failed, and every cover was hit" ;;
+        INCONCLUSIVE) if [[ $covers_total -eq 0 ]]; then why="clean, but there are no covers - nothing shows the assertions ran"
+                      else why="clean, but $covers_zero cover(s) never hit - the assertions behind them proved nothing"; fi ;;
+        *)            why=$fail_why ;;
+    esac
+
+    echo
+    ui_card_row verdict "$(ui_badge "$verdict")  $why"
+    if [[ $verdict != FAIL || -f $DIR/run.log ]]; then
+        if [[ -s $DIR/asserts.tsv ]]; then
+            ui_card_row assertions "$(ui_num "$asserts") armed in $checkers checker(s) $UI_DOT $(ui_good_zero "$sva_fails") failed"
+        else
+            ui_card_row assertions "$(ui_good_zero "$sva_fails") failed"
+        fi
+        if [[ ${checks_run:-0} == 0 ]]; then
+            ui_card_row checks "${UI_DIM}none - every claim is in the bound checker$UI_OFF"
+        else
+            ui_card_row checks "$(ui_num "$checks_run") run $UI_DOT $(ui_good_zero "${checks_failed:-0}") failed"
+        fi
+        cov_note=""
+        (( thin > 0 )) && cov_note=" $UI_DOT $UI_YEL$thin thin (<${THIN:-10} hits)$UI_OFF"
+        (( covers_zero > 0 )) && cov_note+=" $UI_DOT $UI_BLD$UI_RED$covers_zero never hit$UI_OFF"
+        if [[ -f $DIR/coverage.dat ]]; then
+            ui_card_row covers "$(ui_bar "$covers_hit" "$covers_total" 20) $covers_hit/$covers_total hit$cov_note"
+        else
+            ui_card_row covers "${UI_DIM}not recorded - coverage is written only when the run reaches \$finish$UI_OFF"
+        fi
+        [[ -n $exit_why ]] && ui_card_row exit "$exit_why${simtime:+ $UI_DOT $simtime simulated}"
+    fi
+    ui_card_row time "build ${build_secs}s $UI_DOT total ${secs}s"
+    ui_card_row logs "$UI_DIM$DIR/{build,run}.log$UI_OFF"
+    echo
 fi
 
-case $verdict in
-    PASS)         colour=$C_GRN ;;
-    INCONCLUSIVE) colour=$C_YEL ;;
-    *)            colour=$C_RED ;;
-esac
-printf '%s[%-12s]%s %-6s %-22s covers %d/%d  sva_fail %d  %ds\n' \
-    "$colour" "$verdict" "$C_OFF" "$FLOW" "$TOP" \
-    "$covers_hit" "$covers_total" "$sva_fails" "$secs"
+# The one-line status - the only output of a QUIET (suite) run.
+printf '%s %-6s %-22s covers %s %3d/%-3d  sva_fail %s  %ds\n' \
+    "$(ui_badge "$verdict")" "$FLOW" "$TOP" "$(ui_bar "$covers_hit" "$covers_total" 10)" \
+    "$covers_hit" "$covers_total" "$(ui_good_zero "$sva_fails")" "$secs"
 
 # In quiet mode nothing else was printed, so show where it went wrong.
 if [[ $QUIET == 1 && $verdict == FAIL ]]; then
@@ -155,7 +226,7 @@ if [[ $verdict == INCONCLUSIVE ]]; then
     if [[ $covers_total -eq 0 ]]; then
         echo "  no cover directives - nothing proves the assertions ran"
     else
-        grep "%000000" "$DIR/covers.txt" | sed 's/^/  zero-hit: /'
+        awk -F'\t' '$2 == 0 { print "  zero-hit: " $3 ": " $4 }' "$DIR/covers.tsv"
     fi
 fi
 
