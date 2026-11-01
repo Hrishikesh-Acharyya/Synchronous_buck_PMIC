@@ -60,7 +60,8 @@ TESTBENCHES := clk_rst/reset_sync \
                status/pgood_gen \
                status/timestamp \
                status/fault_LED \
-               telemetry/pwm_stats
+               telemetry/pwm_stats \
+               telemetry/fault_cause
 
 # ============================================================
 # The rest, in dependency order

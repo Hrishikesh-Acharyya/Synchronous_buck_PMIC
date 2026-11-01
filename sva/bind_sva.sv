@@ -78,6 +78,8 @@ bind strike_counter strike_counter_sva #(
     .STRIKE_W(STRIKE_W)
 ) u_sva (.*);
 
+bind fault_cause fault_cause_sva u_sva (.*);
+
 
 
 
