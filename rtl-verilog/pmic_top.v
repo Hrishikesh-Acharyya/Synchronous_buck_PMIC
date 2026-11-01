@@ -74,7 +74,7 @@ module pmic_top (
 	//               condition: synthesis elaborates only the selected branch.
 	parameter [0:0] TELEMETRY_EN = 1'b1;
 	// ---- clock and reset ----
-	input wire clk;  // Clk_Ext, 10 MHz external clock (Silicluster v3 maximum)
+	input wire clk;  // Clk_Ext, 50 MHz external oscillator
 	input wire rst_n_pin;  // asynchronous external reset, active low
 	//---SPI pins: 4-wire, a separate data line each way
 	input wire SCK;
@@ -248,7 +248,7 @@ module pmic_top (
 	// SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
 	//                  MOSI shifts the data relative to the clock it is sampled
 	//                  against, which is worse than no filtering at all.
-	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;  // 800 ns at 10 MHz (160 ns at 50 MHz)
+	localparam signed [31:0] pmic_types_pkg_SPI_FILTER_CLKS = 8;  // 160 ns at 50 MHz
 	// SPI filters, built only with TELEMETRY_EN: input_debounce instanced
 	// SYMMETRIC and SHORT, a different regime from the fault flags it was written
 	// for. The symmetry is the critical part: spi_slave samples MOSI on an edge
@@ -257,13 +257,10 @@ module pmic_top (
 	// carry IDENTICAL parameters - a retune of the fault-flag instances must not
 	// be copied here.
 	//
-	// 8 clocks is 800 ns at 10 MHz: far longer than the tens of ns a switch-node
-	// edge couples in, and longer than a 1 MHz SCK half-period. A read bit leaves
-	// the slave about 12 clocks (1.2 us) after the master's falling edge, so the
-	// host must hold each SCK phase well above that: 250 kHz SCK, a 2 us
-	// half-period, is the verified rate. Noise lasting longer than the window is
-	// not a glitch and is not this layer's job - CRC-8 in spi_slave catches it
-	// and the transaction is discarded.
+	// 8 clocks is 160 ns at 50 MHz: far longer than the tens of ns a switch-node edge
+	// couples in, far shorter than the 500 ns SCK half-period at 1 MHz. Noise lasting
+	// longer than the window is not a glitch and is not this layer's job - CRC-8 in
+	// spi_slave catches it and the transaction is discarded.
 	generate
 		if (TELEMETRY_EN) begin : g_spi_filt
 			input_debounce #(
@@ -323,7 +320,7 @@ module pmic_top (
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is
-	//              22.2 at 10 MHz, a non-integer: every counter in the
+	//              111.1, a non-integer: every counter in the
 	//              design re-references to pwm_fall each cycle, so the
 	//              fractional part never accumulates.
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
@@ -524,16 +521,7 @@ module pmic_top (
 		.pwm_out(PWM_out)
 	);
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
-	//                          the reset value of the writable register.
-	//                          At 10 MHz the ramp has only 13 steps (MIN_ON 3 to
-	//                          MAX_ON 16, against 71 at 50 MHz), so the old 16
-	//                          would finish in 208 cycles, 0.46 ms, five times
-	//                          sooner. Restoring the 50 MHz ramp of 71 x 16 =
-	//                          1136 cycles needs 87 per step, above the
-	//                          CYCLES_PER_STEP_MAX ceiling below, so the default
-	//                          sits AT the ceiling: 13 x 64 = 832 cycles, 1.85 ms,
-	//                          73% of the original ramp. The host can still
-	//                          shorten it, never lengthen it.
+	//                          the reset value of the writable register
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles
