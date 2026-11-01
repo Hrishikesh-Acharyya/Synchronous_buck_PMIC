@@ -80,6 +80,8 @@ bind strike_counter strike_counter_sva #(
 
 bind fault_cause fault_cause_sva u_sva (.*);
 
+bind supervisor supervisor_sva u_sva (.*);
+
 
 
 
