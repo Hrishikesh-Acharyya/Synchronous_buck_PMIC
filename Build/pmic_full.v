@@ -54,10 +54,10 @@ module input_debounce (
 	flag_out
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_DEBOUNCE_ASSERT_CLKS = pmic_types_pkg_ms_to_clks(1);
 	parameter signed [31:0] ASSERT_CLKS = pmic_types_pkg_DEBOUNCE_ASSERT_CLKS;
@@ -121,10 +121,10 @@ module soft_start (
 	reg _sv2v_0;
 	localparam signed [31:0] pmic_types_pkg_LM5106_SHRINK_NS = 128;
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
@@ -204,7 +204,7 @@ module pwm_mask (
 	pwm_out
 );
 	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
@@ -388,10 +388,10 @@ module hiccup_timer (
 	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
 	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
 	parameter signed [31:0] STRIKE_W = pmic_types_pkg_STRIKE_W;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
 	localparam signed [31:0] pmic_types_pkg_HICCUP_TIMER_W = $clog2((pmic_types_pkg_HICCUP_BASE_MAX_CLKS << 2) + 1);
@@ -582,7 +582,7 @@ module timestamp (
 	rst_n,
 	timestamp_ms
 );
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALE_VAL = pmic_types_pkg_CLK_HZ / pmic_types_pkg_PRESCALAR_HZ;
 	parameter signed [31:0] PRESCALE_VAL = pmic_types_pkg_PRESCALE_VAL;
@@ -630,10 +630,10 @@ module fault_LED (
 	Red_LED3
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	parameter signed [31:0] LED_BLINK_HALF_CLKS = pmic_types_pkg_ms_to_clks(125);
 	parameter signed [31:0] BLINK_W = $clog2(LED_BLINK_HALF_CLKS + 1);
@@ -718,7 +718,7 @@ module pwm_stats (
 	prev_period
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
@@ -835,7 +835,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
 	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
 	input wire [1:0] strike_level;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
@@ -864,7 +864,7 @@ module reg_file (
 	output reg [pmic_types_pkg_ON_TIME_W - 1:0] max_on_limit;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_W = $clog2(pmic_types_pkg_HICCUP_BASE_MAX_CLKS + 1);
@@ -1016,7 +1016,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	function automatic signed [pmic_types_pkg_ON_TIME_W - 1:0] sv2v_cast_D6A01_signed;
@@ -1359,10 +1359,10 @@ module spi_slave (
 	abort
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	parameter signed [31:0] SCK_IDLE_TIMEOUT_CLKS = pmic_types_pkg_ms_to_clks(2);
 	input wire clk;
@@ -1939,10 +1939,10 @@ module pmic_top (
 	wire sck_filt;
 	wire cs_n_filt;
 	wire mosi_filt;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	input_debounce #(
 		.ASSERT_CLKS(pmic_types_pkg_ms_to_clks(20)),
@@ -2158,7 +2158,7 @@ module pmic_top (
 		.max_on_counts(max_on_counts),
 		.pwm_out(PWM_out)
 	);
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
 	localparam signed [31:0] pmic_types_pkg_TRIP_RUN_DEFAULT = 12;
