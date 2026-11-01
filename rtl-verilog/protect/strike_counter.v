@@ -11,7 +11,7 @@
 #                    so unrelated transients separated in time cannot
 #                    accumulate into a permanent shutdown.
 
-#                   Verilog-2005, converted from rtl/protect/strike_counter.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/protect/strike_counter.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

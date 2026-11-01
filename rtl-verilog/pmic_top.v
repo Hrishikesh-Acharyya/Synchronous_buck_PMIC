@@ -30,7 +30,7 @@
 #                    the host never writes. The Silicluster submission is the
 #                    enabled build; the disabled build only costs the telemetry.
 
-#                   Verilog-2005, converted from rtl/pmic_top.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/pmic_top.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

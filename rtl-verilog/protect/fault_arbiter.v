@@ -13,7 +13,7 @@
 #                    whereas sustained overcurrent in S_RUN is a real load
 #                    fault.
 
-#                   Verilog-2005, converted from rtl/protect/fault_arbiter.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/protect/fault_arbiter.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

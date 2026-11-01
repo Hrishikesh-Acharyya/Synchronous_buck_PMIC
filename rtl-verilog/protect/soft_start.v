@@ -11,7 +11,7 @@
 #                    70% analog duty clamp, and resets to the floor in any
 #                    other state so that a hiccup retry always re-ramps.
 
-#                   Verilog-2005, converted from rtl/protect/soft_start.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/protect/soft_start.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

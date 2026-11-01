@@ -8,7 +8,7 @@
 #                   rst_n_enter rises, so every flop clocked by clk comes
 #                   out of reset on the same edge.
 #
-#                   Verilog-2005, converted from rtl/clk_rst/reset_sync.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/clk_rst/reset_sync.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

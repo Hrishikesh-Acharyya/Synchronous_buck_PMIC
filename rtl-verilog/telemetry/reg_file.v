@@ -6,7 +6,7 @@
 #                   byte-addressable view of supervisor status to a host, and holds the
 #                   writable control bits and protection thresholds..
 
-#                   Verilog-2005, converted from rtl/telemetry/reg_file.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/telemetry/reg_file.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

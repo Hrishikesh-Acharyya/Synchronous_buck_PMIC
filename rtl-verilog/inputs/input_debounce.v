@@ -33,7 +33,7 @@
 #                    RESET_VALUE low, since fail-safe for an enable is off,
 #                    not on.
 
-#                   Verilog-2005, converted from rtl/inputs/input_debounce.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/inputs/input_debounce.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

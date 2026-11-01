@@ -13,7 +13,7 @@
 #                    be handed back to the LDO before the rail collapses,
 #                    not after.
 
-#                   Verilog-2005, converted from rtl/status/pgood_gen.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/status/pgood_gen.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

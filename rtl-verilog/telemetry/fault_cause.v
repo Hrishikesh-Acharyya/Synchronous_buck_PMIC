@@ -37,7 +37,7 @@
 #                   protection decision; removing this module leaves the converter
 #                   functionally identical.
 
-#                   Verilog-2005, converted from rtl/telemetry/fault_cause.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/telemetry/fault_cause.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

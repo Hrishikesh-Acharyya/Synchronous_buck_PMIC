@@ -28,7 +28,7 @@
 #                   the line before the slave drove it; with separate MOSI and MISO
 #                   it is simply the dummy byte a host clocks before read data.
 
-#                   Verilog-2005, converted from rtl/telemetry/spi_slave.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/telemetry/spi_slave.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

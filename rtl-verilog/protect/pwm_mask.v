@@ -15,7 +15,7 @@
 #                    measured, not an error — account for it when setting
 #                    MIN_ON_COUNTS / MAX_ON_COUNTS in soft_start.
 
-#                   Verilog-2005, converted from rtl/protect/pwm_mask.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/protect/pwm_mask.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

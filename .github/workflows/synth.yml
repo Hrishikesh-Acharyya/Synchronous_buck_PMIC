@@ -19,7 +19,7 @@ name: Synthesis trend
 on:
   pull_request:
     paths:
-      - "rtl/**"
+      - "rtl-systemverilog/**"
       - "sim/Makefile"
       - ".github/workflows/synth.yml"
       - ".github/scripts/syn_stats.py"

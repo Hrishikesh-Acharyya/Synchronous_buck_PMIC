@@ -23,7 +23,7 @@
 #                   protection decision; removing this module leaves the converter
 #                   functionally identical.
 
-#                   Verilog-2005, converted from rtl/status/fault_LED.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/status/fault_LED.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

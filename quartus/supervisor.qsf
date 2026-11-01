@@ -73,24 +73,24 @@ set_global_assignment -name POWER_DEFAULT_INPUT_IO_TOGGLE_RATE "12.5 %"
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/status/fault_LED.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/status/timestamp.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/telemetry/fault_cause.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/pmic_top.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/telemetry/spi_slave.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/telemetry/reg_file.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/telemetry/pwm_stats.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/status/pgood_gen.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/protect/strike_counter.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/protect/soft_start.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/protect/pwm_mask.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/protect/hiccup_timer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/protect/fault_arbiter.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/inputs/input_sync.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/inputs/input_debounce.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/clk_rst/reset_sync.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/pkg/pmic_types_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/supervisor.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/status/fault_LED.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/status/timestamp.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/telemetry/fault_cause.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/pmic_top.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/telemetry/spi_slave.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/telemetry/reg_file.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/telemetry/pwm_stats.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/status/pgood_gen.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/protect/strike_counter.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/protect/soft_start.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/protect/pwm_mask.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/protect/hiccup_timer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/protect/fault_arbiter.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/inputs/input_sync.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/inputs/input_debounce.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/clk_rst/reset_sync.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/pkg/pmic_types_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl-systemverilog/supervisor.sv
 set_global_assignment -name SDC_FILE constraints.sdc
 set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

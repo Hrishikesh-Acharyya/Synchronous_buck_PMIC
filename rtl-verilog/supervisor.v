@@ -14,7 +14,7 @@
 #                   disabled in the same clock a fault is seen, one clock
 #                   ahead of the state change.
 #
-#                   Verilog-2005, converted from rtl/supervisor.sv by sv2v.
+#                   Verilog-2005, converted from rtl-systemverilog/supervisor.sv by sv2v.
 #                   The source has no file header or Purpose blocks; these
 #                   were written for the submission from its state comments.
 
