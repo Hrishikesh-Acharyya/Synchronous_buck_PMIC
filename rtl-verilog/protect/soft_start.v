@@ -73,8 +73,8 @@ module soft_start (
 	// MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
 	//                the driver shrinkage before any of it reaches the gate,
 	//                so the floor is the sum of the two figures above, rounded
-	//                up to whole clocks: 3 clocks (300 ns) at 10 MHz, about
-	//                13.5% commanded duty.
+	//                up to whole clocks: 12 clocks (240 ns) at 50 MHz, about
+	//                10.8% commanded duty.
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	// MIN_ON_COUNTS: starting on-time ceiling in clk counts
 	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
@@ -85,7 +85,7 @@ module soft_start (
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is
-	//              22.2 at 10 MHz, a non-integer: every counter in the
+	//              111.1, a non-integer: every counter in the
 	//              design re-references to pwm_fall each cycle, so the
 	//              fractional part never accumulates.
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;

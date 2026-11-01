@@ -119,8 +119,8 @@ package pmic_types_pkg;
     // MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
     //                the driver shrinkage before any of it reaches the gate,
     //                so the floor is the sum of the two figures above, rounded
-    //                up to whole clocks: 3 clocks (300 ns) at 10 MHz, about
-    //                13.5% commanded duty.
+    //                up to whole clocks: 12 clocks (240 ns) at 50 MHz, about
+    //                10.8% commanded duty.
     localparam int MIN_ON_COUNTS    = ns_to_clks(LM5106_SHRINK_NS + MIN_GATE_ON_NS);
     // ON_TIME_W: width of the on-time ceiling bus, shared by soft_start and
     //            pwm_mask. Sized to hold MAX_ON_COUNTS, hence the +1.
