@@ -94,7 +94,12 @@ export RAW FAIL_SHOW THIN
 #        stderr is not a terminal - so job logs and summaries stay plain.
 #        Force with COLOR=1 or COLOR=0. Exported, so run_tb.sh, run_top_tb.sh,
 #        report.sh and the other scripts follow the same decision.
-COLOR ?= $(shell if [ -t 2 ] && [ -z "$${NO_COLOR:-}" ] && [ -n "$${TERM:-}" ] && [ "$${TERM}" != dumb ]; then echo 1; else echo 0; fi)
+#        Under -j the fd test above is unreliable - output sync has already
+#        redirected it - so make's own MAKE_TERMOUT / MAKE_TERMERR (set by
+#        GNU make when its stdout / stderr is a terminal) are checked first.
+COLOR ?= $(shell if [ -n "$(MAKE_TERMOUT)$(MAKE_TERMERR)" ] || [ -t 2 ]; then \
+                   if [ -z "$${NO_COLOR:-}" ] && [ -n "$${TERM:-}" ] && [ "$${TERM}" != dumb ]; then echo 1; else echo 0; fi; \
+                 else echo 0; fi)
 export COLOR
 
 ifeq ($(COLOR),1)
