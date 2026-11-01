@@ -349,7 +349,7 @@ module pmic_top #(
                                 .rd_first(spi_rd_first),
                                 .rd_byte_done(spi_rd_byte_done),
                                 .integrity_ok(spi_integrity_ok),
-                                .abort(spi_abort)
+                                .txn_abort(spi_abort)
                                 );
 
         reg_file u_reg_file ( .clk(clk),
@@ -363,7 +363,7 @@ module pmic_top #(
                               .rd_first(spi_rd_first),
                               .rd_byte_done(spi_rd_byte_done),
                               .integrity_OK(spi_integrity_ok),
-                              .abort(spi_abort),
+                              .txn_abort(spi_abort),
 
                               // status in - debounced copies, so telemetry matches what
                               // the supervisor is actually acting on

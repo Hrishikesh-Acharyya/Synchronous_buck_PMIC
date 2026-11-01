@@ -51,7 +51,7 @@ module spi_slave (
 	rd_first,
 	rd_byte_done,
 	integrity_ok,
-	abort
+	txn_abort
 );
 	// _sv2v_0: added by the conversion. An always_comb block runs once at
 	// time zero; always @(*) does not, so each converted block reads this
@@ -98,8 +98,8 @@ module spi_slave (
 	output reg rd_byte_done;
 	// integrity_ok: CS rose on a byte boundary, length was legal, CRC checked out
 	output reg integrity_ok;
-	// abort: write transaction ended any other way
-	output reg abort;
+	// txn_abort: write transaction ended any other way
+	output reg txn_abort;
 	// sck_d / cs_n_d: delayed copies, one clk, for edge detection. sck is treated
 	//                 as ordinary data here.
 	reg sck_d;
@@ -525,13 +525,13 @@ module spi_slave (
 	  - crc == 0, which is the CRC-8 property that a message followed by its own
 	    CRC divides to zero
 
-	Anything else on a write pulses abort instead, and reg_file discards its
+	Anything else on a write pulses txn_abort instead, and reg_file discards its
 	temporary registers.
 
 	Reads produce NEITHER pulse. There is nothing to commit and nothing to discard,
 	and a host is free to stop a read mid-byte.
 
-	S_DEAD produces abort regardless: a timed-out transaction must never commit, even
+	S_DEAD produces txn_abort regardless: a timed-out transaction must never commit, even
 	if the bytes that did arrive happen to satisfy the length and CRC checks.
 
 	Both pulses land on cs_rise, which is at least one clock after the last wr_en -
@@ -542,16 +542,16 @@ module spi_slave (
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
 			integrity_ok <= 0;
-			abort <= 0;
+			txn_abort <= 0;
 		end
 		else begin
 			integrity_ok <= 1'b0;
-			abort <= 1'b0;
+			txn_abort <= 1'b0;
 			if (cs_rise && !rw) begin
 				if ((((spi_state != 3'b101) && (bit_count == 3'd0)) && (byte_count >= 4'd3)) && (crc == 8'h00))  // S_DEAD
 					integrity_ok <= 1'b1;
 				else
-					abort <= 1'b1;
+					txn_abort <= 1'b1;
 			end
 		end
 	initial _sv2v_0 = 0;

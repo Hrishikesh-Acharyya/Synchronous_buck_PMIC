@@ -782,7 +782,7 @@ module reg_file (
 	rd_first,
 	rd_byte_done,
 	integrity_OK,
-	abort,
+	txn_abort,
 	sup_state,
 	pgood,
 	latch_state,
@@ -824,7 +824,7 @@ module reg_file (
 	input wire rd_first;
 	input wire rd_byte_done;
 	input wire integrity_OK;
-	input wire abort;
+	input wire txn_abort;
 	input wire [1:0] sup_state;
 	input wire pgood;
 	input wire latch_state;
@@ -971,7 +971,7 @@ module reg_file (
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			bus_err_count <= 1'sb0;
-		else if (abort && !(&bus_err_count))
+		else if (txn_abort && !(&bus_err_count))
 			bus_err_count <= bus_err_count + 1'b1;
 	localparam signed [31:0] pmic_types_pkg_WINDOW_RUN = 16;
 	function automatic signed [5:0] sv2v_cast_67DF8_signed;
@@ -1135,7 +1135,7 @@ module reg_file (
 			temp_clean_1 <= 1'sb0;
 			temp_clean_2 <= 1'sb0;
 		end
-		else if (abort || integrity_OK)
+		else if (txn_abort || integrity_OK)
 			temp_dirty <= 0;
 		else if (wr_en)
 			case (addr)
@@ -1323,7 +1323,7 @@ module reg_file (
 				if (en_pending)
 					spi_enable <= en_pending_val;
 			end
-			if (abort || integrity_OK) begin
+			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;
@@ -1357,7 +1357,7 @@ module spi_slave (
 	rd_first,
 	rd_byte_done,
 	integrity_ok,
-	abort
+	txn_abort
 );
 	reg _sv2v_0;
 	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
@@ -1380,7 +1380,7 @@ module spi_slave (
 	output reg rd_first;
 	output reg rd_byte_done;
 	output reg integrity_ok;
-	output reg abort;
+	output reg txn_abort;
 	reg sck_d;
 	reg cs_n_d;
 	reg sck_rise;
@@ -1575,16 +1575,16 @@ module spi_slave (
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
 			integrity_ok <= 0;
-			abort <= 0;
+			txn_abort <= 0;
 		end
 		else begin
 			integrity_ok <= 1'b0;
-			abort <= 1'b0;
+			txn_abort <= 1'b0;
 			if (cs_rise && !rw) begin
 				if ((((spi_state != 3'b101) && (bit_count == 3'd0)) && (byte_count >= 4'd3)) && (crc == 8'h00))
 					integrity_ok <= 1'b1;
 				else
-					abort <= 1'b1;
+					txn_abort <= 1'b1;
 			end
 		end
 	initial _sv2v_0 = 0;
@@ -1680,17 +1680,17 @@ endmodule
 `default_nettype none
 module supervisor (
 	clk,
-	SS_done,
 	rst_n,
-	latch_state,
-	OTP,
-	window_trip_SS,
-	window_trip,
-	latch_assert,
-	UVLO,
-	hiccup_done,
 	en_SW,
 	spi_enable,
+	OTP,
+	UVLO,
+	latch_state,
+	latch_assert,
+	SS_done,
+	window_trip_SS,
+	window_trip,
+	hiccup_done,
 	en,
 	ss_active,
 	run_active,
@@ -1699,27 +1699,31 @@ module supervisor (
 );
 	reg _sv2v_0;
 	input wire clk;
-	input wire SS_done;
 	input wire rst_n;
-	input wire latch_state;
-	input wire OTP;
-	input wire window_trip_SS;
-	input wire window_trip;
-	input wire latch_assert;
-	input wire UVLO;
-	input wire hiccup_done;
 	input wire en_SW;
 	input wire spi_enable;
+	input wire OTP;
+	input wire UVLO;
+	input wire latch_state;
+	input wire latch_assert;
+	input wire SS_done;
+	input wire window_trip_SS;
+	input wire window_trip;
+	input wire hiccup_done;
 	output reg en;
 	output reg ss_active;
 	output reg run_active;
 	output reg hiccup_active;
 	output reg [1:0] state_out;
-	reg en_from_state;
+	reg g_en;
 	reg [1:0] state;
 	reg [1:0] next_state;
-	wire g_en;
-	assign g_en = spi_enable & en_SW;
+	reg en_from_state;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		g_en = spi_enable & en_SW;
+	end
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			state <= 2'b00;
@@ -1778,26 +1782,14 @@ module supervisor (
 		if (_sv2v_0)
 			;
 		ss_active = state == 2'b01;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
 		run_active = state == 2'b10;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
 		hiccup_active = state == 2'b11;
+		state_out = state;
 	end
 	always @(*) begin
 		if (_sv2v_0)
 			;
 		en = ((((g_en & en_from_state) & ~OTP) & ~latch_state) & ~UVLO) & ~latch_assert;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		state_out = state;
 	end
 	initial _sv2v_0 = 0;
 endmodule
@@ -2206,7 +2198,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_ok(spi_integrity_ok),
-				.abort(spi_abort)
+				.txn_abort(spi_abort)
 			);
 			reg_file u_reg_file(
 				.clk(clk),
@@ -2218,7 +2210,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_OK(spi_integrity_ok),
-				.abort(spi_abort),
+				.txn_abort(spi_abort),
 				.sup_state(sup_state),
 				.pgood(PGOOD),
 				.latch_state(latch_stat_sync_db),

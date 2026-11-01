@@ -24,7 +24,7 @@ module reg_file (
 	rd_first,
 	rd_byte_done,
 	integrity_OK,
-	abort,
+	txn_abort,
 	sup_state,
 	pgood,
 	latch_state,
@@ -87,8 +87,8 @@ module reg_file (
 	input wire rd_byte_done;
 	// integrity_OK   : write transaction passed length check and CRC
 	input wire integrity_OK;
-	// abort    : transaction ended unvalidated -> discard temporary flop data.
-	input wire abort;
+	// txn_abort    : transaction ended unvalidated -> discard temporary flop data.
+	input wire txn_abort;
 	// sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base and
 	//            cycles_per_step writes - those are only accepted in S_OFF
 	// encoding (state_t in the source): 2'b00 S_OFF, 2'b01 S_SS, 2'b10 S_RUN,
@@ -409,7 +409,7 @@ module reg_file (
 	Purpose:
 	---
 	Count failed host transactions. spi_slave already distinguishes a good write
-	from a bad one and reduces every failure mode to abort, so nothing new has to
+	from a bad one and reduces every failure mode to txn_abort, so nothing new has to
 	be detected here - this block only keeps the tally.
 
 	Saturating, not wrapping. A wrapped counter reading 3 could mean three errors
@@ -419,14 +419,14 @@ module reg_file (
 	clear-on-read would need its own address edge-detect and buys nothing a
 	subtraction does not already give.
 
-	LIMITATION: abort is raised only for WRITE transactions - spi_slave gates it on
+	LIMITATION: txn_abort is raised only for WRITE transactions - spi_slave gates it on
 	cs_rise && !rw, because a read carries no CRC and has nothing to validate. A
 	read that times out or ends misaligned is therefore not counted.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			bus_err_count <= 1'sb0;
-		else if (abort && !(&bus_err_count))
+		else if (txn_abort && !(&bus_err_count))
 			bus_err_count <= bus_err_count + 1'b1;
 	// Thresholds differ by state because elevated current during soft start
 	// is expected as the output capacitor charges from zero in FCCM, whereas
@@ -664,7 +664,7 @@ module reg_file (
 	not here, so the gating lives in exactly one place - and so a host that writes
 	the threshold before the key still fails cleanly rather than half-succeeding.
 
-	The dirty bits are cleared on BOTH transaction boundaries: discarded on abort,
+	The dirty bits are cleared on BOTH transaction boundaries: discarded on txn_abort,
 	consumed on integrity_OK. Either way no temp survives into the next
 	transaction, so a value written in one transaction cannot be committed by a
 	later unrelated one.
@@ -684,7 +684,7 @@ module reg_file (
 			temp_clean_1 <= 1'sb0;
 			temp_clean_2 <= 1'sb0;
 		end
-		else if (abort || integrity_OK)
+		else if (txn_abort || integrity_OK)
 			temp_dirty <= 0;
 		else if (wr_en)
 			case (addr)
@@ -961,7 +961,7 @@ module reg_file (
 				if (en_pending)
 					spi_enable <= en_pending_val;
 			end
-			if (abort || integrity_OK) begin
+			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;

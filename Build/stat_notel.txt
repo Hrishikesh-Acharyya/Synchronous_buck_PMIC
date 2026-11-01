@@ -148,14 +148,12 @@ Removed 0 unused modules.
 4.2. Executing PROC pass (convert processes to netlists).
 
 4.2.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
-Found and cleaned up 1 empty switch in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$710'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1797$proc$677'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1792$proc$667'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1787$proc$665'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1782$proc$663'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1777$proc$661'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1765$proc$660'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1728$proc$636'.
+Found and cleaned up 1 empty switch in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$708'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1789$proc$666'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1769$proc$661'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1732$proc$637'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1722$proc$633'.
 Found and cleaned up 1 empty switch in `\fault_LED.$../Build/pmic_full.v:676$proc$215'.
 Found and cleaned up 1 empty switch in `\pgood_gen.$../Build/pmic_full.v:572$proc$193'.
 Found and cleaned up 1 empty switch in `\pgood_gen.$../Build/pmic_full.v:556$proc$183'.
@@ -168,22 +166,22 @@ Found and cleaned up 1 empty switch in `\fault_arbiter.$../Build/pmic_full.v:356
 Found and cleaned up 1 empty switch in `\fault_arbiter.$../Build/pmic_full.v:299$proc$64'.
 Found and cleaned up 1 empty switch in `\soft_start.$../Build/pmic_full.v:161$proc$30'.
 Found and cleaned up 1 empty switch in `\input_debounce.$../Build/pmic_full.v:87$proc$11'.
-Cleaned up 20 empty switches.
+Cleaned up 18 empty switches.
 
 4.2.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
-Marked 1 switch rules as full_case in process $../Build/pmic_full.v:101$proc$718 in module $paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.
-Marked 2 switch rules as full_case in process $../Build/pmic_full.v:92$proc$712 in module $paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.
-Removed 1 dead cases from process $../Build/pmic_full.v:1765$proc$660 in module supervisor.
-Removed 1 dead cases from process $../Build/pmic_full.v:1728$proc$636 in module supervisor.
-Marked 8 switch rules as full_case in process $../Build/pmic_full.v:1728$proc$636 in module supervisor.
-Marked 1 switch rules as full_case in process $../Build/pmic_full.v:1723$proc$634 in module supervisor.
+Marked 1 switch rules as full_case in process $../Build/pmic_full.v:101$proc$716 in module $paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.
+Marked 2 switch rules as full_case in process $../Build/pmic_full.v:92$proc$710 in module $paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.
+Removed 1 dead cases from process $../Build/pmic_full.v:1769$proc$661 in module supervisor.
+Removed 1 dead cases from process $../Build/pmic_full.v:1732$proc$637 in module supervisor.
+Marked 8 switch rules as full_case in process $../Build/pmic_full.v:1732$proc$637 in module supervisor.
+Marked 1 switch rules as full_case in process $../Build/pmic_full.v:1727$proc$635 in module supervisor.
 Marked 1 switch rules as full_case in process $../Build/pmic_full.v:705$proc$232 in module fault_LED.
 Marked 1 switch rules as full_case in process $../Build/pmic_full.v:700$proc$230 in module fault_LED.
 Marked 3 switch rules as full_case in process $../Build/pmic_full.v:691$proc$226 in module fault_LED.
 Marked 1 switch rules as full_case in process $../Build/pmic_full.v:686$proc$224 in module fault_LED.
 Marked 1 switch rules as full_case in process $../Build/pmic_full.v:681$proc$219 in module fault_LED.
 Marked 2 switch rules as full_case in process $../Build/pmic_full.v:665$proc$210 in module fault_LED.
-Marked 1 switch rules as full_case in process $../Build/pmic_full.v:38$proc$725 in module $paramod\input_sync\RESET_VALUE=1'1.
+Marked 1 switch rules as full_case in process $../Build/pmic_full.v:38$proc$723 in module $paramod\input_sync\RESET_VALUE=1'1.
 Marked 3 switch rules as full_case in process $../Build/pmic_full.v:561$proc$186 in module pgood_gen.
 Marked 1 switch rules as full_case in process $../Build/pmic_full.v:551$proc$181 in module pgood_gen.
 Marked 3 switch rules as full_case in process $../Build/pmic_full.v:504$proc$172 in module strike_counter.
@@ -206,21 +204,21 @@ Removed a total of 2 dead cases.
 
 4.2.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
 Removed 23 redundant assignments.
-Promoted 49 assignments to connections.
+Promoted 50 assignments to connections.
 
 4.2.4. Executing PROC_INIT pass (extract init attributes).
 
 4.2.5. Executing PROC_ARST pass (detect async resets in processes).
-Found async reset \rst_n in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$718'.
-Found async reset \rst_n in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$712'.
-Found async reset \rst_n in `\supervisor.$../Build/pmic_full.v:1723$proc$634'.
+Found async reset \rst_n in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$716'.
+Found async reset \rst_n in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$710'.
+Found async reset \rst_n in `\supervisor.$../Build/pmic_full.v:1727$proc$635'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:705$proc$232'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:700$proc$230'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:691$proc$226'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:686$proc$224'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:681$proc$219'.
 Found async reset \rst_n in `\fault_LED.$../Build/pmic_full.v:665$proc$210'.
-Found async reset \rst_n in `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$725'.
+Found async reset \rst_n in `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$723'.
 Found async reset \rst_n in `\pgood_gen.$../Build/pmic_full.v:561$proc$186'.
 Found async reset \rst_n in `\pgood_gen.$../Build/pmic_full.v:551$proc$181'.
 Found async reset \rst_n in `\strike_counter.$../Build/pmic_full.v:504$proc$172'.
@@ -245,22 +243,19 @@ Converted 0 switches.
 <suppressed ~43 debug messages>
 
 4.2.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
-Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$724'.
-Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$718'.
+Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$722'.
+Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$716'.
      1/1: $0\flag_out[0:0]
-Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$712'.
+Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$710'.
      1/1: $0\disagree_counter[19:0]
-Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$710'.
-Creating decoders for process `\pmic_top.$../Build/pmic_full.v:2319$proc$705'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1802$proc$678'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1797$proc$677'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1792$proc$667'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1787$proc$665'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1782$proc$663'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1777$proc$661'.
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1765$proc$660'.
+Creating decoders for process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$708'.
+Creating decoders for process `\pmic_top.$../Build/pmic_full.v:2311$proc$703'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1794$proc$676'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1789$proc$666'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1769$proc$661'.
      1/1: $1\en_from_state[0:0]
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1728$proc$636'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1732$proc$637'.
      1/9: $9\next_state[1:0]
      2/9: $8\next_state[1:0]
      3/9: $7\next_state[1:0]
@@ -270,8 +265,9 @@ Creating decoders for process `\supervisor.$../Build/pmic_full.v:1728$proc$636'.
      7/9: $3\next_state[1:0]
      8/9: $2\next_state[1:0]
      9/9: $1\next_state[1:0]
-Creating decoders for process `\supervisor.$../Build/pmic_full.v:1723$proc$634'.
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1727$proc$635'.
      1/1: $0\state[1:0]
+Creating decoders for process `\supervisor.$../Build/pmic_full.v:1722$proc$633'.
 Creating decoders for process `\fault_LED.$../Build/pmic_full.v:710$proc$234'.
 Creating decoders for process `\fault_LED.$../Build/pmic_full.v:705$proc$232'.
      1/1: $0\Red_LED3[0:0]
@@ -287,7 +283,7 @@ Creating decoders for process `\fault_LED.$../Build/pmic_full.v:676$proc$215'.
 Creating decoders for process `\fault_LED.$../Build/pmic_full.v:665$proc$210'.
      1/2: $0\blink_counter[22:0]
      2/2: $0\blink[0:0]
-Creating decoders for process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$725'.
+Creating decoders for process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$723'.
      1/2: $0\sync_out[0:0]
      2/2: $0\meta_ff[0:0]
 Creating decoders for process `\pgood_gen.$../Build/pmic_full.v:577$proc$197'.
@@ -389,17 +385,18 @@ Creating decoders for process `\reset_sync.$../Build/pmic_full.v:13$proc$1'.
      1/1: $0\meta_ff[0:0]
 
 4.2.8. Executing PROC_DLATCH pass (convert process syncs to latches).
-No latch inferred for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\_sv2v_0' from process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$724'.
-No latch inferred for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\target_clks' from process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$710'.
-No latch inferred for signal `\pmic_top.\_sv2v_0' from process `\pmic_top.$../Build/pmic_full.v:2319$proc$705'.
-No latch inferred for signal `\supervisor.\_sv2v_0' from process `\supervisor.$../Build/pmic_full.v:1802$proc$678'.
-No latch inferred for signal `\supervisor.\state_out' from process `\supervisor.$../Build/pmic_full.v:1797$proc$677'.
-No latch inferred for signal `\supervisor.\en' from process `\supervisor.$../Build/pmic_full.v:1792$proc$667'.
-No latch inferred for signal `\supervisor.\hiccup_active' from process `\supervisor.$../Build/pmic_full.v:1787$proc$665'.
-No latch inferred for signal `\supervisor.\run_active' from process `\supervisor.$../Build/pmic_full.v:1782$proc$663'.
-No latch inferred for signal `\supervisor.\ss_active' from process `\supervisor.$../Build/pmic_full.v:1777$proc$661'.
-No latch inferred for signal `\supervisor.\en_from_state' from process `\supervisor.$../Build/pmic_full.v:1765$proc$660'.
-No latch inferred for signal `\supervisor.\next_state' from process `\supervisor.$../Build/pmic_full.v:1728$proc$636'.
+No latch inferred for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\_sv2v_0' from process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$722'.
+No latch inferred for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\target_clks' from process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$708'.
+No latch inferred for signal `\pmic_top.\_sv2v_0' from process `\pmic_top.$../Build/pmic_full.v:2311$proc$703'.
+No latch inferred for signal `\supervisor.\_sv2v_0' from process `\supervisor.$../Build/pmic_full.v:1794$proc$676'.
+No latch inferred for signal `\supervisor.\en' from process `\supervisor.$../Build/pmic_full.v:1789$proc$666'.
+No latch inferred for signal `\supervisor.\ss_active' from process `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+No latch inferred for signal `\supervisor.\run_active' from process `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+No latch inferred for signal `\supervisor.\hiccup_active' from process `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+No latch inferred for signal `\supervisor.\state_out' from process `\supervisor.$../Build/pmic_full.v:1781$proc$662'.
+No latch inferred for signal `\supervisor.\en_from_state' from process `\supervisor.$../Build/pmic_full.v:1769$proc$661'.
+No latch inferred for signal `\supervisor.\next_state' from process `\supervisor.$../Build/pmic_full.v:1732$proc$637'.
+No latch inferred for signal `\supervisor.\g_en' from process `\supervisor.$../Build/pmic_full.v:1722$proc$633'.
 No latch inferred for signal `\fault_LED.\_sv2v_0' from process `\fault_LED.$../Build/pmic_full.v:710$proc$234'.
 No latch inferred for signal `\fault_LED.\currently_faulted' from process `\fault_LED.$../Build/pmic_full.v:676$proc$215'.
 No latch inferred for signal `\pgood_gen.\_sv2v_0' from process `\pgood_gen.$../Build/pmic_full.v:577$proc$197'.
@@ -422,136 +419,134 @@ No latch inferred for signal `\input_debounce.\_sv2v_0' from process `\input_deb
 No latch inferred for signal `\input_debounce.\target_clks' from process `\input_debounce.$../Build/pmic_full.v:87$proc$11'.
 
 4.2.9. Executing PROC_DFF pass (convert process syncs to FFs).
-Creating register for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\flag_out' using process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$718'.
-  created $adff cell `$procdff$1031' with positive edge clock and positive level reset.
-Creating register for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\disagree_counter' using process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$712'.
-  created $adff cell `$procdff$1036' with positive edge clock and positive level reset.
-Creating register for signal `\supervisor.\state' using process `\supervisor.$../Build/pmic_full.v:1723$proc$634'.
-  created $adff cell `$procdff$1041' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\flag_out' using process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$716'.
+  created $adff cell `$procdff$1029' with positive edge clock and positive level reset.
+Creating register for signal `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.\disagree_counter' using process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$710'.
+  created $adff cell `$procdff$1034' with positive edge clock and positive level reset.
+Creating register for signal `\supervisor.\state' using process `\supervisor.$../Build/pmic_full.v:1727$proc$635'.
+  created $adff cell `$procdff$1039' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\Red_LED3' using process `\fault_LED.$../Build/pmic_full.v:705$proc$232'.
-  created $adff cell `$procdff$1046' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1044' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\Red_LED2' using process `\fault_LED.$../Build/pmic_full.v:700$proc$230'.
-  created $adff cell `$procdff$1051' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1049' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\Red_LED1' using process `\fault_LED.$../Build/pmic_full.v:691$proc$226'.
-  created $adff cell `$procdff$1056' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1054' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\pgood_LED' using process `\fault_LED.$../Build/pmic_full.v:686$proc$224'.
-  created $adff cell `$procdff$1061' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1059' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\Green_LED' using process `\fault_LED.$../Build/pmic_full.v:681$proc$219'.
-  created $adff cell `$procdff$1066' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1064' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\blink_counter' using process `\fault_LED.$../Build/pmic_full.v:665$proc$210'.
-  created $adff cell `$procdff$1071' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1069' with positive edge clock and positive level reset.
 Creating register for signal `\fault_LED.\blink' using process `\fault_LED.$../Build/pmic_full.v:665$proc$210'.
-  created $adff cell `$procdff$1076' with positive edge clock and positive level reset.
-Creating register for signal `$paramod\input_sync\RESET_VALUE=1'1.\meta_ff' using process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$725'.
-  created $adff cell `$procdff$1081' with positive edge clock and positive level reset.
-Creating register for signal `$paramod\input_sync\RESET_VALUE=1'1.\sync_out' using process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$725'.
-  created $adff cell `$procdff$1086' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1074' with positive edge clock and positive level reset.
+Creating register for signal `$paramod\input_sync\RESET_VALUE=1'1.\meta_ff' using process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$723'.
+  created $adff cell `$procdff$1079' with positive edge clock and positive level reset.
+Creating register for signal `$paramod\input_sync\RESET_VALUE=1'1.\sync_out' using process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$723'.
+  created $adff cell `$procdff$1084' with positive edge clock and positive level reset.
 Creating register for signal `\pgood_gen.\qualify_counter' using process `\pgood_gen.$../Build/pmic_full.v:561$proc$186'.
-  created $adff cell `$procdff$1091' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1089' with positive edge clock and positive level reset.
 Creating register for signal `\pgood_gen.\pwm_sync_d' using process `\pgood_gen.$../Build/pmic_full.v:551$proc$181'.
-  created $adff cell `$procdff$1096' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1094' with positive edge clock and positive level reset.
 Creating register for signal `\strike_counter.\clean_counter' using process `\strike_counter.$../Build/pmic_full.v:504$proc$172'.
-  created $adff cell `$procdff$1101' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1099' with positive edge clock and positive level reset.
 Creating register for signal `\strike_counter.\strike_level' using process `\strike_counter.$../Build/pmic_full.v:492$proc$166'.
-  created $adff cell `$procdff$1106' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1104' with positive edge clock and positive level reset.
 Creating register for signal `\strike_counter.\latch_assert' using process `\strike_counter.$../Build/pmic_full.v:492$proc$166'.
-  created $adff cell `$procdff$1111' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1109' with positive edge clock and positive level reset.
 Creating register for signal `\strike_counter.\pwm_sync_d' using process `\strike_counter.$../Build/pmic_full.v:477$proc$159'.
-  created $adff cell `$procdff$1116' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1114' with positive edge clock and positive level reset.
 Creating register for signal `\strike_counter.\hiccup_active_d' using process `\strike_counter.$../Build/pmic_full.v:477$proc$159'.
-  created $adff cell `$procdff$1121' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1119' with positive edge clock and positive level reset.
 Creating register for signal `\hiccup_timer.\hiccup_done' using process `\hiccup_timer.$../Build/pmic_full.v:418$proc$152'.
-  created $adff cell `$procdff$1126' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1124' with positive edge clock and positive level reset.
 Creating register for signal `\hiccup_timer.\cool_counter' using process `\hiccup_timer.$../Build/pmic_full.v:418$proc$152'.
-  created $adff cell `$procdff$1131' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1129' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\fault_shifter_SS' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1136' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1134' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\fault_shifter_RUN' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1141' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1139' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\fault_count_run' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1146' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1144' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\fault_count_ss' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1151' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1149' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_7CA3E$func$../Build/pmic_full.v:339$55.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1156' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1154' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_7CA3E$func$../Build/pmic_full.v:339$55.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1161' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1159' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_7CA3E$func$../Build/pmic_full.v:339$56.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1166' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1164' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_7CA3E$func$../Build/pmic_full.v:339$56.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1171' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1169' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_CCA05$func$../Build/pmic_full.v:340$57.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1176' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1174' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_CCA05$func$../Build/pmic_full.v:340$57.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1181' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1179' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_40C54$func$../Build/pmic_full.v:343$58.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1186' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1184' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_40C54$func$../Build/pmic_full.v:343$58.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1191' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1189' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_40C54$func$../Build/pmic_full.v:343$59.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1196' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1194' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_40C54$func$../Build/pmic_full.v:343$59.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1201' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1199' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_5BB5F$func$../Build/pmic_full.v:344$60.$result' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1206' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1204' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_5BB5F$func$../Build/pmic_full.v:344$60.inp' using process `\fault_arbiter.$../Build/pmic_full.v:331$proc$80'.
-  created $adff cell `$procdff$1211' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1209' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\cp_delay' using process `\fault_arbiter.$../Build/pmic_full.v:308$proc$67'.
-  created $adff cell `$procdff$1216' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1214' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_A4FBD$func$../Build/pmic_full.v:314$54.$result' using process `\fault_arbiter.$../Build/pmic_full.v:308$proc$67'.
-  created $adff cell `$procdff$1221' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1219' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\sv2v_cast_A4FBD$func$../Build/pmic_full.v:314$54.inp' using process `\fault_arbiter.$../Build/pmic_full.v:308$proc$67'.
-  created $adff cell `$procdff$1226' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1224' with positive edge clock and positive level reset.
 Creating register for signal `\fault_arbiter.\pwm_sync_d' using process `\fault_arbiter.$../Build/pmic_full.v:294$proc$62'.
-  created $adff cell `$procdff$1231' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1229' with positive edge clock and positive level reset.
 Creating register for signal `\pwm_mask.\pwm_out' using process `\pwm_mask.$../Build/pmic_full.v:244$proc$51'.
-  created $adff cell `$procdff$1236' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1234' with positive edge clock and positive level reset.
 Creating register for signal `\pwm_mask.\run_counter' using process `\pwm_mask.$../Build/pmic_full.v:225$proc$47'.
-  created $adff cell `$procdff$1241' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1239' with positive edge clock and positive level reset.
 Creating register for signal `\pwm_mask.\pulse_allowed' using process `\pwm_mask.$../Build/pmic_full.v:225$proc$47'.
-  created $adff cell `$procdff$1246' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1244' with positive edge clock and positive level reset.
 Creating register for signal `\soft_start.\max_on_counts' using process `\soft_start.$../Build/pmic_full.v:166$proc$33'.
-  created $adff cell `$procdff$1251' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1249' with positive edge clock and positive level reset.
 Creating register for signal `\soft_start.\SS_done' using process `\soft_start.$../Build/pmic_full.v:166$proc$33'.
-  created $adff cell `$procdff$1256' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1254' with positive edge clock and positive level reset.
 Creating register for signal `\soft_start.\cycle_counter' using process `\soft_start.$../Build/pmic_full.v:166$proc$33'.
-  created $adff cell `$procdff$1261' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1259' with positive edge clock and positive level reset.
 Creating register for signal `\soft_start.\pwm_sync_d' using process `\soft_start.$../Build/pmic_full.v:156$proc$28'.
-  created $adff cell `$procdff$1266' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1264' with positive edge clock and positive level reset.
 Creating register for signal `\input_debounce.\flag_out' using process `\input_debounce.$../Build/pmic_full.v:101$proc$19'.
-  created $adff cell `$procdff$1271' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1269' with positive edge clock and positive level reset.
 Creating register for signal `\input_debounce.\disagree_counter' using process `\input_debounce.$../Build/pmic_full.v:92$proc$13'.
-  created $adff cell `$procdff$1276' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1274' with positive edge clock and positive level reset.
 Creating register for signal `\input_sync.\meta_ff' using process `\input_sync.$../Build/pmic_full.v:38$proc$5'.
-  created $adff cell `$procdff$1281' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1279' with positive edge clock and positive level reset.
 Creating register for signal `\input_sync.\sync_out' using process `\input_sync.$../Build/pmic_full.v:38$proc$5'.
-  created $adff cell `$procdff$1286' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1284' with positive edge clock and positive level reset.
 Creating register for signal `\reset_sync.\rst_n_exit' using process `\reset_sync.$../Build/pmic_full.v:18$proc$3'.
-  created $adff cell `$procdff$1291' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1289' with positive edge clock and positive level reset.
 Creating register for signal `\reset_sync.\meta_ff' using process `\reset_sync.$../Build/pmic_full.v:13$proc$1'.
-  created $adff cell `$procdff$1296' with positive edge clock and positive level reset.
+  created $adff cell `$procdff$1294' with positive edge clock and positive level reset.
 
 4.2.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
 
 4.2.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
-Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$724'.
-Found and cleaned up 1 empty switch in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$718'.
-Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$718'.
-Found and cleaned up 2 empty switches in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$712'.
-Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$712'.
-Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$710'.
-Removing empty process `pmic_top.$../Build/pmic_full.v:2319$proc$705'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1802$proc$678'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1797$proc$677'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1792$proc$667'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1787$proc$665'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1782$proc$663'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1777$proc$661'.
-Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1765$proc$660'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1765$proc$660'.
-Found and cleaned up 9 empty switches in `\supervisor.$../Build/pmic_full.v:1728$proc$636'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1728$proc$636'.
-Removing empty process `supervisor.$../Build/pmic_full.v:1723$proc$634'.
+Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:106$proc$722'.
+Found and cleaned up 1 empty switch in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$716'.
+Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:101$proc$716'.
+Found and cleaned up 2 empty switches in `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$710'.
+Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:92$proc$710'.
+Removing empty process `$paramod$51f53c3c7e657987b680eb6df78b01f2c4800581\input_debounce.$../Build/pmic_full.v:87$proc$708'.
+Removing empty process `pmic_top.$../Build/pmic_full.v:2311$proc$703'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1794$proc$676'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1789$proc$666'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1781$proc$662'.
+Found and cleaned up 1 empty switch in `\supervisor.$../Build/pmic_full.v:1769$proc$661'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1769$proc$661'.
+Found and cleaned up 9 empty switches in `\supervisor.$../Build/pmic_full.v:1732$proc$637'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1732$proc$637'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1727$proc$635'.
+Removing empty process `supervisor.$../Build/pmic_full.v:1722$proc$633'.
 Removing empty process `fault_LED.$../Build/pmic_full.v:710$proc$234'.
 Removing empty process `fault_LED.$../Build/pmic_full.v:705$proc$232'.
 Removing empty process `fault_LED.$../Build/pmic_full.v:700$proc$230'.
@@ -562,7 +557,7 @@ Removing empty process `fault_LED.$../Build/pmic_full.v:681$proc$219'.
 Removing empty process `fault_LED.$../Build/pmic_full.v:676$proc$215'.
 Found and cleaned up 1 empty switch in `\fault_LED.$../Build/pmic_full.v:665$proc$210'.
 Removing empty process `fault_LED.$../Build/pmic_full.v:665$proc$210'.
-Removing empty process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$725'.
+Removing empty process `$paramod\input_sync\RESET_VALUE=1'1.$../Build/pmic_full.v:38$proc$723'.
 Removing empty process `pgood_gen.$../Build/pmic_full.v:577$proc$197'.
 Removing empty process `pgood_gen.$../Build/pmic_full.v:572$proc$193'.
 Found and cleaned up 3 empty switches in `\pgood_gen.$../Build/pmic_full.v:561$proc$186'.
@@ -682,7 +677,7 @@ Found and reported 0 problems.
 
 4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
-Removed 146 unused cells and 519 unused wires.
+Removed 146 unused cells and 520 unused wires.
 <suppressed ~178 debug messages>
 
 4.8. Executing OPT pass (performing simple optimizations).
@@ -708,25 +703,25 @@ Running muxtree optimizer on module \pmic_top..
   Creating internal representation of mux trees.
   Evaluating internal representation of mux trees.
   Analyzing evaluation results.
-    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$743.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$745.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$750.
-    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$757.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$759.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$765.
-    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$773.
-    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$776.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$778.
-    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$786.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$788.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$795.
-    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$803.
+    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$741.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$743.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$748.
+    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$755.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$757.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$763.
+    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$771.
+    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$774.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$776.
+    dead port 1/2 on $mux $flatten\u_supervisor.$procmux$784.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$786.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$793.
+    dead port 2/2 on $mux $flatten\u_supervisor.$procmux$801.
 Removed 13 multiplexer ports.
 <suppressed ~118 debug messages>
 
 4.8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
   Optimizing cells in module \pmic_top.
-    New ctrl vector for $pmux cell $flatten\u_supervisor.$procmux$734: { $auto$opt_reduce.cc:137:opt_pmux$1320 $auto$opt_reduce.cc:137:opt_pmux$1318 }
+    New ctrl vector for $pmux cell $flatten\u_supervisor.$procmux$732: { $auto$opt_reduce.cc:137:opt_pmux$1318 $auto$opt_reduce.cc:137:opt_pmux$1316 }
   Optimizing cells in module \pmic_top.
 Performed a total of 1 changes.
 
@@ -783,30 +778,30 @@ Found FSM state register pmic_top.u_supervisor.state.
 
 4.9.2. Executing FSM_EXTRACT pass (extracting FSM from design).
 Extracting FSM `\u_supervisor.state' from module `\pmic_top'.
-  found $adff cell for state register: $flatten\u_supervisor.$procdff$1041
+  found $adff cell for state register: $flatten\u_supervisor.$procdff$1039
   root of input selection tree: \u_supervisor.next_state
   found reset state: 2'00 (from async reset)
   found ctrl input: \u_hiccup_timer.hiccup_active
   found ctrl input: \u_fault_LED.run_active
   found ctrl input: \u_fault_LED.ss_active
-  found ctrl input: $flatten\u_supervisor.$procmux$738_CMP
-  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1756$or$659_Y
+  found ctrl input: $flatten\u_supervisor.$procmux$736_CMP
+  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1760$or$660_Y
   found ctrl input: \u_hiccup_timer.hiccup_done
   found state code: 2'11
   found state code: 2'01
-  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1749$or$654_Y
+  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1753$or$655_Y
   found ctrl input: \u_strike_counter.window_trip
   found state code: 2'10
-  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1740$or$649_Y
+  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1744$or$650_Y
   found ctrl input: \u_fault_arbiter.window_trip_SS
   found ctrl input: \u_soft_start.SS_done
-  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1735$and$644_Y
+  found ctrl input: $flatten\u_supervisor.$../Build/pmic_full.v:1739$and$645_Y
   found ctrl output: \u_hiccup_timer.hiccup_active
   found ctrl output: \u_fault_LED.run_active
   found ctrl output: \u_fault_LED.ss_active
-  found ctrl output: $flatten\u_supervisor.$procmux$738_CMP
-  ctrl inputs: { \u_soft_start.SS_done \u_strike_counter.window_trip \u_hiccup_timer.hiccup_done \u_fault_arbiter.window_trip_SS $flatten\u_supervisor.$../Build/pmic_full.v:1735$and$644_Y $flatten\u_supervisor.$../Build/pmic_full.v:1740$or$649_Y $flatten\u_supervisor.$../Build/pmic_full.v:1749$or$654_Y $flatten\u_supervisor.$../Build/pmic_full.v:1756$or$659_Y }
-  ctrl outputs: { \u_fault_LED.ss_active \u_fault_LED.run_active \u_hiccup_timer.hiccup_active \u_supervisor.next_state $flatten\u_supervisor.$procmux$738_CMP }
+  found ctrl output: $flatten\u_supervisor.$procmux$736_CMP
+  ctrl inputs: { \u_soft_start.SS_done \u_strike_counter.window_trip \u_hiccup_timer.hiccup_done \u_fault_arbiter.window_trip_SS $flatten\u_supervisor.$../Build/pmic_full.v:1739$and$645_Y $flatten\u_supervisor.$../Build/pmic_full.v:1744$or$650_Y $flatten\u_supervisor.$../Build/pmic_full.v:1753$or$655_Y $flatten\u_supervisor.$../Build/pmic_full.v:1760$or$660_Y }
+  ctrl outputs: { \u_fault_LED.ss_active \u_fault_LED.run_active \u_hiccup_timer.hiccup_active \u_supervisor.next_state $flatten\u_supervisor.$procmux$736_CMP }
   transition:       2'00 8'----0--- ->       2'00 6'000001
   transition:       2'00 8'----1--- ->       2'01 6'000011
   transition:       2'10 8'-0----0- ->       2'10 6'010100
@@ -821,7 +816,7 @@ Extracting FSM `\u_supervisor.state' from module `\pmic_top'.
   transition:       2'11 8'-------1 ->       2'00 6'001000
 
 4.9.3. Executing FSM_OPT pass (simple optimizations of FSMs).
-Optimizing FSM `$fsm$\u_supervisor.state$1321' from module `\pmic_top'.
+Optimizing FSM `$fsm$\u_supervisor.state$1319' from module `\pmic_top'.
 
 4.9.4. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
@@ -829,12 +824,12 @@ Removed 14 unused cells and 16 unused wires.
 <suppressed ~17 debug messages>
 
 4.9.5. Executing FSM_OPT pass (simple optimizations of FSMs).
-Optimizing FSM `$fsm$\u_supervisor.state$1321' from module `\pmic_top'.
+Optimizing FSM `$fsm$\u_supervisor.state$1319' from module `\pmic_top'.
   Removing unused output signal \u_supervisor.next_state [0].
   Removing unused output signal \u_supervisor.next_state [1].
 
 4.9.6. Executing FSM_RECODE pass (re-assigning FSM state encoding).
-Recoding FSM `$fsm$\u_supervisor.state$1321' from module `\pmic_top' using `auto' encoding:
+Recoding FSM `$fsm$\u_supervisor.state$1319' from module `\pmic_top' using `auto' encoding:
   mapping auto encoding to `one-hot` for this FSM.
   00 -> ---1
   10 -> --1-
@@ -843,27 +838,27 @@ Recoding FSM `$fsm$\u_supervisor.state$1321' from module `\pmic_top' using `auto
 
 4.9.7. Executing FSM_INFO pass (dumping all available information on FSM cells).
 
-FSM `$fsm$\u_supervisor.state$1321' from module `pmic_top':
+FSM `$fsm$\u_supervisor.state$1319' from module `pmic_top':
 -------------------------------------
 
-  Information on FSM $fsm$\u_supervisor.state$1321 (\u_supervisor.state):
+  Information on FSM $fsm$\u_supervisor.state$1319 (\u_supervisor.state):
 
   Number of input signals:    8
   Number of output signals:   4
   Number of state bits:       4
 
   Input signals:
-    0: $flatten\u_supervisor.$../Build/pmic_full.v:1756$or$659_Y
-    1: $flatten\u_supervisor.$../Build/pmic_full.v:1749$or$654_Y
-    2: $flatten\u_supervisor.$../Build/pmic_full.v:1740$or$649_Y
-    3: $flatten\u_supervisor.$../Build/pmic_full.v:1735$and$644_Y
+    0: $flatten\u_supervisor.$../Build/pmic_full.v:1760$or$660_Y
+    1: $flatten\u_supervisor.$../Build/pmic_full.v:1753$or$655_Y
+    2: $flatten\u_supervisor.$../Build/pmic_full.v:1744$or$650_Y
+    3: $flatten\u_supervisor.$../Build/pmic_full.v:1739$and$645_Y
     4: \u_fault_arbiter.window_trip_SS
     5: \u_hiccup_timer.hiccup_done
     6: \u_strike_counter.window_trip
     7: \u_soft_start.SS_done
 
   Output signals:
-    0: $flatten\u_supervisor.$procmux$738_CMP
+    0: $flatten\u_supervisor.$procmux$736_CMP
     1: \u_hiccup_timer.hiccup_active
     2: \u_fault_LED.run_active
     3: \u_fault_LED.ss_active
@@ -891,7 +886,7 @@ FSM `$fsm$\u_supervisor.state$1321' from module `pmic_top':
 -------------------------------------
 
 4.9.8. Executing FSM_MAP pass (mapping FSMs to basic logic).
-Mapping FSM `$fsm$\u_supervisor.state$1321' from module `\pmic_top'.
+Mapping FSM `$fsm$\u_supervisor.state$1319' from module `\pmic_top'.
 
 4.10. Executing OPT pass (performing simple optimizations).
 
@@ -924,29 +919,29 @@ Finding duplicate cells in `\pmic_top'.
 Removed a total of 0 cells.
 
 4.10.6. Executing OPT_DFF pass (perform DFF optimizations).
-Adding EN signal on $flatten\u_en_from_switch_db.$procdff$1036 ($adff) from module pmic_top (D = $flatten\u_en_from_switch_db.$0\disagree_counter[19:0], Q = \u_en_from_switch_db.disagree_counter).
-Adding EN signal on $flatten\u_strike_counter.$procdff$1111 ($adff) from module pmic_top (D = 1'1, Q = \u_strike_counter.latch_assert).
-Adding EN signal on $flatten\u_fault_LED.$procdff$1076 ($adff) from module pmic_top (D = $flatten\u_fault_LED.$../Build/pmic_full.v:672$not$213_Y, Q = \u_fault_LED.blink).
-Adding EN signal on $flatten\u_hiccup_timer.$procdff$1126 ($adff) from module pmic_top (D = $flatten\u_hiccup_timer.$0\hiccup_done[0:0], Q = \u_hiccup_timer.hiccup_done).
-Adding EN signal on $flatten\u_hiccup_timer.$procdff$1131 ($adff) from module pmic_top (D = $flatten\u_hiccup_timer.$0\cool_counter[21:0], Q = \u_hiccup_timer.cool_counter).
-Adding EN signal on $flatten\u_en_from_switch_db.$procdff$1031 ($adff) from module pmic_top (D = \u_en_from_switch_sync.sync_out, Q = \u_en_from_switch_db.flag_out).
-Adding EN signal on $flatten\u_OTP_sync_db.$procdff$1271 ($adff) from module pmic_top (D = \u_otp_sync.sync_out, Q = \u_OTP_sync_db.flag_out).
-Adding EN signal on $flatten\u_OTP_sync_db.$procdff$1276 ($adff) from module pmic_top (D = $flatten\u_OTP_sync_db.$0\disagree_counter[15:0], Q = \u_OTP_sync_db.disagree_counter).
-Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$1271 ($adff) from module pmic_top (D = \u_uvlo_sync.sync_out, Q = \u_UVLO_sync_db.flag_out).
-Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$1276 ($adff) from module pmic_top (D = $flatten\u_UVLO_sync_db.$0\disagree_counter[15:0], Q = \u_UVLO_sync_db.disagree_counter).
-Adding EN signal on $flatten\u_soft_start.$procdff$1251 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\max_on_counts[6:0], Q = \u_soft_start.max_on_counts).
-Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$1271 ($adff) from module pmic_top (D = \u_latch_stat_sync.sync_out, Q = \u_latch_stat_sync_db.flag_out).
-Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$1276 ($adff) from module pmic_top (D = $flatten\u_latch_stat_sync_db.$0\disagree_counter[15:0], Q = \u_latch_stat_sync_db.disagree_counter).
-Adding EN signal on $flatten\u_soft_start.$procdff$1261 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\cycle_counter[6:0], Q = \u_soft_start.cycle_counter).
-Adding EN signal on $flatten\u_soft_start.$procdff$1256 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\SS_done[0:0], Q = \u_soft_start.SS_done).
-Adding EN signal on $flatten\u_fault_arbiter.$procdff$1136 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$procmux$959_Y, Q = \u_fault_arbiter.fault_shifter_SS).
-Adding EN signal on $flatten\u_fault_arbiter.$procdff$1141 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$0\fault_shifter_RUN[15:0], Q = \u_fault_arbiter.fault_shifter_RUN).
-Adding EN signal on $flatten\u_pgood_gen.$procdff$1091 ($adff) from module pmic_top (D = $flatten\u_pgood_gen.$0\qualify_counter[11:0], Q = \u_pgood_gen.qualify_counter).
-Adding EN signal on $flatten\u_strike_counter.$procdff$1101 ($adff) from module pmic_top (D = $flatten\u_strike_counter.$0\clean_counter[18:0], Q = \u_strike_counter.clean_counter).
-Adding EN signal on $flatten\u_strike_counter.$procdff$1106 ($adff) from module pmic_top (D = $flatten\u_strike_counter.$0\strike_level[1:0], Q = \u_strike_counter.strike_level).
-Adding EN signal on $flatten\u_pwm_mask.$procdff$1241 ($adff) from module pmic_top (D = $flatten\u_pwm_mask.$0\run_counter[6:0], Q = \u_pwm_mask.run_counter).
-Adding EN signal on $flatten\u_fault_arbiter.$procdff$1151 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$procmux$935_Y, Q = \u_fault_arbiter.fault_count_ss).
-Adding EN signal on $flatten\u_fault_arbiter.$procdff$1146 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$0\fault_count_run[4:0], Q = \u_fault_arbiter.fault_count_run).
+Adding EN signal on $flatten\u_en_from_switch_db.$procdff$1034 ($adff) from module pmic_top (D = $flatten\u_en_from_switch_db.$0\disagree_counter[19:0], Q = \u_en_from_switch_db.disagree_counter).
+Adding EN signal on $flatten\u_strike_counter.$procdff$1109 ($adff) from module pmic_top (D = 1'1, Q = \u_strike_counter.latch_assert).
+Adding EN signal on $flatten\u_fault_LED.$procdff$1074 ($adff) from module pmic_top (D = $flatten\u_fault_LED.$../Build/pmic_full.v:672$not$213_Y, Q = \u_fault_LED.blink).
+Adding EN signal on $flatten\u_hiccup_timer.$procdff$1124 ($adff) from module pmic_top (D = $flatten\u_hiccup_timer.$0\hiccup_done[0:0], Q = \u_hiccup_timer.hiccup_done).
+Adding EN signal on $flatten\u_hiccup_timer.$procdff$1129 ($adff) from module pmic_top (D = $flatten\u_hiccup_timer.$0\cool_counter[21:0], Q = \u_hiccup_timer.cool_counter).
+Adding EN signal on $flatten\u_en_from_switch_db.$procdff$1029 ($adff) from module pmic_top (D = \u_en_from_switch_sync.sync_out, Q = \u_en_from_switch_db.flag_out).
+Adding EN signal on $flatten\u_OTP_sync_db.$procdff$1269 ($adff) from module pmic_top (D = \u_otp_sync.sync_out, Q = \u_OTP_sync_db.flag_out).
+Adding EN signal on $flatten\u_OTP_sync_db.$procdff$1274 ($adff) from module pmic_top (D = $flatten\u_OTP_sync_db.$0\disagree_counter[15:0], Q = \u_OTP_sync_db.disagree_counter).
+Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$1269 ($adff) from module pmic_top (D = \u_uvlo_sync.sync_out, Q = \u_UVLO_sync_db.flag_out).
+Adding EN signal on $flatten\u_UVLO_sync_db.$procdff$1274 ($adff) from module pmic_top (D = $flatten\u_UVLO_sync_db.$0\disagree_counter[15:0], Q = \u_UVLO_sync_db.disagree_counter).
+Adding EN signal on $flatten\u_soft_start.$procdff$1249 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\max_on_counts[6:0], Q = \u_soft_start.max_on_counts).
+Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$1269 ($adff) from module pmic_top (D = \u_latch_stat_sync.sync_out, Q = \u_latch_stat_sync_db.flag_out).
+Adding EN signal on $flatten\u_latch_stat_sync_db.$procdff$1274 ($adff) from module pmic_top (D = $flatten\u_latch_stat_sync_db.$0\disagree_counter[15:0], Q = \u_latch_stat_sync_db.disagree_counter).
+Adding EN signal on $flatten\u_soft_start.$procdff$1259 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\cycle_counter[6:0], Q = \u_soft_start.cycle_counter).
+Adding EN signal on $flatten\u_soft_start.$procdff$1254 ($adff) from module pmic_top (D = $flatten\u_soft_start.$0\SS_done[0:0], Q = \u_soft_start.SS_done).
+Adding EN signal on $flatten\u_fault_arbiter.$procdff$1134 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$procmux$957_Y, Q = \u_fault_arbiter.fault_shifter_SS).
+Adding EN signal on $flatten\u_fault_arbiter.$procdff$1139 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$0\fault_shifter_RUN[15:0], Q = \u_fault_arbiter.fault_shifter_RUN).
+Adding EN signal on $flatten\u_pgood_gen.$procdff$1089 ($adff) from module pmic_top (D = $flatten\u_pgood_gen.$0\qualify_counter[11:0], Q = \u_pgood_gen.qualify_counter).
+Adding EN signal on $flatten\u_strike_counter.$procdff$1099 ($adff) from module pmic_top (D = $flatten\u_strike_counter.$0\clean_counter[18:0], Q = \u_strike_counter.clean_counter).
+Adding EN signal on $flatten\u_strike_counter.$procdff$1104 ($adff) from module pmic_top (D = $flatten\u_strike_counter.$0\strike_level[1:0], Q = \u_strike_counter.strike_level).
+Adding EN signal on $flatten\u_pwm_mask.$procdff$1239 ($adff) from module pmic_top (D = $flatten\u_pwm_mask.$0\run_counter[6:0], Q = \u_pwm_mask.run_counter).
+Adding EN signal on $flatten\u_fault_arbiter.$procdff$1149 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$procmux$933_Y, Q = \u_fault_arbiter.fault_count_ss).
+Adding EN signal on $flatten\u_fault_arbiter.$procdff$1144 ($adff) from module pmic_top (D = $flatten\u_fault_arbiter.$0\fault_count_run[4:0], Q = \u_fault_arbiter.fault_count_run).
 
 4.10.7. Executing OPT_CLEAN pass (remove unused cells and wires).
 Finding unused cells or wires in module \pmic_top..
@@ -1023,19 +1018,19 @@ Optimizing module pmic_top.
 4.10.23. Finished fast OPT passes. (There is nothing left to do.)
 
 4.11. Executing WREDUCE pass (reducing word size of cells).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1385 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1392 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1400 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1404 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1415 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1420 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1425 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1383 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1390 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1398 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1402 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1413 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1418 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1423 ($ne).
+Removed top 2 bits (of 3) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1425 ($ne).
 Removed top 2 bits (of 3) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1427 ($ne).
-Removed top 2 bits (of 3) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1429 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1441 ($ne).
-Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1461 ($ne).
-Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717 ($add).
-Removed top 12 bits (of 32) from port Y of cell pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717 ($add).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1439 ($ne).
+Removed top 1 bits (of 2) from port B of cell pmic_top.$auto$simple.cc:200:make_patterns_logic$1459 ($ne).
+Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715 ($add).
+Removed top 12 bits (of 32) from port Y of cell pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715 ($add).
 Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18 ($add).
 Removed top 16 bits (of 32) from port Y of cell pmic_top.$flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18 ($add).
 Removed top 31 bits (of 32) from port B of cell pmic_top.$flatten\u_UVLO_sync_db.$../Build/pmic_full.v:97$add$18 ($add).
@@ -1075,7 +1070,7 @@ Removed top 16 bits (of 32) from wire pmic_top.$flatten\u_UVLO_sync_db.$../Build
 Removed top 25 bits (of 32) from wire pmic_top.$flatten\u_pwm_mask.$../Build/pmic_full.v:232$add$50_Y.
 Removed top 10 bits (of 32) from wire pmic_top.$flatten\u_hiccup_timer.$../Build/pmic_full.v:432$add$156_Y.
 Removed top 16 bits (of 32) from wire pmic_top.$flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18_Y.
-Removed top 12 bits (of 32) from wire pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717_Y.
+Removed top 12 bits (of 32) from wire pmic_top.$flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715_Y.
 Removed top 13 bits (of 32) from wire pmic_top.$flatten\u_strike_counter.$../Build/pmic_full.v:513$add$177_Y.
 Removed top 20 bits (of 32) from wire pmic_top.$flatten\u_pgood_gen.$../Build/pmic_full.v:570$add$192_Y.
 Removed top 30 bits (of 32) from wire pmic_top.$flatten\u_strike_counter.$../Build/pmic_full.v:498$add$168_Y.
@@ -1105,12 +1100,12 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $macc model for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:97$add$18 ($add).
   creating $macc model for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$sub$16 ($sub).
   creating $macc model for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18 ($add).
-  creating $macc model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717 ($add).
+  creating $macc model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715 ($add).
   creating $macc model for $flatten\u_strike_counter.$../Build/pmic_full.v:498$add$168 ($add).
   creating $macc model for $flatten\u_hiccup_timer.$../Build/pmic_full.v:432$add$156 ($add).
   merging $macc model for $flatten\u_fault_arbiter.$../Build/pmic_full.v:343$add$130 into $flatten\u_fault_arbiter.$../Build/pmic_full.v:343$sub$131.
   merging $macc model for $flatten\u_fault_arbiter.$../Build/pmic_full.v:339$add$119 into $flatten\u_fault_arbiter.$../Build/pmic_full.v:339$sub$120.
-  creating $alu model for $macc $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717.
+  creating $alu model for $macc $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715.
   creating $alu model for $macc $flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18.
   creating $alu model for $macc $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$sub$16.
   creating $alu model for $macc $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:97$add$18.
@@ -1125,8 +1120,8 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu model for $macc $flatten\u_pwm_mask.$../Build/pmic_full.v:232$add$50.
   creating $alu model for $macc $flatten\u_fault_LED.$../Build/pmic_full.v:675$add$214.
   creating $alu model for $macc $flatten\u_soft_start.$../Build/pmic_full.v:177$add$37.
-  creating $macc cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:343$sub$131: $auto$alumacc.cc:427:replace_macc$1487
-  creating $macc cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:339$sub$120: $auto$alumacc.cc:427:replace_macc$1488
+  creating $macc cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:343$sub$131: $auto$alumacc.cc:427:replace_macc$1485
+  creating $macc cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:339$sub$120: $auto$alumacc.cc:427:replace_macc$1486
   creating $alu model for $flatten\u_soft_start.$../Build/pmic_full.v:179$ge$38 ($ge): new $alu
   creating $alu model for $flatten\u_pwm_mask.$../Build/pmic_full.v:231$lt$49 ($lt): new $alu
   creating $alu model for $flatten\u_fault_arbiter.$../Build/pmic_full.v:359$ge$140 ($ge): new $alu
@@ -1137,33 +1132,33 @@ Extracting $alu and $macc cells in module pmic_top:
   creating $alu model for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:104$ge$23 ($ge): merged with $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:96$lt$17.
   creating $alu model for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$lt$17 ($lt): new $alu
   creating $alu model for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:104$ge$23 ($ge): merged with $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$lt$17.
-  creating $alu model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$716 ($lt): new $alu
-  creating $alu model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$ge$722 ($ge): merged with $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$716.
+  creating $alu model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$714 ($lt): new $alu
+  creating $alu model for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$ge$720 ($ge): merged with $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$714.
   creating $alu model for $flatten\u_strike_counter.$../Build/pmic_full.v:499$ge$170 ($ge): new $alu
-  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:499$ge$170: $auto$alumacc.cc:578:replace_alu$1498
-  creating $alu cell for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$716, $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$ge$722: $auto$alumacc.cc:578:replace_alu$1511
-  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_OTP_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1524
-  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1537
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1550
-  creating $alu cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:364$ge$142: $auto$alumacc.cc:578:replace_alu$1563
-  creating $alu cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:359$ge$140: $auto$alumacc.cc:578:replace_alu$1576
-  creating $alu cell for $flatten\u_pwm_mask.$../Build/pmic_full.v:231$lt$49: $auto$alumacc.cc:578:replace_alu$1589
-  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:179$ge$38: $auto$alumacc.cc:578:replace_alu$1594
-  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:177$add$37: $auto$alumacc.cc:578:replace_alu$1607
-  creating $alu cell for $flatten\u_fault_LED.$../Build/pmic_full.v:675$add$214: $auto$alumacc.cc:578:replace_alu$1610
-  creating $alu cell for $flatten\u_pwm_mask.$../Build/pmic_full.v:232$add$50: $auto$alumacc.cc:578:replace_alu$1613
-  creating $alu cell for $flatten\u_hiccup_timer.$../Build/pmic_full.v:432$add$156: $auto$alumacc.cc:578:replace_alu$1616
-  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:498$add$168: $auto$alumacc.cc:578:replace_alu$1619
-  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:185$add$43: $auto$alumacc.cc:578:replace_alu$1622
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1625
-  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1628
-  creating $alu cell for $flatten\u_pgood_gen.$../Build/pmic_full.v:570$add$192: $auto$alumacc.cc:578:replace_alu$1631
-  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:513$add$177: $auto$alumacc.cc:578:replace_alu$1634
-  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1637
-  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1640
-  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1643
-  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1646
-  creating $alu cell for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$717: $auto$alumacc.cc:578:replace_alu$1649
+  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:499$ge$170: $auto$alumacc.cc:578:replace_alu$1496
+  creating $alu cell for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:96$lt$714, $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$ge$720: $auto$alumacc.cc:578:replace_alu$1509
+  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_OTP_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1522
+  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1535
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:96$lt$17, $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:104$ge$23: $auto$alumacc.cc:578:replace_alu$1548
+  creating $alu cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:364$ge$142: $auto$alumacc.cc:578:replace_alu$1561
+  creating $alu cell for $flatten\u_fault_arbiter.$../Build/pmic_full.v:359$ge$140: $auto$alumacc.cc:578:replace_alu$1574
+  creating $alu cell for $flatten\u_pwm_mask.$../Build/pmic_full.v:231$lt$49: $auto$alumacc.cc:578:replace_alu$1587
+  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:179$ge$38: $auto$alumacc.cc:578:replace_alu$1592
+  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:177$add$37: $auto$alumacc.cc:578:replace_alu$1605
+  creating $alu cell for $flatten\u_fault_LED.$../Build/pmic_full.v:675$add$214: $auto$alumacc.cc:578:replace_alu$1608
+  creating $alu cell for $flatten\u_pwm_mask.$../Build/pmic_full.v:232$add$50: $auto$alumacc.cc:578:replace_alu$1611
+  creating $alu cell for $flatten\u_hiccup_timer.$../Build/pmic_full.v:432$add$156: $auto$alumacc.cc:578:replace_alu$1614
+  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:498$add$168: $auto$alumacc.cc:578:replace_alu$1617
+  creating $alu cell for $flatten\u_soft_start.$../Build/pmic_full.v:185$add$43: $auto$alumacc.cc:578:replace_alu$1620
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1623
+  creating $alu cell for $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1626
+  creating $alu cell for $flatten\u_pgood_gen.$../Build/pmic_full.v:570$add$192: $auto$alumacc.cc:578:replace_alu$1629
+  creating $alu cell for $flatten\u_strike_counter.$../Build/pmic_full.v:513$add$177: $auto$alumacc.cc:578:replace_alu$1632
+  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1635
+  creating $alu cell for $flatten\u_UVLO_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1638
+  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:96$sub$16: $auto$alumacc.cc:578:replace_alu$1641
+  creating $alu cell for $flatten\u_OTP_sync_db.$../Build/pmic_full.v:97$add$18: $auto$alumacc.cc:578:replace_alu$1644
+  creating $alu cell for $flatten\u_en_from_switch_db.$../Build/pmic_full.v:97$add$715: $auto$alumacc.cc:578:replace_alu$1647
   created 24 $alu and 2 $macc cells.
 
 4.15. Executing SHARE pass (SAT-based resource sharing).
@@ -1557,35 +1552,35 @@ Removed 269 unused cells and 1747 unused wires.
 
 4.24.1. Summary of detected clock domains:
   20 cells in clk={ }, en={ }, arst={ }, srst={ }
-  11 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1387, arst=!\rst_sync.rst_n_exit, srst={ }
+  11 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1385, arst=!\rst_sync.rst_n_exit, srst={ }
   2 cells in clk=\clk, en={ }, arst=!\rst_n_pin, srst={ }
   4 cells in clk=\clk, en=$flatten\u_fault_LED.$../Build/pmic_full.v:670$eq$212_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  5 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1391, arst=!\rst_sync.rst_n_exit, srst={ }
-  19 cells in clk=\clk, en=$flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$logic_and$723_Y, arst=!\rst_sync.rst_n_exit, srst={ }
+  5 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1389, arst=!\rst_sync.rst_n_exit, srst={ }
+  19 cells in clk=\clk, en=$flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$logic_and$721_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   20 cells in clk=\clk, en=$flatten\u_OTP_sync_db.$../Build/pmic_full.v:104$logic_and$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   20 cells in clk=\clk, en=$flatten\u_UVLO_sync_db.$../Build/pmic_full.v:104$logic_and$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
   21 cells in clk=\clk, en=$flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:104$logic_and$24_Y, arst=!\rst_sync.rst_n_exit, srst={ }
-  23 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1430, arst=!\rst_sync.rst_n_exit, srst={ }
-  120 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1384, arst=!\rst_sync.rst_n_exit, srst={ }
-  116 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1394, arst=!\rst_sync.rst_n_exit, srst={ }
-  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1399, arst=!\rst_sync.rst_n_exit, srst={ }
-  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1403, arst=!\rst_sync.rst_n_exit, srst={ }
-  52 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1410, arst=!\rst_sync.rst_n_exit, srst={ }
-  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1414, arst=!\rst_sync.rst_n_exit, srst={ }
-  34 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1421, arst=!\rst_sync.rst_n_exit, srst={ }
-  76 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1447, arst=!\rst_sync.rst_n_exit, srst={ }
-  126 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1454, arst=!\rst_sync.rst_n_exit, srst={ }
-  21 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1457, arst=!\rst_sync.rst_n_exit, srst={ }
-  52 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1460, arst=!\rst_sync.rst_n_exit, srst={ }
-  117 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1437, arst=!\rst_sync.rst_n_exit, srst={ }
-  77 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1444, arst=!\rst_sync.rst_n_exit, srst={ }
+  23 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1428, arst=!\rst_sync.rst_n_exit, srst={ }
+  120 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1382, arst=!\rst_sync.rst_n_exit, srst={ }
+  116 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1392, arst=!\rst_sync.rst_n_exit, srst={ }
+  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1397, arst=!\rst_sync.rst_n_exit, srst={ }
+  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1401, arst=!\rst_sync.rst_n_exit, srst={ }
+  52 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1408, arst=!\rst_sync.rst_n_exit, srst={ }
+  103 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1412, arst=!\rst_sync.rst_n_exit, srst={ }
+  34 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1419, arst=!\rst_sync.rst_n_exit, srst={ }
+  76 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1445, arst=!\rst_sync.rst_n_exit, srst={ }
+  126 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1452, arst=!\rst_sync.rst_n_exit, srst={ }
+  21 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1455, arst=!\rst_sync.rst_n_exit, srst={ }
+  52 cells in clk=\clk, en=$auto$simple.cc:199:make_patterns_logic$1458, arst=!\rst_sync.rst_n_exit, srst={ }
+  117 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1435, arst=!\rst_sync.rst_n_exit, srst={ }
+  77 cells in clk=\clk, en=$auto$simple.cc:216:make_patterns_logic$1442, arst=!\rst_sync.rst_n_exit, srst={ }
   327 cells in clk=\clk, en={ }, arst=!\rst_sync.rst_n_exit, srst={ }
 
 4.24.2. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 No matching clock domain found. Not extracting any FF cells.
 
 4.24.3. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1387, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1385, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.3.1. Executed ABC.
 Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
@@ -1599,10 +1594,10 @@ Found matching posedge clock domain: \clk, asynchronously reset by !\rst_n_pin
 Found matching posedge clock domain: \clk, enabled by $flatten\u_fault_LED.$../Build/pmic_full.v:670$eq$212_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.6. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1391, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1389, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.7. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$logic_and$723_Y, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $flatten\u_en_from_switch_db.$../Build/pmic_full.v:104$logic_and$721_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.8. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
 Found matching posedge clock domain: \clk, enabled by $flatten\u_OTP_sync_db.$../Build/pmic_full.v:104$logic_and$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
@@ -1614,24 +1609,30 @@ Found matching posedge clock domain: \clk, enabled by $flatten\u_UVLO_sync_db.$.
 Found matching posedge clock domain: \clk, enabled by $flatten\u_latch_stat_sync_db.$../Build/pmic_full.v:104$logic_and$24_Y, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.11. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1430, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1428, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.12. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1384, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1382, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.13. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1394, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1392, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.14. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1399, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1397, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.15. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1403, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1401, asynchronously reset by !\rst_sync.rst_n_exit
 
 4.24.16. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1410, asynchronously reset by !\rst_sync.rst_n_exit
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1408, asynchronously reset by !\rst_sync.rst_n_exit
 
-4.24.16.1. Executed ABC.
+4.24.17. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1412, asynchronously reset by !\rst_sync.rst_n_exit
+
+4.24.18. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1419, asynchronously reset by !\rst_sync.rst_n_exit
+
+4.24.18.1. Executed ABC.
 Extracted 10 gates and 19 wires to a netlist network with 9 inputs and 7 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1656,7 +1657,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.16.2. Re-integrating ABC results.
+4.24.18.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        5
@@ -1666,18 +1667,15 @@ ABC RESULTS:           input signals:        9
 ABC RESULTS:          output signals:        7
 Removing temp directory.
 
-4.24.16.1. Executed ABC.
+4.24.18.1. Executed ABC.
 Extracted 0 gates and 0 wires to a netlist network with 0 inputs and 0 outputs.
 Don't call ABC as there is nothing to map.
 Removing temp directory.
 
-4.24.17. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1414, asynchronously reset by !\rst_sync.rst_n_exit
+4.24.19. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1445, asynchronously reset by !\rst_sync.rst_n_exit
 
-4.24.18. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1421, asynchronously reset by !\rst_sync.rst_n_exit
-
-4.24.18.1. Executed ABC.
+4.24.19.1. Executed ABC.
 Extracted 3 gates and 6 wires to a netlist network with 3 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1702,7 +1700,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.18.2. Re-integrating ABC results.
+4.24.19.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:               NOT cells:        2
 ABC RESULTS:        internal signals:        0
@@ -1710,7 +1708,10 @@ ABC RESULTS:           input signals:        3
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-4.24.18.1. Executed ABC.
+4.24.20. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1452, asynchronously reset by !\rst_sync.rst_n_exit
+
+4.24.20.1. Executed ABC.
 Extracted 4 gates and 8 wires to a netlist network with 4 inputs and 3 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1735,7 +1736,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.18.2. Re-integrating ABC results.
+4.24.20.2. Re-integrating ABC results.
 ABC RESULTS:               NOT cells:        1
 ABC RESULTS:                OR cells:        1
 ABC RESULTS:             ORNOT cells:        1
@@ -1744,10 +1745,10 @@ ABC RESULTS:           input signals:        4
 ABC RESULTS:          output signals:        3
 Removing temp directory.
 
-4.24.19. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1447, asynchronously reset by !\rst_sync.rst_n_exit
+4.24.21. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1455, asynchronously reset by !\rst_sync.rst_n_exit
 
-4.24.19.1. Executed ABC.
+4.24.21.1. Executed ABC.
 Extracted 18 gates and 35 wires to a netlist network with 17 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1772,7 +1773,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.19.2. Re-integrating ABC results.
+4.24.21.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       13
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        1
@@ -1781,7 +1782,10 @@ ABC RESULTS:           input signals:       17
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-4.24.19.1. Executed ABC.
+4.24.22. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1458, asynchronously reset by !\rst_sync.rst_n_exit
+
+4.24.22.1. Executed ABC.
 Extracted 19 gates and 37 wires to a netlist network with 18 inputs and 10 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1806,7 +1810,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.19.2. Re-integrating ABC results.
+4.24.22.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       11
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        1
@@ -1816,7 +1820,7 @@ ABC RESULTS:           input signals:       18
 ABC RESULTS:          output signals:       10
 Removing temp directory.
 
-4.24.19.1. Executed ABC.
+4.24.22.1. Executed ABC.
 Extracted 19 gates and 37 wires to a netlist network with 18 inputs and 10 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1841,7 +1845,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.19.2. Re-integrating ABC results.
+4.24.22.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       11
 ABC RESULTS:              NAND cells:        2
 ABC RESULTS:               NOT cells:        1
@@ -1851,7 +1855,7 @@ ABC RESULTS:           input signals:       18
 ABC RESULTS:          output signals:       10
 Removing temp directory.
 
-4.24.19.1. Executed ABC.
+4.24.22.1. Executed ABC.
 Extracted 20 gates and 39 wires to a netlist network with 19 inputs and 11 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: UC Berkeley, ABC 1.01 (compiled Oct 27 2026 14:44:30)
@@ -1876,7 +1880,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.19.2. Re-integrating ABC results.
+4.24.22.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       11
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -1887,7 +1891,7 @@ ABC RESULTS:           input signals:       19
 ABC RESULTS:          output signals:       11
 Removing temp directory.
 
-4.24.19.1. Executed ABC.
+4.24.22.1. Executed ABC.
 Extracted 22 gates and 39 wires to a netlist network with 17 inputs and 5 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -1911,7 +1915,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.19.2. Re-integrating ABC results.
+4.24.22.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        6
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:              NAND cells:        2
@@ -1923,11 +1927,48 @@ ABC RESULTS:           input signals:       17
 ABC RESULTS:          output signals:        5
 Removing temp directory.
 
-4.24.20. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1454, asynchronously reset by !\rst_sync.rst_n_exit
+4.24.23. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1435, asynchronously reset by !\rst_sync.rst_n_exit
 
-4.24.20.1. Executed ABC.
+4.24.23.1. Executed ABC.
 Extracted 100 gates and 127 wires to a netlist network with 26 inputs and 34 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+ABC: empty
+ABC: abc 07> source <abc-temp-dir>/abc.script
+ABC: + read_blif <abc-temp-dir>/input.blif 
+ABC: + read_library <abc-temp-dir>/stdcells.genlib 
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &fraig -x 
+ABC: + &put 
+ABC: + scorr 
+ABC: Warning: The network is combinational (run "fraig" or "fraig_sweep").
+ABC: + dc2 
+ABC: + dretime 
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &dch -f 
+ABC: + &nf 
+ABC: + &put 
+ABC: + write_blif <abc-temp-dir>/output.blif 
+ABC: 
+ABC: YOSYS_ABC_DONE 
+
+4.24.23.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:       44
+ABC RESULTS:            ANDNOT cells:       19
+ABC RESULTS:              NAND cells:        9
+ABC RESULTS:               NOR cells:        2
+ABC RESULTS:               NOT cells:        7
+ABC RESULTS:                OR cells:       21
+ABC RESULTS:             ORNOT cells:        2
+ABC RESULTS:        internal signals:       67
+ABC RESULTS:           input signals:       26
+ABC RESULTS:          output signals:       34
+Removing temp directory.
+
+4.24.23.1. Executed ABC.
+Extracted 94 gates and 129 wires to a netlist network with 34 inputs and 24 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
 ABC: abc 13> source <abc-temp-dir>/abc.script
@@ -1950,44 +1991,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.20.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:       44
-ABC RESULTS:            ANDNOT cells:       19
-ABC RESULTS:              NAND cells:        9
-ABC RESULTS:               NOR cells:        2
-ABC RESULTS:               NOT cells:        7
-ABC RESULTS:                OR cells:       21
-ABC RESULTS:             ORNOT cells:        2
-ABC RESULTS:        internal signals:       67
-ABC RESULTS:           input signals:       26
-ABC RESULTS:          output signals:       34
-Removing temp directory.
-
-4.24.20.1. Executed ABC.
-Extracted 94 gates and 129 wires to a netlist network with 34 inputs and 24 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-ABC: empty
-ABC: abc 07> source <abc-temp-dir>/abc.script
-ABC: + read_blif <abc-temp-dir>/input.blif 
-ABC: + read_library <abc-temp-dir>/stdcells.genlib 
-ABC: + strash 
-ABC: + &get -n 
-ABC: + &fraig -x 
-ABC: + &put 
-ABC: + scorr 
-ABC: Warning: The network is combinational (run "fraig" or "fraig_sweep").
-ABC: + dc2 
-ABC: + dretime 
-ABC: + strash 
-ABC: + &get -n 
-ABC: + &dch -f 
-ABC: + &nf 
-ABC: + &put 
-ABC: + write_blif <abc-temp-dir>/output.blif 
-ABC: 
-ABC: YOSYS_ABC_DONE 
-
-4.24.20.2. Re-integrating ABC results.
+4.24.23.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       40
 ABC RESULTS:            ANDNOT cells:        1
 ABC RESULTS:               MUX cells:        2
@@ -2003,7 +2007,7 @@ ABC RESULTS:           input signals:       34
 ABC RESULTS:          output signals:       24
 Removing temp directory.
 
-4.24.20.1. Executed ABC.
+4.24.23.1. Executed ABC.
 Extracted 87 gates and 114 wires to a netlist network with 26 inputs and 28 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2027,7 +2031,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.20.2. Re-integrating ABC results.
+4.24.23.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       36
 ABC RESULTS:            ANDNOT cells:       13
 ABC RESULTS:              NAND cells:       10
@@ -2042,7 +2046,7 @@ ABC RESULTS:           input signals:       26
 ABC RESULTS:          output signals:       28
 Removing temp directory.
 
-4.24.20.1. Executed ABC.
+4.24.23.1. Executed ABC.
 Extracted 87 gates and 114 wires to a netlist network with 26 inputs and 28 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2066,7 +2070,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.20.2. Re-integrating ABC results.
+4.24.23.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       36
 ABC RESULTS:            ANDNOT cells:       13
 ABC RESULTS:              NAND cells:       10
@@ -2081,7 +2085,10 @@ ABC RESULTS:           input signals:       26
 ABC RESULTS:          output signals:       28
 Removing temp directory.
 
-4.24.20.1. Executed ABC.
+4.24.24. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1442, asynchronously reset by !\rst_sync.rst_n_exit
+
+4.24.24.1. Executed ABC.
 Extracted 45 gates and 59 wires to a netlist network with 12 inputs and 18 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2105,7 +2112,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.20.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        9
 ABC RESULTS:            ANDNOT cells:        3
 ABC RESULTS:              NAND cells:        2
@@ -2119,10 +2126,7 @@ ABC RESULTS:           input signals:       12
 ABC RESULTS:          output signals:       18
 Removing temp directory.
 
-4.24.21. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1457, asynchronously reset by !\rst_sync.rst_n_exit
-
-4.24.21.1. Executed ABC.
+4.24.24.1. Executed ABC.
 Extracted 87 gates and 114 wires to a netlist network with 26 inputs and 28 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2146,7 +2150,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.21.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       36
 ABC RESULTS:            ANDNOT cells:       13
 ABC RESULTS:              NAND cells:       10
@@ -2161,46 +2165,8 @@ ABC RESULTS:           input signals:       26
 ABC RESULTS:          output signals:       28
 Removing temp directory.
 
-4.24.21.1. Executed ABC.
+4.24.24.1. Executed ABC.
 Extracted 27 gates and 39 wires to a netlist network with 11 inputs and 9 outputs.
-Running ABC script: <abc-temp-dir>/abc.script
-ABC: empty
-ABC: abc 13> source <abc-temp-dir>/abc.script
-ABC: + read_blif <abc-temp-dir>/input.blif 
-ABC: + read_library <abc-temp-dir>/stdcells.genlib 
-ABC: + strash 
-ABC: + &get -n 
-ABC: + &fraig -x 
-ABC: + &put 
-ABC: + scorr 
-ABC: Warning: The network is combinational (run "fraig" or "fraig_sweep").
-ABC: + dc2 
-ABC: + dretime 
-ABC: + strash 
-ABC: + &get -n 
-ABC: + &dch -f 
-ABC: + &nf 
-ABC: + &put 
-ABC: + write_blif <abc-temp-dir>/output.blif 
-ABC: 
-ABC: YOSYS_ABC_DONE 
-
-4.24.21.2. Re-integrating ABC results.
-ABC RESULTS:               AND cells:        6
-ABC RESULTS:            ANDNOT cells:        1
-ABC RESULTS:              NAND cells:        2
-ABC RESULTS:               NOR cells:        1
-ABC RESULTS:               NOT cells:        1
-ABC RESULTS:                OR cells:        1
-ABC RESULTS:              XNOR cells:        1
-ABC RESULTS:               XOR cells:        5
-ABC RESULTS:        internal signals:       19
-ABC RESULTS:           input signals:       11
-ABC RESULTS:          output signals:        9
-Removing temp directory.
-
-4.24.21.1. Executed ABC.
-Extracted 64 gates and 82 wires to a netlist network with 16 inputs and 22 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
 ABC: abc 07> source <abc-temp-dir>/abc.script
@@ -2223,7 +2189,45 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.21.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
+ABC RESULTS:               AND cells:        6
+ABC RESULTS:            ANDNOT cells:        1
+ABC RESULTS:              NAND cells:        2
+ABC RESULTS:               NOR cells:        1
+ABC RESULTS:               NOT cells:        1
+ABC RESULTS:                OR cells:        1
+ABC RESULTS:              XNOR cells:        1
+ABC RESULTS:               XOR cells:        5
+ABC RESULTS:        internal signals:       19
+ABC RESULTS:           input signals:       11
+ABC RESULTS:          output signals:        9
+Removing temp directory.
+
+4.24.24.1. Executed ABC.
+Extracted 64 gates and 82 wires to a netlist network with 16 inputs and 22 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+ABC: empty
+ABC: abc 13> source <abc-temp-dir>/abc.script
+ABC: + read_blif <abc-temp-dir>/input.blif 
+ABC: + read_library <abc-temp-dir>/stdcells.genlib 
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &fraig -x 
+ABC: + &put 
+ABC: + scorr 
+ABC: Warning: The network is combinational (run "fraig" or "fraig_sweep").
+ABC: + dc2 
+ABC: + dretime 
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &dch -f 
+ABC: + &nf 
+ABC: + &put 
+ABC: + write_blif <abc-temp-dir>/output.blif 
+ABC: 
+ABC: YOSYS_ABC_DONE 
+
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       23
 ABC RESULTS:            ANDNOT cells:        4
 ABC RESULTS:              NAND cells:       10
@@ -2237,7 +2241,7 @@ ABC RESULTS:           input signals:       16
 ABC RESULTS:          output signals:       22
 Removing temp directory.
 
-4.24.21.1. Executed ABC.
+4.24.24.1. Executed ABC.
 Extracted 107 gates and 134 wires to a netlist network with 26 inputs and 22 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2261,7 +2265,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.21.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       49
 ABC RESULTS:            ANDNOT cells:       17
 ABC RESULTS:              NAND cells:        4
@@ -2274,14 +2278,11 @@ ABC RESULTS:           input signals:       26
 ABC RESULTS:          output signals:       22
 Removing temp directory.
 
-4.24.22. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:199:make_patterns_logic$1460, asynchronously reset by !\rst_sync.rst_n_exit
-
-4.24.22.1. Executed ABC.
+4.24.24.1. Executed ABC.
 Extracted 19 gates and 26 wires to a netlist network with 5 inputs and 16 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
-ABC: abc 25> source <abc-temp-dir>/abc.script
+ABC: abc 19> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
 ABC: + read_library <abc-temp-dir>/stdcells.genlib 
 ABC: + strash 
@@ -2301,7 +2302,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.22.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:        1
 ABC RESULTS:            ANDNOT cells:        3
 ABC RESULTS:               NOR cells:        1
@@ -2314,17 +2315,11 @@ ABC RESULTS:           input signals:        5
 ABC RESULTS:          output signals:       16
 Removing temp directory.
 
-4.24.23. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1437, asynchronously reset by !\rst_sync.rst_n_exit
-
-4.24.24. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, enabled by $auto$simple.cc:216:make_patterns_logic$1444, asynchronously reset by !\rst_sync.rst_n_exit
-
 4.24.24.1. Executed ABC.
 Extracted 45 gates and 60 wires to a netlist network with 15 inputs and 9 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
-ABC: abc 31> source <abc-temp-dir>/abc.script
+ABC: abc 13> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
 ABC: + read_library <abc-temp-dir>/stdcells.genlib 
 ABC: + strash 
@@ -2356,10 +2351,7 @@ ABC RESULTS:           input signals:       15
 ABC RESULTS:          output signals:        9
 Removing temp directory.
 
-4.24.25. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
-Found matching posedge clock domain: \clk, asynchronously reset by !\rst_sync.rst_n_exit
-
-4.24.25.1. Executed ABC.
+4.24.24.1. Executed ABC.
 Extracted 79 gates and 123 wires to a netlist network with 43 inputs and 44 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
@@ -2383,7 +2375,7 @@ ABC: + write_blif <abc-temp-dir>/output.blif
 ABC: 
 ABC: YOSYS_ABC_DONE 
 
-4.24.25.2. Re-integrating ABC results.
+4.24.24.2. Re-integrating ABC results.
 ABC RESULTS:               AND cells:       45
 ABC RESULTS:            ANDNOT cells:        2
 ABC RESULTS:               MUX cells:        1
@@ -2399,11 +2391,14 @@ ABC RESULTS:           input signals:       43
 ABC RESULTS:          output signals:       44
 Removing temp directory.
 
+4.24.25. Extracting gate netlist of module `\pmic_top' to `<abc-temp-dir>/input.blif'..
+Found matching posedge clock domain: \clk, asynchronously reset by !\rst_sync.rst_n_exit
+
 4.24.25.1. Executed ABC.
 Extracted 56 gates and 83 wires to a netlist network with 26 inputs and 27 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
 ABC: empty
-ABC: abc 37> source <abc-temp-dir>/abc.script
+ABC: abc 13> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
 ABC: + read_library <abc-temp-dir>/stdcells.genlib 
 ABC: + strash 
@@ -2574,6 +2569,6 @@ Found and reported 0 problems.
        67   $_XOR_
        20   $scopeinfo
 
-End of script. Logfile hash: a0dbe7039e, time: 1.38s, user: 0.74s, system: 0.22s, MEM: 39.18 MB peak
+End of script. Logfile hash: 7bb1577ffb, time: 1.39s, user: 0.77s, system: 0.20s, MEM: 39.25 MB peak
 Yosys 0.70+240 (git sha1 5cdfd1241, Release, Clang /usr/bin/clang++ 21.1.8)
-Time spent: 59% 1x abc (1 sec), 8% 1x techmap (0 sec), ...
+Time spent: 56% 1x abc (1 sec), 9% 1x techmap (0 sec), ...
