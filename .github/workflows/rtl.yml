@@ -1,18 +1,25 @@
 # Filename:         rtl.yml
 #
 # File Description: Lint, then the full testbench regression, on every pull
-#                   request and on pushes to main.
+#                   request and on pushes to main. `make -C sim ci` and
+#                   `make -C sim ci_notel` run the same steps locally.
 #
-#                   lint        strict Verilator lint over the RTL, elaborated
-#                               from pmic_top so port-width mismatches between
-#                               modules are caught.
-#                   regression  every registered testbench against the
+#                   lint        strict Verilator lint over the RTL in both
+#                               builds (TELEMETRY_EN 1 and 0), elaborated from
+#                               pmic_top so port-width mismatches between
+#                               modules are caught; then a syntax and
+#                               shellcheck pass over the repo's own scripts.
+#                   regression  rtl-verilog proven code-identical to a fresh
+#                               sv2v split (make verilog_check), then every
+#                               registered testbench against the
 #                               SystemVerilog source AND against the sv2v
 #                               output (make equiv_all), with STRICT=1 so a
-#                               zero-hit cover fails the build unless the top
-#                               is listed in INCONCLUSIVE_WAIVERS in
-#                               sim/Makefile. The equiv half is what proves the
-#                               submitted Verilog is the verified design.
+#                               zero-hit cover fails the build. The equiv half
+#                               is what proves the Verilog is the verified
+#                               design.
+#                   notel       the SPI-less build (TELEMETRY_EN=0): the
+#                               integration testbench's pins-only sequence on
+#                               the source and on the converted Verilog.
 #
 #                   Both use Verilator 5.052 built by the setup-hdl action,
 #                   the same version as the local flow. ModelSim plays no
@@ -49,8 +56,12 @@ jobs:
       - name: Set up Verilator
         uses: ./.github/actions/setup-hdl
 
-      - name: Lint the RTL
-        run: make -C sim lint
+      - name: Lint the RTL, both builds
+        run: make -C sim lint_all
+
+      # shellcheck is preinstalled on the GitHub Ubuntu runners.
+      - name: Check the repository's scripts
+        run: make -C sim check_scripts
 
   regression:
     name: Testbench regression (source + converted)
@@ -72,6 +83,11 @@ jobs:
       # logbook already recorded once.
       - name: Convert the RTL with sv2v
         run: make -C sim -B convert
+
+      # A source change committed without `make verilog` fails here, before
+      # any simulation time is spent.
+      - name: Check rtl-verilog is in step with the source
+        run: make -C sim verilog_check
 
       - name: Run every testbench against source and converted RTL
         run: make -C sim -j"$(nproc)" equiv_all STRICT=1 TBBUILD="$RUNNER_TEMP/tbbuild"
@@ -101,3 +117,31 @@ jobs:
             ${{ runner.temp }}/tbbuild/**/result.tsv
           if-no-files-found: ignore
           retention-days: 14
+
+  notel:
+    name: SPI-less build (TELEMETRY_EN=0)
+    needs: lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Verilator and sv2v
+        uses: ./.github/actions/setup-hdl
+        with:
+          sv2v: "true"
+
+      - name: Convert the RTL with sv2v
+        run: make -C sim -B convert
+
+      - name: Integration testbench, source and converted
+        run: make -C sim ci_notel TBBUILD="$RUNNER_TEMP/tbbuild"
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notel-logs
+          path: |
+            ${{ runner.temp }}/tbbuild/**/*.log

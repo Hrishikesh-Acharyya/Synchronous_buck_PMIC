@@ -1,0 +1,84 @@
+# Filename:         full.yml
+#
+# File Description: The long run, on demand (Actions tab > Full regression >
+#                   Run workflow) and weekly on main: everything rtl.yml runs,
+#                   plus the integration testbench under Icarus Verilog in
+#                   both builds (top_both, slow at 50 MHz), generic synthesis
+#                   of both builds, and the two Verilog bundles uploaded as an
+#                   artifact - a ready zip of rtl-verilog and the testbench,
+#                   with and without SPI, from any branch.
+#
+#                   Locally: `make -C sim ci top_both syn syn_notel bundle
+#                   bundle_notel`.
+#
+# Global variables: None
+
+name: Full regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 03:17 UTC. Scheduled runs use the default branch only.
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    name: Everything, both builds, three simulators' worth
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Verilator, sv2v, yosys and Icarus Verilog
+        uses: ./.github/actions/setup-hdl
+        with:
+          sv2v: "true"
+          yosys: "true"
+          iverilog: "true"
+
+      - name: Lint, scripts, rtl-verilog sync, full regression
+        run: make -C sim ci YOSYS=yosys TBBUILD="$RUNNER_TEMP/tbbuild"
+
+      - name: Integration testbench, both builds, all three flows
+        run: make -C sim -j"$(nproc)" top_both TBBUILD="$RUNNER_TEMP/tbbuild"
+
+      - name: Synthesis, both builds
+        run: |
+          make -C sim syn YOSYS=yosys SYNDIR="$RUNNER_TEMP/syn"
+          make -C sim syn_notel YOSYS=yosys SYNDIR="$RUNNER_TEMP/syn"
+
+      - name: Verilog bundles, with and without SPI
+        run: make -C sim bundle bundle_notel
+
+      - name: Upload the bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: verilog-bundles
+          path: Build/*.zip
+
+      - name: Write the results tables to the job summary
+        if: always()
+        run: |
+          {
+            echo '## Results'
+            echo '```'
+            make -C sim report TBBUILD="$RUNNER_TEMP/tbbuild" 2>/dev/null
+            for f in iv sv_notel equiv_notel iv_notel; do
+              bash sim/scripts/report.sh "$RUNNER_TEMP/tbbuild" "$f" pmic_top_tb 2>/dev/null
+            done
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-logs
+          path: |
+            ${{ runner.temp }}/tbbuild/**/*.log
+            ${{ runner.temp }}/tbbuild/**/covers.txt

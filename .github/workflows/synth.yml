@@ -21,6 +21,7 @@ on:
     paths:
       - "rtl-systemverilog/**"
       - "sim/Makefile"
+      - "sim/mk/**"
       - ".github/workflows/synth.yml"
       - ".github/scripts/syn_stats.py"
 
