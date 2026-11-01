@@ -97,6 +97,8 @@ The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types
 | `make verilog_check` | prove `rtl-verilog/` matches a fresh sv2v split |
 | `make split` | just the fresh split, without comments, in `Build/split_raw/` |
 
+The staging folders (`Build/split_raw*`) are scratch: `verilog`, `verilog_check` and `verilog_notel` delete theirs when they succeed and keep it when they fail, so you can diff against it. `KEEP_SPLIT=1` keeps it always.
+
 **After any RTL edit:** `make convert verilog`, review the listed comments, commit `Build/pmic_full.v` and `rtl-verilog/` with the change.
 
 ## SPI-less (TELEMETRY_EN=0) versions, on demand
@@ -120,7 +122,7 @@ Nothing here is committed; each command regenerates its output in `Build/`.
 | `make doctor` | tools found / missing with versions, liberty file, output paths, colour setting |
 | `make tb_clean` | delete testbench build output (`~/build/sync_buck`) |
 | `make syn_clean` | delete conversion and synthesis output |
-| `make clean` | both, plus the split staging trees and bundles |
+| `make clean` | both, plus every generated tree and bundle, and the `Build/package_raw*` folders the old Silicluster flow left behind. Note: like `main`'s version, it also deletes the committed `Build/pmic_full.v` and `Build/stat*.txt` - `make convert syn` brings them back |
 
 ---
 
@@ -141,6 +143,7 @@ Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
 | `LIBERTY=` | sky130 hd tt via volare | liberty file for the area targets |
 | `BASE=` | `origin/main` | revision `syn_compare` compares against |
 | `BUNDLE=` | `sync_buck_pmic` | zip name for `bundle` / `bundle_notel` |
+| `KEEP_SPLIT=1` | 0 | keep the `Build/split_raw*` staging trees after a successful check |
 | `M=` | - | `<group>/<module>` for `new_tb` |
 
 ## CI (GitHub Actions)

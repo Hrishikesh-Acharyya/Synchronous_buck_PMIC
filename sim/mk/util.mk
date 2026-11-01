@@ -44,8 +44,11 @@ new_tb:  ## scaffold tb/<group>/<module>_tb.sv from the template: make new_tb M=
 	@test -n "$(M)" || { $(call err,usage: make new_tb M=group/module); exit 1; }
 	@bash $(SCRIPTS)/new_tb.sh "$(M)"
 
-clean: tb_clean syn_clean  ## remove testbench output and synthesis output
-	rm -rf $(SPLITRAW) $(SPLITRAW_NOTEL) $(V_DIR_NOTEL) $(SYNDIR)/*.zip
+# clean also sweeps the staging trees of the old Silicluster flow
+# (Build/package_raw, Build/package_raw_trimmed), left behind by `make package`.
+clean: tb_clean syn_clean  ## remove testbench output, synthesis output and every generated tree
+	rm -rf $(SPLITRAW) $(SPLITRAW_NOTEL) $(V_DIR_NOTEL) $(SYNDIR)/*.zip \
+	       $(SYNDIR)/package_raw $(SYNDIR)/package_raw_trimmed
 
 # help: every target with a `## description` on its rule line, grouped under
 #       the `##@ heading` before it, in the order the mk files are included.

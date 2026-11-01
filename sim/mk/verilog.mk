@@ -25,6 +25,12 @@
 #                                    for review. rtl-verilog is replaced only
 #                                    if every file succeeds.
 #
+#                   Staging trees are scratch: verilog_check, verilog and
+#                   verilog_notel delete theirs once they succeed, and keep it
+#                   when they fail, because then it is what you diff against
+#                   (KEEP_SPLIT=1 keeps it always). `make split` on its own
+#                   keeps its output - producing it is the point.
+#
 #                   The SPI-less build (TELEMETRY_EN=0) is generated, never
 #                   committed: verilog_notel writes Build/rtl-verilog-notel, the
 #                   same files with the default flipped, and proves it against
@@ -32,7 +38,7 @@
 #                   Verilog tree with the integration testbench, for a shuttle
 #                   or a reviewer.
 #
-# Global variables: SPLITRAW, SPLITRAW_NOTEL, V_DIR_NOTEL, BUNDLE
+# Global variables: SPLITRAW, SPLITRAW_NOTEL, V_DIR_NOTEL, BUNDLE, KEEP_SPLIT
 
 ##@ Verilog split (rtl-verilog) and SPI-less variants
 
@@ -41,6 +47,10 @@ SPLITRAW_NOTEL := $(SYNDIR)/split_raw_notel
 V_DIR_NOTEL    := $(SYNDIR)/rtl-verilog-notel
 SV_NAME        := $(notdir $(SV_DIR))
 BUNDLE         ?= sync_buck_pmic
+KEEP_SPLIT     ?= 0
+
+# drop_split: $(1) staging dir - removed after a success unless KEEP_SPLIT=1
+drop_split = $(if $(filter 1,$(KEEP_SPLIT)),true,rm -rf $(1))
 
 TEL_SV_ON  := parameter bit TELEMETRY_EN = 1'b1
 TEL_SV_OFF := parameter bit TELEMETRY_EN = 1'b0
@@ -70,7 +80,9 @@ split:  ## sv2v -w adjacent into a clean staging tree (Build/split_raw)
 
 verilog_check: split  ## prove rtl-verilog code-identical to fresh sv2v output
 	@$(PYTHON) $(SCRIPTS)/strip_compare.py $(SPLITRAW)/$(SV_NAME) $(V_DIR) \
-	    || { $(call err,rtl-verilog is out of step with the source - run make verilog); exit 1; }
+	    || { $(call err,rtl-verilog is out of step with the source - run make verilog); \
+	         $(call warn,fresh split kept in $(SPLITRAW) for diffing); exit 1; }
+	@$(call drop_split,$(SPLITRAW))
 
 verilog: split  ## regenerate rtl-verilog from the source, keeping its comments
 	@rm -rf $(SPLITRAW)/new
@@ -78,6 +90,7 @@ verilog: split  ## regenerate rtl-verilog from the source, keeping its comments
 	    || { $(call err,refused - merge the files listed above by hand; rtl-verilog unchanged); exit 1; }
 	@$(PYTHON) $(SCRIPTS)/strip_compare.py $(SPLITRAW)/$(SV_NAME) $(SPLITRAW)/new > /dev/null
 	@rm -rf $(V_DIR) && mv $(SPLITRAW)/new $(V_DIR)
+	@$(call drop_split,$(SPLITRAW))
 	@$(call ok,$(V_DIR) regenerated - review any comments listed above)
 
 split_notel:  ## split of the SPI-less source (Build/split_raw_notel)
@@ -91,6 +104,7 @@ verilog_notel: split_notel  ## commented SPI-less Verilog in Build/rtl-verilog-n
 	@out=$$($(PYTHON) $(SCRIPTS)/strip_compare.py $(SPLITRAW_NOTEL)/$(SV_NAME) $(V_DIR_NOTEL)) \
 	    || { echo "$$out"; $(call err,SPI-less tree does not match its sv2v split); exit 1; }; \
 	 echo "$$out" | tail -1
+	@$(call drop_split,$(SPLITRAW_NOTEL))
 	@$(call ok,SPI-less Verilog in $(V_DIR_NOTEL))
 
 bundle: verilog_check  ## zip rtl-verilog + tb/pmic_top_tb.v (Build/sync_buck_pmic.zip)
