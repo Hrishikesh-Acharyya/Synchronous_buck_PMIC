@@ -72,6 +72,17 @@ STRICT ?= 0
 NOFAIL ?= 0
 WAVES  ?= 0
 
+# Presentation only - none of these changes a verdict (scripts/ui.sh):
+#   RAW=1        stream the simulation output untouched, without the filter
+#                that colours it and folds repeated failures
+#   FAIL_SHOW=n  failure lines shown per assertion or check label before
+#                the rest are counted (default 5)
+#   THIN=n       a cover hit fewer than n times is flagged as thinly
+#                exercised (default 10)
+# Exported so the run scripts see them; unset, they export empty and the
+# scripts fall back to the defaults.
+export RAW FAIL_SHOW THIN
+
 # ============================================================
 # Colours
 # ============================================================

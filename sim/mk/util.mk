@@ -63,5 +63,6 @@ help:  ## this screen
 	@awk -v c_hd='$(C_BLD)$(C_CYN)' -v c_tg='$(C_GRN)' -v c_off='$(C_OFF)' \
 	    -f $(SCRIPTS)/help.awk $(MAKEFILE_LIST)
 	@printf '\n%bModes%b  QUIET=1  STRICT=1 (zero-hit cover fails)  NOFAIL=1  WAVES=1  SPLIT=1 (equiv on rtl-verilog)\n' '$(C_BLD)' '$(C_OFF)'
+	@printf '%bOutput%b QUIET=1 (one line per testbench)  RAW=1 (unfiltered sim output)  FAIL_SHOW=n  THIN=n\n' '$(C_BLD)' '$(C_OFF)'
 	@printf '%bColour%b on in a terminal; COLOR=0 or NO_COLOR=1 turns it off\n' '$(C_BLD)' '$(C_OFF)'
 	@printf '%bAll commands, with examples:%b ../COMMANDS.md\n' '$(C_BLD)' '$(C_OFF)'

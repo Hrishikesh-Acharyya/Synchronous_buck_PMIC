@@ -14,7 +14,7 @@
 ##- equiv_<m>   the same testbench and checkers against the sv2v output
 ##- wave_<m>    tb_<m> with a VCD, then open GTKWave
 ##- view_<m>    open the last VCD without re-running
-##- cov_<m>     re-list the last run's cover hits
+##- cov_<m>     re-list the last run's covers, conditions in full
 
 # run_tb: $(1) top, $(2) flow, $(3) sources, $(4) Verilator flags.
 #         `bash script` rather than executing it, so a lost exec bit on the
@@ -40,7 +40,7 @@ open_wave = vcd=$(TBBUILD)/sv/$(1)/$(1).vcd; \
 #   equiv_<m>  same testbench + checkers against the sv2v output
 #   wave_<m>   tb_<m> with a VCD, then open GTKWave
 #   view_<m>   open the last VCD without re-running
-#   cov_<m>    re-list the last run's cover hits
+#   cov_<m>    re-list the last run's covers, conditions in full
 define TB_RULES
 .PHONY: tb_$(2) equiv_$(2) wave_$(2) view_$(2) cov_$(2)
 
@@ -58,7 +58,8 @@ view_$(2):
 	@$$(call open_wave,$(2)_tb)
 
 cov_$(2):
-	@cat $$(TBBUILD)/sv/$(2)_tb/covers.txt 2>/dev/null \
+	@test -s $$(TBBUILD)/sv/$(2)_tb/covers.tsv \
+	    && bash $$(SCRIPTS)/covers.sh table $$(TBBUILD)/sv/$(2)_tb full \
 	    || { $$(call warn,no cover listing for $(2)_tb - run tb_$(2) first); }
 endef
 
