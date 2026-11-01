@@ -73,6 +73,11 @@ bind hiccup_timer hiccup_timer_sva #(
     .TIMER_W(TIMER_W)
 ) u_sva (.*);
 
+bind strike_counter strike_counter_sva #(
+    .CLEAN_RUN_W(CLEAN_RUN_W),
+    .STRIKE_W(STRIKE_W)
+) u_sva (.*);
+
 
 
 
