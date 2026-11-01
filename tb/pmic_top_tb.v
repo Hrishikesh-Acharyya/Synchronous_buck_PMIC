@@ -2,8 +2,8 @@
 
 # Filename:         pmic_top_tb.v
 
-# File Description: Self-checking integration testbench for pmic_top - the
-#                   Silicluster v3 submission testbench. Plain Verilog-2005 in
+# File Description: Self-checking integration testbench for pmic_top (first
+#                   written for the Silicluster v3 submission). Plain Verilog-2005 in
 #                   one module, so it runs unchanged against the SystemVerilog
 #                   source (Verilator) and against the converted Verilog
 #                   (Verilator or Icarus Verilog).
@@ -30,7 +30,7 @@
 #                   Set it with  iverilog -P pmic_top_tb.TELEMETRY_EN=0  or
 #                   verilator -GTELEMETRY_EN=0, or by editing the default below.
 #                   The synthesised configuration is pmic_top's own default, so
-#                   a submission must set both to the same value.
+#                   keep both at the same value.
 #
 #                   Checking happens in four layers:
 #                     check tasks   every directed claim prints PASS or FAIL
@@ -104,9 +104,11 @@
 #                   Verilator and Icarus identical stimulus and the SV and
 #                   converted runs stay comparable transaction for transaction.
 #
-#                   CLK_HZ is a parameter so the same file runs at 10 MHz (the
-#                   submission) and at 50 MHz (with the package rebuilt at
-#                   50 MHz); every expectation derives from it.
+#                   CLK_HZ is a parameter so the same file runs at 50 MHz (the
+#                   package default) and at 10 MHz (the Silicluster build, with
+#                   the package rebuilt at 10 MHz); every expectation derives
+#                   from it except CYC_STEP_DEF, which mirrors the package's
+#                   CYCLES_PER_STEP_DEFAULT (16 at 50 MHz, 64 at 10 MHz).
 #
 #                   Exit status: $finish on PASS, $stop on FAIL. Verilator exits
 #                   non-zero on $stop. Icarus vvp does not, so the Makefile turns
@@ -127,8 +129,8 @@ module pmic_top_tb;
 // Timing - mirrors pmic_types_pkg, since Verilog-2005 cannot import a package
 // ============================================================
 // CLK_HZ: supervisor clock. Must equal pmic_types_pkg::CLK_HZ of the build
-//         under test; override for a 50 MHz build.
-parameter integer CLK_HZ = 10_000_000;
+//         under test (the Makefile passes the package's value).
+parameter integer CLK_HZ = 50_000_000;
 // TELEMETRY_EN: configuration under test, passed to pmic_top (see the header).
 //               1 = full build and the SPI sequence, 0 = reduced build and the
 //               pins-only sequence.
@@ -150,7 +152,9 @@ localparam integer TRIP_SS_DEF     = 28;
 localparam integer WINDOW_RUN      = 16;
 localparam integer WINDOW_SS       = 32;
 localparam integer MAX_STRIKES_DEF = 3;
-localparam integer CYC_STEP_DEF    = 64;
+// CYC_STEP_DEF: must equal pmic_types_pkg::CYCLES_PER_STEP_DEFAULT - 16 for
+//               the 50 MHz package, 64 for the 10 MHz Silicluster build.
+localparam integer CYC_STEP_DEF    = 16;
 localparam integer CYC_STEP_MAX    = 64;
 localparam integer HICCUP_DEF      = (CLK_HZ / 1000) * 5;
 localparam integer HICCUP_MIN      = (CLK_HZ / 1000) * 1;
