@@ -8,9 +8,10 @@
 #                   `timescale line exactly, but replaces every code token with
 #                   the token in the same position of the fresh sv2v file.
 #                   Refuses a file unless both have the same number of code
-#                   tokens and every differing token is a number, so only
-#                   constant values (CLK_HZ, derived counts) can change; any
-#                   structural difference must be merged by hand.
+#                   tokens and every differing token is a number or a string,
+#                   so only constant values (CLK_HZ, derived counts) and the
+#                   source paths sv2v writes into elaboration messages can
+#                   change; any structural difference must be merged by hand.
 #
 #                   Usage: transplant_comments.py <fresh_dir> <annotated_dir> <out_dir>
 #
@@ -79,7 +80,12 @@ def transplant(ann_text, fresh_toks, rel):
                 raise ValueError(f"{rel}: annotated file has more code tokens than sv2v output")
             new = fresh_toks[k]
             if new != tok:
-                if not (NUMBER.match(tok) and NUMBER.match(new)):
+                # numbers: constants such as CLK_HZ and the counts derived from it.
+                # strings: sv2v writes the source path into elaboration-check
+                # messages, so moving or renaming the SV folder changes them.
+                same_kind = (NUMBER.match(tok) and NUMBER.match(new)) or \
+                            (tok.startswith('"') and new.startswith('"'))
+                if not same_kind:
                     raise ValueError(f"{rel}: token {k} '{tok}' -> '{new}' is not a constant; merge by hand")
                 line = ann_text.count('\n', 0, i) + 1
                 changes.append(f"{rel}:{line}: {tok} -> {new}")

@@ -84,10 +84,10 @@ module input_debounce (
 	// and reports it at time zero. With legal parameters no branch is built.
 	generate
 		if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
-			initial $display("Error [elaboration] rtl/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
+			initial $display("Error [elaboration] rtl-systemverilog/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
 		end
 		if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
-			initial $display("Error [elaboration] rtl/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
+			initial $display("Error [elaboration] rtl-systemverilog/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
 		end
 	endgenerate
 	// CNT_MAX: the longer of the two qualification times, which sizes the
