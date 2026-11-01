@@ -157,6 +157,14 @@ module soft_start (
 	persists as the running duty backstop. In any other state, reset to the
 	floor so that a hiccup retry re-ramps from the bottom rather than
 	re-enabling at full duty into an unresolved fault.
+
+	The target test is >= rather than ==, and a ceiling above the target is
+	clamped down to it. max_on_limit is host-writable at any time, so it can
+	drop below a ceiling the ramp has already reached; with == alone the
+	ceiling kept climbing past the new limit to the top of its range and
+	wrapped. The same test finishes a ramp with nothing to climb - a limit
+	equal to the floor - on the first clock of S_SS rather than after a whole
+	step period.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
@@ -165,19 +173,26 @@ module soft_start (
 			SS_done <= 1'b0;
 		end
 		else if (ss_active) begin
+			// The step window runs on every switching cycle of S_SS, whether or
+			// not a step is still owed.
 			if (pwm_fall) begin
-				if (cycle_counter == (cycles_per_step - 1'b1)) begin
+				if (cycle_counter == (cycles_per_step - 1'b1))
 					cycle_counter <= 1'sb0;
-					if (max_on_counts == max_on_limit)
-						SS_done <= 1'b1;
-					else begin
-						max_on_counts <= max_on_counts + 1;
-						if ((max_on_counts + 1) == max_on_limit)
-							SS_done <= 1'b1;
-					end
-				end
 				else
 					cycle_counter <= cycle_counter + 1;
+			end
+			// At or past the target: the ramp is over. Clamping covers a limit
+			// lowered below the ceiling mid-ramp.
+			if (max_on_counts >= max_on_limit) begin
+				max_on_counts <= max_on_limit;
+				SS_done <= 1'b1;
+			end
+			else if (pwm_fall && (cycle_counter == (cycles_per_step - 1'b1))) begin
+				max_on_counts <= max_on_counts + 1;
+				// SS_done is set from the value about to land, not the current
+				// one, so the ramp does not finish a step late.
+				if ((max_on_counts + 1) == max_on_limit)
+					SS_done <= 1'b1;
 			end
 		end
 		else if (run_active)

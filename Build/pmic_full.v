@@ -171,18 +171,19 @@ module soft_start (
 		end
 		else if (ss_active) begin
 			if (pwm_fall) begin
-				if (cycle_counter == (cycles_per_step - 1'b1)) begin
+				if (cycle_counter == (cycles_per_step - 1'b1))
 					cycle_counter <= 1'sb0;
-					if (max_on_counts == max_on_limit)
-						SS_done <= 1'b1;
-					else begin
-						max_on_counts <= max_on_counts + 1;
-						if ((max_on_counts + 1) == max_on_limit)
-							SS_done <= 1'b1;
-					end
-				end
 				else
 					cycle_counter <= cycle_counter + 1;
+			end
+			if (max_on_counts >= max_on_limit) begin
+				max_on_counts <= max_on_limit;
+				SS_done <= 1'b1;
+			end
+			else if (pwm_fall && (cycle_counter == (cycles_per_step - 1'b1))) begin
+				max_on_counts <= max_on_counts + 1;
+				if ((max_on_counts + 1) == max_on_limit)
+					SS_done <= 1'b1;
 			end
 		end
 		else if (run_active)
