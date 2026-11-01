@@ -202,6 +202,11 @@ sampled here: the bound checker reads the outputs. rst_n is not in the block,
 because it is asynchronous and must be drivable between edges.
 */
 
+// The lint reports every clocking-block output as UNUSEDSIGNAL: the block
+// only writes them, and the lint never counts a clockvar drive as a use.
+// The signals are all driven through cb in set_inputs(), so the waiver is
+// confined to this block.
+/* verilator lint_off UNUSEDSIGNAL */
 default clocking cb @(posedge clk);
 
     default input #1step output #(DRIVE_OFFSET_NS);
@@ -210,6 +215,7 @@ default clocking cb @(posedge clk);
     output SS_done, window_trip_SS, window_trip, hiccup_done;
 
 endclocking
+/* verilator lint_on UNUSEDSIGNAL */
 
 
 // check: procedural comparison, for claims no clocked property can see -

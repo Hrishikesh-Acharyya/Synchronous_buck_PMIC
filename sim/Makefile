@@ -61,7 +61,8 @@ TESTBENCHES := clk_rst/reset_sync \
                status/timestamp \
                status/fault_LED \
                telemetry/pwm_stats \
-               telemetry/fault_cause
+               telemetry/fault_cause \
+               top/supervisor
 
 # ============================================================
 # The rest, in dependency order
