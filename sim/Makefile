@@ -55,6 +55,7 @@ TESTBENCHES := clk_rst/reset_sync \
                inputs/input_debounce \
                protect/pwm_mask \
                protect/soft_start \
+               protect/hiccup_timer \
                status/pgood_gen \
                status/timestamp \
                status/fault_LED \

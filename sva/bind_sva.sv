@@ -68,6 +68,11 @@ bind soft_start soft_start_sva #(
     .ON_TIME_W(ON_TIME_W)
 ) u_sva (.*);
 
+bind hiccup_timer hiccup_timer_sva #(
+    .STRIKE_W(STRIKE_W),
+    .TIMER_W(TIMER_W)
+) u_sva (.*);
+
 
 
 
