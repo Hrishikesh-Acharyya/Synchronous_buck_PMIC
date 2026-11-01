@@ -1,7 +1,0 @@
-Clock clk
-Latency      CRPR       Skew
-_1593_/CLK ^
-   0.47
-_1447_/CLK ^
-   0.48      0.00      -0.02
-
