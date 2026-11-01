@@ -38,6 +38,8 @@ VERILATOR_COVERAGE ?= verilator_coverage
 VIEWER             ?= gtkwave
 SV2V               ?= sv2v
 YOSYS              ?= $(HOME)/oss-cad-suite/bin/yosys
+IVERILOG           ?= iverilog
+VVP                ?= vvp
 
 SCRIPTS := scripts
 
@@ -51,7 +53,7 @@ TBBUILD ?= $(HOME)/build/sync_buck
 WAVEDIR ?= $(HOME)/gtkwave
 
 # SYNDIR: inside the repo so the converted file is visible in the editor and
-#         easy to attach to a submission. Slower over 9p, but conversion runs
+#         easy to inspect or hand to an ASIC flow. Slower over 9p, but conversion runs
 #         rarely and the output is a deliverable rather than scratch.
 SYNDIR    ?= ../Build
 CONVERTED := $(SYNDIR)/pmic_full.v
@@ -63,41 +65,43 @@ LIBERTY ?= $(HOME)/.volare/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd_
 # ============================================================
 # Sources
 # ============================================================
+# SV_DIR: the SystemVerilog design source - what is edited.
+# V_DIR:  the Verilog-2005 split of it - one .v per .sv, same layout, with the
+#         comments sv2v discards carried over (see "Verilog split" below).
+SV_DIR := ../rtl-systemverilog
+V_DIR  := ../rtl-verilog
+
 # Package first: it defines the widths and state_t every other file
 # elaborates against.
-RTL := ../rtl/pkg/pmic_types_pkg.sv \
-       ../rtl/clk_rst/reset_sync.sv \
-       ../rtl/inputs/input_sync.sv \
-       ../rtl/inputs/input_debounce.sv \
-       ../rtl/protect/soft_start.sv \
-       ../rtl/protect/pwm_mask.sv \
-       ../rtl/protect/fault_arbiter.sv \
-       ../rtl/protect/hiccup_timer.sv \
-       ../rtl/protect/strike_counter.sv \
-       ../rtl/status/pgood_gen.sv \
-       ../rtl/status/timestamp.sv \
-       ../rtl/status/fault_LED.sv \
-       ../rtl/telemetry/pwm_stats.sv \
-       ../rtl/telemetry/reg_file.sv \
-       ../rtl/telemetry/spi_slave.sv \
-       ../rtl/telemetry/fault_cause.sv \
-       ../rtl/supervisor.sv \
-       ../rtl/pmic_top.sv
+RTL := $(SV_DIR)/pkg/pmic_types_pkg.sv \
+       $(SV_DIR)/clk_rst/reset_sync.sv \
+       $(SV_DIR)/inputs/input_sync.sv \
+       $(SV_DIR)/inputs/input_debounce.sv \
+       $(SV_DIR)/protect/soft_start.sv \
+       $(SV_DIR)/protect/pwm_mask.sv \
+       $(SV_DIR)/protect/fault_arbiter.sv \
+       $(SV_DIR)/protect/hiccup_timer.sv \
+       $(SV_DIR)/protect/strike_counter.sv \
+       $(SV_DIR)/status/pgood_gen.sv \
+       $(SV_DIR)/status/timestamp.sv \
+       $(SV_DIR)/status/fault_LED.sv \
+       $(SV_DIR)/telemetry/pwm_stats.sv \
+       $(SV_DIR)/telemetry/reg_file.sv \
+       $(SV_DIR)/telemetry/spi_slave.sv \
+       $(SV_DIR)/telemetry/fault_cause.sv \
+       $(SV_DIR)/supervisor.sv \
+       $(SV_DIR)/pmic_top.sv
 
 # PKG: inlined into the sv2v output and gone as a package there, but tb/ and
 #      sva/ still import it, so equivalence runs compile it alongside the
 #      converted RTL. Taken from RTL so the path has one owner.
 PKG := $(firstword $(RTL))
 
-# SPLIT=1: run the equiv flows against the hand-annotated split tree in
-#          ../submissions_full/rtl - the files that go into the Silicluster
-#          zips (the trimmed package's rtl/ differs in one default only) -
+# SPLIT=1: run the equiv flows against the commented split in $(V_DIR)
 #          instead of the single-file conversion in ../Build. Results are
 #          listed under the flow name "split".
 SPLIT      ?= 0
-SUBDIR     := ../submissions_full
-SUBDIR_TRIM := ../submissions_trimmed
-SPLIT_SRCS := $(patsubst ../rtl/%.sv,$(SUBDIR)/rtl/%.v,$(filter-out $(PKG),$(RTL)))
+SPLIT_SRCS := $(patsubst $(SV_DIR)/%.sv,$(V_DIR)/%.v,$(filter-out $(PKG),$(RTL)))
 EQUIV_SRCS := $(if $(filter 1,$(SPLIT)),$(SPLIT_SRCS),$(CONVERTED))
 EQUIV_FLOW := $(if $(filter 1,$(SPLIT)),split,equiv)
 
@@ -230,11 +234,10 @@ endef
 $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 
 # ============================================================
-# Integration testbench - the Silicluster deliverable
+# Integration testbench
 # ============================================================
-# pmic_top_tb.v (in the package folders, tb/) exercises pmic_top as a whole:
-# plain Verilog-2005, no SVA,
-# self-checking, with its own coverage bins and two scoreboards. It runs in
+# ../tb/pmic_top_tb.v exercises pmic_top as a whole: plain Verilog-2005, no
+# SVA, self-checking, with its own coverage bins and two scoreboards. It runs in
 # both flows like the module testbenches, and also under Icarus Verilog, the
 # open-source simulator a reviewer is most likely to have:
 #   tb_top     Verilator, SystemVerilog source
@@ -244,9 +247,13 @@ $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 # bins in the covers column. scripts/run_top_tb.sh takes the verdict from the
 # testbench's last line, which is also what gives Icarus a non-zero exit on
 # FAIL - vvp exits 0 from $stop.
-TOP_TB      := $(SUBDIR)/tb/pmic_top_tb.v
-IVERILOG    ?= iverilog
-VVP         ?= vvp
+TOP_TB      := ../tb/pmic_top_tb.v
+
+# TOP_CLK_HZ: the testbench's own CLK_HZ parameter, which sets the clock it
+#             drives and every time it expects. It must equal CLK_HZ in
+#             pmic_types_pkg.sv; the testbench file defaults to 10 MHz (the
+#             Silicluster clock), so the Makefile passes the package value.
+TOP_CLK_HZ  ?= 50000000
 
 # TOP_TB_WAIVERS: lint classes that fire on testbench code only, never on RTL.
 #   BLKSEQ:       monitors and scoreboards use blocking assignments in clocked
@@ -274,24 +281,16 @@ TOP_SV_WAIVERS := -Wno-ENUMVALUE
 TOP_EQUIV_WAIVERS := $(EQUIV_WAIVERS) -Wno-TIMESCALEMOD
 TOP_VFLAGS     := --binary --timing -Wall $(LINT_WAIVERS) $(TB_WAIVERS) $(TOP_TB_WAIVERS)
 TOP_IVFLAGS    := -g2005
-
-# TOP_TEL: TELEMETRY_EN for the integration testbench, which passes it on to
-#          pmic_top, so one value selects the build and the sequence that fits
-#          it: 1 (default) the full build and its SPI sequence, 0 the reduced
-#          build and its pins-only sequence on the default timers. The _notel
-#          targets set 0 and record under their own flow names (sv_notel,
-#          equiv_notel, iv_notel), so both configurations report side by side.
-TOP_TEL ?= 1
 IV_FLOW := $(if $(filter 1,$(SPLIT)),iv_split,iv)
 
 # run_top: $(1) simulator, $(2) flow, $(3) sources, $(4) Verilator flags
 run_top = VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' \
-          TOP_VFLAGS='$(4) -GTELEMETRY_EN=$(TOP_TEL)' \
-          TOP_IVFLAGS='$(TOP_IVFLAGS) -Ppmic_top_tb.TELEMETRY_EN=$(TOP_TEL)' \
+          TOP_VFLAGS='$(4) -GCLK_HZ=$(TOP_CLK_HZ)' \
+          TOP_IVFLAGS='$(TOP_IVFLAGS) -Ppmic_top_tb.CLK_HZ=$(TOP_CLK_HZ)' \
           QUIET='$(QUIET)' NOFAIL='$(NOFAIL)' WAVES='$(WAVES)' \
           bash $(SCRIPTS)/run_top_tb.sh $(1) $(TBBUILD)/$(2)/pmic_top_tb $(2) $(3)
 
-.PHONY: tb_top equiv_top iv_top top_all tb_top_notel equiv_top_notel iv_top_notel top_notel top_both
+.PHONY: tb_top equiv_top iv_top top_all
 
 tb_top:  ## integration testbench, Verilator, SystemVerilog source
 	@$(call run_top,verilator,sv,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
@@ -302,34 +301,12 @@ equiv_top: $(EQUIV_SRCS)  ## integration testbench, Verilator, converted Verilog
 iv_top: $(EQUIV_SRCS)  ## integration testbench, Icarus Verilog, converted Verilog
 	@$(call run_top,iverilog,$(IV_FLOW),$(EQUIV_SRCS) $(TOP_TB),)
 
-tb_top_notel: TOP_TEL := 0
-tb_top_notel:  ## integration testbench, TELEMETRY_EN=0, Verilator, SystemVerilog source
-	@$(call run_top,verilator,sv_notel,$(RTL) $(TOP_TB),$(TOP_VFLAGS) $(TOP_SV_WAIVERS))
-
-equiv_top_notel: TOP_TEL := 0
-equiv_top_notel: $(EQUIV_SRCS)  ## integration testbench, TELEMETRY_EN=0, Verilator, converted Verilog
-	@$(call run_top,verilator,$(EQUIV_FLOW)_notel,$(EQUIV_SRCS) $(TOP_TB),$(TOP_VFLAGS) $(TOP_EQUIV_WAIVERS))
-
-iv_top_notel: TOP_TEL := 0
-iv_top_notel: $(EQUIV_SRCS)  ## integration testbench, TELEMETRY_EN=0, Icarus Verilog, converted Verilog
-	@$(call run_top,iverilog,$(IV_FLOW)_notel,$(EQUIV_SRCS) $(TOP_TB),)
-
 top_all: QUIET  := 1
 top_all: NOFAIL := 1
 top_all: tb_top equiv_top iv_top  ## integration testbench in all three flows
 	@rc=0; \
-	for f in sv equiv iv; do bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
+	for f in sv $(EQUIV_FLOW) $(IV_FLOW); do bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
 	exit $$rc
-
-top_notel: QUIET  := 1
-top_notel: NOFAIL := 1
-top_notel: tb_top_notel equiv_top_notel iv_top_notel  ## integration testbench, TELEMETRY_EN=0, all three flows
-	@rc=0; \
-	for f in sv_notel $(EQUIV_FLOW)_notel $(IV_FLOW)_notel; do \
-	    bash $(SCRIPTS)/report.sh $(TBBUILD) $$f pmic_top_tb || rc=1; done; \
-	exit $$rc
-
-top_both: top_all top_notel  ## integration testbench, both TELEMETRY_EN values, all three flows
 
 # ============================================================
 # Suite targets
@@ -343,21 +320,17 @@ tb_all: $(addprefix tb_,$(TB_MODULES)) tb_top  ## run every testbench (use -j), 
 
 equiv: QUIET  := 1
 equiv: NOFAIL := 1
-equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output (SPLIT=1: the zip's files)
+equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top  ## every testbench against the sv2v output (SPLIT=1: rtl-verilog)
 	@bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS)
 
-# equiv_all: both flows as one parallel job graph, then both tables, then the
-#            integration testbench on the TELEMETRY_EN=0 build in both flows.
-#            Report failures are collected so every table always prints.
+# equiv_all: both flows as one parallel job graph, then both tables. Report
+#            failures are collected so every table always prints.
 equiv_all: QUIET  := 1
 equiv_all: NOFAIL := 1
-equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top \
-           tb_top_notel equiv_top_notel  ## pre-submission gate: tb_all + equiv, both TELEMETRY_EN builds
+equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top  ## the gate: tb_all + equiv
 	@rc=0; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) sv    $(SUITE_TOPS) || rc=1; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv $(SUITE_TOPS) || rc=1; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) sv_notel    pmic_top_tb || rc=1; \
-	bash $(SCRIPTS)/report.sh $(TBBUILD) equiv_notel pmic_top_tb || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) sv            $(SUITE_TOPS) || rc=1; \
+	bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS) || rc=1; \
 	exit $$rc
 
 report:  ## reprint both tables from the last results, without re-running
@@ -386,9 +359,8 @@ lint:  ## strict Verilator lint over the RTL (what CI runs)
 	  echo "verilator not installed - skipping lint"; \
 	fi
 
-# lint_notel: the TELEMETRY_EN=0 configuration - the reduced build, which costs
-#             the telemetry and is the fallback submission should the extra
-#             area not be granted. UNUSEDSIGNAL is waived for it alone:
+# lint_notel: the TELEMETRY_EN=0 configuration, kept so the parameter stays
+#             buildable. UNUSEDSIGNAL is waived for it alone:
 #             with the host interface compiled out, the SCK and CS_n pins and
 #             the nets that fed the telemetry blocks are legitimately unread.
 #             Any other warning still fails.
@@ -400,8 +372,8 @@ lint_notel:  ## lint the TELEMETRY_EN=0 build (UNUSEDSIGNAL waived)
 # ============================================================
 # ASIC conversion and synthesis
 # ============================================================
-# Silicluster v3 accepts Verilog only, so the submitted source is the sv2v
-# output. The equiv_ targets are the evidence the two are the same design.
+# ASIC flows take Verilog, so synthesis reads the sv2v output. The equiv_
+# targets are the evidence the two are the same design.
 .PHONY: convert syn syn_area syn_notel syn_area_notel syn_both
 
 convert: $(CONVERTED)  ## sv2v the RTL into one Verilog-2005 file
@@ -450,7 +422,7 @@ syn_area: $(CONVERTED)  ## sky130-mapped area (needs LIBERTY)
 #   Verilog generates, so the one converted file serves both configurations;
 #   chparam selects before elaboration. Outputs carry a _notel suffix so the
 #   default build's files are never overwritten. The default is
-#   TELEMETRY_EN=1; the reduced build is the fallback submission.
+#   TELEMETRY_EN=1.
 syn_notel: $(CONVERTED)  ## generic synthesis of the TELEMETRY_EN=0 build
 	$(YOSYS) -q -l $(SYNDIR)/stat_notel.txt -p "read_verilog $(CONVERTED); \
 	             chparam -set TELEMETRY_EN 0 pmic_top; \
@@ -471,102 +443,52 @@ syn_area_notel: $(CONVERTED)  ## sky130-mapped area of the TELEMETRY_EN=0 build
 	             tee -o $(SYNDIR)/area_notel_summary.txt stat -liberty $(LIBERTY)" > /dev/null 2>&1
 	@python3 $(SCRIPTS)/area_counts.py $(SYNDIR)/area_notel_summary.txt syn_area_notel
 
-# syn_both: the two area figures the Silicluster area request rests on
+# syn_both: the area of both TELEMETRY_EN builds, side by side
 syn_both: syn_area syn_area_notel  ## sky130 area of both TELEMETRY_EN builds
 
 # ============================================================
-# Silicluster submission package
+# Verilog split (rtl-verilog)
 # ============================================================
-# The call accepts Verilog only, in one .zip. Two packages go out, both from
-# one source tree and one testbench:
-#   ../submissions_full     TELEMETRY_EN = 1, the full chip (2.5-3x the slot)
-#   ../submissions_trimmed  TELEMETRY_EN = 0, protection only (one slot)
-# Each holds rtl/ (one .v per .sv mirroring rtl/, with the comments sv2v
-# discards restored by hand), tb/pmic_top_tb.v and SILICLUSTER_README.md. The
-# full package is the hand-annotated source of both; the trimmed rtl/ and tb/
-# are generated from it by `make trimmed`, which changes exactly two lines -
-# the TELEMETRY_EN default in rtl/pmic_top.v and in tb/pmic_top_tb.v. The
-# trimmed package keeps the telemetry modules' files: they are not built with
-# TELEMETRY_EN = 0, but Verilator resolves the testbench's references into
-# them even in the branch it does not build.
-#   package        sv2v -w adjacent into clean staging trees, $(PKGRAW) and
-#                  $(PKGRAW_TRIM) (the latter from a copy of rtl/ with the
-#                  default flipped). The package converts to two pragmas and
-#                  nothing else - its constants are inlined into every
-#                  consumer - so pmic_types_pkg.v is dropped.
-#   package_check  every annotated file in both packages must be code-identical
-#                  to that fresh output once comments and the restored
-#                  `timescale are stripped, and the trimmed rtl/ and tb/ must
-#                  differ from the full ones in the two default lines only.
-#   zip            package_check, then one zip per package.
-#   signoff        package_check, the module testbenches against the annotated
-#                  files, both packages simulated exactly as their READMEs say
-#                  (Icarus and Verilator) and synthesised from their own files.
-PKGRAW      := $(SYNDIR)/package_raw
-PKGRAW_TRIM := $(SYNDIR)/package_raw_trimmed
-ZIPNAME     ?= sync_buck_pmic_silicluster_v3
-TEL_PARAM_V := parameter [0:0] TELEMETRY_EN = 1'b
-TEL_RE_V    := parameter \[0:0\] TELEMETRY_EN = 1'b
-TEL_PARAM_SV := parameter bit TELEMETRY_EN = 1'b
+# $(V_DIR) holds one Verilog-2005 file per SystemVerilog module, in the same
+# layout as $(SV_DIR), with the comments sv2v discards carried over from the
+# previous version. Its code must always be exactly what sv2v produces from
+# the current source:
+#   split          sv2v -w adjacent into a clean staging tree, $(SPLITRAW).
+#                  The package converts to two pragmas and nothing else - its
+#                  constants are inlined into every consumer - so
+#                  pmic_types_pkg.v is dropped.
+#   verilog_check  every file in $(V_DIR) must be code-identical to that fresh
+#                  output once comments and `timescale are stripped.
+#   verilog        regenerate $(V_DIR) from the current source: keep every
+#                  comment, take every code token from the fresh split.
+#                  Refuses a file if anything but a constant changed (a new
+#                  port or block needs comments written by hand), and lists
+#                  comments that name a clock frequency for review.
+#                  $(V_DIR) is replaced only if every file succeeds.
+SPLITRAW := $(SYNDIR)/split_raw
+SV_NAME  := $(notdir $(SV_DIR))
 
-.PHONY: package package_check trimmed zip signoff
+.PHONY: split verilog_check verilog
 
-package:  ## sv2v -w adjacent into clean staging trees (Build/package_raw*)
-	@rm -rf $(PKGRAW) $(PKGRAW_TRIM)
-	@mkdir -p $(PKGRAW) $(PKGRAW_TRIM)
-	@cp -r ../rtl $(PKGRAW)/rtl
-	@cp -r ../rtl $(PKGRAW_TRIM)/rtl
-	@sed -i "s/$(TEL_PARAM_SV)1/$(TEL_PARAM_SV)0/" $(PKGRAW_TRIM)/rtl/pmic_top.sv
-	@grep -q "$(TEL_PARAM_SV)0" $(PKGRAW_TRIM)/rtl/pmic_top.sv
-	cd $(PKGRAW) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
-	cd $(PKGRAW_TRIM) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
-	@for d in $(PKGRAW) $(PKGRAW_TRIM); do \
-	    find $$d/rtl -name '*.sv' -delete; \
-	    rm -f $$d/rtl/pkg/pmic_types_pkg.v; rmdir $$d/rtl/pkg; done
-	@echo "--- raw split: $$(find $(PKGRAW)/rtl -name '*.v' | wc -l) files per package ---"
+split:  ## sv2v -w adjacent into a clean staging tree (Build/split_raw)
+	@rm -rf $(SPLITRAW)
+	@mkdir -p $(SPLITRAW)
+	@cp -r $(SV_DIR) $(SPLITRAW)/
+	cd $(SPLITRAW) && $(SV2V) -w adjacent $(patsubst ../%,%,$(RTL))
+	@find $(SPLITRAW)/$(SV_NAME) -name '*.sv' -delete
+	@rm -f $(SPLITRAW)/$(SV_NAME)/pkg/pmic_types_pkg.v
+	@rmdir $(SPLITRAW)/$(SV_NAME)/pkg
+	@echo "--- raw split: $$(find $(SPLITRAW)/$(SV_NAME) -name '*.v' | wc -l) files ---"
 
-# trimmed: regenerate the trimmed package's rtl/ and tb/ from the full one.
-#          Its SILICLUSTER_README.md is its own and is not touched.
-trimmed:  ## regenerate submissions_trimmed/rtl and tb from submissions_full
-	@rm -rf $(SUBDIR_TRIM)/rtl $(SUBDIR_TRIM)/tb
-	@mkdir -p $(SUBDIR_TRIM)
-	@cp -r $(SUBDIR)/rtl $(SUBDIR)/tb $(SUBDIR_TRIM)/
-	@sed -i "s/$(TEL_RE_V)1;/$(TEL_PARAM_V)0;/" $(SUBDIR_TRIM)/rtl/pmic_top.v $(SUBDIR_TRIM)/tb/pmic_top_tb.v
-	@echo "--- $(SUBDIR_TRIM): rtl/ and tb/ regenerated with TELEMETRY_EN = 0 ---"
+verilog_check: split  ## rtl-verilog code-identical to fresh sv2v output
+	@python3 $(SCRIPTS)/strip_compare.py $(SPLITRAW)/$(SV_NAME) $(V_DIR)
 
-package_check: package  ## both packages code-identical to fresh sv2v output; trimmed = full + two lines
-	@echo "--- full package ---"
-	@python3 $(SCRIPTS)/strip_compare.py $(PKGRAW)/rtl $(SUBDIR)/rtl
-	@echo "--- trimmed package ---"
-	@python3 $(SCRIPTS)/strip_compare.py $(PKGRAW_TRIM)/rtl $(SUBDIR_TRIM)/rtl
-	@n=$$(diff -r $(SUBDIR)/rtl $(SUBDIR_TRIM)/rtl | grep -c '^[<>]'); \
-	 m=$$(diff $(SUBDIR)/tb/pmic_top_tb.v $(SUBDIR_TRIM)/tb/pmic_top_tb.v | grep -c '^[<>]'); \
-	 if [ "$$n" = 2 ] && [ "$$m" = 2 ] && \
-	    grep -qF "$(TEL_PARAM_V)0;" $(SUBDIR_TRIM)/rtl/pmic_top.v && \
-	    grep -q "^$(TEL_RE_V)0;" $(SUBDIR_TRIM)/tb/pmic_top_tb.v; then \
-	   echo "--- trimmed rtl/ and tb/ = full + the TELEMETRY_EN default flipped, nothing else ---"; \
-	 else echo "--- trimmed package out of step with the full one: run make trimmed ---"; exit 1; fi
-
-zip: package_check  ## one Silicluster zip per package (full and trimmed)
-	@for pkg in full trimmed; do \
-	    src=../submissions_$$pkg; name=$(ZIPNAME)_$$pkg; \
-	    rm -rf $(SYNDIR)/$$name $(SYNDIR)/$$name.zip; mkdir -p $(SYNDIR)/$$name; \
-	    cp -r $$src/rtl $$src/tb $$src/SILICLUSTER_README.md $(SYNDIR)/$$name/; \
-	    (cd $(SYNDIR) && python3 -m zipfile -c $$name.zip $$name); \
-	    rm -rf $(SYNDIR)/$$name; \
-	    echo "--- $(SYNDIR)/$$name.zip ---"; python3 -m zipfile -l $(SYNDIR)/$$name.zip | tail -n +1 | wc -l; done
-
-# signoff: everything that must hold before the zips go out, run on the files
-#          in the two package folders themselves. Prints SIGNOFF OK or fails.
-signoff: package_check  ## ship check of both packages; ends in SIGNOFF OK or fails
-	@$(MAKE) --no-print-directory equiv SPLIT=1 TBBUILD=$(TBBUILD)/signoff
-	@VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' YOSYS='$(YOSYS)' \
-	    bash $(SCRIPTS)/run_package.sh $(SUBDIR) $(TBBUILD)/signoff/pkg_full & \
-	 VERILATOR='$(VERILATOR)' IVERILOG='$(IVERILOG)' VVP='$(VVP)' YOSYS='$(YOSYS)' \
-	    bash $(SCRIPTS)/run_package.sh $(SUBDIR_TRIM) $(TBBUILD)/signoff/pkg_trimmed & \
-	 wait %1; r1=$$?; wait %2; r2=$$?; \
-	 if [ $$r1 = 0 ] && [ $$r2 = 0 ]; then echo "=== SIGNOFF OK: both packages ready to ship ==="; \
-	 else echo "=== SIGNOFF FAILED ==="; exit 1; fi
+verilog: split  ## regenerate rtl-verilog from the source, keeping its comments
+	@rm -rf $(SPLITRAW)/new
+	@python3 $(SCRIPTS)/transplant_comments.py $(SPLITRAW)/$(SV_NAME) $(V_DIR) $(SPLITRAW)/new
+	@python3 $(SCRIPTS)/strip_compare.py $(SPLITRAW)/$(SV_NAME) $(SPLITRAW)/new > /dev/null
+	@rm -rf $(V_DIR) && mv $(SPLITRAW)/new $(V_DIR)
+	@echo "--- $(V_DIR) regenerated; review any comments listed above ---"
 
 # ============================================================
 # Housekeeping
@@ -582,6 +504,7 @@ syn_clean:  ## remove conversion and synthesis output
 	rm -f $(CONVERTED) $(SYNDIR)/stat.txt $(SYNDIR)/area.txt \
 	      $(SYNDIR)/stat_summary.txt $(SYNDIR)/area_summary.txt \
 	      $(SYNDIR)/stat_notel*.txt $(SYNDIR)/area_notel*.txt
+	rm -rf $(SPLITRAW)
 
 clean: tb_clean syn_clean  ## both of the above
 
@@ -601,4 +524,4 @@ help:  ## this list
 	@echo "    cov_<m>        re-list the last cover hits"
 	@echo
 	@echo "Modes: QUIET=1  STRICT=1 (zero-hit cover fails)  NOFAIL=1  WAVES=1"
-	@echo "Parallel suite: make -j\$$(nproc) tb_all"
+	@echo "Parallel suite: make -j\$$(nproc) tb_all"
