@@ -9,22 +9,36 @@
 #                   instance.
 #
 #                   strike_counter decides when the converter stops retrying
-#                   and trips the physical latch - a physical, set-only shutdown -
+#                   and trips the SCR latch - a physical, set-only shutdown -
 #                   so these are protection claims: the latch must trip on the
 #                   strike that reaches MAX_STRIKES and not before, must never
 #                   un-trip in logic, and the strike count must only be
 #                   forgiven by a genuinely fault-free run.
 #
-#                   Claim 5 is written with a guard against known_issues A2:
-#                   it applies only to entries at which strike_level is still
-#                   below max_strikes. The RTL tests strike_level ==
-#                   max_strikes - 1, so if the host lowers MAX_STRIKES below
-#                   the present count the 2-bit level wraps round and the
-#                   latch trips up to four hiccups late. That case is left
-#                   uncovered by claim 5 on purpose, pending the decision on
-#                   A2; claim 4 still holds through it, and the testbench
-#                   builds it (c_strikes_above_max) so the exclusion is
-#                   visible rather than silent.
+#                   Contract, from the module header and its Purpose blocks:
+#                     1 (I) reset clears strike_level and latch_assert
+#                     2 (E) each hiccup entry adds exactly one strike, on that
+#                           edge, and wins over a clean-run clear
+#                     3 (I) strike_level moves only by +1 on an entry, to 0
+#                           after a clean run, or by reset - it is not zeroed
+#                           on latching, so the count stays readable
+#                     4 (E) latch_assert rises only on an entry whose strike
+#                           reaches or passes max_strikes
+#                     5 (E) every such entry raises it
+#                     6 (I) latch_assert is set-only; only reset clears it
+#                     7 (E) strikes clear only after clean_run_target
+#                           consecutive fault-free switching cycles in S_RUN;
+#                           a window_trip or leaving S_RUN breaks the streak
+#                     8 (E) a completed clean run does clear them
+#
+#                   "Reaches or passes" is known_issues A2, fixed in the RTL:
+#                   max_strikes is host-writable at any time, and the RTL used
+#                   to test strike_level == max_strikes - 1, so a limit lowered
+#                   below the present count was missed, the 2-bit level
+#                   wrapped and the latch tripped up to four hiccups late. The
+#                   checker compares at integer width, so no wrap can hide in
+#                   the reference, and the testbench still builds the case
+#                   (c_strikes_above_max) as a regression test.
 #
 #                   Entries and switching cycles are detected with the
 #                   checker's own edge detectors and the clean run is timed
@@ -85,7 +99,6 @@ always_ff @(posedge clk or negedge rst_n) begin
   asynchronously, so a reset pulse between two edges still disarms the
   two-edge claims at the second of them.
   */
-
   if (!rst_n) begin
 
     out_of_reset    <= 1'b0;
@@ -101,11 +114,9 @@ always_ff @(posedge clk or negedge rst_n) begin
     pwm_sync_q      <= pwm_sync;
 
   end
-
 end
 
 always_comb begin
-
   /*
   Purpose:
   ---
@@ -115,7 +126,6 @@ always_comb begin
   entry         = hiccup_active && !hiccup_active_q;
   fall          = pwm_sync_q && !pwm_sync;
   clean_run_due = (clean_cycles == clean_run_target);
-  
 end
 
 always_ff @(posedge clk or negedge rst_n) begin
@@ -263,10 +273,10 @@ c_level_cleared: cover property (@(posedge clk) disable iff (!rst_n)
 /*
 Purpose: PAC(Property, Assertion, Cover) Group 4:
          THE LATCH IS EARNED. latch_assert rises only off a hiccup entry whose
-         strike brings the count to max_strikes - so a converter is never shut
-         down permanently a strike early. The lower bound; group 5 is the
-         upper. Holds through A2 as well: with the count wrapped, the latch
-         still rises only on an entry landing on max_strikes.
+         strike brings the count to max_strikes or past it - so a converter is
+         never shut down permanently a strike early. The lower bound; group 5
+         is the upper. Compared at integer width: the 2-bit count never wraps
+         in the reference.
 
          One cover per max_strikes value the testbench runs, so the
          comparison is shown at each, not just the default.
@@ -276,7 +286,7 @@ property p_latch_earned;
 
   @(posedge clk) disable iff (!rst_n)
     (out_of_reset && $rose(latch_assert)) |->
-      $past(entry) && ($past(strike_level) + 1'b1 == $past(max_strikes));
+      $past(entry) && (int'($past(strike_level)) + 1 >= int'($past(max_strikes)));
 
 endproperty
 
@@ -303,22 +313,21 @@ c_latch_at_max3: cover property (@(posedge clk) disable iff (!rst_n)
 /*
 Purpose: PAC(Property, Assertion, Cover) Group 5:
          THE LAST STRIKE TRIPS THE LATCH. A hiccup entry that brings the count
-         to max_strikes raises latch_assert on that edge - from the value
-         about to land, so the latch trips on the right hiccup rather than one
-         later. Group 4 alone passes a DUT that never trips.
+         to max_strikes, or past it, raises latch_assert on that edge - from
+         the value about to land, so the latch trips on the right hiccup
+         rather than one later. "Past it" covers a MAX_STRIKES the host has
+         lowered below the present count (known_issues A2, fixed): the first
+         hiccup after that write trips the latch. Group 4 alone passes a DUT
+         that never trips.
 
-         GUARD (known_issues A2): applies only while strike_level is below
-         max_strikes at the entry. If the host has lowered MAX_STRIKES to or
-         below the present count, the RTL's == test misses and the latch
-         waits for the count to wrap. That case is excluded here pending the
-         decision on A2, and c_strikes_above_max shows the testbench builds
-         it.
+         Two covers: the ordinary last strike, and an entry with the count
+         already at or above the limit.
 */
 
 property p_last_strike_trips;
 
   @(posedge clk) disable iff (!rst_n)
-    (entry && (strike_level < max_strikes) && (strike_level + 1'b1 == max_strikes))
+    (entry && (int'(strike_level) + 1 >= int'(max_strikes)))
       |=> (out_of_reset -> latch_assert);
 
 endproperty
@@ -333,7 +342,7 @@ a_last_strike_trips: assert property (p_last_strike_trips)
   end
 
 c_last_strike_trips: cover property (@(posedge clk) disable iff (!rst_n)
-    entry && (strike_level < max_strikes) && (strike_level + 1'b1 == max_strikes));
+    entry && (int'(strike_level) + 1 == int'(max_strikes)));
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -512,8 +521,8 @@ Purpose: Directed-scenario covers. No assertion of their own - the groups
                                no clean-run progress.
          c_reset_mid_streak:   reset part-way through a clean run.
          c_strikes_above_max:  a hiccup entry with strike_level already at or
-                               above max_strikes - the A2 case group 5
-                               excludes.
+                               above max_strikes - the A2 case, which must
+                               trip the latch at once.
 */
 
 c_streak_broken_by_trip: cover property (@(posedge clk) disable iff (!rst_n)

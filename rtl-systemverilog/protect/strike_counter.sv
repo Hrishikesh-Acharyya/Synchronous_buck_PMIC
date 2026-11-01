@@ -99,6 +99,12 @@ module strike_counter #(
     the pre-increment value on this edge, so testing the value about to land
     fires the latch on the correct hiccup rather than one later.
 
+    The test is >= rather than ==. max_strikes is host-writable at any time,
+    so it can drop below a count already reached; with == alone the next
+    entry missed, the count wrapped round its 2-bit range and the latch
+    tripped up to four hiccups late. With >= the first hiccup at or past the
+    limit trips it.
+
     latch_assert is set-only and cleared by rst_n alone: it trips a physical
     SCR, which cannot be un-tripped in logic. strike_level is deliberately
     not zeroed on latching, so the accumulated count remains readable for
@@ -117,7 +123,7 @@ module strike_counter #(
     else if (hiccup_entry) begin
       strike_level <= strike_level + 1;
 
-    if (strike_level == max_strikes - 1'b1) latch_assert <= 1'b1;
+    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;
     end
 
     else if (clean_counter == clean_run_target) begin

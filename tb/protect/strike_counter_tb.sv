@@ -30,9 +30,8 @@
 #                   do_reset().
 #
 #                   Group 10 builds known_issues A2 on purpose - MAX_STRIKES
-#                   lowered below the present count - so the guarded claim in
-#                   the checker is seen to be excluded rather than silently
-#                   untested: the latch trips three hiccups late there.
+#                   lowered below the present count - as a regression test for
+#                   its fix: the first hiccup after the write trips the latch.
 
 # Global variables: checks_run, checks_failed - declared for the template's
 #                   verdict block; no check() calls exist on this module.
@@ -167,14 +166,12 @@ end
 //           DUT's async clear fires before any clock arrives. rst_n is
 //           driven high first for that reason even when already high.
 task automatic do_reset();
-
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
     repeat (RESET_CLKS) @(posedge clk);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
-
 endtask
 
 
@@ -182,7 +179,6 @@ endtask
 //             so a timeout reports a verdict instead of dying silently.
 //             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
-
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -204,57 +200,46 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
-
 endtask
 
 
 // set_state: the supervisor's two flags, as one state change. Never both high
 //            (an input contract the checker asserts).
 task automatic set_state(input bit hiccup, input bit run);
-
     @(posedge clk);
     #(DRIVE_OFFSET_NS);
     hiccup_active = hiccup;
     run_active    = run;
-
 endtask
 
 // hiccup: one strike - into S_HICCUP for three clocks, then out. Only the
 //         entry counts; the time spent there is arbitrary.
 task automatic hiccup();
-
     set_state(1'b1, 1'b0);
     repeat (3) @(posedge clk);
     set_state(1'b0, 1'b0);
     @(posedge clk);
-
 endtask
 
 // drive_cycle: one pwm_sync switching cycle. The clean run counts falling
 //              edges, so the high and low widths are arbitrary.
 task automatic drive_cycle();
-
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b1;
     @(posedge clk);
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b0;
     @(posedge clk);
-
 endtask
 
 // run_cycles: into S_RUN and n switching cycles there
 task automatic run_cycles(input int n);
-
     set_state(1'b0, 1'b1);
     repeat (n) drive_cycle();
-
 endtask
 
 // set_max: a live MAX_STRIKES write, legal in any state
 task automatic set_max(input logic [STRIKE_W-1:0] value);
-
     @(posedge clk);
     #(DRIVE_OFFSET_NS) max_strikes = value;
-    
 endtask
 
 
@@ -411,10 +396,10 @@ initial begin
     Group 10: MAX_STRIKES lowered below the count (known_issues A2).
     ---
     Two strikes of three, then the host writes MAX_STRIKES = 1. The next
-    entry finds the count already at the limit: the RTL's == test misses,
-    so no trip; the count goes 3, wraps to 0, and only the entry after that
-    - landing on 1 - trips the latch, three hiccups late. a_last_strike_trips
-    excludes these entries by its guard; a_latch_earned still holds. Lights
+    entry finds the count already past the limit and must trip the latch at
+    once - before the fix, the RTL's == test missed it, the count wrapped and
+    the latch came three hiccups late. Two more hiccups follow with the latch
+    held. Exercises a_last_strike_trips and a_latch_earned; lights
     c_strikes_above_max.
     */
 

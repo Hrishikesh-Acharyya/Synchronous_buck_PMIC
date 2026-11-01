@@ -496,7 +496,7 @@ module strike_counter (
 		end
 		else if (hiccup_entry) begin
 			strike_level <= strike_level + 1;
-			if (strike_level == (max_strikes - 1'b1))
+			if (strike_level >= (max_strikes - 1'b1))
 				latch_assert <= 1'b1;
 		end
 		else if (clean_counter == clean_run_target)

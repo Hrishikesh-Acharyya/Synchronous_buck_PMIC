@@ -359,7 +359,7 @@ Over-temperature, undervoltage, the latch (set by either source) or a disable fo
 
 | What | Status |
 |---|---|
-| Unit testbenches with bound SVA checkers | 8 modules: `reset_sync`, `input_sync`, `input_debounce`, `pwm_mask`, `pgood_gen`, `timestamp`, `fault_LED`, `pwm_stats` — all passing |
+| Unit testbenches with bound SVA checkers | 12 modules: `reset_sync`, `input_sync`, `input_debounce`, `pwm_mask`, `soft_start`, `hiccup_timer`, `strike_counter`, `pgood_gen`, `timestamp`, `fault_LED`, `pwm_stats`, `fault_cause` — all passing |
 | Integration testbench `tb/pmic_top_tb.v` | whole chip through its pins and SPI, self-checking, two scoreboards and 86 coverage bins: 277 checks passing; the SPI-less build 173 checks |
 | Converted Verilog | every testbench also runs against the sv2v output, and `rtl-verilog/` is checked to match it code for code |
 | Synthesis (yosys, sky130) | about 720 flip-flops, roughly 32,000 µm² of standard cells — an estimate before place and route |
@@ -368,8 +368,8 @@ Commands: `cd sim && make help`; every target is listed with examples in [`COMMA
 
 ### Still open
 
-- **Unit testbenches** for `soft_start`, `fault_arbiter`, `hiccup_timer`, `strike_counter`, `supervisor`, `spi_slave`, `reg_file` and `fault_cause` — these are covered only through the integration testbench so far.
-- **Known issues:** lowering MAX_ON over SPI during soft start, or MAX_STRIKES below the current strike count, misbehaves because both stop on an equality compare; the fault log's latch bit can never be set; there is no minimum pulse width in `S_RUN`.
+- **Unit testbenches** for `fault_arbiter`, `supervisor`, `spi_slave` and `reg_file` — these are covered only through the integration testbench so far.
+- **Known issues:** the fault log's latch bit is never set in the full design (a latch trip is still visible through the STATUS latch bit and `Red_LED1`, and only a reset clears it); there is no minimum pulse width in `S_RUN`. The two equality-compare bugs - MAX_ON lowered during soft start, and MAX_STRIKES lowered below the strike count - are fixed and covered by the `soft_start` and `strike_counter` checkers.
 - **Board-level checks** still to do: level translation between the logic and the 5 V comparators and driver, and the effect on the analog loop of re-timing the PWM through the supervisor's clock.
 - **Place and route** to be redone once the testbenches are complete.
 - **Hardware bring-up** has not started.

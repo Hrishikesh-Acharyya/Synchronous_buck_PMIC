@@ -14,6 +14,17 @@
 #                   escalating time to clear - and must end, or the converter
 #                   never retries.
 #
+#                   Contract, from the module header and its comments:
+#                     1 (I) hiccup_done is low in reset
+#                     2 (I) outside S_HICCUP hiccup_done is cleared - a stale
+#                           flag would skip every cool-down after the first
+#                     3 (E) hiccup_done rises only once base_clks <<
+#                           strike_level clocks have elapsed in this cool-down
+#                     4 (E) and does rise once they have
+#                     5 (I) it stays high for the rest of S_HICCUP
+#                     6 (E) the interval doubles per strike - claims 3 and 4
+#                           at each strike level, one cover per level
+#
 #                   The fixed offset every timing claim is written against:
 #                   the cool-down counter reaches the target after target
 #                   clocks in S_HICCUP, and hiccup_done is registered, so it
@@ -102,7 +113,6 @@ always_ff @(posedge clk or negedge rst_n) begin
     // else: saturated - hold
 
   end
-
 end
 
 always_comb begin
@@ -112,9 +122,7 @@ always_comb begin
   The promised interval, recomputed from the inputs rather than read from
   the DUT.
   */
-  
   interval_clks = 32'(base_clks) << strike_level;
-
 end
 
 
@@ -300,10 +308,10 @@ Purpose: INPUT CONTRACTS. Not claims about hiccup_timer - promises its
              header relies on the target only ever growing from there.
            - reg_file / pmic_types_pkg: the interval fits the DUT's counter.
              TIMER_W is sized for the longest base at strike level
-             MAX_STRIKES-1. known_issues A2 breaks this: when strike_counter
-             wraps, a whole cool-down can run at level 3, and base << 3
-             truncates once base exceeds about 10.5 ms of clocks - the
-             contract then fires here, pointing at the cause.
+             MAX_STRIKES-1. known_issues A2 used to break this - a wrapped
+             strike count let a whole cool-down run at level 3, where base << 3
+             truncates once base exceeds about 10.5 ms of clocks - and the
+             contract stays as the guard against its return.
          No covers: the antecedents are shared with groups 2 to 5.
 */
 
