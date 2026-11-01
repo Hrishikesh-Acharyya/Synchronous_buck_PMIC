@@ -21,8 +21,8 @@
 #                                    a file if anything but a constant or a
 #                                    path string changed - a new port or block
 #                                    needs its comments written by hand - and
-#                                    lists comments naming a clock frequency
-#                                    for review. rtl-verilog is replaced only
+#                                    lists comments naming a clock other than
+#                                    the package's CLK_HZ for review. rtl-verilog is replaced only
 #                                    if every file succeeds.
 #
 #                   Staging trees are scratch: verilog_check, verilog and
@@ -87,6 +87,7 @@ verilog_check: split  ## prove rtl-verilog code-identical to fresh sv2v output
 verilog: split  ## regenerate rtl-verilog from the source, keeping its comments
 	@rm -rf $(SPLITRAW)/new
 	@$(PYTHON) $(SCRIPTS)/transplant_comments.py $(SPLITRAW)/$(SV_NAME) $(V_DIR) $(SPLITRAW)/new \
+	    --clk-mhz $$(( $(TOP_CLK_HZ) / 1000000 )) \
 	    || { $(call err,refused - merge the files listed above by hand; rtl-verilog unchanged); exit 1; }
 	@$(PYTHON) $(SCRIPTS)/strip_compare.py $(SPLITRAW)/$(SV_NAME) $(SPLITRAW)/new > /dev/null
 	@rm -rf $(V_DIR) && mv $(SPLITRAW)/new $(V_DIR)

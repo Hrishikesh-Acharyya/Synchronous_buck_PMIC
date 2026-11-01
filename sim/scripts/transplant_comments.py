@@ -14,10 +14,13 @@
 #                   change; any structural difference must be merged by hand.
 #
 #                   Usage: transplant_comments.py <fresh_dir> <annotated_dir> <out_dir>
+#                                                 [--clk-mhz N]
 #
-#                   Prints every changed constant and every comment line that
-#                   still names a clock frequency, for review by hand. The
-#                   output passes `strip_compare.py <fresh_dir> <out_dir>`.
+#                   Prints every changed constant, and for review by hand every
+#                   comment line naming a clock in MHz - with --clk-mhz, only
+#                   those naming a value other than N (the package's CLK_HZ),
+#                   which is what goes stale when the clock changes. The output
+#                   passes `strip_compare.py <fresh_dir> <out_dir>`.
 #
 # Global variables: None
 
@@ -29,7 +32,7 @@ import sys
 TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|[A-Za-z_$][\w$]*|\d[\w\']*|\'[sS]?[bBoOdDhH][\w?]+|'
                    r'<<<|>>>|<=|>=|==|!=|===|!==|&&|\|\||<<|>>|\*\*|[^\s]')
 NUMBER = re.compile(r"\d[\w']*$|'[sS]?[bBoOdDhH][\w?]+$")
-FREQ = re.compile(r'\d+(\.\d+)?\s*[MmKk]?Hz')
+MHZ = re.compile(r'(\d+(?:\.\d+)?)\s*MHz')
 
 
 def code_tokens(text):
@@ -99,6 +102,9 @@ def transplant(ann_text, fresh_toks, rel):
 
 def main():
     fresh_dir, ann_dir, out_dir = sys.argv[1:4]
+    clk_mhz = None
+    if '--clk-mhz' in sys.argv:
+        clk_mhz = float(sys.argv[sys.argv.index('--clk-mhz') + 1])
     bad = 0
     for dirpath, _, names in os.walk(ann_dir):
         for name in sorted(names):
@@ -120,7 +126,10 @@ def main():
             for c in changes:
                 print(f"             {c}")
             for no, line in enumerate(text.split('\n'), 1):
-                if FREQ.search(line) and ('//' in line or line.lstrip().startswith(('#', '*'))):
+                if not ('//' in line or line.lstrip().startswith(('#', '*'))):
+                    continue
+                vals = [float(v) for v in MHZ.findall(line)]
+                if vals and (clk_mhz is None or any(v != clk_mhz for v in vals)):
                     print(f"             review comment {rel}:{no}: {line.strip()[:90]}")
     sys.exit(1 if bad else 0)
 
