@@ -22,6 +22,12 @@ VVP                ?= vvp
 PYTHON             ?= python3
 SHELLCHECK         ?= shellcheck
 
+# VJOBS: parallel C++ compile jobs inside each Verilator build
+#        (--build-jobs). The run scripts start Verilator outside make's
+#        jobserver, so without this its compile ran on one core - the
+#        integration testbench's alone took over a minute.
+VJOBS ?= $(shell nproc 2>/dev/null || echo 2)
+
 # ============================================================
 # Paths
 # ============================================================

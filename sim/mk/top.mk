@@ -52,7 +52,7 @@ TOP_SV_WAIVERS := -Wno-ENUMVALUE
 #                 unit it runs under is immaterial.
 TOP_EQUIV_WAIVERS := $(EQUIV_WAIVERS) -Wno-TIMESCALEMOD
 # --trace only when a VCD is wanted: it slows the long run noticeably.
-TOP_VFLAGS  = --binary --timing -Wall $(LINT_WAIVERS) $(TB_WAIVERS) $(TOP_TB_WAIVERS) \
+TOP_VFLAGS  = --binary --timing --build-jobs $(VJOBS) -Wall $(LINT_WAIVERS) $(TB_WAIVERS) $(TOP_TB_WAIVERS) \
               $(if $(filter 1,$(WAVES)),--trace)
 TOP_IVFLAGS := -g2005
 

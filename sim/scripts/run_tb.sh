@@ -82,6 +82,7 @@ covers_zero=0
 
 # shellcheck disable=SC2086  # VFLAGS is a flag list and must word-split
 if ! run_logged "$DIR/build.log" \
+        env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
         "$VERILATOR" $VFLAGS --Mdir "$DIR" --top-module "$TOP" "${SRCS[@]}"; then
     verdict="FAIL"
     fail_log="$DIR/build.log"

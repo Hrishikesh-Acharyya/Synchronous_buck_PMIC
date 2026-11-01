@@ -10,6 +10,8 @@ make doctor      # which tools are installed, and what each missing one disables
 
 `make` on its own runs `lint`. Add `-j8` (or `-j$(nproc)`) to any suite to run the testbenches in parallel.
 
+The module testbenches take seconds; the integration testbench (`pmic_top_tb`) takes a couple of minutes - about a minute to build, one to two to run at 50 MHz. Under `-j` a target's output appears only when it finishes, so a `[RUNNING]` line is printed when it starts; it has not hung.
+
 ---
 
 ## Everyday loop
@@ -144,6 +146,7 @@ Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
 | `BASE=` | `origin/main` | revision `syn_compare` compares against |
 | `BUNDLE=` | `sync_buck_pmic` | zip name for `bundle` / `bundle_notel` |
 | `KEEP_SPLIT=1` | 0 | keep the `Build/split_raw*` staging trees after a successful check |
+| `VJOBS=` | all cores (`nproc`) | parallel C++ compile jobs inside each Verilator build |
 | `M=` | - | `<group>/<module>` for `new_tb` |
 
 ## CI (GitHub Actions)

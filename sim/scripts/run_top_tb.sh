@@ -73,6 +73,18 @@ run_logged() {
 rm -rf "$DIR"
 mkdir -p "$DIR"
 start=$(date +%s)
+
+# This testbench takes minutes, and under `make -j` its output is held until
+# it ends, so a silent terminal looks like a hang. In QUIET mode, announce
+# the start straight to the terminal, bypassing make's buffering. Skipped
+# when there is no terminal (CI, redirected runs).
+if [[ $QUIET == 1 ]] && { : >/dev/tty; } 2>/dev/null; then
+    case $SIM in
+        verilator) eta="about 1 min to build, 1-2 min to run" ;;
+        *)         eta="Icarus at 50 MHz: allow 10-25 min" ;;
+    esac
+    printf '[RUNNING     ] %-6s %-22s %s\n' "$FLOW" "$TOP" "$eta" >/dev/tty
+fi
 plusargs=()
 [[ $WAVES == 1 ]] && plusargs+=("+WAVES")
 
@@ -80,7 +92,11 @@ build_ok=1
 case $SIM in
     verilator)
         # shellcheck disable=SC2086  # TOP_VFLAGS is a flag list
-        run_logged "$DIR/build.log" "$VERILATOR" $TOP_VFLAGS --Mdir "$DIR" \
+        # env -u: Verilator's own make must not see the parent's jobserver -
+        # it cannot use it from here and falls back to one job; --build-jobs
+        # in TOP_VFLAGS sets its parallelism instead.
+        run_logged "$DIR/build.log" env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
+            "$VERILATOR" $TOP_VFLAGS --Mdir "$DIR" \
             --top-module "$TOP" "${SRCS[@]}" || build_ok=0
         RUN=("./V$TOP")
         ;;

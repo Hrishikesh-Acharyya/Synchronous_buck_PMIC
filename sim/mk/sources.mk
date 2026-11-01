@@ -89,8 +89,9 @@ EQUIV_WAIVERS := -Wno-DECLFILENAME -Wno-WIDTHTRUNC
 #   --coverage-user: cover property hits into coverage.dat.
 #   --trace:         VCD support; without it $dumpvars is silently a no-op.
 #   --assert:        default since 5.038, kept as documentation.
+#   --build-jobs:    parallel C++ compile, see VJOBS in config.mk.
 VFLAGS := --binary --timing --assert --no-stop-fail --coverage-user --trace \
-          -Wall $(LINT_WAIVERS) $(TB_WAIVERS)
+          --build-jobs $(VJOBS) -Wall $(LINT_WAIVERS) $(TB_WAIVERS)
 
 # Single lint top: elaborating the whole hierarchy is the only way port
 # width mismatches between modules get caught.
