@@ -7,8 +7,7 @@
 #                    switching cycle taken at the rising edge of pwm_sync,
 #                    and asserts window_trip / window_trip_SS when the
 #                    number of faulted cycles within the trailing window
-#                    exceeds the threshold for the present state. Two
-#                    thresholds are used because elevated current during
+#                    reaches the threshold for the present state. Twong
 #                    soft start is expected as the output capacitor charges,
 #                    whereas sustained overcurrent in S_RUN is a real load
 #                    fault.
