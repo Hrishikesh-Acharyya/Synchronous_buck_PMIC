@@ -82,6 +82,12 @@ bind fault_cause fault_cause_sva u_sva (.*);
 
 bind supervisor supervisor_sva u_sva (.*);
 
+bind fault_arbiter fault_arbiter_sva #(
+    .WINDOW_RUN(WINDOW_RUN),
+    .WINDOW_SS(WINDOW_SS),
+    .BLANK_CLKS(BLANK_CLKS)
+) u_sva (.*);
+
 
 
 

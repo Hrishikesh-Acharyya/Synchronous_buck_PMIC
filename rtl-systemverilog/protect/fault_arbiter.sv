@@ -2,7 +2,7 @@
 
 # Filename:         fault_arbiter.sv
 
-# File Description: Rolling-window overcurrent detector. Samples the
+# File Description:  Rolling-window overcurrent detector. Samples the
 #                    current-protection flag at the valley, one sample per
 #                    switching cycle taken at the rising edge of pwm_sync,
 #                    and asserts window_trip / window_trip_SS when the
@@ -23,13 +23,8 @@ module fault_arbiter #(
     
     // WINDOW_RUN: trailing switching cycles examined while in S_RUN
     parameter int WINDOW_RUN = pmic_types_pkg::WINDOW_RUN,
-  
-   
     // WINDOW_SS: trailing switching cycles examined while in S_SS
     parameter int WINDOW_SS  = pmic_types_pkg::WINDOW_SS,
-   
-   
-
     // BLANK_CLKS: clocks of lookback applied to cp_sync, so the sample
     //             taken at pwm_rise reads the comparator as it was before
     //             high-side turn-on rather than during the switch-node slew.
@@ -83,14 +78,17 @@ module fault_arbiter #(
     */
     
     if(!rst_n) begin
+
         pwm_sync_d <= 0;
+
     end
 
     else
+
       pwm_sync_d <= pwm_sync;
 
 
-      end
+    end
 
     always_comb begin
     /*
@@ -111,7 +109,9 @@ module fault_arbiter #(
     appreciably by the time the switch node settles enough to measure.
     */
       pwm_rise = ~pwm_sync_d & pwm_sync;
+
     end
+
 
     always_ff @(posedge clk or negedge rst_n) begin
     /*
@@ -124,22 +124,30 @@ module fault_arbiter #(
     is unusable. Looking backward rather than delaying the enable keeps the
     sample inside the low-side conduction period at every duty cycle.
     */
+
       if (!rst_n) begin
+
         cp_delay <= '0;
+
       end
 
       else if (!run_active && !ss_active) begin
+
         cp_delay <= '0;
+
       end
 
       else begin
+
         cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);
+
       end
+
     end
 
 
     always_ff @(posedge clk or negedge rst_n) begin
-        /*
+    /*
     Purpose:
     ---
     Maintain a rolling window of the current-protection flag, one bit per
@@ -168,10 +176,12 @@ module fault_arbiter #(
     */
 
     if(!rst_n) begin
+
       fault_shifter_RUN <= 0;
       fault_shifter_SS <=0;
       fault_count_run <= 0;
       fault_count_ss <=0;
+
     end
 
     else if (pwm_rise && run_active) begin
@@ -192,6 +202,7 @@ module fault_arbiter #(
     end 
 
     else if (!run_active && !ss_active) begin
+
       fault_shifter_RUN <= 0;
       fault_shifter_SS <= 0;
       fault_count_run <=0;
@@ -200,10 +211,7 @@ module fault_arbiter #(
     end
 
 
-     end
-
-
-    
+    end
 
     // Thresholds differ because elevated current during soft start is
     // expected as the output capacitor charges from zero in FCCM, whereas
@@ -216,4 +224,5 @@ module fault_arbiter #(
 endmodule
 
 `default_nettype wire
+
 
