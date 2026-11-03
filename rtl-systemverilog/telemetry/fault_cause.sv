@@ -55,7 +55,7 @@ module fault_cause
     input  wire logic latch_state,     // debounced SCR readback
     input  wire logic latch_assert,    // CPLD's own trip into the latch
     input  wire logic window_trip,     // overcurrent window exceeded in S_RUN
-    input  wire logic window_trip_SS,  // overcurrent window exceeded in S_RUN
+    input  wire logic window_trip_SS,  // overcurrent window exceeded in S_SS
 
     // ---- episode scoping ----
     input  wire logic ss_active,

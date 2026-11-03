@@ -7,10 +7,21 @@
 #                    switching cycle taken at the rising edge of pwm_sync,
 #                    and asserts window_trip / window_trip_SS when the
 #                    number of faulted cycles within the trailing window
-#                    reaches the threshold for the present state. Twong
+#                    reaches the threshold for the present state. Two
+#                    thresholds are used because elevated current during
 #                    soft start is expected as the output capacitor charges,
 #                    whereas sustained overcurrent in S_RUN is a real load
 #                    fault.
+#
+#                    Each trip is asserted only while its own state is
+#                    active: window_trip only in S_RUN, window_trip_SS only
+#                    in S_SS. The soft-start count is not cleared on the
+#                    S_SS -> S_RUN transition - it holds through S_RUN for
+#                    telemetry - so without the gate a count that reached
+#                    trip_ss on the very edge the FSM left S_SS (or a TRIP_SS
+#                    lowered during S_RUN) would hold window_trip_SS high
+#                    through the whole run, and fault_cause would log an
+#                    overcurrent that never happened.
 
 # Global variables: None
 
@@ -215,8 +226,12 @@ module fault_arbiter #(
     // Thresholds differ because elevated current during soft start is
     // expected as the output capacitor charges from zero in FCCM, whereas
     // sustained overcurrent in S_RUN is a genuine load fault.
-    always_comb window_trip = pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run;
-    always_comb window_trip_SS = fault_count_ss>= trip_ss;
+    // Each trip is gated by its own state, so neither can be high outside
+    // it: the soft-start count stays frozen through S_RUN and may sit at or
+    // above trip_ss there, and the run count takes one edge to clear after
+    // S_RUN is left.
+    always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);
+    always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);
     always_comb fault_count_run_out = fault_count_run;
     always_comb fault_count_ss_out = fault_count_ss;
 

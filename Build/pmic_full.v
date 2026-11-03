@@ -356,12 +356,12 @@ module fault_arbiter (
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip = sv2v_cast_67DF8(fault_count_run) >= trip_run;
+		window_trip = run_active && (sv2v_cast_67DF8(fault_count_run) >= trip_run);
 	end
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip_SS = fault_count_ss >= trip_ss;
+		window_trip_SS = ss_active && (fault_count_ss >= trip_ss);
 	end
 	always @(*) begin
 		if (_sv2v_0)

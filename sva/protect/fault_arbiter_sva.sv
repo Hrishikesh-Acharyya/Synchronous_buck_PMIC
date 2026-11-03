@@ -214,8 +214,11 @@ c_reset_clears: cover property (@(posedge clk) (!rst_n));
 
 /*
 Purpose: PAC(Property, Assertion, Cover) Group 3:
-         TRIP DECODE. Each trip is high exactly when its count has reached its
-         threshold. Equalities, so a trip stuck high fails as surely as one stuck low.
+         TRIP DECODE. Each trip is high exactly when its own state is active
+         and its count has reached its threshold - window_trip in S_RUN only,
+         window_trip_SS in S_SS only. Equalities, so a trip stuck high fails as
+         surely as one stuck low, and a trip raised outside its state fails as
+         surely as one missed inside it.
          Plain Booleans, same edge: the comparison is combinational. Compared
          at int width, so the count and threshold widths cannot truncate
          either side.
@@ -228,7 +231,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 3:
 property p_window_trip_decode;
 
   @(posedge clk) disable iff (!rst_n)
-    window_trip == (int'(fault_count_run_out) >= int'(trip_run));
+    window_trip == (run_active && (int'(fault_count_run_out) >= int'(trip_run)));
 
 endproperty
 
@@ -236,8 +239,8 @@ a_window_trip_decode: assert property (p_window_trip_decode)
   else begin
 
     sva_pkg::note_failure($sformatf(
-      "a_window_trip_decode: window_trip = %b with run count %0d against trip_run %0d",
-      window_trip, fault_count_run_out, trip_run));
+      "a_window_trip_decode: window_trip = %b with run count %0d against trip_run %0d, run_active %b",
+      window_trip, fault_count_run_out, trip_run, run_active));
 
   end
 
@@ -245,7 +248,7 @@ a_window_trip_decode: assert property (p_window_trip_decode)
 property p_window_trip_ss_decode;
 
   @(posedge clk) disable iff (!rst_n)
-    window_trip_SS == (int'(fault_count_ss_out) >= int'(trip_ss));
+    window_trip_SS == (ss_active && (int'(fault_count_ss_out) >= int'(trip_ss)));
 
 endproperty
 
@@ -253,8 +256,8 @@ a_window_trip_ss_decode: assert property (p_window_trip_ss_decode)
   else begin
 
     sva_pkg::note_failure($sformatf(
-      "a_window_trip_ss_decode: window_trip_SS = %b with soft-start count %0d against trip_ss %0d",
-      window_trip_SS, fault_count_ss_out, trip_ss));
+      "a_window_trip_ss_decode: window_trip_SS = %b with soft-start count %0d against trip_ss %0d, ss_active %b",
+      window_trip_SS, fault_count_ss_out, trip_ss, ss_active));
 
   end
 
@@ -485,30 +488,32 @@ c_clear_ss_nonzero:  cover property (@(posedge clk) disable iff (!rst_n)
 
 /*
 Purpose: PAC(Property, Assertion, Cover) Group 8:
-         EACH TRIP STAYS IN ITS OWN STATE. window_trip_SS may be high outside
-         S_SS only on the first edge after leaving it, and window_trip outside
-         S_RUN only on the first edge after leaving that - the one edge the
-         registered clear takes to land. Beyond that, a trip outside its state
-         is a phantom: fault_cause logs an overcurrent on either trip whenever
-         the converter is running, in S_SS or S_RUN, so a soft-start trip
-         left standing in S_RUN would be recorded with no overcurrent behind
-         it.
+         EACH TRIP STAYS IN ITS OWN STATE. window_trip_SS is never high
+         outside S_SS, and window_trip never outside S_RUN - not even on the
+         edge after leaving, while the registered clear is still landing. A
+         trip outside its state is a phantom: fault_cause logs an overcurrent
+         on either trip whenever the converter is running, in S_SS or S_RUN,
+         so a soft-start trip left standing in S_RUN would be recorded with no
+         overcurrent behind it.
 
          The S_SS -> S_RUN transition does not clear, so if a faulted sample
          lands on the very edge the FSM leaves S_SS, the soft-start count
-         freezes at or above trip_ss for the whole of S_RUN. This group is
-         written to catch that; c_ss_count_at_trip_in_run below is the
-         scenario that provokes it.
+         freezes at or above trip_ss for the whole of S_RUN. Before the RTL
+         fix that held window_trip_SS high through the run, and this group
+         failed on it (testbench group 6). The fix gates each trip by its own
+         state, which also removes the one-edge lag on leaving a state that
+         an earlier version of this claim had to excuse.
 
-         Same edge with a one-edge reach back, so $past is used and the
-         consequent is guarded by out_of_reset. The covers are the excused
-         edge in each direction - the claim's only allowance, shown to occur.
+         Plain Booleans on one edge, no $past needed. The covers are the
+         gated cases - a count at or past its threshold outside its state,
+         with the trip held low - so the claim is shown to have been tested
+         where it matters, not only where it holds trivially.
 */
 
 property p_trip_ss_confined;
 
   @(posedge clk) disable iff (!rst_n)
-    window_trip_SS && !ss_active |-> (!out_of_reset || $past(ss_active));
+    !ss_active |-> !window_trip_SS;
 
 endproperty
 
@@ -516,7 +521,7 @@ a_trip_ss_confined: assert property (p_trip_ss_confined)
   else begin
 
     sva_pkg::note_failure($sformatf(
-      "a_trip_ss_confined: window_trip_SS high outside S_SS for more than one edge (ss count %0d, trip_ss %0d, run_active %b)",
+      "a_trip_ss_confined: window_trip_SS high outside S_SS (ss count %0d, trip_ss %0d, run_active %b)",
       fault_count_ss_out, trip_ss, run_active));
 
   end
@@ -525,7 +530,7 @@ a_trip_ss_confined: assert property (p_trip_ss_confined)
 property p_trip_run_confined;
 
   @(posedge clk) disable iff (!rst_n)
-    window_trip && !run_active |-> (!out_of_reset || $past(run_active));
+    !run_active |-> !window_trip;
 
 endproperty
 
@@ -533,15 +538,15 @@ a_trip_run_confined: assert property (p_trip_run_confined)
   else begin
 
     sva_pkg::note_failure($sformatf(
-      "a_trip_run_confined: window_trip high outside S_RUN for more than one edge (run count %0d, trip_run %0d, ss_active %b)",
+      "a_trip_run_confined: window_trip high outside S_RUN (run count %0d, trip_run %0d, ss_active %b)",
       fault_count_run_out, trip_run, ss_active));
 
   end
 
-c_trip_ss_clear_edge:  cover property (@(posedge clk) disable iff (!rst_n)
-  window_trip_SS && !ss_active);
-c_trip_run_clear_edge: cover property (@(posedge clk) disable iff (!rst_n)
-  window_trip && !run_active);
+c_trip_ss_gated:  cover property (@(posedge clk) disable iff (!rst_n)
+  !ss_active && (int'(fault_count_ss_out) >= int'(trip_ss)) && !window_trip_SS);
+c_trip_run_gated: cover property (@(posedge clk) disable iff (!rst_n)
+  !run_active && (int'(fault_count_run_out) >= int'(trip_run)) && !window_trip);
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +555,8 @@ c_trip_run_clear_edge: cover property (@(posedge clk) disable iff (!rst_n)
 /*
 Purpose: Directed-scenario covers. 
          c_ss_count_at_trip_in_run: the soft-start count at or above trip_ss
-         while in S_RUN - the frozen-count case group 8 exists to catch.
+         while in S_RUN - the frozen-count case group 8 exists to catch, and
+         the regression scenario for the trip gate.
          c_run_trip_at_window: a full window at the largest legal threshold,
          the "reaches, not exceeds" fencepost at its extreme.
 */

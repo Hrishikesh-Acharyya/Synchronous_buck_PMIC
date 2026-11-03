@@ -141,7 +141,7 @@ else
         covers_zero=$(awk -F'\t' '$2 == 0' "$DIR/covers.tsv" | wc -l)
     fi
 
-    checks_failed=$(ui_logval "checks failed" "$DIR/run.log")
+    checks_failed=$(ui_result checks_failed "checks failed" "$DIR/run.log")
     if [[ $sim_rc -ne 0 || $sva_fails -ne 0 ]]; then
         verdict="FAIL"
         if   [[ $sva_fails -ne 0 ]];          then fail_why="$sva_fails assertion failure(s) - the SVA FAIL lines above"
@@ -171,9 +171,9 @@ if [[ $QUIET != 1 ]]; then
     asserts=0
     [[ -s $DIR/asserts.tsv ]] && asserts=$(awk -F'\t' '{ s += $2 } END { print s + 0 }' "$DIR/asserts.tsv")
     checkers=$( [[ -s $DIR/asserts.tsv ]] && wc -l <"$DIR/asserts.tsv" || echo 0)
-    checks_run=$(ui_logval "checks run" "$DIR/run.log" 2>/dev/null)
-    checks_failed=$(ui_logval "checks failed" "$DIR/run.log" 2>/dev/null)
-    exit_why=$(ui_logval "exit" "$DIR/run.log" 2>/dev/null)
+    checks_run=$(ui_result checks_run "checks run" "$DIR/run.log")
+    checks_failed=$(ui_result checks_failed "checks failed" "$DIR/run.log")
+    exit_why=$(ui_result exit exit "$DIR/run.log")
     simtime=$(sed -nE 's/.*\$finish at ([^;]+);.*/\1/p' "$DIR/run.log" 2>/dev/null | tail -1)
     thin=$( [[ -s $DIR/covers.tsv ]] && awk -F'\t' -v t="${THIN:-10}" '$2 > 0 && $2 < t' "$DIR/covers.tsv" | wc -l || echo 0)
 

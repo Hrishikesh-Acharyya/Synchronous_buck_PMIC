@@ -7,11 +7,12 @@
 #                    switching cycle taken at the rising edge of pwm_sync,
 #                    and asserts window_trip / window_trip_SS when the
 #                    number of faulted cycles within the trailing window
-#                    exceeds the threshold for the present state. Two
+#                    reaches the threshold for the present state. Two
 #                    thresholds are used because elevated current during
 #                    soft start is expected as the output capacitor charges,
 #                    whereas sustained overcurrent in S_RUN is a real load
-#                    fault.
+#                    fault. Each trip is asserted only while its own state
+#                    is active, so neither can stand high outside it.
 
 #                   Verilog-2005, converted from rtl-systemverilog/protect/fault_arbiter.sv by sv2v,
 #                   with the comments restored by hand from the source.
@@ -226,26 +227,30 @@ module fault_arbiter (
 	/*
 	Purpose:
 	---
-	Run-window trip: the faulted-cycle count against its threshold. The
-	thresholds differ because elevated current during soft start is expected
-	as the output capacitor charges from zero in FCCM, whereas sustained
-	overcurrent in S_RUN is a genuine load fault.
+	Run-window trip: the faulted-cycle count against its threshold, gated by
+	run_active so it can never be high outside S_RUN. The thresholds differ
+	because elevated current during soft start is expected as the output
+	capacitor charges from zero in FCCM, whereas sustained overcurrent in
+	S_RUN is a genuine load fault.
 	*/
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip = sv2v_cast_67DF8(fault_count_run) >= trip_run;
+		window_trip = run_active && (sv2v_cast_67DF8(fault_count_run) >= trip_run);
 	end
 	/*
 	Purpose:
 	---
 	Soft-start-window trip: the same comparison against the more tolerant
-	soft-start threshold.
+	soft-start threshold, gated by ss_active. The soft-start count is not
+	cleared on the S_SS -> S_RUN transition and holds through S_RUN, so
+	without the gate a count left at trip_ss would hold the trip high for the
+	whole run and fault_cause would log a phantom overcurrent.
 	*/
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip_SS = fault_count_ss >= trip_ss;
+		window_trip_SS = ss_active && (fault_count_ss >= trip_ss);
 	end
 	/*
 	Purpose:
