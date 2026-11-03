@@ -159,6 +159,7 @@ ui_paint() {
         if (plain ~ /^(exit|assertion fails|checks run|checks failed|clock|TELEMETRY_EN|random seed|coverage) +: /) next
         if (plain ~ /^[A-Za-z0-9_]+_tb: (PASS|FAIL)/)                  next
         if (plain ~ /^- /)                                            next
+        if (plain ~ /^tally: /)                                       next
         # no more than one blank line in a row
         if (plain ~ /^[ \t]*$/) { if (blank) next; blank = 1 } else blank = 0
 
@@ -201,4 +202,28 @@ ui_paint() {
 ui_logval() {
     sed 's/\x1b\[[0-9;]*m//g' "$2" 2>/dev/null \
         | sed -nE "s/^$1 +: (.*)$/\1/p" | tail -1
+}
+
+# ui_tally: the value of key=value from the testbench's machine-readable
+#           "tally:" line, if it prints one. exit= is last and runs to the
+#           end of the line, since the reason may contain spaces.
+ui_tally() {
+    local line
+    line=$(sed 's/\x1b\[[0-9;]*m//g' "$2" 2>/dev/null | grep '^tally: ' | tail -1)
+    [[ -n $line ]] || return 0
+    if [[ $1 == exit ]]; then
+        sed -nE 's/.* exit=(.*)$/\1/p' <<<"$line"
+    else
+        sed -nE "s/.* $1=([^ ]*).*/\1/p" <<<"$line"
+    fi
+}
+
+# ui_result: a tally value from the tally line when there is one, else from
+#            the classic "key : value" banner - $1 tally key, $2 banner key,
+#            $3 log
+ui_result() {
+    local v
+    v=$(ui_tally "$1" "$3")
+    [[ -n $v ]] || v=$(ui_logval "$2" "$3")
+    printf '%s' "$v"
 }

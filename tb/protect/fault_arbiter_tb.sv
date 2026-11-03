@@ -431,6 +431,11 @@ task automatic finish_run(input string reason);
         $display(" %s FAIL %s", ANSI_FAIL_BADGE, ANSI_RESET);
     $display("%s==================================================%s",
              ANSI_CYAN, ANSI_RESET);
+    // tally: one plain key=value line for the run scripts (run_tb.sh reads
+    //        it for the summary card; the terminal filter hides it). The
+    //        banner above is for people and may be reworded freely.
+    $display("tally: checks_run=%0d checks_failed=%0d sva_failures=%0d exit=%s",
+             checks_run, checks_failed, sva_pkg::sva_failures, reason);
     // $stop on failure: non-zero exit status, so make and CI see the FAIL.
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
@@ -664,13 +669,13 @@ initial begin
     Group 5: the clear, and the freeze.
     ---
     Leave each state with faults in its window and its trip high: the clear
-    must empty both windows on the next edge, and the trip may show outside
-    its state for that one edge only. Then the soft-start count is left at
+    must empty both windows on the next edge, and the trip must drop with
+    the state - not an edge later - while the count is still clearing. Then the soft-start count is left at
     2, below trip_ss = 4, and the FSM moves S_SS -> S_RUN as the supervisor
     would: the soft-start count must freeze through S_RUN while the run
     window counts clean samples from empty. Leaving S_RUN clears both.
-    Lights c_clear_run_nonzero, c_clear_ss_nonzero, c_trip_run_clear_edge
-    and c_trip_ss_clear_edge.
+    Lights c_clear_run_nonzero, c_clear_ss_nonzero, c_trip_run_gated
+    and c_trip_ss_gated.
     */
 
     set_trips(2, 2);
@@ -700,11 +705,12 @@ initial begin
     trip_ss = 3 with two faulted samples in the window, then a third whose
     rise falls on the very edge the FSM leaves S_SS - legal, since on that
     edge the supervisor still sees window_trip_SS low. The sample lands in
-    the soft-start count, which then freezes at trip_ss through S_RUN, so
-    window_trip_SS stands high in S_RUN with no overcurrent behind it.
-
-    a_trip_ss_confined MUST FAIL here until the RTL is changed: that failure
-    is this group's purpose. Lights c_ss_count_at_trip_in_run.
+    the soft-start count, which then freezes at trip_ss through S_RUN.
+    Before the RTL fix that held window_trip_SS high through the whole run
+    with no overcurrent behind it, and a_trip_ss_confined failed here - this
+    group found the bug. It is now the regression test for the fix: each
+    trip is gated by its own state, so the frozen count no longer raises
+    window_trip_SS. Lights c_ss_count_at_trip_in_run and c_trip_ss_gated.
     */
 
     set_trips(WINDOW_RUN_TB, 3);

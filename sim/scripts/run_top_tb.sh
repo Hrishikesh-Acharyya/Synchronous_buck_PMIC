@@ -164,9 +164,9 @@ printf '%s\t%s\t%s\t%d\t%d\t%d\t%d\n' "$FLOW" "$TOP" "$verdict" 0 \
 # Interactive runs: the summary card.
 if [[ $QUIET != 1 ]]; then
     log=$DIR/run.log
-    checks_run=$(ui_logval "checks run" "$log")
-    checks_failed=$(ui_logval "checks failed" "$log")
-    exit_why=$(ui_logval "exit" "$log")
+    checks_run=$(ui_result checks_run "checks run" "$log")
+    checks_failed=$(ui_result checks_failed "checks failed" "$log")
+    exit_why=$(ui_result exit exit "$log")
     simtime=$(sed -nE 's/.*\$finish at ([^;]+);.*/\1/p' "$log" 2>/dev/null | tail -1)
     if   [[ $verdict == PASS ]]; then why="every check passed and every coverage bin was hit"
     elif [[ $build_ok != 1 ]];   then why="build failed - see the diagnostics above"
