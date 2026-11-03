@@ -30,7 +30,6 @@ module fault_arbiter_sva
     input  wire logic                              clk,
     input  wire logic                              rst_n,
     input  wire logic                              pwm_sync,
-    input  wire logic                              cp_sync,
     input  wire logic                              ss_active,
     input  wire logic                              run_active,
     input  wire logic [pmic_types_pkg::TRIP_W-1:0] trip_run,
