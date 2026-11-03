@@ -57,6 +57,7 @@ TESTBENCHES := clk_rst/reset_sync \
                protect/soft_start \
                protect/hiccup_timer \
                protect/strike_counter \
+               protect/fault_arbiter \
                status/pgood_gen \
                status/timestamp \
                status/fault_LED \
