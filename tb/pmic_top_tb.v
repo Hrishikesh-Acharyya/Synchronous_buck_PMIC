@@ -1970,6 +1970,11 @@ task finish_run(input [8*48:1] reason);
         if ((checks_failed == 0) && (cov_missed == 0)) emit("pmic_top_tb: PASS");
         else                                           emit("pmic_top_tb: FAIL");
         emit("--------------------------------------------------");
+        // tally: one plain key=value line for the run scripts; the
+        //        terminal filter hides it. No bound SVA here, so 0.
+        $sformat(msg, "tally: checks_run=%0d checks_failed=%0d sva_failures=0 exit=%0s",
+                 checks_run, checks_failed, reason);
+        emit(msg);
         if (log_fd != 0) $fclose(log_fd);
         if ((checks_failed == 0) && (cov_missed == 0)) $finish;
         else                                           $stop;
