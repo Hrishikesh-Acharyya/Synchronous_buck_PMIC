@@ -118,6 +118,12 @@ logic [7:0] chk_strobes;
 // chk_seen_rd_first: rd_first has pulsed in this transaction
 logic chk_seen_rd_first;
 
+// chk_last_was_read: direction of the most recent transaction whose command
+//                    byte completed. Lets a cover show that a truncated
+//                    command was tried after a READ - the history that, before
+//                    spi_slave cleared rw on cs_fall, suppressed its abort.
+logic chk_last_was_read;
+
 // chk_silence: clocks since the last SCK edge while CS is low; zero while CS
 //              is high. Counts INTERVALS: the edge that sees an SCK change
 //              leaves it at zero.
@@ -142,6 +148,22 @@ always_ff @(posedge clk or negedge rst_n) begin
   else begin
     sck_q  <= sck;
     cs_n_q <= cs_n;
+  end
+end
+
+always_ff @(posedge clk or negedge rst_n) begin
+  /*
+  Purpose:
+  ---
+  Remember the direction of the last transaction that completed its command
+  byte, updated as CS rises. A transaction cut short before its command
+  completes leaves it unchanged, so it always names the last real command.
+  */
+  if (!rst_n) begin
+    chk_last_was_read <= 1'b0;
+  end
+  else if (chk_cs_rise && chk_cmd_valid) begin
+    chk_last_was_read <= chk_is_read;
   end
 end
 
@@ -833,9 +855,14 @@ Purpose: PAC(Property, Assertion, Cover) Group 9:
          Considered and subsumed: "each is a one-clock pulse" follows from
          the second property, since CS cannot rise on consecutive clocks.
 
-         NOT ASSERTED, covered only: CS rising before the command byte
-         completes. The header does not say what should happen; see
-         c_closed_before_command.
+           - A transaction closed before its command byte completed is a
+             write that failed framing: it always produces txn_abort, so the
+             bus-error count sees every truncated command. spi_slave clears
+             rw on cs_fall to guarantee this. Before that change the outcome
+             depended on the PREVIOUS transaction - aborted after a write,
+             silently dropped after a read - and this claim was only covered.
+             c_closed_before_command_after_read is that history case, the
+             regression scenario for the fix.
 */
 
 property p_end_pulses_exclusive;
@@ -899,6 +926,22 @@ a_read_never_resolved: assert property (p_read_never_resolved)
 
   end
 
+property p_truncated_command_aborts;
+
+  @(posedge clk) disable iff (!rst_n)
+    ($past(rst_n) && chk_cs_rise && !chk_cmd_valid) |=> txn_abort;
+
+endproperty
+
+a_truncated_command_aborts: assert property (p_truncated_command_aborts)
+  else begin
+
+    sva_pkg::note_failure($sformatf(
+      "a_truncated_command_aborts: CS rose after %0d command bits with no txn_abort (last command was a %0s)",
+      $past(chk_bit_count), $past(chk_last_was_read) ? "read" : "write"));
+
+  end
+
 property p_no_commit_unframed;
 
   @(posedge clk) disable iff (!rst_n)
@@ -931,6 +974,10 @@ c_read_closed_mid_byte:  cover property (@(posedge clk) disable iff (!rst_n)
                              chk_cs_rise && chk_cmd_valid && chk_is_read && (chk_bit_count != 3'd0));
 c_closed_before_command: cover property (@(posedge clk) disable iff (!rst_n)
                              chk_cs_rise && !chk_cmd_valid);
+c_closed_before_command_after_read:  cover property (@(posedge clk) disable iff (!rst_n)
+                             chk_cs_rise && !chk_cmd_valid && chk_last_was_read);
+c_closed_before_command_after_write: cover property (@(posedge clk) disable iff (!rst_n)
+                             chk_cs_rise && !chk_cmd_valid && !chk_last_was_read);
 
 /*
 ////////////////////////////////////////////////////////////////////////////////

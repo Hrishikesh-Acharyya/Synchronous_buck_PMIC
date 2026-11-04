@@ -1488,8 +1488,10 @@ module spi_slave (
 				addr <= addr + 7'd1;
 			if (sck_rise)
 				rx_shift <= {rx_shift[5:0], sdio_in};
-			if (cs_fall)
+			if (cs_fall) begin
 				held_valid <= 1'b0;
+				rw <= 1'b0;
+			end
 			else if (byte_done) begin
 				if (spi_state == 3'b001) begin
 					rw <= rx_byte[7];
