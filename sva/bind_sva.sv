@@ -89,6 +89,13 @@ bind fault_arbiter fault_arbiter_sva #(
     .*
 );
 
+bind spi_slave spi_slave_sva #(
+    .SCK_IDLE_TIMEOUT_CLKS(SCK_IDLE_TIMEOUT_CLKS)
+) u_sva (
+    .dut_spi_state(spi_state),
+    .*
+);
+
 
 
 
