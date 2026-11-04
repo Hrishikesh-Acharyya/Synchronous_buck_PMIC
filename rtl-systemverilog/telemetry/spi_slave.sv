@@ -108,8 +108,9 @@ module spi_slave
     // S_WRITE     : receiving data bytes, then the CRC byte
     // S_TURN      : read turnaround (dummy) byte; MISO held low
     // S_READ      : shifting read data out
-    // S_DEAD      : transaction poisoned (timeout, or illegal length); wait for CS
-    //               to rise, commit nothing
+    // S_DEAD      : transaction poisoned by an SCK timeout; wait for CS to rise,
+    //               commit nothing. An illegal length never reaches S_DEAD - it is
+    //               judged at cs_rise (BLOCK 9) and produces txn_abort.
 
 
     // Transaction states. Two bits would hold four, so three are needed for six.
@@ -125,7 +126,9 @@ module spi_slave
     } spi_states_t;
 
     spi_states_t spi_state,spi_state_next;
-     // rw: bit 7 of the command byte, 1 = read
+     // rw: bit 7 of the command byte, 1 = read. Cleared on cs_fall, so a
+     //     transaction whose command byte never completes is a write - see
+     //     BLOCK 9 - and is never classified by the previous transaction.
     logic rw;
     // sck_timeout: one-clock pulse.
     logic sck_timeout;
@@ -398,6 +401,7 @@ module spi_slave
 
             if (cs_fall) begin
                 held_valid <= 1'b0;             // nothing carries between transactions
+                rw         <= 1'b0;             // direction unknown until the command completes
             end
             else if (byte_done) begin
 
@@ -674,8 +678,16 @@ module spi_slave
     Reads produce NEITHER pulse. There is nothing to commit and nothing to discard,
     and a host is free to stop a read mid-byte.
 
-    S_DEAD produces txn_abort regardless: a timed-out transaction must never commit, even
-    if the bytes that did arrive happen to satisfy the length and CRC checks.
+    A transaction whose command byte never completed counts as a write, and so
+    pulses txn_abort (it is shorter than three bytes): rw is cleared on cs_fall, so
+    a truncated command - a CS blip that passed the filter, or lost SCK edges - is
+    always counted as a bus error, whatever the previous transaction was. Without
+    the clear, rw held the previous command's direction and the same fault was
+    counted or not depending on history.
+
+    On a write, S_DEAD produces txn_abort regardless of length and CRC: a timed-out
+    write must never commit, even if the bytes that did arrive happen to satisfy
+    the checks. A timed-out read, like any read, produces neither pulse.
 
     Both pulses land on cs_rise, which is at least one clock after the last wr_en -
     wr_en fires on an sck_rise, and cs_rise cannot coincide with one. This matters
