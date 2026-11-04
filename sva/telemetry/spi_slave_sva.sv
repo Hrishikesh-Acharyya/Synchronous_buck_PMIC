@@ -124,6 +124,11 @@ logic chk_seen_rd_first;
 //                    spi_slave cleared rw on cs_fall, suppressed its abort.
 logic chk_last_was_read;
 
+// chk_had_command: at least one transaction since reset has completed its
+//                  command byte, so chk_last_was_read names a real command
+//                  rather than its reset value
+logic chk_had_command;
+
 // chk_silence: clocks since the last SCK edge while CS is low; zero while CS
 //              is high. Counts INTERVALS: the edge that sees an SCK change
 //              leaves it at zero.
@@ -158,13 +163,26 @@ always_ff @(posedge clk or negedge rst_n) begin
   Remember the direction of the last transaction that completed its command
   byte, updated as CS rises. A transaction cut short before its command
   completes leaves it unchanged, so it always names the last real command.
+
+  chk_had_command marks that such a command exists at all. Without it the
+  reset value of chk_last_was_read (0) would read as "the last command was a
+  write", and a truncated first transaction after reset would satisfy the
+  after-write history cover with no write ever sent.
   */
   if (!rst_n) begin
+
     chk_last_was_read <= 1'b0;
+    chk_had_command   <= 1'b0;
+
   end
+
   else if (chk_cs_rise && chk_cmd_valid) begin
+
     chk_last_was_read <= chk_is_read;
+    chk_had_command   <= 1'b1;
+
   end
+
 end
 
 always_ff @(posedge clk or negedge rst_n) begin
@@ -848,21 +866,19 @@ Purpose: PAC(Property, Assertion, Cover) Group 9:
            - A write whose command completed always resolves into one of the
              two.
            - A read never produces either.
+           - A transaction closed before its command byte completed always
+             produces txn_abort, so the bus-error count sees every truncated
+             command. spi_slave clears rw on cs_fall to guarantee this.
+             Before that change the outcome depended on the PREVIOUS
+             transaction: aborted after a write, silently dropped after a
+             read. c_closed_before_command_after_read is that history case,
+             the regression scenario for the fix.
            - integrity_ok is impossible when the transaction was not framed:
              CS rose mid-byte, fewer than three bytes arrived, or the slave
              had timed out. Whether the CRC itself was right is an M claim
              for the scoreboard's independent CRC model.
          Considered and subsumed: "each is a one-clock pulse" follows from
          the second property, since CS cannot rise on consecutive clocks.
-
-           - A transaction closed before its command byte completed is a
-             write that failed framing: it always produces txn_abort, so the
-             bus-error count sees every truncated command. spi_slave clears
-             rw on cs_fall to guarantee this. Before that change the outcome
-             depended on the PREVIOUS transaction - aborted after a write,
-             silently dropped after a read - and this claim was only covered.
-             c_closed_before_command_after_read is that history case, the
-             regression scenario for the fix.
 */
 
 property p_end_pulses_exclusive;
@@ -972,12 +988,11 @@ c_abort_after_timeout:   cover property (@(posedge clk) disable iff (!rst_n)
                              txn_abort && $past(dut_spi_state == S_DEAD));
 c_read_closed_mid_byte:  cover property (@(posedge clk) disable iff (!rst_n)
                              chk_cs_rise && chk_cmd_valid && chk_is_read && (chk_bit_count != 3'd0));
-c_closed_before_command: cover property (@(posedge clk) disable iff (!rst_n)
-                             chk_cs_rise && !chk_cmd_valid);
 c_closed_before_command_after_read:  cover property (@(posedge clk) disable iff (!rst_n)
-                             chk_cs_rise && !chk_cmd_valid && chk_last_was_read);
+                             chk_cs_rise && !chk_cmd_valid && chk_had_command && chk_last_was_read);
 c_closed_before_command_after_write: cover property (@(posedge clk) disable iff (!rst_n)
-                             chk_cs_rise && !chk_cmd_valid && !chk_last_was_read);
+                             chk_cs_rise && !chk_cmd_valid && chk_had_command && !chk_last_was_read);
+
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
