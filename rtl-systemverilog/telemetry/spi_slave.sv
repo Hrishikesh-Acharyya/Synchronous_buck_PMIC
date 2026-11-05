@@ -116,12 +116,12 @@ module spi_slave
     // Transaction states. Two bits would hold four, so three are needed for six.
     typedef enum logic [2:0] {
 
-      S_IDLE = 3'b000,    // CS high, nothing happening
-      S_CMD = 3'b001,     // receiving the command byte
-      S_WRITE = 3'b010,   // receiving data bytes, then the CRC byte
-      S_TURN = 3'b011,    // read turnaround (dummy) byte; MISO held low
-      S_READ = 3'b100,    // shifting read data out
-      S_DEAD = 3'b101     // poisoned; wait for CS to rise, commit nothing
+      S_IDLE  = 3'b000,    // CS high, nothing happening
+      S_CMD   = 3'b001,    // receiving the command byte
+      S_WRITE = 3'b010,    // receiving data bytes, then the CRC byte
+      S_TURN  = 3'b011,    // read turnaround (dummy) byte; MISO held low
+      S_READ  = 3'b100,    // shifting read data out
+      S_DEAD  = 3'b101     // poisoned; wait for CS to rise, commit nothing
 
     } spi_states_t;
 

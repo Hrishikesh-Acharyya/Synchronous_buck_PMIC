@@ -1,0 +1,44 @@
+#
+# Filename:         Makefile
+#
+# File Description: cocotb build-and-run for the host interface - spi_slave and
+#                   reg_file through host_if_wrapper. Run from this folder with
+#                   the venv active: `make`. Compiles the same sources as
+#                   sim/mk/sources.mk - the whole RTL and every bound checker -
+#                   and lets TOPLEVEL decide what is elaborated, so binds to
+#                   modules outside this build are inert, exactly as in the
+#                   module testbenches. WAVES=1 dumps an FST.
+#
+# Global variables: REPO, SV_DIR, PKG, RTL_SRCS, SVA_SRCS, TB_SRCS - sources
+#                   SIM, TOPLEVEL_LANG, VERILOG_SOURCES, TOPLEVEL, MODULE,
+#                   EXTRA_ARGS - cocotb's variables
+
+# REPO: repository root, three levels up from tb/telemetry/host_if/
+REPO   := $(abspath ../../..)
+SV_DIR := $(REPO)/rtl-systemverilog
+
+# PKG: must come first - every other file elaborates against its types
+PKG      := $(SV_DIR)/pkg/pmic_types_pkg.sv
+RTL_SRCS := $(PKG) $(filter-out $(PKG),$(wildcard $(SV_DIR)/*.sv $(SV_DIR)/*/*.sv))
+
+# SVA_SRCS: same rule as sources.mk - sva_pkg first, bind_sva.sv last
+SVA_SRCS := $(REPO)/sva/sva_pkg.sv \
+            $(filter-out $(REPO)/sva/sva_pkg.sv $(REPO)/sva/bind_sva.sv,$(wildcard $(REPO)/sva/*/*.sv)) \
+            $(REPO)/sva/bind_sva.sv
+
+TB_SRCS  := $(CURDIR)/host_if_wrapper.sv
+
+# ---- cocotb ----
+SIM             ?= verilator
+TOPLEVEL_LANG    = verilog
+VERILOG_SOURCES  = $(RTL_SRCS) $(SVA_SRCS) $(TB_SRCS)
+TOPLEVEL         = host_if_wrapper
+MODULE           = test_host_if
+
+# EXTRA_ARGS: passed to Verilator. Same lint level and waivers as the SV flow
+#   (sim/mk/sources.mk), so a warning means the same thing in both. No
+#   --binary: cocotb supplies its own main.
+EXTRA_ARGS += --assert --coverage-user -Wall \
+              -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM -Wno-SYNCASYNCNET
+
+include $(shell cocotb-config --makefiles)/Makefile.sim

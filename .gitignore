@@ -68,3 +68,10 @@ Build/*.zip
 # Place and route, for when it is redone: fetched platform files and run outputs
 pnr/platform/
 pnr/work/
+
+
+sim_build/
+results.xml
+__pycache__/
+*.fst
+coverage.dat
