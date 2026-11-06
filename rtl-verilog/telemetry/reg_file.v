@@ -268,8 +268,16 @@ module reg_file (
 	localparam signed [31:0] WD_TIMEOUT_MS = 5000;
 	// scratch_r: read-write byte with no effect on anything. The host writes a
 	//            pattern and reads it back to prove both bus directions work
-	//            before trusting any real register.
+	//            before trusting any real register. Commits on integrity_OK like
+	//            every other writable register, so the check exercises the same
+	//            CRC gate a real write must pass.
 	reg [7:0] scratch_r;
+	// scratch_temp: a SCRATCH write lands here first; copied to scratch_r only
+	//               on integrity_OK
+	reg [7:0] scratch_temp;
+	// scratch_pending: scratch_temp holds a write from the current transaction,
+	//                  cleared at its end whether committed or aborted
+	reg scratch_pending;
 	// disable_armed: a valid DISABLE_KEY has been written; the next CONTROL write
 	//                clearing bit 0 will be honoured
 	reg disable_armed;
@@ -914,14 +922,18 @@ module reg_file (
 	Hold the control bits and manage the two key-protected operations. The enable path
 	is asymmetric: enabling takes one write, disabling needs a key first, because a
 	spurious enable only removes a veto while a spurious disable stops a working
-	supply. latch_clear is a one-clock pulse, not a held value. en_switch_rise is
-	applied last so the physical switch wins any same-cycle collision.
+	supply. en_switch_rise is applied last so the physical switch wins any
+	same-cycle collision.
+	SCRATCH is staged like CONTROL: held in scratch_temp and committed only
+	on integrity_OK, so a bad-CRC write leaves it unchanged.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
 			arm_timer <= 1'sb0;
 			spi_enable <= 1'b1;
 			scratch_r <= 8'h00;
+			scratch_temp <= 8'h00;
+			scratch_pending <= 1'b0;
 			disable_armed <= 1'b0;
 			unlock_armed <= 1'b0;
 			en_pending <= 1'b0;
@@ -940,7 +952,10 @@ module reg_file (
 				arm_timer <= 1'sb0;
 			if (wr_en)
 				case (addr)
-					ADDR_SCRATCH: scratch_r <= wdata;
+					ADDR_SCRATCH: begin
+						scratch_temp <= wdata;
+						scratch_pending <= 1'b1;  // committed on integrity_OK, dropped on txn_abort
+					end
 					ADDR_DISABLE_KEY: disable_armed <= wdata == DISABLE_KEY_ID;
 					ADDR_WRITE_KEY: unlock_armed <= wdata == WRITE_ACCESS_KEY_ID;
 					ADDR_CONTROL:
@@ -960,12 +975,15 @@ module reg_file (
 			if (integrity_OK) begin
 				if (en_pending)
 					spi_enable <= en_pending_val;
+				if (scratch_pending)
+					scratch_r <= scratch_temp;
 			end
 			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;
 				en_pending_val <= 1'b0;
+				scratch_pending <= 1'b0;
 			end
 			if (wd_expired) begin
 				spi_enable <= 1'b1;

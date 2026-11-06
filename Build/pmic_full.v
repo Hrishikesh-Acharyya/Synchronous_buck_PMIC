@@ -920,6 +920,8 @@ module reg_file (
 	localparam [7:0] CAPABILITY_VAL = 8'b00111101;
 	localparam signed [31:0] WD_TIMEOUT_MS = 5000;
 	reg [7:0] scratch_r;
+	reg [7:0] scratch_temp;
+	reg scratch_pending;
 	reg disable_armed;
 	reg unlock_armed;
 	reg [ARM_TIMEOUT_W - 1:0] arm_timer;
@@ -1284,6 +1286,8 @@ module reg_file (
 			arm_timer <= 1'sb0;
 			spi_enable <= 1'b1;
 			scratch_r <= 8'h00;
+			scratch_temp <= 8'h00;
+			scratch_pending <= 1'b0;
 			disable_armed <= 1'b0;
 			unlock_armed <= 1'b0;
 			en_pending <= 1'b0;
@@ -1302,7 +1306,10 @@ module reg_file (
 				arm_timer <= 1'sb0;
 			if (wr_en)
 				case (addr)
-					ADDR_SCRATCH: scratch_r <= wdata;
+					ADDR_SCRATCH: begin
+						scratch_temp <= wdata;
+						scratch_pending <= 1'b1;
+					end
 					ADDR_DISABLE_KEY: disable_armed <= wdata == DISABLE_KEY_ID;
 					ADDR_WRITE_KEY: unlock_armed <= wdata == WRITE_ACCESS_KEY_ID;
 					ADDR_CONTROL:
@@ -1322,12 +1329,15 @@ module reg_file (
 			if (integrity_OK) begin
 				if (en_pending)
 					spi_enable <= en_pending_val;
+				if (scratch_pending)
+					scratch_r <= scratch_temp;
 			end
 			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;
 				en_pending_val <= 1'b0;
+				scratch_pending <= 1'b0;
 			end
 			if (wd_expired) begin
 				spi_enable <= 1'b1;
