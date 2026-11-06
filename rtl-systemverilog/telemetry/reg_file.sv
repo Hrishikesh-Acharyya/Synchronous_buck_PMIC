@@ -172,8 +172,16 @@ module reg_file
     // ==================================================================
     // scratch_r: read-write byte with no effect on anything. The host writes a
     //            pattern and reads it back to prove both bus directions work
-    //            before trusting any real register.
+    //            before trusting any real register. Commits on integrity_OK like
+    //            every other writable register, so the check exercises the same
+    //            CRC gate a real write must pass.
     logic [7:0] scratch_r;
+    // scratch_temp: a SCRATCH write lands here first; copied to scratch_r only
+    //               on integrity_OK
+    logic [7:0] scratch_temp;
+    // scratch_pending: scratch_temp holds a write from the current transaction,
+    //                  cleared at its end whether committed or aborted
+    logic       scratch_pending;
     // disable_armed: a valid DISABLE_KEY has been written; the next CONTROL write
     //                clearing bit 0 will be honoured
     logic       disable_armed;
@@ -774,8 +782,10 @@ module reg_file
     Hold the control bits and manage the two key-protected operations. The enable path
     is asymmetric: enabling takes one write, disabling needs a key first, because a
     spurious enable only removes a veto while a spurious disable stops a working
-    supply. latch_clear is a one-clock pulse, not a held value. en_switch_rise is
+    supply. en_switch_rise is
     applied last so the physical switch wins any same-cycle collision.
+    SCRATCH is staged like CONTROL: held in scratch_temp and committed only
+    on integrity_OK, so a bad-CRC write leaves it unchanged.
     */
     
     if(!rst_n) begin
@@ -783,6 +793,8 @@ module reg_file
       arm_timer      <=  '0;
       spi_enable     <= 1'b1;
       scratch_r      <= 8'h00;
+      scratch_temp    <= 8'h00;
+      scratch_pending <= 1'b0;
       disable_armed  <= 1'b0;
       unlock_armed   <= 1'b0;
       en_pending     <= 1'b0;
@@ -817,7 +829,10 @@ module reg_file
 
       case(addr)
 
-        ADDR_SCRATCH : scratch_r <= wdata;
+        ADDR_SCRATCH : begin
+          scratch_temp    <= wdata;
+          scratch_pending <= 1'b1;     // committed on integrity_OK, dropped on txn_abort
+        end
         ADDR_DISABLE_KEY : disable_armed <= (wdata == DISABLE_KEY_ID);
         ADDR_WRITE_KEY : unlock_armed <= (wdata == WRITE_ACCESS_KEY_ID);
 
@@ -847,14 +862,17 @@ module reg_file
     // Apply a pending enable change only on a validated transaction, then clear
     // all pending state. On txn_abort, the pending change is discarded with it.
     if (integrity_OK) begin
-        if (en_pending) spi_enable <= en_pending_val;
+        if (en_pending)      spi_enable <= en_pending_val;
+        if (scratch_pending) scratch_r  <= scratch_temp;
     end
-
     if (txn_abort || integrity_OK) begin
+
         disable_armed  <= 1'b0;
         unlock_armed   <= 1'b0;
         en_pending     <= 1'b0;
         en_pending_val <= 1'b0;
+        scratch_pending <= 1'b0;
+
     end
 
     // Bus-silence watchdog. A host that commands a disable and then dies, hangs or
