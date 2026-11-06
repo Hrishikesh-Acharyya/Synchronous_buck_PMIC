@@ -96,6 +96,33 @@ bind spi_slave spi_slave_sva #(
     .*
 );
 
+// reg_file: commit discipline, threshold gates and safe ranges, keys, enable
+// path, watchdog, read port, bus-error counter. Internals are the ones named in
+// reg_file's "Internal state" section.
+bind reg_file reg_file_sva #(
+    .PMIC_ID            (PMIC_ID),
+    .VERSION_ID         (VERSION_ID),
+    .DISABLE_KEY_ID     (DISABLE_KEY_ID),
+    .WRITE_ACCESS_KEY_ID(WRITE_ACCESS_KEY_ID),
+    .ARM_TIMEOUT_W      (ARM_TIMEOUT_W)
+) u_sva (
+    .dut_scratch_r      (scratch_r),
+    .dut_temp_dirty     (temp_dirty),
+    .dut_en_pending     (en_pending),
+    .dut_en_pending_val (en_pending_val),
+    .dut_scratch_pending(scratch_pending),
+    .dut_disable_armed  (disable_armed),
+    .dut_unlock_armed   (unlock_armed),
+    .dut_arm_timer      (arm_timer),
+    .dut_wd_mark        (wd_mark),
+    .dut_wd_restored    (wd_restored),
+    .dut_write_rejected (write_rejected),
+    .dut_bus_err_count  (bus_err_count),
+    .dut_timestamp_snap (timestamp_snap),
+    .*
+);
+
+
 
 
 
