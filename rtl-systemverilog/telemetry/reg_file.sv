@@ -102,7 +102,7 @@ module reg_file
     output logic fault_reg_read_done
 );
 
-    logic write_rejected;   // set when a threshold write is refused (locked, or not in S_OFF)
+    logic write_rejected;   // set when a transaction's threshold writes are refused - all or nothing
 
 
     // ---- 0x00-0x0F : identity ----
@@ -164,6 +164,11 @@ module reg_file
     //WD_TIMEOUT_MS: host silence tolerated before the SPI enable veto is released.
     //               Long enough that any sane polling rate never trips it, short
     //               enough that an unattended board recovers in a useful time.
+    //               Firmware requirement: while holding the veto (spi_enable = 0)
+    //               the host must complete a valid WRITE at least this often -
+    //               e.g. to SCRATCH. Reads do not count as proof of life. Since
+    //               SCRATCH commits only on integrity_OK, such a heartbeat proves
+    //               the whole write path, CRC included, not just that SCK runs.
     localparam int WD_TIMEOUT_MS = 5000;
 
 
@@ -303,7 +308,10 @@ module reg_file
 
     Re-marked continuously while spi_enable is high, so the timeout always starts
     from the instant the veto is applied rather than from some earlier transaction.
-    While the veto is held it is re-marked only on integrity_OK.
+    While the veto is held it is re-marked only on integrity_OK: a write with a
+    valid CRC, whatever it wrote (a rejected threshold write still counts, since
+    the host proved it is alive). Reads produce no integrity_OK and so never feed
+    the watchdog - holding the veto requires writing.
 
     */
 
@@ -682,6 +690,25 @@ module reg_file
     logic off_ok;
     always_comb off_ok = (sup_state == S_OFF);
 
+    // threshold_reject: some threshold write in this transaction cannot be
+    //                   honoured - no key, an S_OFF-only register written
+    //                   outside S_OFF, or a partial multi-byte write. Any one
+    //                   of them rejects every threshold write in the transaction.
+    logic threshold_reject;
+    always_comb begin
+    /*
+    Purpose:
+    ---
+    Decide, before anything commits, whether the transaction's threshold writes
+    can be honoured as a whole. Evaluated only where temp_dirty is non-zero; a
+    transaction that wrote no threshold is never a rejection.
+    */
+        threshold_reject = !unlock_armed
+                         || (temp_dirty[7] && !off_ok)
+                         || (hiccup_any && !(hiccup_all && off_ok))
+                         || (clean_any  && !(clean_all  && off_ok));
+    end
+
     // ==================================================================
     // commit and clamp
     // ==================================================================
@@ -693,20 +720,20 @@ module reg_file
     way IN rather than on the way out. Clamping on write means the register always
     holds a legal value, so a host readback shows what is actually in effect.
 
-    Three gates, all checked here so the policy lives in one place:
-      unlock_armed - the threshold bank is locked without a valid key
-      off_ok       - hiccup_base, cycles_per_step and clean_run_target are compared
-                     against free-running counters, so they are accepted only in
-                     S_OFF. trip_run, trip_ss, max_strikes and max_on_limit are
-                     compared against bounded accumulators that re-reference every
-                     switching cycle, so a mid-run change is safe: lowering one
-                     below the current count trips immediately, which is correct.
-      hiccup_all / clean_all - strict multi-byte rule, see above.
+    Gating is decided once, in threshold_reject: no key, an S_OFF-only register
+    outside S_OFF, or a partial multi-byte write rejects every threshold write in
+    the transaction. All or nothing, the strict multi-byte rule extended to the
+    whole transaction, so the converter never runs a half-applied configuration.
+    (hiccup_base, cycles_per_step and clean_run_target are S_OFF-only because they
+    are compared against free-running counters; trip_run, trip_ss, max_strikes and
+    max_on_limit are compared against bounded accumulators that re-reference every
+    switching cycle, so a mid-run change to them is safe.)
 
-    write_rejected is set or cleared by every commit, so it always describes the
-    most recent write attempt and never goes stale. It is reported in STATUS bit 7;
-    the host reads sup_state in the same byte to tell a locked bank from a running
-    converter.
+    write_rejected is set by a rejected commit and cleared by an accepted one; a
+    transaction that wrote no threshold leaves it alone, so a control-only write
+    cannot clear a rejection the host has not read yet. It is reported in STATUS
+    bit 7; the host reads sup_state in the same byte to tell a locked bank from a
+    running converter.
     */
 
     if(!rst_n) begin
@@ -722,49 +749,29 @@ module reg_file
 
     end
 
-    else if (integrity_OK) begin
+    // A transaction that wrote no threshold at all is not a rejection - the flag
+    // is left alone so a control-only write does not clear a genuine rejection
+    // the host has not read yet.
+    else if (integrity_OK && |temp_dirty) begin
 
-       // A transaction that wrote no threshold at all is not a rejection -
-       // leave the flag alone so a control-only write does not clear a
-       // genuine rejection the host has not read yet.
+        // All or nothing: one refused write rejects the whole set, so the
+        // converter never runs a half-applied configuration.
+        if (threshold_reject) begin
+            write_rejected <= 1'b1;
+        end
 
-       if(|temp_dirty) begin
+        else begin
+            write_rejected <= 1'b0;
 
-          write_rejected <= 1'b0;
+            if (temp_dirty[0]) trip_run         <= clamp_trip_run   (temp_trip_run);
+            if (temp_dirty[1]) trip_ss          <= clamp_trip_ss    (temp_trip_ss);
+            if (temp_dirty[2]) max_strikes      <= clamp_max_strikes(temp_max_strk);
+            if (temp_dirty[3]) max_on_limit     <= clamp_max_on     (temp_max_on);
+            if (temp_dirty[7]) cycles_per_step  <= clamp_cyc_step   (temp_cyc_step);
+            if (hiccup_any)    hiccup_base      <= clamp_hiccup     (temp_hiccup_full);
+            if (clean_any)     clean_run_target <= clamp_clean_run  (temp_clean_full);
+        end
 
-          if(!unlock_armed) begin
-
-              write_rejected <= 1'b1; //no write access, key not provided
-
-          end
-
-          else begin
-
-            //live thresholds writable at any time
-            if(temp_dirty[0]) trip_run     <= clamp_trip_run    (temp_trip_run);
-            if(temp_dirty[1]) trip_ss      <= clamp_trip_ss     (temp_trip_ss);
-            if(temp_dirty[2]) max_strikes  <= clamp_max_strikes (temp_max_strk);
-            if(temp_dirty[3]) max_on_limit <= clamp_max_on      (temp_max_on);
-
-            // ---- S_OFF only ----
-            if (temp_dirty[7]) begin
-                if (off_ok) cycles_per_step <= clamp_cyc_step(temp_cyc_step);
-                else        write_rejected  <= 1'b1;
-            end
-
-            if (hiccup_any) begin
-                        if (hiccup_all && off_ok) hiccup_base   <= clamp_hiccup(temp_hiccup_full);
-                        else                      write_rejected <= 1'b1;
-            end
-
-             if (clean_any) begin
-                        if (clean_all && off_ok) clean_run_target <= clamp_clean_run(temp_clean_full);
-                        else                     write_rejected   <= 1'b1;
-             end
-        
-          end
-
-       end
     end
     end
 

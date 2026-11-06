@@ -1230,6 +1230,12 @@ module reg_file (
 			;
 		off_ok = sup_state == 2'b00;
 	end
+	reg threshold_reject;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		threshold_reject = ((!unlock_armed || (temp_dirty[7] && !off_ok)) || (hiccup_any && !(hiccup_all && off_ok))) || (clean_any && !(clean_all && off_ok));
+	end
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
@@ -1246,39 +1252,25 @@ module reg_file (
 			clean_run_target <= sv2v_cast_DC11B_signed(pmic_types_pkg_CLEAN_RUN_CYCLES);
 			write_rejected <= 1'b0;
 		end
-		else if (integrity_OK) begin
-			if (|temp_dirty) begin
+		else if (integrity_OK && |temp_dirty) begin
+			if (threshold_reject)
+				write_rejected <= 1'b1;
+			else begin
 				write_rejected <= 1'b0;
-				if (!unlock_armed)
-					write_rejected <= 1'b1;
-				else begin
-					if (temp_dirty[0])
-						trip_run <= clamp_trip_run(temp_trip_run);
-					if (temp_dirty[1])
-						trip_ss <= clamp_trip_ss(temp_trip_ss);
-					if (temp_dirty[2])
-						max_strikes <= clamp_max_strikes(temp_max_strk);
-					if (temp_dirty[3])
-						max_on_limit <= clamp_max_on(temp_max_on);
-					if (temp_dirty[7]) begin
-						if (off_ok)
-							cycles_per_step <= clamp_cyc_step(temp_cyc_step);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (hiccup_any) begin
-						if (hiccup_all && off_ok)
-							hiccup_base <= clamp_hiccup(temp_hiccup_full);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (clean_any) begin
-						if (clean_all && off_ok)
-							clean_run_target <= clamp_clean_run(temp_clean_full);
-						else
-							write_rejected <= 1'b1;
-					end
-				end
+				if (temp_dirty[0])
+					trip_run <= clamp_trip_run(temp_trip_run);
+				if (temp_dirty[1])
+					trip_ss <= clamp_trip_ss(temp_trip_ss);
+				if (temp_dirty[2])
+					max_strikes <= clamp_max_strikes(temp_max_strk);
+				if (temp_dirty[3])
+					max_on_limit <= clamp_max_on(temp_max_on);
+				if (temp_dirty[7])
+					cycles_per_step <= clamp_cyc_step(temp_cyc_step);
+				if (hiccup_any)
+					hiccup_base <= clamp_hiccup(temp_hiccup_full);
+				if (clean_any)
+					clean_run_target <= clamp_clean_run(temp_clean_full);
 			end
 		end
 	always @(posedge clk or negedge rst_n)
