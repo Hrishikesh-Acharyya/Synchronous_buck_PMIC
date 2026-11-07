@@ -18,7 +18,7 @@ from host_if_constants import (S_IDLE, READ_FLAG, ADDR_PMIC_ID, PMIC_ID, VERSION
                                ADDR_SCRATCH, ADDR_BUS_ERR_L, ADDR_TRIP_RUN, IDLE_CLKS)
 from tb_utils import start_test, check_sva
 from spi_driver import spi_transfer, spi_write, spi_read, crc8
-from reg_model import THRESHOLD_DEFAULTS
+from reg_file_model import THRESHOLD_DEFAULTS
 
 
 @cocotb.test()
@@ -28,11 +28,7 @@ async def idle_bus_after_reset(dut):
     Purpose: This check tests if the bus is idle after reset
     """
 
-    failures_before = int(dut.sva_fail_count.value)
-     
-    initiate_clock(dut)
-    set_inputs_idle(dut)
-    await reset(dut)
+    failures_before = start_test(dut)
 
     await ClockCycles(dut.clk, IDLE_CLKS)
 
@@ -42,9 +38,7 @@ async def idle_bus_after_reset(dut):
     dut_state = int(dut.u_spi_slave.spi_state.value)
     assert dut_state == S_IDLE, f"SPI state = {dut_state} on an idle bus, expected {S_IDLE}"
     
-    assertion_fail_count = int(dut.sva_fail_count.value)
-    assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
-
+    check_sva(dut, failures_before)
 
 
 
@@ -55,11 +49,7 @@ async def read_identity_register(dut):
              is robust. Tha values are fixed by reh file's parameters
     """
     
-    failures_before = int(dut.sva_fail_count.value)
-
-    initiate_clock(dut)
-    set_inputs_idle(dut)
-    await reset(dut)
+    failures_before = start_test(dut)
 
     command_byte = READ_FLAG|ADDR_PMIC_ID
 
@@ -75,9 +65,9 @@ async def read_identity_register(dut):
     assert result[2] == PMIC_ID, f"PMIC_ID value read as {result[2]:#04x}, should be {PMIC_ID:#04x}"
     assert result[3] == VERSION_ID, f"VERSION_ID value read as {result[3]:#04x}, should be {VERSION_ID:#04x}"
 
-    assertion_fail_count = int(dut.sva_fail_count.value)
-    assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
+    check_sva(dut, failures_before)
 
+    
 @cocotb.test()
 async def crc8_model_check(dut):
 
@@ -106,12 +96,9 @@ async def write_scratch_read_back(dut):
              and reg_file data storing operation are correct
     """
 
-    failures_before = int(dut.sva_fail_count.value)
-    scratch_value = 0x5A
+    failures_before = start_test(dut)
 
-    initiate_clock(dut)
-    set_inputs_idle(dut)
-    await reset(dut)
+    scratch_value = 0x5A
     
     await spi_write(dut, ADDR_SCRATCH, [scratch_value])
 
@@ -123,9 +110,8 @@ async def write_scratch_read_back(dut):
     # to pass through the filters and read by the checkers, so the end of read assertions
     # and covers are exercise. IDLE_CLKS is enough time for that to happenac
     await ClockCycles(dut.clk, IDLE_CLKS)
+    check_sva(dut, failures_before)
 
-    assertion_fail_count = int(dut.sva_fail_count.value)
-    assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
     
 @cocotb.test()
 async def bad_crc_write_rejected(dut):
@@ -135,17 +121,13 @@ async def bad_crc_write_rejected(dut):
              the data is discarded (SCRATCH keeps its old value), and the error is counted exactly once.
     """
 
-    failures_before = int(dut.sva_fail_count.value)
+    failures_before = start_test(dut)
+
     scratch_value = 0x5A
     bad_value = 0xA5
 
-    initiate_clock(dut)
-    set_inputs_idle(dut)
-    await reset(dut)
-
     bus_error_count_intial_list = await spi_read(dut, ADDR_BUS_ERR_L, 2)
    
-
     await spi_write(dut, ADDR_SCRATCH, [scratch_value])
     good_read_data = await spi_read (dut, ADDR_SCRATCH, 1)
     assert good_read_data[0] == scratch_value, f"Read returned {good_read_data[0]:#04x} on writing {scratch_value:#04x} even with good crc"
@@ -163,9 +145,8 @@ async def bad_crc_write_rejected(dut):
     errors_after  = (bus_error_count_final_list[1] << 8) | bus_error_count_final_list[0] 
     assert errors_after - errors_before == 1, f"The bus_error rose by {int(errors_after-errors_before)}, after sending one bad-CRC byte"
 
-    assertion_fail_count = int(dut.sva_fail_count.value)
-    assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
-
+    check_sva(dut, failures_before)
+    
     
 
     
