@@ -46,3 +46,4 @@ STATUS_INPUTS = ["CP_sync", "OTP_sync_db", "UVLO_sync_db", "latch_stat_sync_db",
                   "prev_period", "timestamp_ms", "fault_time", "sup_state", "fault_count_run",
                   "fault_count_ss", "fault_reg", "PGOOD"]
 ADDR_TRIP_RUN = 0x50
+ADDR_STATUS = 0x10
