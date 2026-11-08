@@ -236,7 +236,10 @@ always_ff @(posedge clk or negedge rst_n) begin
     if (chk_byte_done) begin
 
       if (chk_byte_count != '1) chk_byte_count <= chk_byte_count + 8'd1;
-      if (chk_byte_count == 8'd0) chk_cmd_valid <= 1'b1;
+      // a command counts only if spi_slave ACCEPTED it, in S_CMD; a command
+      // byte that completes after a timeout (S_DEAD) was never accepted and
+      // is judged a truncated command (txn_abort)
+      if ((chk_byte_count == 8'd0) && (dut_spi_state == S_CMD)) chk_cmd_valid <= 1'b1;
       if (chk_cmd_valid && !chk_is_read && (chk_write_bytes != '1))
         chk_write_bytes <= chk_write_bytes + 8'd1;
 
