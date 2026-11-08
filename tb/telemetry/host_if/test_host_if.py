@@ -635,12 +635,13 @@ async def random_walk(dut):
         crc_ok = random.random() < 0.9                    # 1 write in 10 is corrupted
         await spi_write(dut, address, data, corrupt_crc=not crc_ok,
                         half_period_ns=half_period_ns)
-        for name, region in model.committed_regions:
-            sample_clamp(name, region)
         threshold_reason = model.apply_write(address, data, crc_ok=crc_ok)
+        # functional coverage, sampled from what the model just decided
         sample_frame("clean" if crc_ok else "bad_crc")
         if threshold_reason is not None:
             sample_threshold(threshold_reason, model.sup_state)
+        for name, region in model.committed_regions:
+            sample_clamp(name, region)
 
         return f"write @{address:#04x} {[hex(b) for b in data]} crc_ok={crc_ok} sck_half={half_period_ns}"
 
@@ -749,6 +750,8 @@ async def random_walk(dut):
                                pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
             ending = model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
             sample_frame(ending)
+            for name, region in model.committed_regions:   # a cut frame can still commit
+                sample_clamp(name, region)
             note = (f"broken write {[hex(b) for b in frame]} cut={stop_after_bits} "
                     f"stall={pause_after_bits} sck_half={half_period_ns}")
 

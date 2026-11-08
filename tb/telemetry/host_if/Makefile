@@ -182,17 +182,19 @@ cov_all: clean_cov
 #   summary.txt     covers hit vs zero per checker, plus the zero-hit covers
 #   all_events.csv  every event of every run under one header
 #   merged.dat      the merged coverage the summary was computed from
-# Per-run files - runN.log, events_runN.csv, cov_runN.dat - go to SOAK_RAW
+# Per-run files - runN.log, events_runN.csv, cov_runN.dat and fcov_runN.xml
+# (the run's functional coverage) - go to SOAK_RAW
 # (gitignored, kept on disk). A new soak replaces the previous soak's files;
 # SOAK_DIR/README.md is never touched.
 soak:
 	@mkdir -p $(SOAK_RAW)
-	@rm -f soak/raw/run*.log soak/raw/events_run*.csv soak/raw/cov_run*.dat \
+	@rm -f soak/raw/run*.log soak/raw/events_run*.csv soak/raw/cov_run*.dat soak/raw/fcov_run*.xml \
 	       soak/results.txt soak/summary.txt soak/all_events.csv soak/merged.dat
 	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
-	           RANDOM_CSV=$(CURDIR)/$(SOAK_RAW)/events_run$$run.csv > $(SOAK_RAW)/run$$run.log 2>&1; \
+	           RANDOM_CSV=$(CURDIR)/$(SOAK_RAW)/events_run$$run.csv \
+	           FCOV_XML=$(CURDIR)/$(SOAK_RAW)/fcov_run$$run.xml > $(SOAK_RAW)/run$$run.log 2>&1; \
 	    then status=PASS; else status=FAIL; fi; \
 	    seed=$$(grep -o 'SEED=[0-9]*' $(SOAK_RAW)/run$$run.log | head -1); \
 	    echo "run $$run: $$status $$seed" | tee -a $(SOAK_DIR)/results.txt; \

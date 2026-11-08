@@ -216,13 +216,14 @@ class RegfileModel():
                  write cut on a byte boundary whose last received byte happens
                  to be a valid CRC is predicted to commit, as spi_slave would.
         """
+        self.committed_regions = []             # nothing committed by this frame yet
         if bits_sent is None:
             bits_sent = 8 * len(frame)
 
         command_bits = bits_sent if dead_after_bits is None else min(bits_sent, dead_after_bits)
         if command_bits < 8:
             self.apply_abort()                  # command never accepted
-            return "truncated cmd"
+            return "truncated_cmd"
 
         if frame[0] & 0x80:                     # a read: no commit, no abort
             if dead_after_bits is not None:
