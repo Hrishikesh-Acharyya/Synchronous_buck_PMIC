@@ -1,0 +1,266 @@
+rm -f results.xml
+"make" -f Makefile results.xml
+/usr/local/bin/verilator -cc --exe -Mdir sim_build -DCOCOTB_SIM=1 --top-module host_if_wrapper --timescale 1ns/1ps --vpi --public-flat-rw --prefix Vtop -o Vtop -LDFLAGS "-Wl,-rpath,/home/hrishikesh/venv-hdl/lib/python3.10/site-packages/cocotb/libs -L/home/hrishikesh/venv-hdl/lib/python3.10/site-packages/cocotb/libs -lcocotbvpi_verilator" --assert --coverage-user -Wall -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM -Wno-SYNCASYNCNET /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/pkg/pmic_types_pkg.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/pmic_top.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/supervisor.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/clk_rst/reset_sync.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/inputs/input_debounce.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/inputs/input_sync.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/protect/fault_arbiter.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/protect/hiccup_timer.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/protect/pwm_mask.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/protect/soft_start.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/protect/strike_counter.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/status/fault_LED.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/status/pgood_gen.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/status/timestamp.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/telemetry/fault_cause.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/telemetry/pwm_stats.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/telemetry/reg_file.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/rtl-systemverilog/telemetry/spi_slave.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/sva_pkg.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/clk_rst/reset_sync_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/inputs/input_debounce_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/inputs/input_sync_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/protect/fault_arbiter_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/protect/hiccup_timer_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/protect/pwm_mask_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/protect/soft_start_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/protect/strike_counter_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/status/fault_LED_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/status/pgood_gen_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/status/timestamp_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/fault_cause_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/pwm_stats_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/reg_file_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/top/supervisor_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/bind_sva.sv /mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/tb/telemetry/host_if/host_if_wrapper.sv /home/hrishikesh/venv-hdl/lib/python3.10/site-packages/cocotb/share/lib/verilator/verilator.cpp
+- V e r i l a t i o n   R e p o r t: Verilator 5.052 2026-09-05 rev v5.052-61-g983a06a16
+- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB
+- Verilator: Walltime 0.448 s (elab=0.000, cvt=0.000, bld=0.000); cpu 0.051 s on 1 threads; allocated 13.266 MB
+rm -f results.xml
+MODULE=test_host_if TESTCASE=random_walk TOPLEVEL=host_if_wrapper TOPLEVEL_LANG=verilog \
+         sim_build/Vtop  --assert --coverage-user -Wall -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM -Wno-SYNCASYNCNET  
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:108  in set_program_name_in_venv        Using Python virtual environment interpreter at /home/hrishikesh/venv-hdl/bin/python
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Verilator version 5.052 2026-09-05
+     0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/hrishikesh/venv-hdl/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     cocotb                             Seeding Python random module with 1794142773
+     0.00ns INFO     cocotb.regression                  Found test test_host_if.random_walk
+     0.00ns INFO     cocotb.regression                  running random_walk (1/1)
+                                                          Purpose: Constrained-random traffic against the register model. Each event
+                                                                   is a weighted random choice of:
+                                                                     bus traffic   - a burst read (checked against the model as it
+                                                                                     happens), a SCRATCH write, a threshold frame
+                                                                                     from the write key (right key 80% of the time,
+                                                                                     1-11 threshold bytes), a CONTROL frame (keyed or
+                                                                                     plain), or an unconstrained write anywhere;
+                                                                     state events  - a random supervisor state, a random status
+                                                                                     input (within its width), a time step biased
+                                                                                     toward the 5000 ms watchdog boundary, or a pulse
+                                                                                     of the physical enable switch.
+                                                                   One write in ten carries a bad CRC; data values are biased toward
+                                                                   boundaries (0x00, 0x01, 0x7F, 0x80, 0xFE, 0xFF). The full
+                                                                   scoreboard runs every SCOREBOARD_EVERY events and at the end, and
+                                                                   a tally of the event kinds drawn is logged. Every run is
+                                                                   reproducible: the log's first line is the `make replay` command
+                                                                   for it. Under `make soak`, each event is also written to a CSV.
+    90.00ns INFO     cocotb.host_if_wrapper             random_walk: 200 events - to replay this exact run: make replay SEED=1794142773 EVENTS=200
+ 57100.00ns INFO     cocotb.host_if_wrapper             event 1: threshold: write @0x4f ['0xa7', '0x1c', '0x71', '0x70', '0xfe'] crc_ok=True
+122100.00ns INFO     cocotb.host_if_wrapper             event 2: read: read @0x50 x6 -> ['0x10', '0x20', '0x3', '0x53', '0x90', '0xd0']
+122100.00ns INFO     cocotb.host_if_wrapper             event 3: status: fault_count_ss -> 0x23
+122130.00ns INFO     cocotb.host_if_wrapper             event 4: time: time +5000 -> 5000
+147140.00ns INFO     cocotb.host_if_wrapper             event 5: control: write @0x41 ['0x0'] crc_ok=True
+180140.00ns INFO     cocotb.host_if_wrapper             event 6: threshold: write @0x4f ['0x80', '0x41'] crc_ok=True
+205140.00ns INFO     cocotb.host_if_wrapper             event 7: scratch: write @0x03 ['0xf0'] crc_ok=False
+238140.00ns INFO     cocotb.host_if_wrapper             event 8: control: write @0x40 ['0xd1', '0x0'] crc_ok=False
+343140.00ns INFO     cocotb.host_if_wrapper             event 9: threshold: write @0x4f ['0xa7', '0xcf', '0x1', '0x7f', '0x1', '0xfe', '0xfe', '0x7f', '0xe', '0x80', '0x26'] crc_ok=True
+488140.00ns INFO     cocotb.host_if_wrapper             event 10: read: read @0x65 x16 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+488140.00ns INFO     cocotb.host_if_wrapper             event 10: scoreboard check
+829140.00ns INFO     cocotb.host_if_wrapper             event 11: control: write @0x40 ['0xd1', '0x1'] crc_ok=True
+829170.00ns INFO     cocotb.host_if_wrapper             event 12: time: time +5000 -> 10000
+862180.00ns INFO     cocotb.host_if_wrapper             event 13: control: write @0x40 ['0xd1', '0x0'] crc_ok=True
+887180.00ns INFO     cocotb.host_if_wrapper             event 14: control: write @0x41 ['0x0'] crc_ok=True
+968180.00ns INFO     cocotb.host_if_wrapper             event 15: raw_write: write @0x3c ['0xfe', '0x92', '0x7f', '0x1', '0x5b', '0x7f', '0x7f', '0x0'] crc_ok=True
+968180.00ns INFO     cocotb.host_if_wrapper             event 16: status: UVLO_sync_db -> 0x0
+1025180.00ns INFO     cocotb.host_if_wrapper             event 17: threshold: write @0x4f ['0xa7', '0x7f', '0x21', '0x2e', '0x0'] crc_ok=True
+1074180.00ns INFO     cocotb.host_if_wrapper             event 18: read: read @0x0d x4 -> ['0x0', '0x0', '0x0', '0x20']
+1171180.00ns INFO     cocotb.host_if_wrapper             event 19: threshold: write @0x4f ['0x2d', '0xc9', '0xa8', '0x82', '0x61', '0xf5', '0xf9', '0xf8', '0xb9', '0x0'] crc_ok=True
+1284180.00ns INFO     cocotb.host_if_wrapper             event 20: threshold: write @0x4f ['0xa7', '0xf4', '0x4e', '0xf3', '0x14', '0xfe', '0xff', '0x1', '0x9c', '0xff', '0xff', '0x80'] crc_ok=True
+1284180.00ns INFO     cocotb.host_if_wrapper             event 20: scoreboard check
+1665180.00ns INFO     cocotb.host_if_wrapper             event 21: raw_write: write @0x43 ['0xfb', '0x36', '0x7f', '0x80', '0x9a', '0xff', '0x0'] crc_ok=True
+1714180.00ns INFO     cocotb.host_if_wrapper             event 22: read: read @0x11 x4 -> ['0x0', '0x0', '0x0', '0x0']
+1714210.00ns INFO     cocotb.host_if_wrapper             event 23: time: time +3227 -> 13227
+1747220.00ns INFO     cocotb.host_if_wrapper             event 24: threshold: write @0x4f ['0xa7', '0xeb'] crc_ok=True
+1772220.00ns INFO     cocotb.host_if_wrapper             event 25: scratch: write @0x03 ['0x34'] crc_ok=False
+1797220.00ns INFO     cocotb.host_if_wrapper             event 26: scratch: write @0x03 ['0x1f'] crc_ok=False
+1838220.00ns INFO     cocotb.host_if_wrapper             event 27: threshold: write @0x4f ['0x7f', '0x0', '0x73'] crc_ok=True
+1871220.00ns INFO     cocotb.host_if_wrapper             event 28: control: write @0x40 ['0x7', '0x1'] crc_ok=False
+1912220.00ns INFO     cocotb.host_if_wrapper             event 29: raw_write: write @0x1b ['0xff', '0x0', '0x84'] crc_ok=False
+1912240.00ns INFO     cocotb.host_if_wrapper             event 30: switch: switch pulse
+1912240.00ns INFO     cocotb.host_if_wrapper             event 30: scoreboard check
+2317260.00ns INFO     cocotb.host_if_wrapper             event 31: threshold: write @0x4f ['0xa7', '0xeb', '0x0', '0x1', '0x2b', '0x63', '0x0', '0x0', '0xff', '0xcd'] crc_ok=True
+2317290.00ns INFO     cocotb.host_if_wrapper             event 32: time: time +100 -> 13327
+2374300.00ns INFO     cocotb.host_if_wrapper             event 33: read: read @0x0d x5 -> ['0x0', '0x0', '0x0', '0xa0', '0x0']
+2431300.00ns INFO     cocotb.host_if_wrapper             event 34: read: read @0x3c x5 -> ['0x0', '0x0', '0x0', '0x0', '0x0']
+2456300.00ns INFO     cocotb.host_if_wrapper             event 35: control: write @0x41 ['0x0'] crc_ok=True
+2601300.00ns INFO     cocotb.host_if_wrapper             event 36: read: read @0x1e x16 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+2601330.00ns INFO     cocotb.host_if_wrapper             event 37: time: time +4152 -> 17479
+2642340.00ns INFO     cocotb.host_if_wrapper             event 38: read: read @0x49 x3 -> ['0x0', '0x0', '0x0']
+2699340.00ns INFO     cocotb.host_if_wrapper             event 39: read: read @0x02 x5 -> ['0x3d', '0x0', '0x0', '0x0', '0x0']
+2699370.00ns INFO     cocotb.host_if_wrapper             event 40: time: time +100 -> 17579
+2699370.00ns INFO     cocotb.host_if_wrapper             event 40: scoreboard check
+3064380.00ns INFO     cocotb.host_if_wrapper             event 41: raw_write: write @0x31 ['0x7f', '0x80', '0x43', '0x2', '0x1c'] crc_ok=True
+3097380.00ns INFO     cocotb.host_if_wrapper             event 42: control: write @0x40 ['0xab', '0x0'] crc_ok=True
+3122380.00ns INFO     cocotb.host_if_wrapper             event 43: scratch: write @0x03 ['0x5f'] crc_ok=True
+3203380.00ns INFO     cocotb.host_if_wrapper             event 44: raw_write: write @0x78 ['0x18', '0x6', '0x79', '0x79', '0x80', '0xfe', '0x80', '0x7f'] crc_ok=True
+3276380.00ns INFO     cocotb.host_if_wrapper             event 45: raw_write: write @0x49 ['0x89', '0xff', '0x7f', '0x1', '0x9d', '0xfe', '0x17'] crc_ok=True
+3276380.00ns INFO     cocotb.host_if_wrapper             event 46: status: prev_period -> 0xbd
+3405380.00ns INFO     cocotb.host_if_wrapper             event 47: read: read @0x23 x14 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+3430380.00ns INFO     cocotb.host_if_wrapper             event 48: control: write @0x41 ['0x1'] crc_ok=True
+3430380.00ns INFO     cocotb.host_if_wrapper             event 49: status: en_from_switch_sync_db -> 0x1
+3551380.00ns INFO     cocotb.host_if_wrapper             event 50: read: read @0x55 x13 -> ['0xff', '0x1', '0x40', '0xff', '0xff', '0x7', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+3551380.00ns INFO     cocotb.host_if_wrapper             event 50: scoreboard check
+3964380.00ns INFO     cocotb.host_if_wrapper             event 51: read: read @0x07 x11 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xb0', '0x0']
+4021380.00ns INFO     cocotb.host_if_wrapper             event 52: read: read @0x7c x5 -> ['0x0', '0x0', '0x0', '0x0', '0xb5']
+4054380.00ns INFO     cocotb.host_if_wrapper             event 53: control: write @0x40 ['0x1', '0x1'] crc_ok=True
+4127380.00ns INFO     cocotb.host_if_wrapper             event 54: raw_write: write @0x0b ['0xf2', '0xc2', '0x11', '0x24', '0x1', '0x80', '0x6e'] crc_ok=True
+4127380.00ns INFO     cocotb.host_if_wrapper             event 55: sup_state: sup_state -> 1
+4127410.00ns INFO     cocotb.host_if_wrapper             event 56: time: time +5001 -> 22580
+4208420.00ns INFO     cocotb.host_if_wrapper             event 57: read: read @0x24 x8 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+4208450.00ns INFO     cocotb.host_if_wrapper             event 58: time: time +5000 -> 27580
+4233460.00ns INFO     cocotb.host_if_wrapper             event 59: scratch: write @0x03 ['0xdd'] crc_ok=True
+4258460.00ns INFO     cocotb.host_if_wrapper             event 60: scratch: write @0x03 ['0xed'] crc_ok=True
+4258460.00ns INFO     cocotb.host_if_wrapper             event 60: scoreboard check
+4639460.00ns INFO     cocotb.host_if_wrapper             event 61: read: read @0x7a x7 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xb5']
+4664460.00ns INFO     cocotb.host_if_wrapper             event 62: scratch: write @0x03 ['0x7b'] crc_ok=False
+4721460.00ns INFO     cocotb.host_if_wrapper             event 63: read: read @0x4b x5 -> ['0x0', '0x0', '0x0', '0x0', '0x0']
+4721490.00ns INFO     cocotb.host_if_wrapper             event 64: time: time +5731 -> 33311
+4746500.00ns INFO     cocotb.host_if_wrapper             event 65: read: read @0x44 x1 -> ['0x0']
+4811500.00ns INFO     cocotb.host_if_wrapper             event 66: read: read @0x55 x6 -> ['0xff', '0x1', '0x40', '0xff', '0xff', '0x7']
+4884500.00ns INFO     cocotb.host_if_wrapper             event 67: threshold: write @0x4f ['0x7f', '0xb6', '0xff', '0x86', '0x49', '0x80', '0x9c'] crc_ok=True
+4981500.00ns INFO     cocotb.host_if_wrapper             event 68: threshold: write @0x4f ['0xd8', '0x40', '0x0', '0x44', '0x46', '0xff', '0xa8', '0x98', '0xfe', '0x1'] crc_ok=True
+5046500.00ns INFO     cocotb.host_if_wrapper             event 69: raw_write: write @0x36 ['0x7f', '0x1', '0xb4', '0x79', '0x80', '0x1d'] crc_ok=False
+5087500.00ns INFO     cocotb.host_if_wrapper             event 70: raw_write: write @0x07 ['0x7f', '0xf3', '0xfe'] crc_ok=True
+5087500.00ns INFO     cocotb.host_if_wrapper             event 70: scoreboard check
+5452500.00ns INFO     cocotb.host_if_wrapper             event 71: threshold: write @0x4f ['0xa7', '0xb5', '0xfd', '0xf9', '0x9c'] crc_ok=True
+5525500.00ns INFO     cocotb.host_if_wrapper             event 72: threshold: write @0x4f ['0xa7', '0xf5', '0xe9', '0x80', '0xef', '0x0', '0xff'] crc_ok=True
+5525530.00ns INFO     cocotb.host_if_wrapper             event 73: time: time +1 -> 33312
+5606540.00ns INFO     cocotb.host_if_wrapper             event 74: read: read @0x30 x8 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+5703540.00ns INFO     cocotb.host_if_wrapper             event 75: threshold: write @0x4f ['0xa7', '0x29', '0x0', '0x0', '0x43', '0xf4', '0x6c', '0xd3', '0x0', '0x0'] crc_ok=True
+5752540.00ns INFO     cocotb.host_if_wrapper             event 76: threshold: write @0x4f ['0xa7', '0xf9', '0x1', '0xc8'] crc_ok=True
+5793540.00ns INFO     cocotb.host_if_wrapper             event 77: threshold: write @0x4f ['0xa7', '0x0', '0xe2'] crc_ok=True
+5793540.00ns INFO     cocotb.host_if_wrapper             event 78: sup_state: sup_state -> 2
+5793570.00ns INFO     cocotb.host_if_wrapper             event 79: time: time +5000 -> 38312
+5834580.00ns INFO     cocotb.host_if_wrapper             event 80: raw_write: write @0x23 ['0x80', '0x7f', '0xbf'] crc_ok=True
+5834580.00ns INFO     cocotb.host_if_wrapper             event 80: scoreboard check
+6231580.00ns INFO     cocotb.host_if_wrapper             event 81: read: read @0x7c x9 -> ['0x0', '0x0', '0x0', '0x0', '0xb5', '0x1', '0x3d', '0xed', '0x0']
+6256580.00ns INFO     cocotb.host_if_wrapper             event 82: control: write @0x41 ['0x0'] crc_ok=True
+6256580.00ns INFO     cocotb.host_if_wrapper             event 83: status: en_from_switch_sync_db -> 0x0
+6289580.00ns INFO     cocotb.host_if_wrapper             event 84: threshold: write @0x4f ['0xa7', '0xff'] crc_ok=True
+6322580.00ns INFO     cocotb.host_if_wrapper             event 85: read: read @0x1f x2 -> ['0x0', '0x0']
+6419580.00ns INFO     cocotb.host_if_wrapper             event 86: threshold: write @0x4f ['0xa7', '0xfe', '0x0', '0x1', '0x84', '0x0', '0x80', '0xff', '0x80', '0x23'] crc_ok=True
+6444580.00ns INFO     cocotb.host_if_wrapper             event 87: control: write @0x41 ['0x1'] crc_ok=False
+6469580.00ns INFO     cocotb.host_if_wrapper             event 88: control: write @0x41 ['0x1'] crc_ok=True
+6582580.00ns INFO     cocotb.host_if_wrapper             event 89: threshold: write @0x4f ['0xa7', '0x6c', '0xff', '0xfe', '0x7f', '0xff', '0x1', '0xfe', '0x5f', '0xff', '0xf1', '0x7f'] crc_ok=True
+6615580.00ns INFO     cocotb.host_if_wrapper             event 90: control: write @0x40 ['0xd1', '0x0'] crc_ok=True
+6615580.00ns INFO     cocotb.host_if_wrapper             event 90: scoreboard check
+6948580.00ns INFO     cocotb.host_if_wrapper             event 91: scratch: write @0x03 ['0x90'] crc_ok=True
+6948580.00ns INFO     cocotb.host_if_wrapper             event 92: status: latch_stat_sync_db -> 0x0
+6948610.00ns INFO     cocotb.host_if_wrapper             event 93: time: time +1 -> 38313
+6997620.00ns INFO     cocotb.host_if_wrapper             event 94: raw_write: write @0x68 ['0x0', '0xfe', '0x0', '0x9a'] crc_ok=True
+7086620.00ns INFO     cocotb.host_if_wrapper             event 95: read: read @0x60 x9 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+7086620.00ns INFO     cocotb.host_if_wrapper             event 96: status: prev_period -> 0x29
+7086640.00ns INFO     cocotb.host_if_wrapper             event 97: switch: switch pulse
+7199660.00ns INFO     cocotb.host_if_wrapper             event 98: read: read @0x20 x12 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+7199680.00ns INFO     cocotb.host_if_wrapper             event 99: switch: switch pulse
+7224700.00ns INFO     cocotb.host_if_wrapper             event 100: scratch: write @0x03 ['0xd2'] crc_ok=True
+7224700.00ns INFO     cocotb.host_if_wrapper             event 100: scoreboard check
+7573700.00ns INFO     cocotb.host_if_wrapper             event 101: threshold: write @0x4f ['0xa7', '0x80', '0x1'] crc_ok=False
+7654700.00ns INFO     cocotb.host_if_wrapper             event 102: raw_write: write @0x3d ['0x1a', '0x3e', '0x0', '0x5e', '0x10', '0x80', '0x4', '0xfe'] crc_ok=True
+7695700.00ns INFO     cocotb.host_if_wrapper             event 103: read: read @0x10 x3 -> ['0xa2', '0x0', '0x0']
+7840700.00ns INFO     cocotb.host_if_wrapper             event 104: read: read @0x13 x16 -> ['0x0', '0x29', '0x0', '0x23', '0x0', '0xa9', '0x95', '0x0', '0xa', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+7921700.00ns INFO     cocotb.host_if_wrapper             event 105: read: read @0x68 x8 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+7954700.00ns INFO     cocotb.host_if_wrapper             event 106: read: read @0x06 x2 -> ['0x0', '0x0']
+7954730.00ns INFO     cocotb.host_if_wrapper             event 107: time: time +1 -> 38314
+7987740.00ns INFO     cocotb.host_if_wrapper             event 108: read: read @0x5e x2 -> ['0x0', '0x0']
+8084740.00ns INFO     cocotb.host_if_wrapper             event 109: read: read @0x79 x10 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xb5', '0x1', '0x3d']
+8109740.00ns INFO     cocotb.host_if_wrapper             event 110: scratch: write @0x03 ['0x28'] crc_ok=True
+8109740.00ns INFO     cocotb.host_if_wrapper             event 110: scoreboard check
+8498740.00ns INFO     cocotb.host_if_wrapper             event 111: raw_write: write @0x47 ['0x7f', '0x37', '0x80', '0x0', '0xd6', '0x2d', '0xb1', '0xd1'] crc_ok=False
+8611740.00ns INFO     cocotb.host_if_wrapper             event 112: threshold: write @0x4f ['0xa7', '0xcc', '0x15', '0x85', '0x80', '0x0', '0xfc', '0x52', '0x0', '0xb4', '0xfc', '0xff'] crc_ok=False
+8684740.00ns INFO     cocotb.host_if_wrapper             event 113: raw_write: write @0x2f ['0xd4', '0x1', '0x7f', '0x7f', '0xb3', '0x0', '0xff'] crc_ok=True
+8684740.00ns INFO     cocotb.host_if_wrapper             event 114: sup_state: sup_state -> 1
+8749740.00ns INFO     cocotb.host_if_wrapper             event 115: raw_write: write @0x7c ['0x24', '0x5c', '0x0', '0x98', '0x80', '0x90'] crc_ok=True
+8749770.00ns INFO     cocotb.host_if_wrapper             event 116: time: time +5000 -> 43314
+8790780.00ns INFO     cocotb.host_if_wrapper             event 117: raw_write: write @0x3b ['0xfe', '0xff', '0xc7'] crc_ok=True
+8790810.00ns INFO     cocotb.host_if_wrapper             event 118: time: time +1 -> 43315
+8831820.00ns INFO     cocotb.host_if_wrapper             event 119: read: read @0x64 x3 -> ['0x0', '0x0', '0x0']
+8912820.00ns INFO     cocotb.host_if_wrapper             event 120: read: read @0x61 x8 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+8912820.00ns INFO     cocotb.host_if_wrapper             event 120: scoreboard check
+9277820.00ns INFO     cocotb.host_if_wrapper             event 121: raw_write: write @0x7f ['0xc4', '0x0', '0x1', '0x80', '0x81'] crc_ok=True
+9358820.00ns INFO     cocotb.host_if_wrapper             event 122: raw_write: write @0x48 ['0x7f', '0x94', '0xff', '0x46', '0x7f', '0x1', '0x14', '0x7f'] crc_ok=True
+9391820.00ns INFO     cocotb.host_if_wrapper             event 123: raw_write: write @0x16 ['0xfd', '0x2f'] crc_ok=True
+9448820.00ns INFO     cocotb.host_if_wrapper             event 124: raw_write: write @0x60 ['0xfe', '0x45', '0xfe', '0x99', '0x1'] crc_ok=True
+9513820.00ns INFO     cocotb.host_if_wrapper             event 125: read: read @0x18 x6 -> ['0x33', '0xa9', '0x0', '0xc', '0x0', '0x0']
+9513850.00ns INFO     cocotb.host_if_wrapper             event 126: time: time +2474 -> 45789
+9546860.00ns INFO     cocotb.host_if_wrapper             event 127: control: write @0x40 ['0xd1', '0x1'] crc_ok=False
+9571860.00ns INFO     cocotb.host_if_wrapper             event 128: control: write @0x41 ['0x1'] crc_ok=True
+9571860.00ns INFO     cocotb.host_if_wrapper             event 129: status: fault_reg -> 0x5
+9596860.00ns INFO     cocotb.host_if_wrapper             event 130: scratch: write @0x03 ['0xcb'] crc_ok=True
+9596860.00ns INFO     cocotb.host_if_wrapper             event 130: scoreboard check
+9937860.00ns INFO     cocotb.host_if_wrapper             event 131: control: write @0x40 ['0xff', '0x1'] crc_ok=True
+9978860.00ns INFO     cocotb.host_if_wrapper             event 132: threshold: write @0x4f ['0xa7', '0x80', '0xfe'] crc_ok=True
+9978860.00ns INFO     cocotb.host_if_wrapper             event 133: sup_state: sup_state -> 1
+10051860.00ns INFO     cocotb.host_if_wrapper             event 134: threshold: write @0x4f ['0xa7', '0xe3', '0x0', '0x7f', '0xbd', '0xaf', '0x28'] crc_ok=False
+10051880.00ns INFO     cocotb.host_if_wrapper             event 135: switch: switch pulse
+10051930.00ns INFO     cocotb.host_if_wrapper             event 136: time: time +4999 -> 50788
+10108940.00ns INFO     cocotb.host_if_wrapper             event 137: read: read @0x10 x5 -> ['0x21', '0x0', '0x0', '0x0', '0x29']
+10108960.00ns INFO     cocotb.host_if_wrapper             event 138: switch: switch pulse
+10173980.00ns INFO     cocotb.host_if_wrapper             event 139: raw_write: write @0x36 ['0x70', '0x0', '0x1', '0xff', '0x1', '0x0'] crc_ok=False
+10254980.00ns INFO     cocotb.host_if_wrapper             event 140: read: read @0x0d x8 -> ['0x0', '0x0', '0x0', '0x21', '0x0', '0x0', '0x0', '0x29']
+10254980.00ns INFO     cocotb.host_if_wrapper             event 140: scoreboard check
+10707980.00ns INFO     cocotb.host_if_wrapper             event 141: read: read @0x73 x16 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0xb5', '0x1', '0x3d']
+10740980.00ns INFO     cocotb.host_if_wrapper             event 142: control: write @0x40 ['0xd1', '0x1'] crc_ok=True
+10861980.00ns INFO     cocotb.host_if_wrapper             event 143: read: read @0x18 x13 -> ['0x64', '0xc6', '0x0', '0xf', '0x0', '0x5', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+10894980.00ns INFO     cocotb.host_if_wrapper             event 144: read: read @0x5e x2 -> ['0x0', '0x0']
+10894980.00ns INFO     cocotb.host_if_wrapper             event 145: sup_state: sup_state -> 0
+10951980.00ns INFO     cocotb.host_if_wrapper             event 146: raw_write: write @0x10 ['0xb', '0xff', '0x80', '0x5e', '0x7f'] crc_ok=True
+11024980.00ns INFO     cocotb.host_if_wrapper             event 147: threshold: write @0x4f ['0xa7', '0x1e', '0x35', '0x74', '0x43', '0xfe', '0xfe'] crc_ok=True
+11049980.00ns INFO     cocotb.host_if_wrapper             event 148: scratch: write @0x03 ['0xbc'] crc_ok=True
+11082980.00ns INFO     cocotb.host_if_wrapper             event 149: control: write @0x40 ['0xd1', '0x0'] crc_ok=True
+11123980.00ns INFO     cocotb.host_if_wrapper             event 150: read: read @0x68 x3 -> ['0x0', '0x0', '0x0']
+11123980.00ns INFO     cocotb.host_if_wrapper             event 150: scoreboard check
+11480980.00ns INFO     cocotb.host_if_wrapper             event 151: raw_write: write @0x30 ['0x1', '0xdf', '0xfe', '0x0'] crc_ok=True
+11521980.00ns INFO     cocotb.host_if_wrapper             event 152: read: read @0x22 x3 -> ['0x0', '0x0', '0x0']
+11562980.00ns INFO     cocotb.host_if_wrapper             event 153: threshold: write @0x4f ['0xa7', '0xbc', '0x43'] crc_ok=False
+11643980.00ns INFO     cocotb.host_if_wrapper             event 154: threshold: write @0x4f ['0xa7', '0xaa', '0x3d', '0x60', '0x0', '0xff', '0xc0', '0x80'] crc_ok=True
+11676980.00ns INFO     cocotb.host_if_wrapper             event 155: control: write @0x40 ['0xd1', '0x0'] crc_ok=True
+11749980.00ns INFO     cocotb.host_if_wrapper             event 156: read: read @0x32 x7 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+11749980.00ns INFO     cocotb.host_if_wrapper             event 157: sup_state: sup_state -> 1
+11749980.00ns INFO     cocotb.host_if_wrapper             event 158: status: PGOOD -> 0x1
+11750000.00ns INFO     cocotb.host_if_wrapper             event 159: switch: switch pulse
+11750050.00ns INFO     cocotb.host_if_wrapper             event 160: time: time +4999 -> 55787
+11750050.00ns INFO     cocotb.host_if_wrapper             event 160: scoreboard check
+12058090.00ns INFO     cocotb.host_if_wrapper             event 161: time: time +5001 -> 60788
+12083100.00ns INFO     cocotb.host_if_wrapper             event 162: read: read @0x22 x1 -> ['0x0']
+12108100.00ns INFO     cocotb.host_if_wrapper             event 163: scratch: write @0x03 ['0x4b'] crc_ok=True
+12181100.00ns INFO     cocotb.host_if_wrapper             event 164: read: read @0x2b x7 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+12214100.00ns INFO     cocotb.host_if_wrapper             event 165: control: write @0x40 ['0xfe', '0x1'] crc_ok=True
+12287100.00ns INFO     cocotb.host_if_wrapper             event 166: read: read @0x31 x7 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+12344100.00ns INFO     cocotb.host_if_wrapper             event 167: read: read @0x0a x5 -> ['0x0', '0x0', '0x0', '0x0', '0x0']
+12344130.00ns INFO     cocotb.host_if_wrapper             event 168: time: time +4999 -> 65787
+12489140.00ns INFO     cocotb.host_if_wrapper             event 169: read: read @0x62 x16 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+12586140.00ns INFO     cocotb.host_if_wrapper             event 170: read: read @0x3b x10 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x1', '0x0', '0x0', '0x0']
+12586140.00ns INFO     cocotb.host_if_wrapper             event 170: scoreboard check
+12975140.00ns INFO     cocotb.host_if_wrapper             event 171: threshold: write @0x4f ['0xa7', '0xff', '0x75', '0x80', '0x7f', '0x7d', '0x7f', '0x66'] crc_ok=True
+13040140.00ns INFO     cocotb.host_if_wrapper             event 172: threshold: write @0x4f ['0xfe', '0xfe', '0xbd', '0x9c', '0xff', '0x1'] crc_ok=True
+13129140.00ns INFO     cocotb.host_if_wrapper             event 173: read: read @0x42 x9 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+13129170.00ns INFO     cocotb.host_if_wrapper             event 174: time: time +1 -> 65788
+13129210.00ns INFO     cocotb.host_if_wrapper             event 175: time: time +5001 -> 70789
+13194220.00ns INFO     cocotb.host_if_wrapper             event 176: read: read @0x02 x6 -> ['0x3d', '0x4b', '0x0', '0x0', '0x0', '0x0']
+13307220.00ns INFO     cocotb.host_if_wrapper             event 177: threshold: write @0x4f ['0xa7', '0xe6', '0xad', '0x10', '0x7f', '0x96', '0x95', '0xc0', '0x88', '0xc7', '0x8a', '0x80'] crc_ok=True
+13372220.00ns INFO     cocotb.host_if_wrapper             event 178: read: read @0x1c x6 -> ['0x0', '0x5', '0x0', '0x0', '0x0', '0x0']
+13372220.00ns INFO     cocotb.host_if_wrapper             event 179: status: prev_period -> 0xe1
+13397220.00ns INFO     cocotb.host_if_wrapper             event 180: control: write @0x41 ['0x1'] crc_ok=True
+13397220.00ns INFO     cocotb.host_if_wrapper             event 180: scoreboard check
+13786220.00ns INFO     cocotb.host_if_wrapper             event 181: raw_write: write @0x67 ['0x1', '0x7f', '0xa1', '0x80', '0x80', '0x7f', '0x80', '0x3e'] crc_ok=True
+13827220.00ns INFO     cocotb.host_if_wrapper             event 182: threshold: write @0x4f ['0xff', '0x89', '0x3d'] crc_ok=True
+13852220.00ns INFO     cocotb.host_if_wrapper             event 183: control: write @0x41 ['0x0'] crc_ok=False
+13909220.00ns INFO     cocotb.host_if_wrapper             event 184: threshold: write @0x4f ['0xa7', '0x3f', '0x28', '0xad', '0x80'] crc_ok=True
+13934220.00ns INFO     cocotb.host_if_wrapper             event 185: read: read @0x57 x1 -> ['0x40']
+13967220.00ns INFO     cocotb.host_if_wrapper             event 186: raw_write: write @0x7c ['0x1', '0xa5'] crc_ok=True
+14080220.00ns INFO     cocotb.host_if_wrapper             event 187: read: read @0x58 x12 -> ['0xff', '0xff', '0x7', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0']
+14129220.00ns INFO     cocotb.host_if_wrapper             event 188: threshold: write @0x4f ['0xa7', '0x7f', '0x0', '0x80'] crc_ok=True
+14162220.00ns INFO     cocotb.host_if_wrapper             event 189: read: read @0x45 x2 -> ['0x0', '0x0']
+14162240.00ns INFO     cocotb.host_if_wrapper             event 190: switch: switch pulse
+14162240.00ns INFO     cocotb.host_if_wrapper             event 190: scoreboard check
+14519260.00ns INFO     cocotb.host_if_wrapper             event 191: raw_write: write @0x65 ['0x7f', '0x92', '0x0', '0x7f'] crc_ok=True
+14648260.00ns INFO     cocotb.host_if_wrapper             event 192: read: read @0x49 x14 -> ['0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x0', '0x10', '0x1', '0x3', '0x53', '0x40', '0x42', '0xf']
+14753260.00ns INFO     cocotb.host_if_wrapper             event 193: threshold: write @0x4f ['0x4b', '0x41', '0x34', '0xfe', '0x0', '0x9d', '0xfe', '0xe', '0x1', '0x36', '0x1'] crc_ok=True
+14834260.00ns INFO     cocotb.host_if_wrapper             event 194: read: read @0x0d x8 -> ['0x0', '0x0', '0x0', '0xa5', '0x0', '0x0', '0x0', '0xe1']
+14875260.00ns INFO     cocotb.host_if_wrapper             event 195: threshold: write @0x4f ['0xa7', '0xc5', '0x80'] crc_ok=False
+14875290.00ns INFO     cocotb.host_if_wrapper             event 196: time: time +1963 -> 72752
+14916300.00ns INFO     cocotb.host_if_wrapper             event 197: read: read @0x7c x3 -> ['0x0', '0x0', '0x0']
+14916300.00ns INFO     cocotb.host_if_wrapper             event 198: sup_state: sup_state -> 2
+14981300.00ns INFO     cocotb.host_if_wrapper             event 199: read: read @0x5a x6 -> ['0x7', '0x0', '0x0', '0x0', '0x0', '0x0']
+15062300.00ns INFO     cocotb.host_if_wrapper             event 200: threshold: write @0x4f ['0xa7', '0xc5', '0x80', '0xff', '0x80', '0x7f', '0xfe', '0x25'] crc_ok=True
+15062300.00ns INFO     cocotb.host_if_wrapper             event 200: scoreboard check
+15370300.00ns INFO     cocotb.host_if_wrapper             random_walk: events drawn per kind: {'read': 56, 'scratch': 13, 'threshold': 35, 'control': 23, 'raw_write': 26, 'sup_state': 7, 'status': 10, 'time': 23, 'switch': 7}
+15370300.00ns INFO     cocotb.host_if_wrapper             random_walk: all 200 events done, final scoreboard check
+15680290.00ns INFO     cocotb.regression                  random_walk passed
+15680290.00ns INFO     cocotb.regression                  **************************************************************************************
+                                                          ** TEST                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                          **************************************************************************************
+                                                          ** test_host_if.random_walk       PASS    15680290.00         115.95     135237.65  **
+                                                          **************************************************************************************
+                                                          ** TESTS=1 PASS=1 FAIL=0 SKIP=0           15680290.00         116.13     135027.14  **
+                                                          **************************************************************************************
+                                                          
+- :0: Verilog $finish
