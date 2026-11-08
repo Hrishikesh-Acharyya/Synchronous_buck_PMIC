@@ -50,6 +50,19 @@ THRESHOLD_BIODATA = {
     "clean_run_target": {"address": 0x58, "bytes": 3, "S_OFF_only": True, "min": 45000, "max": 524287}
   
 }
+def clamp_region(name, raw_value):
+
+    """
+    Purpose: Which part of its register's range a raw written value falls in,
+             before the clamp - for functional coverage.
+    """
+    low  = THRESHOLD_BIODATA[name]["min"]
+    high = THRESHOLD_BIODATA[name]["max"]
+    if raw_value < low:   return "below"
+    if raw_value == low:  return "at_min"
+    if raw_value < high:  return "inside"
+    if raw_value == high: return "at_max"
+    return "above"
 
 def clamp(name, raw_value):
 
@@ -82,6 +95,7 @@ class RegfileModel():
         self.wd_restored = 0     # set only by a watchdog release (advance_time)
         self.timestamp_ms = 0    # what the test is driving into timestamp_ms
         self.wd_mark      = 0    # timestamp of the last proof the host is alive
+        self.committed_regions = []
         # status_inputs: what the test drives on reg_file's status inputs,
         #                keyed by wrapper port name
         self.status_inputs = {
@@ -208,21 +222,31 @@ class RegfileModel():
         command_bits = bits_sent if dead_after_bits is None else min(bits_sent, dead_after_bits)
         if command_bits < 8:
             self.apply_abort()                  # command never accepted
-            return
+            return "truncated cmd"
 
-        if frame[0] & 0x80:
-            return                              # a read: no commit, no abort
+        if frame[0] & 0x80:                     # a read: no commit, no abort
+            if dead_after_bits is not None:
+                return "read_stall"
+            if bits_sent % 8 != 0:
+                return "read_cut"
+            return "read"                             # a read: no commit, no abort
 
         if dead_after_bits is not None:
             self.apply_abort()                  # timed out: S_DEAD discards the write
-            return
+            return "write_stall"
 
         received = frame[: bits_sent // 8]
-        framed   = (bits_sent % 8 == 0) and (len(received) >= 3)
-        if framed and crc8(received) == 0:
-            self.apply_write(received[0] & 0x7F, received[1:-1])
-        else:
+        if bits_sent % 8 != 0:
             self.apply_abort()
+            return "cut_mid_byte"
+        if len(received) < 3:
+            self.apply_abort()
+            return "short"
+        if crc8(received) != 0:
+            self.apply_abort()
+            return "bad_crc"
+        self.apply_write(received[0] & 0x7F, received[1:-1])
+        return "clean"
 
     def apply_write(self, address, data_bytes, crc_ok=True):
         """
@@ -244,6 +268,7 @@ class RegfileModel():
         staged        = {}       # threshold bytes written, by address
         disable_armed = False    # disable key: valid for this transaction only
         en_pending    = None     # CONTROL change to apply at commit; None = no change
+        self.committed_regions = []
 
         if not crc_ok:
             self.apply_abort()
@@ -283,18 +308,35 @@ class RegfileModel():
             if en_pending == 0:
                 self.wd_restored = 0     # a host disable reclaims the veto
 
+
+        threshold_reason = None             # returned for coverage; None = no threshold written
+
         if staged:
             # ---- decide: one pass over every register, nothing changed yet ----
-            rejected = not unlocked
+            no_key  = not unlocked
+            not_off = False
+            partial = False
             for name, info in THRESHOLD_BIODATA.items():
                 addresses = range(info["address"], info["address"] + info["bytes"])
                 written   = [a in staged for a in addresses]
 
                 if any(written) and info["S_OFF_only"] and self.sup_state != SUP_S_OFF:
-                    rejected = True     # an S_OFF-only register written outside S_OFF
+                    not_off = True      # an S_OFF-only register written outside S_OFF
 
                 if any(written) and not all(written):
-                    rejected = True     # a multi-byte register only partly written
+                    partial = True      # a multi-byte register only partly written
+
+            rejected = no_key or not_off or partial
+
+            # the reason coverage records; when several apply, the first in this order
+            if no_key:
+                threshold_reason = "no_key"
+            elif partial:
+                threshold_reason = "partial"
+            elif not_off:
+                threshold_reason = "not_off"
+            else:
+                threshold_reason = "accepted"
 
             # ---- apply ----
             if rejected:
@@ -315,8 +357,10 @@ class RegfileModel():
                         for i in range(info["bytes"]):
                             raw_value = raw_value | (staged[info["address"] + i] << (8 * i))
 
+                        self.committed_regions.append((name, clamp_region(name, raw_value)))
                         # clamp on the way in, as reg_file does
                         self.thresholds[name] = clamp(name, raw_value)
 
         # any valid write is proof of life: the watchdog re-marks
         self.wd_mark = self.timestamp_ms
+        return threshold_reason

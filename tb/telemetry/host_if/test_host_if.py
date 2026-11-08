@@ -41,6 +41,7 @@ from tb_utils import (start_test, check_sva, set_sup_state, set_status_input,
 from spi_driver import spi_transfer, spi_write, spi_read, crc8, build_write_frame
 from reg_file_model import THRESHOLD_DEFAULTS, clamp, RegfileModel, THRESHOLD_BIODATA
 from scoreboard import read_thresholds, scoreboard_check
+from functional_coverage import sample_threshold, sample_frame, report_coverage, sample_clamp
 
 
 @cocotb.test()
@@ -634,7 +635,13 @@ async def random_walk(dut):
         crc_ok = random.random() < 0.9                    # 1 write in 10 is corrupted
         await spi_write(dut, address, data, corrupt_crc=not crc_ok,
                         half_period_ns=half_period_ns)
-        model.apply_write(address, data, crc_ok=crc_ok)
+        for name, region in model.committed_regions:
+            sample_clamp(name, region)
+        threshold_reason = model.apply_write(address, data, crc_ok=crc_ok)
+        sample_frame("clean" if crc_ok else "bad_crc")
+        if threshold_reason is not None:
+            sample_threshold(threshold_reason, model.sup_state)
+
         return f"write @{address:#04x} {[hex(b) for b in data]} crc_ok={crc_ok} sck_half={half_period_ns}"
 
     # STATUS_WIDTHS: width of each status input, so a random value always fits
@@ -670,6 +677,7 @@ async def random_walk(dut):
                          if d != m]
                 assert False, (f"event {event_number}: read @{rand_start_addr:#04x} x{rand_count} "
                                f"mismatch at {len(diffs)} address(es):\n  " + "\n  ".join(diffs))
+            sample_frame("read")
 
             note = f"read @{rand_start_addr:#04x} x{rand_count} -> {[hex(b) for b in read_dut_bytes]}"
 
@@ -739,7 +747,8 @@ async def random_walk(dut):
             await spi_transfer(dut, frame, half_period_ns=half_period_ns,
                                stop_after_bits=stop_after_bits, pause_after_bits=pause_after_bits,
                                pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
-            model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            ending = model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            sample_frame(ending)
             note = (f"broken write {[hex(b) for b in frame]} cut={stop_after_bits} "
                     f"stall={pause_after_bits} sck_half={half_period_ns}")
 
@@ -755,7 +764,8 @@ async def random_walk(dut):
             await spi_transfer(dut, frame, half_period_ns=half_period_ns,
                                stop_after_bits=stop_after_bits, pause_after_bits=pause_after_bits,
                                pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
-            model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            ending = model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            sample_frame(ending)
             note = (f"broken read @{frame[0] & 0x7F:#04x} cut={stop_after_bits} "
                     f"stall={pause_after_bits} sck_half={half_period_ns}")
 
@@ -783,6 +793,7 @@ async def random_walk(dut):
         csv_file.close()
 
     dut._log.info(f"random_walk: all {RANDOM_EVENTS} events done, final scoreboard check")
+    report_coverage(dut._log, os.environ.get("FCOV_XML"))
     await scoreboard_check(dut, model)
     await check_sva(dut, failures_before)
 
