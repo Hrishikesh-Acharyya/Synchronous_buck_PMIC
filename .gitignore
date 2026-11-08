@@ -75,3 +75,18 @@ results.xml
 __pycache__/
 *.fst
 coverage.dat
+
+# cocotb host_if testbench (tb/telemetry/host_if). Per-run output is kept on
+# disk but not tracked: random_seeds' coverage in cov/, a soak's per-run logs,
+# event CSVs and coverage in soak/raw/. Only a soak's evidence is tracked:
+# soak/README.md, results.txt, summary.txt, all_events.csv, merged.dat.
+tb/telemetry/host_if/cov/
+tb/telemetry/host_if/soak/*
+!tb/telemetry/host_if/soak/README.md
+!tb/telemetry/host_if/soak/results.txt
+!tb/telemetry/host_if/soak/summary.txt
+!tb/telemetry/host_if/soak/all_events.csv
+!tb/telemetry/host_if/soak/merged.dat
+# per-run files that older MAKEFILE versions wrote next to the testbench
+tb/telemetry/host_if/cov_run*.dat
+tb/telemetry/host_if/merged.dat

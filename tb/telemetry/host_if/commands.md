@@ -39,21 +39,24 @@ to the 10-event window before the last `scoreboard check` line.
 |---|---|
 | `make random_seeds` | `SEEDS` runs (default 5), stops at the first failure, merges coverage |
 | `make random_seeds SEEDS=20 EVENTS=200` | a bigger sweep |
+| `make soak SEEDS=40 EVENTS=200` | unattended sweep that never stops on a failure; evidence in `soak/` (see `soak/README.md`) |
 | `make cov_summary` | per checker: covers hit vs at zero, across the merged runs |
 | `make cov_zero` | the zero-hit cover lines themselves — the to-do list for stimulus |
-| `make clean_cov` | delete `cov_run*.dat` and `merged.dat` |
+| `make cov_summary MERGED=soak/merged.dat` | the same for a specific merge; by default the newer of `cov/` and `soak/` |
+| `make clean_cov` | delete `random_seeds`' coverage in `cov/`; a soak's evidence is never cleaned |
 | `make clean` | cocotb's clean: removes `sim_build` (forces a full rebuild) |
 
-`coverage.dat` is overwritten by every run; `random_seeds` copies each run's
-file to `cov_runN.dat` and merges them with `verilator_coverage --write`, so
-`cov_zero` reports what NO run reached.
+`coverage.dat` is overwritten by every run. `random_seeds` copies each run's
+file to `cov/cov_runN.dat` and merges them into `cov/merged.dat`; a soak does
+the same into `soak/raw/` and `soak/merged.dat`. Both merge with
+`verilator_coverage --write`, so `cov_zero` reports what NO run reached.
 
 ## Variables
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `EVENTS` | 30 | random events per run |
-| `SEEDS` | 5 | runs in `random_seeds` |
+| `SEEDS` | 5 | runs in `random_seeds` / `soak` |
 | `SEED` | — | seed for `replay` |
 | `EVERY` | 10 | full scoreboard every N events inside random_walk |
 | `TESTCASE` | all | cocotb: which test(s) to run |
@@ -66,4 +69,6 @@ file to `cov_runN.dat` and merges them with `verilator_coverage --write`, so
 | `sim_build/` | Verilator build | no |
 | `results.xml` | cocotb test report | no |
 | `coverage.dat` | last run's covers | no |
-| `cov_run*.dat`, `merged.dat` | `random_seeds` | no |
+| `cov/` | `random_seeds`: per-run coverage and its merge | no |
+| `soak/README.md`, `results.txt`, `summary.txt`, `all_events.csv`, `merged.dat` | `make soak`: the evidence of the last soak | **yes** |
+| `soak/raw/` | `make soak`: per-run logs, event CSVs and coverage | no |

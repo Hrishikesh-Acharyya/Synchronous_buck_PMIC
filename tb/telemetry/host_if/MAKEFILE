@@ -84,7 +84,7 @@ RANDOM_ARGS = TESTCASE=$(RANDOM_TEST) RANDOM_EVENTS=$(EVENTS) SCOREBOARD_EVERY=$
 # SVA_COVER_FILTER: the checkers whose covers the coverage reports list
 SVA_COVER_FILTER := reg_file_sva|spi_slave_sva
 
-.PHONY: help random quick replay random_seeds soak cov_zero cov_summary clean_cov
+.PHONY: help random quick replay random_seeds soak cov_zero cov_summary clean_cov check_merged
 
 help:
 	@echo "host_if cocotb targets:"
@@ -93,10 +93,10 @@ help:
 	@echo "  make quick                   random_walk once, 30 events - while editing"
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
-	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; results in soak/"
-	@echo "  make cov_zero                list covers no merged run has reached"
-	@echo "  make cov_summary             covers hit vs zero, per checker"
-	@echo "  make clean_cov               delete per-run and merged coverage files"
+	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; evidence in soak/, per-run files in soak/raw/"
+	@echo "  make cov_zero                list covers no merged run has reached (newest merge, or MERGED=<file>)"
+	@echo "  make cov_summary             covers hit vs zero, per checker (newest merge, or MERGED=<file>)"
+	@echo "  make clean_cov               delete random_seeds' coverage in cov/; soak evidence is kept"
 
 # random: one random_walk run with a fresh seed
 random:
@@ -111,59 +111,85 @@ replay:
 	@test -n "$(SEED)" || { echo "usage: make replay SEED=<seed> [EVENTS=<n>]"; exit 1; }
 	@$(MAKE) --no-print-directory $(RANDOM_ARGS) RANDOM_SEED=$(SEED)
 
+# ------------------------------------------------------------------
+# Output folders. Nothing generated is written to this folder itself.
+# ------------------------------------------------------------------
+# COV_DIR:  random_seeds' per-run coverage and its merge - working files,
+#           gitignored
+# SOAK_DIR: a soak's EVIDENCE, tracked in git: README.md, results.txt,
+#           summary.txt, all_events.csv, merged.dat
+# SOAK_RAW: a soak's per-run logs, event CSVs and coverage - kept on disk
+#           for digging into one run, gitignored
+# MERGED:   the merged coverage cov_zero / cov_summary read; by default the
+#           newer of the two merges, so either sweep can be followed by them
+COV_DIR  := cov
+SOAK_DIR := soak
+SOAK_RAW := soak/raw
+MERGED   ?= $(shell ls -t $(COV_DIR)/merged.dat $(SOAK_DIR)/merged.dat 2>/dev/null | head -1)
+
 # random_seeds: SEEDS runs, each a new seed; stops at the first failing run so
 # its replay line is the last one in the terminal. Each run's coverage.dat is
-# kept and all of them are merged into merged.dat.
+# kept in COV_DIR and all of them are merged into COV_DIR/merged.dat.
 random_seeds: clean_cov
+	@mkdir -p $(COV_DIR)
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    echo "==== random_seeds: run $$run of $(SEEDS) ===="; \
 	    $(MAKE) --no-print-directory $(RANDOM_ARGS) || exit 1; \
-	    cp coverage.dat cov_run$$run.dat; \
+	    cp coverage.dat $(COV_DIR)/cov_run$$run.dat; \
 	done
-	@verilator_coverage --write merged.dat cov_run*.dat
-	@echo "==== random_seeds: $(SEEDS) runs passed, coverage merged into merged.dat ===="
-	@$(MAKE) --no-print-directory cov_summary
+	@verilator_coverage --write $(COV_DIR)/merged.dat $(COV_DIR)/cov_run*.dat
+	@echo "==== random_seeds: $(SEEDS) runs passed, coverage merged into $(COV_DIR)/merged.dat ===="
+	@$(MAKE) --no-print-directory cov_summary MERGED=$(COV_DIR)/merged.dat
 
 # soak: an unattended sweep. Unlike random_seeds it does NOT stop on a failure:
-# every seed runs, each run's full log goes to soak/runN.log, its pass/fail and
-# seed to soak/results.txt, and its events to soak/events_runN.csv. Coverage is
-# merged across all runs; the summary plus zero-hit covers go to
-# soak/summary.txt. all_events.csv joins every run's CSV under one header.
-soak: clean_cov
-	@mkdir -p soak && rm -f soak/*
-	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee soak/results.txt
+# every seed runs. The evidence a reviewer needs lands in SOAK_DIR (tracked):
+#   results.txt     every run's PASS/FAIL and seed - each line is replayable
+#   summary.txt     covers hit vs zero per checker, plus the zero-hit covers
+#   all_events.csv  every event of every run under one header
+#   merged.dat      the merged coverage the summary was computed from
+# Per-run files - runN.log, events_runN.csv, cov_runN.dat - go to SOAK_RAW
+# (gitignored, kept on disk). A new soak replaces the previous soak's files;
+# SOAK_DIR/README.md is never touched.
+soak:
+	@mkdir -p $(SOAK_RAW)
+	@rm -f soak/raw/run*.log soak/raw/events_run*.csv soak/raw/cov_run*.dat \
+	       soak/results.txt soak/summary.txt soak/all_events.csv soak/merged.dat
+	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
-	           RANDOM_CSV=$(CURDIR)/soak/events_run$$run.csv > soak/run$$run.log 2>&1; \
+	           RANDOM_CSV=$(CURDIR)/$(SOAK_RAW)/events_run$$run.csv > $(SOAK_RAW)/run$$run.log 2>&1; \
 	    then status=PASS; else status=FAIL; fi; \
-	    seed=$$(grep -o 'SEED=[0-9]*' soak/run$$run.log | head -1); \
-	    echo "run $$run: $$status $$seed" | tee -a soak/results.txt; \
-	    if [ -f coverage.dat ]; then cp coverage.dat cov_run$$run.dat; fi; \
+	    seed=$$(grep -o 'SEED=[0-9]*' $(SOAK_RAW)/run$$run.log | head -1); \
+	    echo "run $$run: $$status $$seed" | tee -a $(SOAK_DIR)/results.txt; \
+	    if [ -f coverage.dat ]; then cp coverage.dat $(SOAK_RAW)/cov_run$$run.dat; fi; \
 	done
-	@echo "soak: finished $$(date)" | tee -a soak/results.txt
-	@verilator_coverage --write merged.dat cov_run*.dat
-	@$(MAKE) --no-print-directory cov_summary  > soak/summary.txt
-	@echo "zero-hit covers:"                   >> soak/summary.txt
-	@$(MAKE) --no-print-directory cov_zero     >> soak/summary.txt
-	@awk 'FNR == 1 && NR != 1 { next } { print }' soak/events_run*.csv > soak/all_events.csv
-	@echo "soak: $$(grep -c ': PASS' soak/results.txt) passed, $$(grep -c ': FAIL' soak/results.txt) failed - see soak/"
-	@cat soak/summary.txt
+	@echo "soak: finished $$(date)" | tee -a $(SOAK_DIR)/results.txt
+	@verilator_coverage --write $(SOAK_DIR)/merged.dat $(SOAK_RAW)/cov_run*.dat
+	@$(MAKE) --no-print-directory cov_summary MERGED=$(SOAK_DIR)/merged.dat  > $(SOAK_DIR)/summary.txt
+	@echo "zero-hit covers:"                                                 >> $(SOAK_DIR)/summary.txt
+	@$(MAKE) --no-print-directory cov_zero    MERGED=$(SOAK_DIR)/merged.dat >> $(SOAK_DIR)/summary.txt
+	@awk 'FNR == 1 && NR != 1 { next } { print }' $(SOAK_RAW)/events_run*.csv > $(SOAK_DIR)/all_events.csv
+	@echo "soak: $$(grep -c ': PASS' $(SOAK_DIR)/results.txt) passed, $$(grep -c ': FAIL' $(SOAK_DIR)/results.txt) failed - see $(SOAK_DIR)/"
+	@cat $(SOAK_DIR)/summary.txt
+
+# check_merged: cov_zero / cov_summary need a merge to read
+check_merged:
+	@test -n "$(MERGED)" -a -f "$(MERGED)" || \
+	    { echo "no merged coverage yet - run 'make random_seeds' or 'make soak' first"; exit 1; }
 
 # cov_zero: every cover in the listed checkers that NO merged run hit
-cov_zero: merged.dat
-	@grep -E "$(SVA_COVER_FILTER)" merged.dat | awk '$$NF == 0' || echo "no zero-hit covers"
+cov_zero: check_merged
+	@grep -E "$(SVA_COVER_FILTER)" $(MERGED) | awk '$$NF == 0' || echo "no zero-hit covers"
 
 # cov_summary: hit / zero counts per checker in the merged coverage
-cov_summary: merged.dat
+cov_summary: check_merged
 	@for checker in reg_file_sva spi_slave_sva; do \
-	    total=$$(grep -c "$$checker" merged.dat); \
-	    zero=$$(grep "$$checker" merged.dat | awk '$$NF == 0' | wc -l); \
+	    total=$$(grep -c "$$checker" $(MERGED)); \
+	    zero=$$(grep "$$checker" $(MERGED) | awk '$$NF == 0' | wc -l); \
 	    echo "  $$checker: $$((total - zero)) of $$total covers hit, $$zero at zero"; \
 	done
 
-merged.dat:
-	@echo "no merged.dat yet - run 'make random_seeds' or 'make soak' first"; exit 1
-
-# clean_cov: per-run and merged coverage only; cocotb's own 'make clean' removes sim_build
+# clean_cov: random_seeds' coverage only. A soak's evidence is never cleaned by
+# a target - the next soak replaces it. cocotb's own 'make clean' removes sim_build.
 clean_cov:
-	@rm -f cov_run*.dat merged.dat
+	@rm -f cov/cov_run*.dat cov/merged.dat
