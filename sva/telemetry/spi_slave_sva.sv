@@ -129,6 +129,18 @@ logic chk_last_was_read;
 //                  rather than its reset value
 logic chk_had_command;
 
+// chk_dead_before_cmd: the slave timed out (S_DEAD) before this transaction's
+//                      command byte completed. A host may keep clocking after
+//                      the stall, so the pins can still show a whole command
+//                      byte that the slave never accepted.
+logic chk_dead_before_cmd;
+
+// chk_cmd_accepted: the command byte completed AND the slave was still alive
+//                   to accept it - the only case in which spi_slave knows the
+//                   transaction's direction. Anything else is judged a write
+//                   (rw is cleared on cs_fall).
+logic chk_cmd_accepted;
+
 // chk_silence: clocks since the last SCK edge while CS is low; zero while CS
 //              is high. Counts INTERVALS: the edge that sees an SCK change
 //              leaves it at zero.
@@ -160,9 +172,10 @@ always_ff @(posedge clk or negedge rst_n) begin
   /*
   Purpose:
   ---
-  Remember the direction of the last transaction that completed its command
-  byte, updated as CS rises. A transaction cut short before its command
-  completes leaves it unchanged, so it always names the last real command.
+  Remember the direction of the last transaction whose command byte the slave
+  accepted, updated as CS rises. A transaction cut short before its command
+  completes, or one the slave timed out on first, leaves it unchanged, so it
+  always names the last real command.
 
   chk_had_command marks that such a command exists at all. Without it the
   reset value of chk_last_was_read (0) would read as "the last command was a
@@ -176,7 +189,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 
   end
 
-  else if (chk_cs_rise && chk_cmd_valid) begin
+  else if (chk_cs_rise && chk_cmd_accepted) begin
 
     chk_last_was_read <= chk_is_read;
     chk_had_command   <= 1'b1;
@@ -208,6 +221,7 @@ always_ff @(posedge clk or negedge rst_n) begin
     chk_write_bytes   <= 8'd0;
     chk_strobes       <= 8'd0;
     chk_seen_rd_first <= 1'b0;
+    chk_dead_before_cmd <= 1'b0;
 
   end
 
@@ -220,6 +234,7 @@ always_ff @(posedge clk or negedge rst_n) begin
     chk_write_bytes   <= 8'd0;
     chk_strobes       <= 8'd0;
     chk_seen_rd_first <= 1'b0;
+    chk_dead_before_cmd <= 1'b0;
 
   end
   else begin
@@ -244,10 +259,13 @@ always_ff @(posedge clk or negedge rst_n) begin
 
     if (wr_en && (chk_strobes != '1)) chk_strobes <= chk_strobes + 8'd1;
     if (rd_first) chk_seen_rd_first <= 1'b1;
+    if ((dut_spi_state == S_DEAD) && !chk_cmd_valid) chk_dead_before_cmd <= 1'b1;
 
   end
 
 end
+
+assign chk_cmd_accepted = chk_cmd_valid && !chk_dead_before_cmd;
 
 
 always_ff @(posedge clk or negedge rst_n) begin
@@ -866,9 +884,13 @@ Purpose: PAC(Property, Assertion, Cover) Group 9:
            - A write whose command completed always resolves into one of the
              two.
            - A read never produces either.
-           - A transaction closed before its command byte completed always
+           - A transaction whose command the slave never accepted always
              produces txn_abort, so the bus-error count sees every truncated
-             command. spi_slave clears rw on cs_fall to guarantee this.
+             command. That covers CS rising before the command byte
+             completed, and an SCK stall that sent the slave to S_DEAD first
+             even if the host then clocked the rest of the byte - the pins
+             show a whole command, the slave never saw one (chk_cmd_accepted).
+             spi_slave clears rw on cs_fall to guarantee this.
              Before that change the outcome depended on the PREVIOUS
              transaction: aborted after a write, silently dropped after a
              read. c_closed_before_command_after_read is that history case,
@@ -929,7 +951,7 @@ a_write_always_resolved: assert property (p_write_always_resolved)
 property p_read_never_resolved;
 
   @(posedge clk) disable iff (!rst_n)
-    ($past(rst_n) && chk_cs_rise && chk_cmd_valid && chk_is_read)
+    ($past(rst_n) && chk_cs_rise && chk_cmd_accepted && chk_is_read)
         |=> !(integrity_ok || txn_abort);
 
 endproperty
@@ -945,7 +967,7 @@ a_read_never_resolved: assert property (p_read_never_resolved)
 property p_truncated_command_aborts;
 
   @(posedge clk) disable iff (!rst_n)
-    ($past(rst_n) && chk_cs_rise && !chk_cmd_valid) |=> txn_abort;
+    ($past(rst_n) && chk_cs_rise && !chk_cmd_accepted) |=> txn_abort;
 
 endproperty
 
@@ -992,6 +1014,8 @@ c_closed_before_command_after_read:  cover property (@(posedge clk) disable iff 
                              chk_cs_rise && !chk_cmd_valid && chk_had_command && chk_last_was_read);
 c_closed_before_command_after_write: cover property (@(posedge clk) disable iff (!rst_n)
                              chk_cs_rise && !chk_cmd_valid && chk_had_command && !chk_last_was_read);
+c_read_dead_before_command:          cover property (@(posedge clk) disable iff (!rst_n)
+                             chk_cs_rise && chk_dead_before_cmd && chk_is_read);
 
 
 /*

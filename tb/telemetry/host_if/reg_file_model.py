@@ -1,3 +1,19 @@
+#
+# Filename:         reg_file_model.py
+#
+# File Description: Reference model of reg_file as the host sees it through
+#                   spi_slave: the writable state (thresholds, SCRATCH,
+#                   CONTROL, write_rejected, the bus-error counter, the
+#                   watchdog) and the byte every address reads back. Written
+#                   from the documented contracts of reg_file.sv and
+#                   spi_slave.sv (headers, register map, port comments), so
+#                   a disagreement with the DUT is a finding about one or the
+#                   other. Tests tell the model what they did; scoreboard.py
+#                   compares.
+#
+# Global variables: THRESHOLD_DEFAULTS - reset value of each threshold
+#                   THRESHOLD_BIODATA  - address, width, S_OFF rule and clamp
+#                                        range of each threshold
 
 from host_if_constants import (ADDR_SCRATCH, ADDR_TRIP_RUN, ADDR_WRITE_KEY, WRITE_KEY,
                                SUP_S_OFF, ADDR_DISABLE_KEY, ADDR_CONTROL, DISABLE_KEY,
@@ -6,10 +22,10 @@ from host_if_constants import (ADDR_SCRATCH, ADDR_TRIP_RUN, ADDR_WRITE_KEY, WRIT
 from spi_driver import crc8
 
 
-# THRESHOLD_DEFAULTS: Dictionary holding constants and their reset values, taken from 
-#                     pmic_types_pkg or derived wherever needed. These are the writable
-#                     thresholds, address range: 0x50-0x6F 
-# WARNING: RECOMPUTE IF PMIC CHANGES
+# THRESHOLD_DEFAULTS: reset value of each writable threshold (bank 0x50-0x5A),
+#                     computed from pmic_types_pkg. These are derived values:
+#                     recompute them whenever CLK_HZ, CONVERTOR_HZ or a default
+#                     in the package changes.
 THRESHOLD_DEFAULTS = {
     "trip_run": 12,	
     "trip_ss": 28,	
@@ -20,9 +36,10 @@ THRESHOLD_DEFAULTS = {
     "clean_run_target": 450000	#ms_to_sw_cycles(1000): 1000 × 450
 }
 
-# THRESHOLD_BIODATA: Dictionary from register name to a dictionary of address, bytes, s_off_only, min
-#                    and max. The constant values are taken from/ calculated from pmic package
-#                    and reg file's clamp functions
+# THRESHOLD_BIODATA: per threshold - first address, width in bytes, whether it
+#                    is writable only in S_OFF, and the clamp range of
+#                    reg_file's clamp functions. Listed in address order;
+#                    random_walk relies on that to build a bank-ordered frame.
 THRESHOLD_BIODATA = {
     "trip_run": {"address": 0x50, "bytes": 1, "S_OFF_only": False, "min": 1, "max": 16},	
     "trip_ss": {"address": 0x51, "bytes": 1, "S_OFF_only": False, "min": 1, "max": 32},	
@@ -47,12 +64,14 @@ def clamp(name, raw_value):
 
 class RegfileModel():
     """
-    Purpose: Reference model of reg_file's writable state. One instance
-             made per state, starting at reset
+    Purpose: Reference model of reg_file. One instance per test, created
+             right after reset; tests call the apply_* / switch_rise /
+             advance_time methods as they act on the DUT, and the predict_*
+             methods say what a read should return.
     """
     def __init__ (self):
         """
-        Purpose: Reset state: what reg_file holds immediately after rst_n
+        Purpose: Reset state - what reg_file holds immediately after rst_n.
         """
         self.thresholds = dict(THRESHOLD_DEFAULTS)
         self.scratch = 0x00
@@ -60,7 +79,7 @@ class RegfileModel():
         self.bus_err_count = 0
         self.sup_state = SUP_S_OFF
         self.spi_enable  = 1     # reset: the host does not veto the converter
-        self.wd_restored = 0     # set only by the watchdog (not modelled yet)
+        self.wd_restored = 0     # set only by a watchdog release (advance_time)
         self.timestamp_ms = 0    # what the test is driving into timestamp_ms
         self.wd_mark      = 0    # timestamp of the last proof the host is alive
         # status_inputs: what the test drives on reg_file's status inputs,
@@ -207,15 +226,23 @@ class RegfileModel():
 
     def apply_write(self, address, data_bytes, crc_ok=True):
         """
-        Purpose: It predicts the effect of one write transaction:
-                 a bad CRC discards everything and counts one bus error
-                .Otherwise each byte goes to address + offset, and writes commit only at the end.
+        Purpose: Predict the effect of one complete write transaction that
+                 started at address. A bad CRC discards everything and counts
+                 one bus error. Otherwise byte i goes to address + i (7-bit
+                 wrap) and nothing commits until the end of the frame:
+                   - SCRATCH and CONTROL commit on their own;
+                   - the threshold writes commit all or nothing - one refused
+                     write (no key, an S_OFF-only register outside S_OFF, a
+                     partially written multi-byte register) rejects them all
+                     and sets write_rejected; an accepted set clears it;
+                   - a frame with no threshold write leaves write_rejected alone;
+                   - any valid write re-marks the watchdog.
         """
 
         pending_scratch = None
-        unlocked = False # Write key: this transaction only
-        staged = {} 
-        disable_armed = False    # disable key: this transaction only
+        unlocked      = False    # write key: valid for this transaction only
+        staged        = {}       # threshold bytes written, by address
+        disable_armed = False    # disable key: valid for this transaction only
         en_pending    = None     # CONTROL change to apply at commit; None = no change
 
         if not crc_ok:

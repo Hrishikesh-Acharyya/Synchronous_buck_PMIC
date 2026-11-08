@@ -1,3 +1,14 @@
+#
+# Filename:         spi_driver.py
+#
+# File Description: The host side of the SPI bus, as an MCU would drive it:
+#                   a CRC-8 model, write-frame construction, one bit-level
+#                   transaction with options for a misbehaving host (cut
+#                   frames, SCK stalls, other speeds), and the plain write and
+#                   burst read built on it. Mode 0, MSB first, 4-wire.
+#
+# Global variables: None
+
 from cocotb.triggers import Timer, FallingEdge
 from host_if_constants import (SCK_HALF_PERIOD_NS, CLK_PERIOD_NS, READ_FLAG,
                                WRITE_MASK, CRC8_POLY)

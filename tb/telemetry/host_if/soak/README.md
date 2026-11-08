@@ -20,7 +20,7 @@ Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`) are written to `ra
 - **Event mix**: reads 1,891; threshold writes 1,560; raw writes 1,157; control writes 937; scratch 621; time 568; supervisor-state changes 522; status reads 513; switch events 231.
 - **Coverage**: `reg_file_sva` 24 of 26 covers hit, `spi_slave_sva` 18 of 27.
 
-The covers at zero are listed in `summary.txt`: SCK timeouts, mid-byte and short-frame aborts, a read closed mid-byte, truncated commands, the arm-key lapse and bus-error saturation. They are the stimulus still to add to `random_walk`, or to cover with directed tests.
+The covers at zero are listed in `summary.txt`: SCK timeouts, mid-byte and short-frame aborts, a read closed mid-byte, truncated commands, the arm-key lapse and bus-error saturation. This soak predates the broken-frame events in `random_walk` and the directed tests that reach these cases. A soak runs `random_walk` only, so for the coverage of the whole testbench see `../coverage/summary.txt`, written by `make cov_all`.
 
 ## Reproducing
 

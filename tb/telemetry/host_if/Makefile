@@ -10,15 +10,16 @@
 #                   modules outside this build are inert, exactly as in the
 #                   module testbenches. The targets after the cocotb include
 #                   are shortcuts for the constrained-random test and its
-#                   coverage; `make help` lists them, COMMANDS.md explains them.
+#                   coverage; `make help` lists them, COMMANDS.md in this
+#                   folder explains them.
 #
 # Global variables: REPO, SV_DIR, PKG, RTL_SRCS, SVA_SRCS, TB_SRCS - sources
 #                   SIM, TOPLEVEL_LANG, VERILOG_SOURCES, TOPLEVEL, MODULE,
 #                   EXTRA_ARGS - cocotb's variables
 #                   EVENTS, SEEDS, SEED, EVERY, RANDOM_TEST, RANDOM_ARGS,
 #                   SVA_COVER_FILTER - random-test shortcuts
-#                   COV_DIR, SOAK_DIR, SOAK_RAW, MERGED - output folders and
-#                   the merged coverage the reports read
+#                   COV_DIR, COVERAGE_DIR, SOAK_DIR, SOAK_RAW, MERGED - output
+#                   folders and the merged coverage the reports read
 
 # ==============================================================================
 # Sources
@@ -96,7 +97,7 @@ help:
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
 	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; evidence in soak/, per-run files in soak/raw/"
-	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged - the true coverage picture"
+	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged - the true coverage picture; evidence in coverage/"
 	@echo "  make cov_zero                list covers no merged run has reached (newest merge, or MERGED=<file>)"
 	@echo "  make cov_summary             covers hit vs zero, per checker (newest merge, or MERGED=<file>)"
 	@echo "  make clean_cov               delete the coverage in cov/; soak evidence is kept"
@@ -124,11 +125,14 @@ replay:
 #           summary.txt, all_events.csv, merged.dat
 # SOAK_RAW: a soak's per-run logs, event CSVs and coverage - kept on disk
 #           for digging into one run, gitignored
+# COVERAGE_DIR: cov_all's EVIDENCE, tracked in git: summary.txt, the coverage
+#           picture of the last full run (suite + random)
 # MERGED:   the merged coverage cov_zero / cov_summary read; by default the
 #           newest of the three merges, so any sweep can be followed by them
-COV_DIR  := cov
-SOAK_DIR := soak
-SOAK_RAW := soak/raw
+COV_DIR      := cov
+COVERAGE_DIR := coverage
+SOAK_DIR     := soak
+SOAK_RAW     := soak/raw
 MERGED   ?= $(shell ls -t $(COV_DIR)/merged.dat $(COV_DIR)/merged_all.dat $(SOAK_DIR)/merged.dat 2>/dev/null | head -1)
 
 # random_seeds: SEEDS runs, each a new seed; stops at the first failing run so
@@ -148,9 +152,11 @@ random_seeds: clean_cov
 # cov_all: the whole suite once (every directed test, plus random_walk at its
 # built-in event count), then SEEDS random runs, all merged. random_seeds and
 # soak run random_walk only, so they miss what the directed tests reach; this
-# is the real coverage picture. Stops at the first failing run.
+# is the real coverage picture. Stops at the first failing run, so a summary
+# is only ever written for a run in which every test passed. The summary is
+# the tracked evidence in COVERAGE_DIR; the per-run files stay in COV_DIR.
 cov_all: clean_cov
-	@mkdir -p $(COV_DIR)
+	@mkdir -p $(COV_DIR) $(COVERAGE_DIR)
 	@echo "==== cov_all: full suite ===="
 	@$(MAKE) --no-print-directory || exit 1
 	@cp coverage.dat $(COV_DIR)/cov_suite.dat
@@ -160,10 +166,15 @@ cov_all: clean_cov
 	    cp coverage.dat $(COV_DIR)/cov_run$$run.dat; \
 	done
 	@verilator_coverage --write $(COV_DIR)/merged_all.dat $(COV_DIR)/cov_suite.dat $(COV_DIR)/cov_run*.dat
-	@echo "==== cov_all: suite + $(SEEDS) random runs passed, coverage merged into $(COV_DIR)/merged_all.dat ===="
-	@$(MAKE) --no-print-directory cov_summary MERGED=$(COV_DIR)/merged_all.dat
-	@echo "zero-hit covers:"
-	@$(MAKE) --no-print-directory cov_zero    MERGED=$(COV_DIR)/merged_all.dat
+	@{ echo "cov_all: full suite + $(SEEDS) random runs x $(EVENTS) events - $$(date)"; \
+	   echo "result: every test passed (cov_all stops at the first failure)"; \
+	   echo "covers hit per checker:"; \
+	   $(MAKE) --no-print-directory cov_summary MERGED=$(COV_DIR)/merged_all.dat; \
+	   echo "zero-hit covers:"; \
+	   $(MAKE) --no-print-directory cov_zero MERGED=$(COV_DIR)/merged_all.dat; \
+	 } > $(COVERAGE_DIR)/summary.txt
+	@echo "==== cov_all: suite + $(SEEDS) random runs passed; summary in $(COVERAGE_DIR)/summary.txt ===="
+	@cat $(COVERAGE_DIR)/summary.txt
 
 # soak: an unattended sweep. Unlike random_seeds it does NOT stop on a failure:
 # every seed runs. The evidence a reviewer needs lands in SOAK_DIR (tracked):
@@ -201,13 +212,23 @@ check_merged:
 	@test -n "$(MERGED)" -a -f "$(MERGED)" || \
 	    { echo "no merged coverage yet - run 'make random_seeds', 'make cov_all' or 'make soak' first"; exit 1; }
 
-# cov_zero: every cover in the listed checkers that NO merged run hit. The
-# zero lines are captured first and tested for emptiness: a pipeline's exit
-# status is awk's, which succeeds even when it prints nothing, so an `||`
-# after it would never report "no zero-hit covers".
+# cov_zero: every cover in the listed checkers that NO merged run hit, one per
+# line as "<hierarchy>.<cover>  (<checker file>:<line>)". A coverage record is
+# \001key\002value fields; the awk keeps the file name (f), line (l) and
+# hierarchy (h) and drops the absolute path, so the output is the same on
+# every machine. The lines are captured first and tested for emptiness: a
+# pipeline's exit status is awk's, which succeeds even when it prints nothing.
 cov_zero: check_merged
-	@zeros=$$(grep -E "$(SVA_COVER_FILTER)" $(MERGED) | awk '$$NF == 0'); \
-	if [ -n "$$zeros" ]; then echo "$$zeros"; else echo "no zero-hit covers"; fi
+	@zeros=$$(grep -E "$(SVA_COVER_FILTER)" $(MERGED) | awk '$$NF == 0 { \
+	    n = split($$0, parts, "\001"); f = ""; l = ""; h = ""; \
+	    for (i = 2; i <= n; i++) { \
+	        split(parts[i], kv, "\002"); v = kv[2]; sub(/\047.*/, "", v); \
+	        if (kv[1] == "f") { sub(/.*\//, "", v); f = v } \
+	        if (kv[1] == "l") l = v; \
+	        if (kv[1] == "h") h = v \
+	    } \
+	    printf "  %s  (%s:%s)\n", h, f, l }'); \
+	if [ -n "$$zeros" ]; then echo "$$zeros"; else echo "  no zero-hit covers"; fi
 
 # cov_summary: hit / zero counts per checker in the merged coverage
 cov_summary: check_merged
