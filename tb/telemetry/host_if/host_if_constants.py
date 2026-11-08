@@ -47,3 +47,31 @@ STATUS_INPUTS = ["CP_sync", "OTP_sync_db", "UVLO_sync_db", "latch_stat_sync_db",
                   "fault_count_ss", "fault_reg", "PGOOD"]
 ADDR_TRIP_RUN = 0x50
 ADDR_STATUS = 0x10
+
+ADDR_WRITE_KEY = 0x4F # reg_file: WRITE_ACCESS_KEY address, one below the threshold bank
+WRITE_KEY      = 0xA7 # reg_file: WRITE_ACCESS_KEY_ID
+
+SUP_S_OFF    = 0      # state_t encodings from pmic_types_pkg
+SUP_S_SS     = 1
+SUP_S_RUN    = 2
+SUP_S_HICCUP = 3
+
+# ADDR_DISABLE_KEY: reg_file DISABLE_KEY register, one below CONTROL so the key
+#                   and the command share one frame
+ADDR_DISABLE_KEY = 0x40
+# ADDR_CONTROL: reg_file CONTROL register; bit 0 is the host enable
+ADDR_CONTROL     = 0x41
+# DISABLE_KEY: reg_file DISABLE_KEY_ID - the byte that arms a host disable
+DISABLE_KEY      = 0xD1
+# WD_TIMEOUT_MS: reg_file's bus-silence timeout while the veto is held
+WD_TIMEOUT_MS  = 5000
+# TIMESTAMP_MASK: timestamp_ms is TIMESTAMP_W = 24 bits wide and wraps
+TIMESTAMP_MASK = 0xFFFFFF
+# ADDR_TIME_0: timestamp_ms byte 0; bytes 1-2 follow at 0x19-0x1A
+ADDR_TIME_0       = 0x18
+# ADDR_FAULT_CAUSE: start of the four-byte fault record 0x1D-0x20
+ADDR_FAULT_CAUSE  = 0x1D
+# ADDR_FTIME_2: top byte of the fault record; reading it clears the record
+ADDR_FTIME_2      = 0x20
+# TELEMETRY_BYTES: STATUS 0x10 through FTIME_2 0x20, read as one burst
+TELEMETRY_BYTES   = 17

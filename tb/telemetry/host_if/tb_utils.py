@@ -1,6 +1,6 @@
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, Timer
+from cocotb.triggers import ClockCycles, Timer, FallingEdge
 from host_if_constants import CLK_PERIOD_NS, RESET_CLKS, IDLE_CLKS, STATUS_INPUTS
 
 def initiate_clock(dut):
@@ -51,5 +51,50 @@ async def check_sva(dut, failures_before):
 
     assertion_fail_count = int(dut.sva_fail_count.value)
     assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
+
+def set_sup_state(dut, model, state):
+
+    """
+    Purpose: Drive sup_state into the DUT and tell the model the same thing,
+             so the two never disagree about the supervisor state.
+    """
+    dut.sup_state.value = state
+    model.sup_state = state
+
+async def pulse_switch_rise(dut, model):
+
+    """
+    Purpose: Drive a one-clock en_switch_rise pulse, as the debounced enable
+             switch produces, and tell the model. Driven on falling edges so
+             the pulse never changes on the rising edge reg_file samples.
+    """
+    await FallingEdge(dut.clk)
+    dut.en_switch_rise.value = 1
+    await FallingEdge(dut.clk)
+    dut.en_switch_rise.value = 0
+    model.switch_rise()
+
+async def set_timestamp(dut, model, new_timestamp_ms):
+
+    """
+    Purpose: Move timestamp_ms in the DUT and the model together. Driven on a
+             falling edge so the watchdog comparison never sees it change on
+             the rising edge it is sampled; two clocks let a release take
+             effect before anything reads the result.
+    """
+    await FallingEdge(dut.clk)
+    dut.timestamp_ms.value = new_timestamp_ms & 0xFFFFFF
+    await ClockCycles(dut.clk, 2)
+    model.advance_time(new_timestamp_ms)
+
+def set_status_input(dut, model, port_name, value):
+
+    """
+    Purpose: Drive one reg_file status input and tell the model. These are
+             plain levels read by reg_file's read mux; nothing samples them
+             on a clock edge, so no phase alignment is needed.
+    """
+    getattr(dut, port_name).value = value
+    model.status_inputs[port_name] = value
     
     

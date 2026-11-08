@@ -1,5 +1,5 @@
 from spi_driver import spi_read
-from host_if_constants import ADDR_TRIP_RUN, ADDR_SCRATCH, ADDR_BUS_ERR_L, ADDR_STATUS
+from host_if_constants import ADDR_TRIP_RUN, ADDR_SCRATCH, ADDR_BUS_ERR_L, ADDR_STATUS, ADDR_CONTROL, ADDR_STATUS, TELEMETRY_BYTES
 
 async def read_thresholds(dut):
   """
@@ -27,20 +27,28 @@ async def scoreboard_check(dut, model):
   """
 
   mismatches = []
-  scratch_read = await spi_read(dut, ADDR_SCRATCH,1)
-  if (model.scratch != scratch_read[0]):
-    mismatches.append(f"SCRATCH: DUT {scratch_read[0]:#04x}, model {model.scratch:#04x}")
-
-  bus_err_read = await spi_read(dut, ADDR_BUS_ERR_L, 2)
-  dut_bus_err  = bus_err_read[0] | (bus_err_read[1] << 8)
-  if(model.bus_err_count != dut_bus_err):
-    mismatches.append(f"BUS ERROR COUNT: DUT {dut_bus_err:#04x}, model {model.bus_err_count:#04x}")
+  
+  telemetry_read     = await spi_read(dut, ADDR_STATUS, TELEMETRY_BYTES)
+  telemetry_expected = model.expected_bytes(ADDR_STATUS, TELEMETRY_BYTES)
+  for offset, (dut_byte, model_byte) in enumerate(zip(telemetry_read, telemetry_expected)):
+    if dut_byte != model_byte:
+      mismatches.append(f"telemetry {ADDR_STATUS + offset:#04x}: DUT {dut_byte:#04x}, model {model_byte:#04x}")
 
 
   dut_status_byte = await spi_read(dut, ADDR_STATUS, 1)
   dut_write_rejected = (dut_status_byte[0] >> 7) & 1 
   if(model.write_rejected != dut_write_rejected):
     mismatches.append(f"WRITE REJECTED: DUT{dut_write_rejected:#04x}, model {model.write_rejected:#04x}")
+
+  dut_status_enable = (dut_status_byte[0] >> 5) & 1
+  if model.spi_enable != dut_status_enable:
+    mismatches.append(f"STATUS spi_enable: DUT {dut_status_enable}, model {model.spi_enable}")
+
+  control_read = await spi_read(dut, ADDR_CONTROL, 1)
+  dut_control  = control_read[0]
+  model_control = (model.wd_restored << 3) | model.spi_enable
+  if dut_control != model_control:
+    mismatches.append(f"CONTROL: DUT {dut_control:#04x}, model {model_control:#04x}")
 
 
   thresholds = await read_thresholds(dut)
