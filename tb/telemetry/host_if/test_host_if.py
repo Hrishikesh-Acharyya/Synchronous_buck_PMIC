@@ -7,7 +7,19 @@
 #                   SVA verdict from tb_utils.py, bus access from spi_driver.py,
 #                   the reference model from reg_file_model.py and the full
 #                   readback comparison from scoreboard.py. This file holds
-#                   only the tests.
+#                   only the tests:
+#                     directed   - reset and idle bus, identity read, SCRATCH
+#                                  write/readback, bad-CRC discard, threshold
+#                                  defaults, then model-checked walks of the
+#                                  threshold rules, the enable path, the
+#                                  watchdog, telemetry mapping, the timestamp
+#                                  snapshot, the fault-record clear, broken
+#                                  frames, key lapse and counter saturation
+#                     model-only - crc8_model_check, clamp_model_check: the
+#                                  reference functions against hand-worked
+#                                  values; they do not use the DUT
+#                     random     - random_walk: constrained-random traffic
+#                                  checked against the model
 #
 # Global variables: None
 
@@ -35,7 +47,8 @@ from scoreboard import read_thresholds, scoreboard_check
 async def idle_bus_after_reset(dut): 
 
     """
-    Purpose: This check tests if the bus is idle after reset
+    Purpose: After reset and IDLE_CLKS of an idle bus, MISO is low and
+             spi_slave is in S_IDLE.
     """
 
     failures_before = await start_test(dut)
@@ -56,8 +69,10 @@ async def idle_bus_after_reset(dut):
 async def read_identity_register(dut): 
 
     """
-    Purpose: Reads PMIC_ID and VERSION in one burst, proving the read path
-             is robust. Tha values are fixed by reh file's parameters
+    Purpose: Read PMIC_ID and VERSION in one burst. Both values are fixed by
+             reg_file's parameters, so this proves the command, turnaround
+             and burst-read path end to end. The command and turnaround
+             bytes must read back 0x00 (MISO is held low outside S_READ).
     """
     
     failures_before = await start_test(dut)
@@ -66,9 +81,8 @@ async def read_identity_register(dut):
 
     read_frame = [command_byte, 0x00, 0x00,0x00]
     result = await spi_transfer(dut, read_frame)
-    # We wait after the spi_transfer return to allow the end sequence(Cs_n rising) 
-    # to pass through the filters and read by the checkers, so the end of read assertions
-    # and covers are exercise. IDLE_CLKS is enough time for that to happenac
+    # Let CS_n's rise pass the input filter and reach spi_slave before the
+    # checks, so the end-of-transaction assertions and covers are evaluated.
     await ClockCycles(dut.clk, IDLE_CLKS)
 
     assert result[0] == 0x00, f"Command byte answer should be 0x00, read {result[0]:#04x}"
@@ -83,28 +97,28 @@ async def read_identity_register(dut):
 async def crc8_model_check(dut):
 
     """
-    Purpose: This test checks the CRC model itself against the published 
-             CRC-8/SMBUS check value, and the zero-remainder property spi_slave relies on. 
-             It doesn't use the DUT
+    Purpose: Check the CRC model itself: the published CRC-8/SMBUS check
+             value (0xF4 for "123456789"), and the zero-remainder property
+             spi_slave relies on - a message followed by its own CRC divides
+             to zero. Does not use the DUT.
     """
 
-    # Send the message 123456789
+    # the standard check message, ASCII "123456789"
     send_message = list(range(0x31,0x3A))
     crc = crc8(send_message)
     assert crc==0xF4, f"The crc value received for 123456789 is {crc:#04x}, whereas it should be 0xF4"
     
-    # Add the crc byte to the original message and resend new message
+    # message followed by its own CRC: the remainder must be zero
     appended_message = send_message + [crc]
-    # CRC of the message + the crc itself should be zero
     crc_zero = crc8(appended_message)
     assert crc_zero == 0, f"The crc value of the message + its crc is {crc_zero:#04x}, it should be 0"
     
 @cocotb.test()
 async def write_scratch_read_back(dut):
     """
-    Purpose: Writes a scratch data to ADDR_SCRATCH and reads it back
-             Reading the correct data back means command, data, CRC, integrity_OK
-             and reg_file data storing operation are correct
+    Purpose: Write SCRATCH and read it back. A correct readback proves the
+             whole write path: command, data, CRC, integrity_OK and the commit
+             in reg_file.
     """
 
     failures_before = await start_test(dut)
@@ -117,9 +131,8 @@ async def write_scratch_read_back(dut):
 
     assert read_data[0] == scratch_value, f"Data sent was {scratch_value:#04x}, received is: {read_data[0]:#04x}"
 
-    # We wait after the spi_transfer return to allow the end sequence(Cs_n rising) 
-    # to pass through the filters and read by the checkers, so the end of read assertions
-    # and covers are exercise. IDLE_CLKS is enough time for that to happenac
+    # Let CS_n's rise pass the input filter and reach spi_slave before the
+    # checks, so the end-of-transaction assertions and covers are evaluated.
     await ClockCycles(dut.clk, IDLE_CLKS)
     await check_sva(dut, failures_before)
 
@@ -127,8 +140,9 @@ async def write_scratch_read_back(dut):
 @cocotb.test()
 async def bad_crc_write_rejected(dut):
     """
-    Purpose: A bad-CRC byte is sent to reg_file. CRC error is detected,
-             the data is discarded (SCRATCH keeps its old value), and the error is counted exactly once.
+    Purpose: A good SCRATCH write, then one with a corrupted CRC. The bad
+             write must be discarded (SCRATCH keeps the good value) and the
+             bus-error counter must rise by exactly one.
     """
 
     failures_before = await start_test(dut)
@@ -136,7 +150,7 @@ async def bad_crc_write_rejected(dut):
     scratch_value = 0x5A
     bad_value = 0xA5
 
-    bus_error_count_intial_list = await spi_read(dut, ADDR_BUS_ERR_L, 2)
+    bus_error_count_initial_list = await spi_read(dut, ADDR_BUS_ERR_L, 2)
    
     await spi_write(dut, ADDR_SCRATCH, [scratch_value])
     good_read_data = await spi_read (dut, ADDR_SCRATCH, 1)
@@ -151,7 +165,7 @@ async def bad_crc_write_rejected(dut):
     bus_error_count_final_list = await spi_read(dut, ADDR_BUS_ERR_L, 2)
     await ClockCycles(dut.clk, IDLE_CLKS)  
 
-    errors_before = (bus_error_count_intial_list[1] << 8) | bus_error_count_intial_list[0]
+    errors_before = (bus_error_count_initial_list[1] << 8) | bus_error_count_initial_list[0]
     errors_after  = (bus_error_count_final_list[1] << 8) | bus_error_count_final_list[0] 
     assert errors_after - errors_before == 1, f"The bus_error rose by {int(errors_after-errors_before)}, after sending one bad-CRC byte"
 
@@ -160,9 +174,8 @@ async def bad_crc_write_rejected(dut):
 @cocotb.test()
 async def thresholds_reset_defaults(dut):
     """
-    Purpose: Resets the dut and reads the registers at address
-             0x50-0x6F (writable thresholds) to see if they defaulted
-             to their reset values
+    Purpose: After reset, every threshold (bank 0x50-0x5A) reads back its
+             reset default.
     """
 
     failures_before = await start_test(dut)
@@ -170,7 +183,7 @@ async def thresholds_reset_defaults(dut):
 
     for name, expected in THRESHOLD_DEFAULTS.items():
         actual = read_back[name]
-        assert actual == expected, f"{name}: read {actual}, expected{expected}"
+        assert actual == expected, f"{name}: read {actual}, expected {expected}"
 
     await check_sva(dut,failures_before)
     
@@ -185,10 +198,6 @@ async def clamp_model_check(dut):
     """
 
     # (register, raw value written, expected value after clamp)
-    # Every register: below its minimum, inside the range, above its maximum.
-    # Raw values are ones the bus can carry: 0..0xFF for 1-byte registers,
-    # 0..0xFFFFFF for the 3-byte ones. Expected values worked out by hand from
-    # pmic_types_pkg - never read from THRESHOLD_BIODATA.
 
     clamp_cases = [
         ("trip_run",         0,        1),
@@ -240,7 +249,7 @@ async def scratch_through_model(dut):
 
     failures_before = await start_test(dut)
 
-    # The model starts at reset, matching the DUT start_test just reset.
+    # the model starts from reset, like the DUT start_test just reset
     model = RegfileModel()
 
     # good_value / bad_value: differ from each other and from SCRATCH's reset
@@ -256,8 +265,7 @@ async def scratch_through_model(dut):
     await spi_write(dut, ADDR_SCRATCH, [bad_value], corrupt_crc=True)
     model.apply_write(ADDR_SCRATCH, [bad_value], crc_ok=False)
 
-    # Compare the bus-error counter: two bytes, low first, read in one burst.
-    # Also checks the scratch read
+    # SCRATCH and the bus-error counter are both in the scoreboard's readback
     await scoreboard_check(dut, model)
 
     await check_sva(dut, failures_before)
@@ -840,9 +848,10 @@ async def broken_frames_through_model(dut):
 async def arm_key_lapses(dut):
 
     """
-    Purpose: A key left armed lapses after 2^16 clocks. A frame
-             from the write key carries one more byte so the key is RELEASED
-             (spi_slave strobes a byte only when the next one completes), then
+    Purpose: A key left armed lapses after 2^16 clocks. A frame from the
+             write key carries one more byte so the key is released to
+             reg_file (spi_slave strobes a byte only when the next one
+             completes), then
              SCK stalls with CS low for ARM_LAPSE_NS (~1.4 ms, past the arm
              timer). The slave also times out, so the frame ends in an abort.
              Hits c_arm_lapse and exercises a_arm_timer_lapses_keys. Slow:
@@ -863,17 +872,17 @@ async def arm_key_lapses(dut):
 async def bus_error_counter_saturates(dut):
 
     """
-    Purpose: The bus-error counter holds at 0xFFFF instead of
-             wrapping. Rather than 65,535 aborts, the counter is DEPOSITED at
+    Purpose: The bus-error counter holds at 0xFFFF instead of wrapping.
+             Rather than 65,535 aborts, the counter is deposited at
              0xFFFE (model told the same), then two bad-CRC writes take it to
              0xFFFF and try to go past it; the scoreboard checks the result.
 
              A cocotb deposit is invisible to Verilator's $stable / $past
-             sampling, so a_bus_err_moves_only_on_abort does NOT fire on the
-             deposit. That property was confirmed separately : it
-             fires when the RTL moves the count without an abort. This test
-             therefore expects zero SVA failures; what it relies on is the
-             scoreboard and a_bus_err_saturates.
+             sampling, so a_bus_err_moves_only_on_abort does not fire on the
+             deposit; its ability to fail was confirmed separately, by moving
+             the count in the RTL without an abort. This test therefore
+             expects zero SVA failures and relies on the scoreboard and
+             a_bus_err_saturates.
     """
     failures_before = await start_test(dut)
     model = RegfileModel()

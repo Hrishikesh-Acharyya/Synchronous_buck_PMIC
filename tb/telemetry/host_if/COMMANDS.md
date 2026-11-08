@@ -40,23 +40,29 @@ to the 10-event window before the last `scoreboard check` line.
 | `make random_seeds` | `SEEDS` runs (default 5), stops at the first failure, merges coverage |
 | `make random_seeds SEEDS=20 EVENTS=200` | a bigger sweep |
 | `make soak SEEDS=40 EVENTS=200` | unattended sweep that never stops on a failure; evidence in `soak/` (see `soak/README.md`) |
+| `make cov_all` | the whole suite once, plus `SEEDS` random runs, merged into `cov/merged_all.dat`. This is the real coverage picture; target: no zero-hit covers. Its summary is written to `coverage/summary.txt` |
 | `make cov_summary` | per checker: covers hit vs at zero, across the merged runs |
-| `make cov_zero` | the zero-hit cover lines themselves — the to-do list for stimulus |
-| `make cov_summary MERGED=soak/merged.dat` | the same for a specific merge; by default the newer of `cov/` and `soak/` |
-| `make clean_cov` | delete `random_seeds`' coverage in `cov/`; a soak's evidence is never cleaned |
+| `make cov_zero` | the zero-hit covers, one per line as `<hierarchy>.<cover>  (<checker>.sv:<line>)` — the to-do list for stimulus |
+| `make cov_summary MERGED=soak/merged.dat` | the same for a specific merge; by default the newest of `cov/merged.dat`, `cov/merged_all.dat` and `soak/merged.dat` |
+| `make clean_cov` | delete the coverage in `cov/`; the evidence in `coverage/` and `soak/` is never cleaned |
 | `make clean` | cocotb's clean: removes `sim_build` (forces a full rebuild) |
 
 `coverage.dat` is overwritten by every run. `random_seeds` copies each run's
-file to `cov/cov_runN.dat` and merges them into `cov/merged.dat`; a soak does
-the same into `soak/raw/` and `soak/merged.dat`. Both merge with
-`verilator_coverage --write`, so `cov_zero` reports what NO run reached.
+file to `cov/cov_runN.dat` and merges them into `cov/merged.dat`; `cov_all`
+adds the suite run as `cov/cov_suite.dat` and merges into
+`cov/merged_all.dat`; a soak does the same into `soak/raw/` and
+`soak/merged.dat`. All merge with `verilator_coverage --write`, so `cov_zero`
+reports what NO run reached.
+
+`random_seeds` and `soak` run random_walk only, so they miss what the directed
+tests reach; quote `cov_all` for coverage.
 
 ## Variables
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `EVENTS` | 30 | random events per run |
-| `SEEDS` | 5 | runs in `random_seeds` / `soak` |
+| `SEEDS` | 5 | random runs in `random_seeds` / `soak` / `cov_all` |
 | `SEED` | — | seed for `replay` |
 | `EVERY` | 10 | full scoreboard every N events inside random_walk |
 | `TESTCASE` | all | cocotb: which test(s) to run |
@@ -69,6 +75,7 @@ the same into `soak/raw/` and `soak/merged.dat`. Both merge with
 | `sim_build/` | Verilator build | no |
 | `results.xml` | cocotb test report | no |
 | `coverage.dat` | last run's covers | no |
-| `cov/` | `random_seeds`: per-run coverage and its merge | no |
+| `cov/` | `random_seeds` and `cov_all`: per-run coverage and the merges | no |
+| `coverage/summary.txt` | `make cov_all`: covers hit per checker and the zero-hit list, for the last full run | **yes** |
 | `soak/README.md`, `results.txt`, `summary.txt`, `all_events.csv`, `merged.dat` | `make soak`: the evidence of the last soak | **yes** |
 | `soak/raw/` | `make soak`: per-run logs, event CSVs and coverage | no |

@@ -102,7 +102,10 @@ logic [7:0] chk_byte_count;
 // chk_shift_byte: the last eight MOSI bits, newest in bit 0
 logic [7:0] chk_shift_byte;
 
-// chk_cmd_valid: this transaction's command byte has completed
+// chk_cmd_valid: this transaction's command byte has completed AND spi_slave
+//                accepted it (it was in S_CMD, not timed out). A host may keep
+//                clocking after a stall, so the pins alone can show a whole
+//                command byte the slave never accepted.
 logic chk_cmd_valid;
 
 // chk_is_read: bit 7 of this transaction's command byte, i.e. its first MOSI bit
@@ -869,9 +872,12 @@ Purpose: PAC(Property, Assertion, Cover) Group 9:
            - A write whose command completed always resolves into one of the
              two.
            - A read never produces either.
-           - A transaction closed before its command byte completed always
+           - A transaction whose command spi_slave never accepted always
              produces txn_abort, so the bus-error count sees every truncated
-             command. spi_slave clears rw on cs_fall to guarantee this.
+             command: CS rising before the command byte completed, or an SCK
+             stall that sent the slave to S_DEAD first - even if the host then
+             clocked the rest of the byte (see chk_cmd_valid). spi_slave
+             clears rw on cs_fall to guarantee this.
              Before that change the outcome depended on the PREVIOUS
              transaction: aborted after a write, silently dropped after a
              read. c_closed_before_command_after_read is that history case,
@@ -995,6 +1001,8 @@ c_closed_before_command_after_read:  cover property (@(posedge clk) disable iff 
                              chk_cs_rise && !chk_cmd_valid && chk_had_command && chk_last_was_read);
 c_closed_before_command_after_write: cover property (@(posedge clk) disable iff (!rst_n)
                              chk_cs_rise && !chk_cmd_valid && chk_had_command && !chk_last_was_read);
+c_read_dead_before_command:          cover property (@(posedge clk) disable iff (!rst_n)
+                             chk_cs_rise && !chk_cmd_valid && chk_is_read && (chk_byte_count != 8'd0));
 
 
 /*

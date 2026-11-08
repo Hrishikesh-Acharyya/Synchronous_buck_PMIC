@@ -1,0 +1,7 @@
+cov_all: full suite + 5 random runs x 30 events - Sun Nov  8 19:46:22 UTC 2026
+result: every test passed (cov_all stops at the first failure)
+covers hit per checker:
+  reg_file_sva: 26 of 26 covers hit, 0 at zero
+  spi_slave_sva: 28 of 28 covers hit, 0 at zero
+zero-hit covers:
+  no zero-hit covers

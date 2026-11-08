@@ -43,15 +43,15 @@ import pmic_types_pkg::*;
     
     // ---- clock and reset ----
     input  wire logic clk,          // Clk_Ext, 50 MHz external oscillator
-    input  wire logic rst_n,
+    input  wire logic rst_n,        // active-low reset, driven directly by cocotb
 
-    //---SPI pins: 4-wire, a separate data line each way
-    input  wire logic SCK,
-    input  wire logic CS_n,
+    // ---- SPI pins: 4-wire, Mode 0, a separate data line each way ----
+    input  wire logic SCK,           // SPI clock from the master, asynchronous to clk
+    input  wire logic CS_n,          // chip select, active low
     input  wire logic MOSI,          // SPI data in, master to supervisor
     output logic      MISO,          // SPI data out, supervisor to master
 
-    /// ---- reg_file status inputs: driven by cocotb in place of the chip ----
+    // ---- reg_file status inputs: driven by cocotb in place of the chip ----
     // Named after their pmic_top nets. In the chip these arrive already
     // synchronised and debounced, so cocotb drives them as clean clk-domain
     // levels - no conditioning is modelled here.
@@ -91,17 +91,23 @@ import pmic_types_pkg::*;
     output int unsigned sva_fail_count
 );
 // ---- host access port between spi_slave and reg_file (internal) ----
+// spi_addr / spi_wr_en / spi_wdata: one write strobe per data byte, with its address
 logic [6:0] spi_addr;
 logic       spi_wr_en;
 logic [7:0] spi_wdata;
+// spi_rdata: the byte reg_file returns for spi_addr
 logic [7:0] spi_rdata;
+// spi_rd_first: first data byte of a read - reg_file snapshots the timestamp
 logic       spi_rd_first;
-logic       spi_rd_byte_done;   // a read data byte has been clocked out
+// spi_rd_byte_done: a read data byte has been clocked out
+logic       spi_rd_byte_done;
+// spi_integrity_ok / spi_abort: end of a write - commit, or discard and count
 logic       spi_integrity_ok;
 logic       spi_abort;
-logic       sdio_out, sdio_oe;   // MISO data, and high only while it is read data
+// sdio_out / sdio_oe: MISO data, and high only while it is read data
+logic       sdio_out, sdio_oe;
 
-// ---- conditioned SPI lines: synchroniser output, then filter output ----
+// sck_sync / cs_n_sync / mosi_sync: the SPI pins after the 2-flop synchroniser
 logic sck_sync,  cs_n_sync,  mosi_sync;
 
 // ============================================================
@@ -115,14 +121,16 @@ input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in
 input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
 input_sync                      u_mosi_sync (.clk(clk), .rst_n(rst_n), .async_in(MOSI), .sync_out(mosi_sync));
 
- logic sck_filt,  cs_n_filt,  mosi_filt;
+// sck_filt / cs_n_filt / mosi_filt: the synchronised lines after the glitch
+//                                    filter - what spi_slave sees
+logic sck_filt,  cs_n_filt,  mosi_filt;
 
 
 // ============================================================
 // SPI line filters
 // ============================================================
 
-// input_debounce instanced SYMMETRIC and SHORT, which is a different regime from
+// input_debounce is instanced symmetric and short here, a different regime from
 // the fault flags it was written for. The symmetry is the critical part: spi_slave
 // samples MOSI on an edge derived from SCK, so unequal delay between the two
 // shifts the data relative to the clock it is sampled against. All three
