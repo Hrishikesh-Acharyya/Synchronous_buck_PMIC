@@ -82,6 +82,10 @@ bind fault_cause fault_cause_sva u_sva (.*);
 
 bind supervisor supervisor_sva u_sva (.*);
 
+bind pmic_top pmic_top_sva #(
+    .TELEMETRY_EN(TELEMETRY_EN)
+) u_sva (.*);
+
 bind fault_arbiter fault_arbiter_sva #(
     .WINDOW_RUN (WINDOW_RUN),
     .WINDOW_SS  (WINDOW_SS)

@@ -71,19 +71,19 @@ $(foreach t,$(TESTBENCHES),$(eval $(call TB_RULES,$(t),$(notdir $(t)))))
 
 tb_all: QUIET  := 1
 tb_all: NOFAIL := 1
-tb_all: $(addprefix tb_,$(TB_MODULES)) tb_top tb_host_if  ## every testbench on the SV source (use -j), then the table
+tb_all: $(addprefix tb_,$(TB_MODULES)) tb_top tb_host_if tb_top_cocotb  ## every testbench on the SV source (use -j), then the table
 	@bash $(SCRIPTS)/report.sh $(TBBUILD) sv $(SUITE_TOPS)
 
 equiv: QUIET  := 1
 equiv: NOFAIL := 1
-equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top equiv_host_if  ## every testbench on the sv2v output (SPLIT=1: on rtl-verilog)
+equiv: $(addprefix equiv_,$(TB_MODULES)) equiv_top equiv_host_if equiv_top_cocotb  ## every testbench on the sv2v output (SPLIT=1: on rtl-verilog)
 	@bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS)
 
 # equiv_all: both flows as one parallel job graph, then both tables. Report
 #            failures are collected so every table always prints.
 equiv_all: QUIET  := 1
 equiv_all: NOFAIL := 1
-equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top tb_host_if equiv_host_if  ## the gate: tb_all + equiv in one parallel run (what CI runs)
+equiv_all: $(addprefix tb_,$(TB_MODULES)) $(addprefix equiv_,$(TB_MODULES)) tb_top equiv_top tb_host_if equiv_host_if tb_top_cocotb equiv_top_cocotb  ## the gate: tb_all + equiv in one parallel run (what CI runs)
 	@rc=0; \
 	bash $(SCRIPTS)/report.sh $(TBBUILD) sv            $(SUITE_TOPS) || rc=1; \
 	bash $(SCRIPTS)/report.sh $(TBBUILD) $(EQUIV_FLOW) $(SUITE_TOPS) || rc=1; \

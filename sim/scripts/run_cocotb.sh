@@ -2,15 +2,19 @@
 #
 # Filename:         run_cocotb.sh
 #
-# File Description: Runs the cocotb host-interface suite (tb/telemetry/host_if)
-#                   for sim/Makefile and writes the same one-line result record
-#                   run_tb.sh writes, so report.sh lists it beside the module
-#                   testbenches. The suite's own Makefile is invoked with -f
-#                   from a per-flow build directory, so each flow's sim_build,
-#                   results.xml and coverage.dat are kept apart and parallel
-#                   flows never collide.
+# File Description: Runs a cocotb suite - the host-interface suite
+#                   (tb/telemetry/host_if) or the whole-supervisor suite
+#                   (tb/top/pmic_top) - for sim/Makefile, and writes the same
+#                   one-line result record run_tb.sh writes, so report.sh
+#                   lists it beside the module testbenches. The suite's own
+#                   Makefile is invoked with -f from a per-flow build
+#                   directory, so each flow's sim_build, results.xml and
+#                   coverage.dat are kept apart and parallel flows never
+#                   collide.
 #
-#                   Usage: run_cocotb.sh <build_dir> <flow> <extra_args> <sources...>
+#                   Usage: run_cocotb.sh <build_dir> <flow> <top> <tb_dir> <extra_args> <sources...>
+#                     top         the name the result tables list
+#                     tb_dir      the suite's folder (holds its Makefile)
 #                     extra_args  the Verilator flags, as one word-split string
 #                     sources     the RTL to verify: the SystemVerilog list, or
 #                                 the package plus the converted Verilog
@@ -24,22 +28,25 @@
 #                   cocotb-coverage covergroups are reported separately in
 #                   fcov.tsv (bins hit, bins total) and shown by report.sh.
 #
-# Global variables: Read from the environment, set by sim/mk/host_if.mk:
-#                   HOSTIF_DIR    - tb/telemetry/host_if
-#                   HOSTIF_EVENTS - random_walk events inside the suite run
+# Global variables: Read from the environment, set by sim/mk/cocotb.mk:
+#                   SUITE_VARS - extra make variables for the suite, e.g.
+#                                RANDOM_EVENTS=400 for host_if
+#                   COVER_FILTER - regex on the checker file name: only those
+#                                checkers' covers count toward the verdict.
+#                                Empty = every bound checker's covers.
 #                   QUIET, NOFAIL, STRICT, COLOR, RAW - as for run_tb.sh
 
 set -uo pipefail
 
 DIR=$1
 FLOW=$2
-EXTRA_ARGS=$3
-shift 3
+TOP=$3
+SUITE_DIR=$4
+EXTRA_ARGS=$5
+shift 5
 SRCS=("$@")
-TOP=host_if_tb
-
-HOSTIF_DIR=${HOSTIF_DIR:?HOSTIF_DIR not set}
-HOSTIF_EVENTS=${HOSTIF_EVENTS:-400}
+# shellcheck disable=SC2206  # SUITE_VARS is a list of VAR=value words
+SUITE_VARS=(${SUITE_VARS:-})
 QUIET=${QUIET:-0}
 NOFAIL=${NOFAIL:-0}
 STRICT=${STRICT:-0}
@@ -56,20 +63,20 @@ start=$(date +%s)
 
 [[ $QUIET == 1 ]] || ui_header "$TOP" "$FLOW flow $UI_DOT cocotb"
 
-# The suite: every test, random_walk at HOSTIF_EVENTS events. The parent's
-# jobserver is hidden from the inner make, which runs its own Verilator build.
-if [[ $QUIET == 1 ]]; then
+# The suite: every test. The parent's jobserver is hidden from the inner make,
+# which runs its own Verilator build. FCOV_XML is passed to every suite; one
+# that samples no covergroups simply never writes it.
+suite() {
     ( cd "$DIR" && env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
-        make -f "$HOSTIF_DIR/Makefile" SIM_BUILD="$DIR/sim_build" \
+        make -f "$SUITE_DIR/Makefile" SIM_BUILD="$DIR/sim_build" \
              RTL_SRCS="${SRCS[*]}" EXTRA_ARGS="$EXTRA_ARGS" \
-             RANDOM_EVENTS="$HOSTIF_EVENTS" FCOV_XML="$DIR/fcov.xml" ) > "$DIR/run.log" 2>&1
+             FCOV_XML="$DIR/fcov.xml" "${SUITE_VARS[@]}" )
+}
+if [[ $QUIET == 1 ]]; then
+    suite > "$DIR/run.log" 2>&1
     run_rc=$?
 else
-    ( cd "$DIR" && env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL \
-        make -f "$HOSTIF_DIR/Makefile" SIM_BUILD="$DIR/sim_build" \
-             RTL_SRCS="${SRCS[*]}" EXTRA_ARGS="$EXTRA_ARGS" \
-             RANDOM_EVENTS="$HOSTIF_EVENTS" FCOV_XML="$DIR/fcov.xml" ) 2>&1 \
-        | tee "$DIR/run.log" | grep -E "test_host_if\.|SVA FAIL|Error|FAIL" | ui_paint
+    suite 2>&1 | tee "$DIR/run.log" | grep -E "\*\* test_|SVA FAIL|Error|FAIL" | ui_paint
     run_rc=${PIPESTATUS[0]}
 fi
 
@@ -87,14 +94,23 @@ if [[ -f $DIR/coverage.dat ]]; then
     "${VERILATOR_COVERAGE:-verilator_coverage}" --annotate "$DIR/annotated" --annotate-all \
         --annotate-min 1 "$DIR/coverage.dat" >/dev/null 2>&1
     bash "$SCRIPTS_DIR/covers.sh" parse "$DIR"
+    # COVER_FILTER: keep only the suite's own checkers. The whole-supervisor
+    # suite binds every block's checker, but the blocks' corner covers are
+    # their own testbenches' job; it is judged by pmic_top_sva, as a module
+    # testbench is judged by its checker.
+    if [[ -n ${COVER_FILTER:-} ]]; then
+        awk -F'\t' -v re="$COVER_FILTER" '$1 ~ re' "$DIR/covers.tsv" > "$DIR/covers.tsv.f" \
+            && mv "$DIR/covers.tsv.f" "$DIR/covers.tsv"
+    fi
     covers_total=$(wc -l <"$DIR/covers.tsv")
     covers_zero=$(awk -F'\t' '$2 == 0' "$DIR/covers.tsv" | wc -l)
 fi
 covers_hit=$(( covers_total - covers_zero ))
 
-# functional coverage: bins hit / total, for report.sh
-if [[ -f $DIR/fcov.xml ]]; then
-    python3 "$HOSTIF_DIR/fcov_report.py" summary "$DIR/fcov.xml" | tr ' ' '\t' > "$DIR/fcov.tsv"
+# functional coverage: bins hit / total, for report.sh - suites with covergroups
+FCOV_REPORT=$SUITE_DIR/fcov_report.py
+if [[ -f $DIR/fcov.xml && -f $FCOV_REPORT ]]; then
+    python3 "$FCOV_REPORT" summary "$DIR/fcov.xml" | tr ' ' '\t' > "$DIR/fcov.tsv"
 fi
 
 if [[ $run_rc -ne 0 || $failed -ne 0 || $tests -eq 0 || $sva_fails -ne 0 ]]; then
@@ -117,8 +133,8 @@ if [[ $QUIET != 1 ]]; then
     ui_card_row covers "$(ui_bar "$covers_hit" "$covers_total" 20) $covers_hit/$covers_total SVA covers hit"
     if [[ -s $DIR/fcov.tsv ]]; then
         read -r fhit ftotal < <(tr '\t' ' ' < "$DIR/fcov.tsv")
-        ui_card_row covergroups "$UI_MAG$(ui_bar "$fhit" "$ftotal" 20)$UI_OFF $fhit/$ftotal bins (random_walk, $HOSTIF_EVENTS events)"
-        python3 "$HOSTIF_DIR/fcov_report.py" report "$DIR/fcov.xml" | sed 's/^/                 /'
+        ui_card_row covergroups "$UI_MAG$(ui_bar "$fhit" "$ftotal" 20)$UI_OFF $fhit/$ftotal bins"
+        python3 "$FCOV_REPORT" report "$DIR/fcov.xml" | sed 's/^/                 /'
     fi
     ui_card_row time "${secs}s"
     ui_card_row logs "$UI_DIM$DIR/run.log$UI_OFF"

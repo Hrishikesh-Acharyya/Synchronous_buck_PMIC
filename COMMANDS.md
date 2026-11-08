@@ -58,7 +58,7 @@ Every `sva/<group>/*.sv` is compiled into every testbench automatically, so a ge
 
 | Command | What it does |
 |---|---|
-| `make -j8 tb_all` | every module testbench, the integration testbench and the host-interface cocotb suite on the SV source, then a table |
+| `make -j8 tb_all` | every module testbench, the integration testbench and both cocotb suites on the SV source, then a table |
 | `make -j8 equiv` | the same on the sv2v output (`SPLIT=1`: on the `rtl-verilog/` files instead) |
 | `make -j8 equiv_all` | both of the above in one parallel run - what CI runs |
 | `make report` | reprint the tables from the last runs |
@@ -78,6 +78,15 @@ The whole chip, in plain Verilog. `_notel` = the SPI-less build (`TELEMETRY_EN=0
 | `make wave_top` / `make view_top` | | VCD of the full run (large) / reopen it |
 
 The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types_pkg.sv`, so changing the clock is a one-line edit there. `CYC_STEP_DEF` in the testbench must still match `CYCLES_PER_STEP_DEFAULT` in the package.
+
+## Whole-supervisor suite (`tb/top/pmic_top`, cocotb)
+
+`pmic_top` inside a board model (modulator, valley comparator, SCR latch, fault comparators, reset button), checked after every board event against a supervisor model, with `pmic_top_sva` and every block's checker bound. Listed as `pmic_top_cocotb`. See `tb/top/pmic_top/COMMANDS.md`.
+
+| Command | What it does |
+|---|---|
+| `make tb_top_cocotb` | the whole cocotb suite on the SystemVerilog source (a few minutes) |
+| `make equiv_top_cocotb` | the same suite on the sv2v output (`SPLIT=1`: on `rtl-verilog/`) |
 
 ## Host-interface suite (`tb/telemetry/host_if`, cocotb)
 
