@@ -78,6 +78,15 @@ printf '  %s   %s%d pass %s %d inconclusive %s %d fail%s\n' "$banner" "$UI_DIM" 
     "$n_pass" "$UI_DOT" "$n_inc" "$UI_DOT" "$n_fail" "$UI_OFF"
 printf '  %scovers %s/%s hit %s assertion failures %s %s %ss of simulation, summed%s\n' \
     "$UI_DIM" "$(ui_num "$sum_hit")" "$(ui_num "$sum_total")" "$UI_DOT" "$sum_sva" "$UI_DOT" "$sum_secs" "$UI_OFF"
+# functional coverage: a covergroup line for each testbench that records it
+# (fcov.tsv: bins hit, bins total) - the cocotb host-interface suite
+for top in "$@"; do
+    fcov="$ROOT/$FLOW/$top/fcov.tsv"
+    [[ -s $fcov ]] || continue
+    IFS=$'\t' read -r fhit ftotal <"$fcov"
+    printf '  %scovergroups%s %-14s %s%s%s %s/%s bins hit\n' "$UI_BLD$UI_MAG" "$UI_OFF" "$top" \
+        "$UI_MAG" "$(ui_bar "$fhit" "$ftotal" 10)" "$UI_OFF" "$fhit" "$ftotal"
+done
 for p in "${problems[@]}"; do
     printf '  %s%s%s %s\n' "$UI_RED" "$UI_CROSS" "$UI_OFF" "$p"
 done

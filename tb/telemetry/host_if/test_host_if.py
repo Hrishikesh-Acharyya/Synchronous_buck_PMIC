@@ -796,6 +796,8 @@ async def random_walk(dut):
         csv_file.close()
 
     dut._log.info(f"random_walk: all {RANDOM_EVENTS} events done, final scoreboard check")
+    # covergroup report in the log; FCOV_XML (set by soak / cov_all and by
+    # sim/Makefile) also exports the database for merging across runs
     report_coverage(dut._log, os.environ.get("FCOV_XML"))
     await scoreboard_check(dut, model)
     await check_sva(dut, failures_before)

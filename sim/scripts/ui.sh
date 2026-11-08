@@ -27,7 +27,7 @@
 if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
     UI_ON=1
     UI_RED=$'\e[31m';  UI_GRN=$'\e[32m';  UI_YEL=$'\e[33m'
-    UI_BLU=$'\e[34m';  UI_CYN=$'\e[36m'
+    UI_BLU=$'\e[34m';  UI_MAG=$'\e[35m';  UI_CYN=$'\e[36m'
     UI_BLD=$'\e[1m';   UI_DIM=$'\e[2m';   UI_OFF=$'\e[0m'
     # badges: black text on a coloured block, readable on light and dark themes
     UI_B_PASS=$'\e[1;30;42m'; UI_B_INC=$'\e[1;30;43m'; UI_B_FAIL=$'\e[1;97;41m'
@@ -36,7 +36,7 @@ if [[ ${COLOR:-} == 1 || ( -z ${COLOR:-} && -t 1 ) ]]; then
     UI_TICK='✔'; UI_CROSS='✘'
 else
     UI_ON=0
-    UI_RED=''; UI_GRN=''; UI_YEL=''; UI_BLU=''; UI_CYN=''
+    UI_RED=''; UI_GRN=''; UI_YEL=''; UI_BLU=''; UI_MAG=''; UI_CYN=''
     UI_BLD=''; UI_DIM=''; UI_OFF=''
     UI_B_PASS=''; UI_B_INC=''; UI_B_FAIL=''; UI_B_RUN=''
     UI_FULL='#'; UI_EMPTY='.'; UI_RULE='-'; UI_BAR='|'; UI_DOT='-'

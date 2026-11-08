@@ -40,7 +40,7 @@ to the 10-event window before the last `scoreboard check` line.
 | `make random_seeds` | `SEEDS` runs (default 5), stops at the first failure, merges coverage |
 | `make random_seeds SEEDS=20 EVENTS=200` | a bigger sweep |
 | `make soak SEEDS=40 EVENTS=200` | unattended sweep that never stops on a failure; evidence in `soak/` (see `soak/README.md`) |
-| `make cov_all` | the whole suite once, plus `SEEDS` random runs, merged into `cov/merged_all.dat`. This is the real coverage picture; target: no zero-hit covers. Its summary is written to `coverage/summary.txt` |
+| `make cov_all` | the whole suite once, plus `SEEDS` random runs, merged into `cov/merged_all.dat`. This is the real coverage picture; target: no zero-hit covers. Its summary - SVA covers and covergroups - is written to `coverage/summary.txt` |
 | `make cov_summary` | per checker: covers hit vs at zero, across the merged runs |
 | `make cov_zero` | the zero-hit covers, one per line as `<hierarchy>.<cover>  (<checker>.sv:<line>)` — the to-do list for stimulus |
 | `make cov_summary MERGED=soak/merged.dat` | the same for a specific merge; by default the newest of `cov/merged.dat`, `cov/merged_all.dat` and `soak/merged.dat` |
@@ -56,6 +56,15 @@ reports what NO run reached.
 
 `random_seeds` and `soak` run random_walk only, so they miss what the directed
 tests reach; quote `cov_all` for coverage.
+
+## Functional coverage (covergroups)
+
+`random_walk` samples three covergroups (`functional_coverage.py`): why each threshold frame was accepted or refused, crossed with the supervisor state; how each transaction ended; and which part of its range each committed threshold fell in. With `FCOV_XML=<file>` a run exports them. `soak` and `cov_all` do this for every run and merge the results, and `fcov_report.py` turns a merge into a readable list of bins hit and bins still empty:
+
+    python3 fcov_report.py merge <merged.xml> <run.xml>...
+    python3 fcov_report.py report <merged.xml>
+
+From `sim/`, `make tb_host_if` / `equiv_host_if` run this whole suite and show the covergroups under the result table.
 
 ## Variables
 
@@ -77,5 +86,5 @@ tests reach; quote `cov_all` for coverage.
 | `coverage.dat` | last run's covers | no |
 | `cov/` | `random_seeds` and `cov_all`: per-run coverage and the merges | no |
 | `coverage/summary.txt` | `make cov_all`: covers hit per checker and the zero-hit list, for the last full run | **yes** |
-| `soak/README.md`, `results.txt`, `summary.txt`, `all_events.csv`, `merged.dat` | `make soak`: the evidence of the last soak | **yes** |
+| `soak/README.md`, `results.txt`, `summary.txt`, `all_events.csv`, `merged.dat`, `functional_coverage.xml` | `make soak`: the evidence of the last soak | **yes** |
 | `soak/raw/` | `make soak`: per-run logs, event CSVs and coverage | no |

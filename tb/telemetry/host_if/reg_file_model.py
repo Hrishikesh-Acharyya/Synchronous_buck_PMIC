@@ -50,6 +50,8 @@ THRESHOLD_BIODATA = {
     "clean_run_target": {"address": 0x58, "bytes": 3, "S_OFF_only": True, "min": 45000, "max": 524287}
   
 }
+
+
 def clamp_region(name, raw_value):
 
     """
@@ -95,6 +97,9 @@ class RegfileModel():
         self.wd_restored = 0     # set only by a watchdog release (advance_time)
         self.timestamp_ms = 0    # what the test is driving into timestamp_ms
         self.wd_mark      = 0    # timestamp of the last proof the host is alive
+        # committed_regions: (register, clamp region) for each threshold the
+        #                    last frame committed - read by random_walk for
+        #                    the clamp covergroup
         self.committed_regions = []
         # status_inputs: what the test drives on reg_file's status inputs,
         #                keyed by wrapper port name
@@ -215,6 +220,9 @@ class RegfileModel():
                  The CRC is computed over the bytes actually received, so a
                  write cut on a byte boundary whose last received byte happens
                  to be a valid CRC is predicted to commit, as spi_slave would.
+                 Returns how the frame ended, for the frame covergroup:
+                 truncated_cmd, read, read_cut, read_stall, write_stall,
+                 cut_mid_byte, short, bad_crc or clean.
         """
         self.committed_regions = []             # nothing committed by this frame yet
         if bits_sent is None:
@@ -230,7 +238,7 @@ class RegfileModel():
                 return "read_stall"
             if bits_sent % 8 != 0:
                 return "read_cut"
-            return "read"                             # a read: no commit, no abort
+            return "read"
 
         if dead_after_bits is not None:
             self.apply_abort()                  # timed out: S_DEAD discards the write
@@ -262,6 +270,9 @@ class RegfileModel():
                      and sets write_rejected; an accepted set clears it;
                    - a frame with no threshold write leaves write_rejected alone;
                    - any valid write re-marks the watchdog.
+                 Returns the threshold verdict for the coverage - accepted,
+                 no_key, partial or not_off - or None if the frame wrote no
+                 threshold (or failed its CRC).
         """
 
         pending_scratch = None

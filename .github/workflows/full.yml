@@ -41,6 +41,20 @@ jobs:
           yosys: "true"
           iverilog: "true"
 
+      # cocotb drives the host-interface suite (tb/telemetry/host_if).
+      # python-constraint2 replaces python-constraint, whose source build
+      # fails on current Python; cocotb-coverage is then installed without
+      # pulling the old one back in.
+      - name: Set up Python for cocotb
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install cocotb and cocotb-coverage
+        run: |
+          pip install cocotb python-constraint2
+          pip install --no-deps cocotb-coverage
+
       - name: Lint, scripts, rtl-verilog sync, full regression
         run: make -C sim ci YOSYS=yosys TBBUILD="$RUNNER_TEMP/tbbuild"
 

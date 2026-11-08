@@ -73,6 +73,7 @@ include $(MK)/config.mk
 include $(MK)/sources.mk
 include $(MK)/tb.mk
 include $(MK)/top.mk
+include $(MK)/host_if.mk
 include $(MK)/lint.mk
 include $(MK)/syn.mk
 include $(MK)/verilog.mk

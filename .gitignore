@@ -87,6 +87,7 @@ tb/telemetry/host_if/soak/*
 !tb/telemetry/host_if/soak/summary.txt
 !tb/telemetry/host_if/soak/all_events.csv
 !tb/telemetry/host_if/soak/merged.dat
+!tb/telemetry/host_if/soak/functional_coverage.xml
 # per-run files that older MAKEFILE versions wrote next to the testbench
 tb/telemetry/host_if/cov_run*.dat
 tb/telemetry/host_if/merged.dat

@@ -58,7 +58,7 @@ Every `sva/<group>/*.sv` is compiled into every testbench automatically, so a ge
 
 | Command | What it does |
 |---|---|
-| `make -j8 tb_all` | every module testbench + the integration testbench on the SV source, then a table |
+| `make -j8 tb_all` | every module testbench, the integration testbench and the host-interface cocotb suite on the SV source, then a table |
 | `make -j8 equiv` | the same on the sv2v output (`SPLIT=1`: on the `rtl-verilog/` files instead) |
 | `make -j8 equiv_all` | both of the above in one parallel run - what CI runs |
 | `make report` | reprint the tables from the last runs |
@@ -78,6 +78,18 @@ The whole chip, in plain Verilog. `_notel` = the SPI-less build (`TELEMETRY_EN=0
 | `make wave_top` / `make view_top` | | VCD of the full run (large) / reopen it |
 
 The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types_pkg.sv`, so changing the clock is a one-line edit there. `CYC_STEP_DEF` in the testbench must still match `CYCLES_PER_STEP_DEFAULT` in the package.
+
+## Host-interface suite (`tb/telemetry/host_if`, cocotb)
+
+`spi_slave` + `reg_file` through a wrapper, checked against a Python reference model with a scoreboard, the bound SVA checkers, constrained-random traffic (`random_walk`) and covergroups. Needs `cocotb` and `cocotb-coverage` in the Python environment. It runs in the suites like any other testbench and is listed as `host_if_tb`; a magenta `covergroups` line under each table gives its functional coverage (bins hit).
+
+| Command | What it does |
+|---|---|
+| `make tb_host_if` | the whole cocotb suite on the SystemVerilog source |
+| `make equiv_host_if` | the same suite on the sv2v output (`SPLIT=1`: on `rtl-verilog/`) |
+| `make tb_host_if HOSTIF_EVENTS=1000` | a longer `random_walk` inside the suite (default 400) |
+
+The suite's own random-test targets - `soak`, `cov_all`, `replay` - are run from `tb/telemetry/host_if`; see its `COMMANDS.md`.
 
 ## Lint and script checks
 
@@ -161,12 +173,13 @@ Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
 | `KEEP_SPLIT=1` | 0 | keep the `Build/split_raw*` staging trees after a successful check |
 | `VJOBS=` | all cores (`nproc`) | parallel C++ compile jobs inside each Verilator build |
 | `M=` | - | `<group>/<module>` for `new_tb` |
+| `HOSTIF_EVENTS=` | 400 | `random_walk` events in the host-interface suite run (`tb_host_if`, `equiv_host_if`) |
 
 ## CI (GitHub Actions)
 
 | Workflow | When | What |
 |---|---|---|
-| RTL (`rtl.yml`) | every pull request, pushes to main | lint (both builds) + script check; `rtl-verilog` sync check + `equiv_all`; SPI-less integration testbench |
+| RTL (`rtl.yml`) | every pull request, pushes to main | lint (both builds) + script check; `rtl-verilog` sync check + `equiv_all` (including the cocotb host-interface suite); SPI-less integration testbench |
 | Synthesis trend (`synth.yml`) | pull requests touching the RTL or the Makefile | yosys cell counts, base vs head, posted as a PR comment |
 | Full regression (`full.yml`) | Actions tab > Run workflow, and weekly on main | everything above, plus Icarus in both builds, synthesis of both builds, and the two Verilog bundles as a downloadable artifact |
 

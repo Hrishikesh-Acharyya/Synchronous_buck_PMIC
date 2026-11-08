@@ -89,6 +89,20 @@ jobs:
       - name: Check rtl-verilog is in step with the source
         run: make -C sim verilog_check
 
+      # cocotb drives the host-interface suite (tb/telemetry/host_if).
+      # python-constraint2 replaces python-constraint, whose source build
+      # fails on current Python; cocotb-coverage is then installed without
+      # pulling the old one back in.
+      - name: Set up Python for cocotb
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install cocotb and cocotb-coverage
+        run: |
+          pip install cocotb python-constraint2
+          pip install --no-deps cocotb-coverage
+
       - name: Run every testbench against source and converted RTL
         run: make -C sim -j"$(nproc)" equiv_all STRICT=1 TBBUILD="$RUNNER_TEMP/tbbuild"
 

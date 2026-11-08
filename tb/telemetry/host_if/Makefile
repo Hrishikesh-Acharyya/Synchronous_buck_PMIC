@@ -13,7 +13,7 @@
 #                   coverage; `make help` lists them, COMMANDS.md in this
 #                   folder explains them.
 #
-# Global variables: REPO, SV_DIR, PKG, RTL_SRCS, SVA_SRCS, TB_SRCS - sources
+# Global variables: TB_DIR, REPO, SV_DIR, PKG, RTL_SRCS, SVA_SRCS, TB_SRCS - sources
 #                   SIM, TOPLEVEL_LANG, VERILOG_SOURCES, TOPLEVEL, MODULE,
 #                   EXTRA_ARGS - cocotb's variables
 #                   EVENTS, SEEDS, SEED, EVERY, RANDOM_TEST, RANDOM_ARGS,
@@ -25,8 +25,13 @@
 # Sources
 # ==============================================================================
 
+# TB_DIR: this testbench's folder, taken from the Makefile's own path rather
+#         than the current directory, so sim/Makefile can run the suite from a
+#         build directory (make -f <this file>) and every output - sim_build,
+#         results.xml, coverage.dat - lands there, not here
+TB_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 # REPO: repository root, three levels up from tb/telemetry/host_if/
-REPO   := $(abspath ../../..)
+REPO   := $(abspath $(TB_DIR)/../../..)
 SV_DIR := $(REPO)/rtl-systemverilog
 
 # PKG: must come first - every other file elaborates against its types
@@ -38,7 +43,7 @@ SVA_SRCS := $(REPO)/sva/sva_pkg.sv \
             $(filter-out $(REPO)/sva/sva_pkg.sv $(REPO)/sva/bind_sva.sv,$(wildcard $(REPO)/sva/*/*.sv)) \
             $(REPO)/sva/bind_sva.sv
 
-TB_SRCS  := $(CURDIR)/host_if_wrapper.sv
+TB_SRCS  := $(TB_DIR)/host_if_wrapper.sv
 
 # ==============================================================================
 # cocotb
@@ -57,7 +62,7 @@ EXTRA_ARGS += --assert --coverage-user -Wall \
               -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM -Wno-SYNCASYNCNET
 
 # PYTHONPATH: let the tests import their sibling modules (spi_driver, tb_utils, ...)
-export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
+export PYTHONPATH := $(TB_DIR):$(PYTHONPATH)
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
@@ -158,11 +163,11 @@ random_seeds: clean_cov
 cov_all: clean_cov
 	@mkdir -p $(COV_DIR) $(COVERAGE_DIR)
 	@echo "==== cov_all: full suite ===="
-	@$(MAKE) --no-print-directory || exit 1
+	@$(MAKE) --no-print-directory FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_suite.xml || exit 1
 	@cp coverage.dat $(COV_DIR)/cov_suite.dat
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    echo "==== cov_all: random run $$run of $(SEEDS) ===="; \
-	    $(MAKE) --no-print-directory $(RANDOM_ARGS) || exit 1; \
+	    $(MAKE) --no-print-directory $(RANDOM_ARGS) FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_run$$run.xml || exit 1; \
 	    cp coverage.dat $(COV_DIR)/cov_run$$run.dat; \
 	done
 	@verilator_coverage --write $(COV_DIR)/merged_all.dat $(COV_DIR)/cov_suite.dat $(COV_DIR)/cov_run*.dat
@@ -172,6 +177,9 @@ cov_all: clean_cov
 	   $(MAKE) --no-print-directory cov_summary MERGED=$(COV_DIR)/merged_all.dat; \
 	   echo "zero-hit covers:"; \
 	   $(MAKE) --no-print-directory cov_zero MERGED=$(COV_DIR)/merged_all.dat; \
+	   echo "functional coverage (covergroups):"; \
+	   python3 $(TB_DIR)/fcov_report.py merge $(COV_DIR)/fcov_all.xml $(COV_DIR)/fcov_suite.xml $(COV_DIR)/fcov_run*.xml; \
+	   python3 $(TB_DIR)/fcov_report.py report $(COV_DIR)/fcov_all.xml; \
 	 } > $(COVERAGE_DIR)/summary.txt
 	@echo "==== cov_all: suite + $(SEEDS) random runs passed; summary in $(COVERAGE_DIR)/summary.txt ===="
 	@cat $(COVERAGE_DIR)/summary.txt
@@ -182,6 +190,8 @@ cov_all: clean_cov
 #   summary.txt     covers hit vs zero per checker, plus the zero-hit covers
 #   all_events.csv  every event of every run under one header
 #   merged.dat      the merged coverage the summary was computed from
+#   functional_coverage.xml  the merged covergroups (cocotb-coverage); its
+#                   readable report is the end of summary.txt
 # Per-run files - runN.log, events_runN.csv, cov_runN.dat and fcov_runN.xml
 # (the run's functional coverage) - go to SOAK_RAW
 # (gitignored, kept on disk). A new soak replaces the previous soak's files;
@@ -189,7 +199,8 @@ cov_all: clean_cov
 soak:
 	@mkdir -p $(SOAK_RAW)
 	@rm -f soak/raw/run*.log soak/raw/events_run*.csv soak/raw/cov_run*.dat soak/raw/fcov_run*.xml \
-	       soak/results.txt soak/summary.txt soak/all_events.csv soak/merged.dat
+	       soak/results.txt soak/summary.txt soak/all_events.csv soak/merged.dat \
+	       soak/functional_coverage.xml
 	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
@@ -206,6 +217,9 @@ soak:
 	@echo "zero-hit covers:"                                                 >> $(SOAK_DIR)/summary.txt
 	@$(MAKE) --no-print-directory cov_zero    MERGED=$(SOAK_DIR)/merged.dat >> $(SOAK_DIR)/summary.txt
 	@awk 'FNR == 1 && NR != 1 { next } { print }' $(SOAK_RAW)/events_run*.csv > $(SOAK_DIR)/all_events.csv
+	@python3 $(TB_DIR)/fcov_report.py merge $(SOAK_DIR)/functional_coverage.xml $(SOAK_RAW)/fcov_run*.xml
+	@echo "functional coverage (covergroups):"                                >> $(SOAK_DIR)/summary.txt
+	@python3 $(TB_DIR)/fcov_report.py report $(SOAK_DIR)/functional_coverage.xml >> $(SOAK_DIR)/summary.txt
 	@echo "soak: $$(grep -c ': PASS' $(SOAK_DIR)/results.txt) passed, $$(grep -c ': FAIL' $(SOAK_DIR)/results.txt) failed - see $(SOAK_DIR)/"
 	@cat $(SOAK_DIR)/summary.txt
 
@@ -244,4 +258,4 @@ cov_summary: check_merged
 # soak's evidence is never cleaned by a target - the next soak replaces it.
 # cocotb's own 'make clean' removes sim_build.
 clean_cov:
-	@rm -f $(COV_DIR)/cov_*.dat $(COV_DIR)/merged.dat $(COV_DIR)/merged_all.dat
+	@rm -f cov/cov_*.dat cov/merged.dat cov/merged_all.dat cov/fcov_*.xml

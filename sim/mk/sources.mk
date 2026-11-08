@@ -57,7 +57,7 @@ TB_MODULES := $(notdir $(TESTBENCHES))
 TB_TOPS    := $(addsuffix _tb,$(TB_MODULES))
 # SUITE_TOPS: what the suite tables list - every module testbench, then the
 #             integration testbench
-SUITE_TOPS := $(TB_TOPS) pmic_top_tb
+SUITE_TOPS := $(TB_TOPS) pmic_top_tb host_if_tb
 
 # ============================================================
 # Verilator flags and waivers
