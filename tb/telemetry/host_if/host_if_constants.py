@@ -75,3 +75,5 @@ ADDR_FAULT_CAUSE  = 0x1D
 ADDR_FTIME_2      = 0x20
 # TELEMETRY_BYTES: STATUS 0x10 through FTIME_2 0x20, read as one burst
 TELEMETRY_BYTES   = 17
+# CAPABILITY_VAL: reg_file CAPABILITY byte at 0x02 (build configuration)
+CAPABILITY_VAL = 0x3D

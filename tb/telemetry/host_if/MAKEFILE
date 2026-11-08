@@ -3,15 +3,24 @@
 #
 # File Description: cocotb build-and-run for the host interface - spi_slave and
 #                   reg_file through host_if_wrapper. Run from this folder with
-#                   the venv active: `make`. Compiles the same sources as
+#                   the venv active. A plain `make` runs every test in
+#                   test_host_if.py. Compiles the same sources as
 #                   sim/mk/sources.mk - the whole RTL and every bound checker -
 #                   and lets TOPLEVEL decide what is elaborated, so binds to
 #                   modules outside this build are inert, exactly as in the
-#                   module testbenches. WAVES=1 dumps an FST.
+#                   module testbenches. The targets after the cocotb include
+#                   are shortcuts for the constrained-random test and its
+#                   coverage; `make help` lists them, COMMANDS.md explains them.
 #
 # Global variables: REPO, SV_DIR, PKG, RTL_SRCS, SVA_SRCS, TB_SRCS - sources
 #                   SIM, TOPLEVEL_LANG, VERILOG_SOURCES, TOPLEVEL, MODULE,
 #                   EXTRA_ARGS - cocotb's variables
+#                   EVENTS, SEEDS, SEED, EVERY, RANDOM_TEST, RANDOM_ARGS,
+#                   SVA_COVER_FILTER - random-test shortcuts
+
+# ==============================================================================
+# Sources
+# ==============================================================================
 
 # REPO: repository root, three levels up from tb/telemetry/host_if/
 REPO   := $(abspath ../../..)
@@ -28,7 +37,10 @@ SVA_SRCS := $(REPO)/sva/sva_pkg.sv \
 
 TB_SRCS  := $(CURDIR)/host_if_wrapper.sv
 
-# ---- cocotb ----
+# ==============================================================================
+# cocotb
+# ==============================================================================
+
 SIM             ?= verilator
 TOPLEVEL_LANG    = verilog
 VERILOG_SOURCES  = $(RTL_SRCS) $(SVA_SRCS) $(TB_SRCS)
@@ -41,4 +53,117 @@ MODULE           = test_host_if
 EXTRA_ARGS += --assert --coverage-user -Wall \
               -Wno-WIDTHEXPAND -Wno-UNUSEDPARAM -Wno-SYNCASYNCNET
 
+# PYTHONPATH: let the tests import their sibling modules (spi_driver, tb_utils, ...)
+export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
+
 include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# ==============================================================================
+# Random-test and coverage shortcuts. Everything below runs the cocotb flow
+# above through a recursive make; nothing here changes what a plain `make`
+# does. These targets sit AFTER the include on purpose: make's default goal is
+# the first target in the file, which must stay cocotb's `sim`.
+#
+# Variables, overridable on the command line:
+#   EVENTS  - random events per run                  (default 30)
+#   SEEDS   - how many seeds random_seeds / soak run (default 5)
+#   SEED    - the seed replay reproduces              (no default)
+#   EVERY   - scoreboard interval inside random_walk  (default 10)
+# ==============================================================================
+
+EVENTS ?= 30
+SEEDS  ?= 5
+EVERY  ?= 10
+
+# RANDOM_TEST: the constrained-random test's name, used by every target below
+RANDOM_TEST := random_walk
+
+# RANDOM_ARGS: the variables random_walk reads from the environment
+RANDOM_ARGS = TESTCASE=$(RANDOM_TEST) RANDOM_EVENTS=$(EVENTS) SCOREBOARD_EVERY=$(EVERY)
+
+# SVA_COVER_FILTER: the checkers whose covers the coverage reports list
+SVA_COVER_FILTER := reg_file_sva|spi_slave_sva
+
+.PHONY: help random quick replay random_seeds soak cov_zero cov_summary clean_cov
+
+help:
+	@echo "host_if cocotb targets:"
+	@echo "  make                         all tests (random_walk at its built-in 30 events)"
+	@echo "  make random                  random_walk once, EVENTS=$(EVENTS), new seed"
+	@echo "  make quick                   random_walk once, 30 events - while editing"
+	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
+	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
+	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; results in soak/"
+	@echo "  make cov_zero                list covers no merged run has reached"
+	@echo "  make cov_summary             covers hit vs zero, per checker"
+	@echo "  make clean_cov               delete per-run and merged coverage files"
+
+# random: one random_walk run with a fresh seed
+random:
+	@$(MAKE) --no-print-directory $(RANDOM_ARGS)
+
+# quick: a short run while editing the test
+quick:
+	@$(MAKE) --no-print-directory $(RANDOM_ARGS) RANDOM_EVENTS=30
+
+# replay: the exact run that produced SEED - EVENTS must match the failing run
+replay:
+	@test -n "$(SEED)" || { echo "usage: make replay SEED=<seed> [EVENTS=<n>]"; exit 1; }
+	@$(MAKE) --no-print-directory $(RANDOM_ARGS) RANDOM_SEED=$(SEED)
+
+# random_seeds: SEEDS runs, each a new seed; stops at the first failing run so
+# its replay line is the last one in the terminal. Each run's coverage.dat is
+# kept and all of them are merged into merged.dat.
+random_seeds: clean_cov
+	@for run in $$(seq 1 $(SEEDS)); do \
+	    echo "==== random_seeds: run $$run of $(SEEDS) ===="; \
+	    $(MAKE) --no-print-directory $(RANDOM_ARGS) || exit 1; \
+	    cp coverage.dat cov_run$$run.dat; \
+	done
+	@verilator_coverage --write merged.dat cov_run*.dat
+	@echo "==== random_seeds: $(SEEDS) runs passed, coverage merged into merged.dat ===="
+	@$(MAKE) --no-print-directory cov_summary
+
+# soak: an unattended sweep. Unlike random_seeds it does NOT stop on a failure:
+# every seed runs, each run's full log goes to soak/runN.log, its pass/fail and
+# seed to soak/results.txt, and its events to soak/events_runN.csv. Coverage is
+# merged across all runs; the summary plus zero-hit covers go to
+# soak/summary.txt. all_events.csv joins every run's CSV under one header.
+soak: clean_cov
+	@mkdir -p soak && rm -f soak/*
+	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee soak/results.txt
+	@for run in $$(seq 1 $(SEEDS)); do \
+	    if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
+	           RANDOM_CSV=$(CURDIR)/soak/events_run$$run.csv > soak/run$$run.log 2>&1; \
+	    then status=PASS; else status=FAIL; fi; \
+	    seed=$$(grep -o 'SEED=[0-9]*' soak/run$$run.log | head -1); \
+	    echo "run $$run: $$status $$seed" | tee -a soak/results.txt; \
+	    if [ -f coverage.dat ]; then cp coverage.dat cov_run$$run.dat; fi; \
+	done
+	@echo "soak: finished $$(date)" | tee -a soak/results.txt
+	@verilator_coverage --write merged.dat cov_run*.dat
+	@$(MAKE) --no-print-directory cov_summary  > soak/summary.txt
+	@echo "zero-hit covers:"                   >> soak/summary.txt
+	@$(MAKE) --no-print-directory cov_zero     >> soak/summary.txt
+	@awk 'FNR == 1 && NR != 1 { next } { print }' soak/events_run*.csv > soak/all_events.csv
+	@echo "soak: $$(grep -c ': PASS' soak/results.txt) passed, $$(grep -c ': FAIL' soak/results.txt) failed - see soak/"
+	@cat soak/summary.txt
+
+# cov_zero: every cover in the listed checkers that NO merged run hit
+cov_zero: merged.dat
+	@grep -E "$(SVA_COVER_FILTER)" merged.dat | awk '$$NF == 0' || echo "no zero-hit covers"
+
+# cov_summary: hit / zero counts per checker in the merged coverage
+cov_summary: merged.dat
+	@for checker in reg_file_sva spi_slave_sva; do \
+	    total=$$(grep -c "$$checker" merged.dat); \
+	    zero=$$(grep "$$checker" merged.dat | awk '$$NF == 0' | wc -l); \
+	    echo "  $$checker: $$((total - zero)) of $$total covers hit, $$zero at zero"; \
+	done
+
+merged.dat:
+	@echo "no merged.dat yet - run 'make random_seeds' or 'make soak' first"; exit 1
+
+# clean_cov: per-run and merged coverage only; cocotb's own 'make clean' removes sim_build
+clean_cov:
+	@rm -f cov_run*.dat merged.dat

@@ -1,7 +1,8 @@
 
 from host_if_constants import (ADDR_SCRATCH, ADDR_TRIP_RUN, ADDR_WRITE_KEY, WRITE_KEY,
                                SUP_S_OFF, ADDR_DISABLE_KEY, ADDR_CONTROL, DISABLE_KEY,
-                               WD_TIMEOUT_MS, TIMESTAMP_MASK, ADDR_STATUS)
+                               WD_TIMEOUT_MS, TIMESTAMP_MASK, ADDR_STATUS, PMIC_ID, VERSION_ID,
+                               CAPABILITY_VAL)
 
 
 # THRESHOLD_DEFAULTS: Dictionary holding constants and their reset values, taken from 
@@ -97,7 +98,7 @@ class RegfileModel():
             self.wd_restored = 1
             self.wd_mark     = self.timestamp_ms   # enabled again: the mark follows
 
-    def expected_byte(self, address):
+    def predict_read(self, address):
 
         """
         Purpose: Predict the byte a read of one telemetry address returns,
@@ -106,6 +107,11 @@ class RegfileModel():
                  is always 0. Unmapped 0x17 reads 0x00.
         """
         s = self.status_inputs
+
+        if address == 0x00: return PMIC_ID
+        if address == 0x01: return VERSION_ID
+        if address == 0x02: return CAPABILITY_VAL
+        if address == 0x03: return self.scratch
 
         if address == 0x10:      # STATUS
             return ((self.write_rejected << 7) | (0 << 6) | (self.spi_enable << 5)
@@ -125,15 +131,27 @@ class RegfileModel():
         if address == 0x1D: return s["fault_reg"]
         if 0x1E <= address <= 0x20:                       # fault_time, low byte first
             return (s["fault_time"] >> (8 * (address - 0x1E))) & 0xFF
+
+        # keys read {7'b0, armed}; a key never survives into a read transaction
+        if address == 0x40: return 0x00
+        if address == 0x4F: return 0x00
+        if address == ADDR_CONTROL:
+            return (self.wd_restored << 3) | self.spi_enable
+
+        # threshold bank: the byte of whichever register covers this address
+        for name, info in THRESHOLD_BIODATA.items():
+            if info["address"] <= address < info["address"] + info["bytes"]:
+                byte_index = address - info["address"]
+                return (self.thresholds[name] >> (8 * byte_index)) & 0xFF
         return 0x00                                        # 0x17 and anything unmapped
 
-    def expected_bytes(self, address, count):
+    def predict_reads(self, address, count):
 
         """
         Purpose: Predict a burst read of count bytes from address, with the
                  7-bit auto-increment wrap.
         """
-        return [self.expected_byte((address + i) & 0x7F) for i in range(count)]
+        return [self.predict_read((address + i) & 0x7F) for i in range(count)]
 
     def apply_write(self, address, data_bytes, crc_ok=True):
         """

@@ -96,5 +96,7 @@ def set_status_input(dut, model, port_name, value):
     """
     getattr(dut, port_name).value = value
     model.status_inputs[port_name] = value
+
+
     
     

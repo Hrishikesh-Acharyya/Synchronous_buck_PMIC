@@ -1,28 +1,34 @@
 #
 # Filename:         test_host_if.py
 #
-# File Description: Cocotb testbench for host interface modules(spi_slave + reg_file).
-#                    The test acts as the master (the host MCU)
+# File Description: cocotb tests for the host interface (spi_slave + reg_file
+#                   through host_if_wrapper). The tests act as the host MCU.
+#                   Constants come from host_if_constants.py, bring-up and the
+#                   SVA verdict from tb_utils.py, bus access from spi_driver.py,
+#                   the reference model from reg_file_model.py and the full
+#                   readback comparison from scoreboard.py. This file holds
+#                   only the tests.
 #
-# Global variables: CLK_PERIOD_NS, RESET_CLKS, IDLE_CLKS, STATUS_INPUTS, S_IDLE
-#                   S_CMD, S_WRITE, S_TURN, S_READ, S_DEAD, READ_FLAG, ADDR_PMIC_ID
-#                   PMIC_ID, VERSION_ID, SCK_HALF_PERIOD_NS, CRC8_POLY, WRITE_MASK
-#                   ADDR_BUS_ERR_L, ADDR_BUS_ERR_H
+# Global variables: None
+
+import csv
+import os
+import random
 
 import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, Timer, FallingEdge, RisingEdge
-import cocotb
+from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge
+
 from host_if_constants import (S_IDLE, READ_FLAG, ADDR_PMIC_ID, PMIC_ID, VERSION_ID,
                                ADDR_SCRATCH, ADDR_BUS_ERR_L, ADDR_TRIP_RUN, IDLE_CLKS,
-                               ADDR_WRITE_KEY, SUP_S_OFF, WRITE_KEY, SUP_S_RUN, ADDR_CONTROL,
-                               ADDR_DISABLE_KEY, DISABLE_KEY, WD_TIMEOUT_MS, TIMESTAMP_MASK,
-                               ADDR_TIME_0, ADDR_FAULT_CAUSE, ADDR_FTIME_2, TELEMETRY_BYTES)
-from tb_utils import start_test, check_sva, reset, set_sup_state,pulse_switch_rise, set_timestamp, set_status_input
+                               ADDR_WRITE_KEY, WRITE_KEY, ADDR_DISABLE_KEY, DISABLE_KEY,
+                               ADDR_CONTROL, SUP_S_OFF, SUP_S_SS, SUP_S_RUN, SUP_S_HICCUP,
+                               WD_TIMEOUT_MS, TIMESTAMP_MASK,
+                               ADDR_TIME_0, ADDR_FAULT_CAUSE, ADDR_FTIME_2)
+from tb_utils import (start_test, check_sva, set_sup_state, set_status_input,
+                      set_timestamp, pulse_switch_rise)
 from spi_driver import spi_transfer, spi_write, spi_read, crc8
-from reg_file_model import THRESHOLD_DEFAULTS, THRESHOLD_BIODATA, clamp, RegfileModel
+from reg_file_model import THRESHOLD_DEFAULTS, clamp, RegfileModel
 from scoreboard import read_thresholds, scoreboard_check
-
 
 @cocotb.test()
 async def idle_bus_after_reset(dut): 
@@ -472,7 +478,7 @@ async def timestamp_coherent_across_carry(dut):
     model = RegfileModel()
 
     await set_timestamp(dut, model, 0x00FFFF)
-    expected = model.expected_bytes(ADDR_TIME_0, 3)     # predicted at the read's start
+    expected = model.predict_reads(ADDR_TIME_0, 3)     # predicted at the read's start
 
     async def tick_mid_burst():
         # wait for the first data byte to be clocked out, then roll the counter over
@@ -525,5 +531,187 @@ async def fault_record_clear_pulse(dut):
     await expect_pulses("write through 0x20",        spi_write(dut, ADDR_FAULT_CAUSE, [0, 0, 0, 0]), 0)
     model.apply_write(ADDR_FAULT_CAUSE, [0, 0, 0, 0])   # read-only addresses: ignored, but a valid write
 
+    await scoreboard_check(dut, model)
+    await check_sva(dut, failures_before)
+
+
+
+
+
+@cocotb.test()
+async def random_walk(dut):
+
+    """
+    Purpose: Constrained-random traffic against the register model. Each event
+             is a weighted random choice of:
+               bus traffic   - a burst read (checked against the model as it
+                               happens), a SCRATCH write, a threshold frame
+                               from the write key (right key 80% of the time,
+                               1-11 threshold bytes), a CONTROL frame (keyed or
+                               plain), or an unconstrained write anywhere;
+               state events  - a random supervisor state, a random status
+                               input (within its width), a time step biased
+                               toward the 5000 ms watchdog boundary, or a pulse
+                               of the physical enable switch.
+             One write in ten carries a bad CRC; data values are biased toward
+             boundaries (0x00, 0x01, 0x7F, 0x80, 0xFE, 0xFF). The full
+             scoreboard runs every SCOREBOARD_EVERY events and at the end, and
+             a tally of the event kinds drawn is logged. Every run is
+             reproducible: the log's first line is the `make replay` command
+             for it. Under `make soak`, each event is also written to a CSV.
+    """
+    failures_before = await start_test(dut)
+    model = RegfileModel()
+
+    # RANDOM_EVENTS: events per run; set RANDOM_EVENTS=<n> on the make line to change it
+    RANDOM_EVENTS = int(os.environ.get("RANDOM_EVENTS", "30"))
+    # SCOREBOARD_EVERY: run the full scoreboard after every N events, so a
+    #                   failure is pinned to the last N; set on the make line
+    SCOREBOARD_EVERY = int(os.environ.get("SCOREBOARD_EVERY", "10"))
+
+    dut._log.info(f"random_walk: {RANDOM_EVENTS} events - to replay this exact run: "
+                  f"make replay SEED={cocotb.RANDOM_SEED} EVENTS={RANDOM_EVENTS}")
+
+    # RANDOM_CSV: if set (by `make soak`), one CSV row per event recording the
+    #             event and the model state after it - for offline analysis
+    csv_path   = os.environ.get("RANDOM_CSV")
+    csv_file   = open(csv_path, "w", newline="") if csv_path else None
+    csv_writer = csv.writer(csv_file) if csv_file else None
+    if csv_writer:
+        csv_writer.writerow(["seed", "event", "kind", "note", "sup_state", "spi_enable",
+                             "wd_restored", "write_rejected", "bus_err_count",
+                             "timestamp_ms", "scratch"] + list(THRESHOLD_DEFAULTS))
+
+    EVENT_KINDS   = ["read", "scratch", "threshold", "control", "raw_write",
+                     "sup_state", "status", "time", "switch"]
+    EVENT_WEIGHTS = [25,     8,         20,          12,        15,
+                     7,           7,        7,      3]
+
+    def biased_byte():
+        # half the time an edge value, the other half anything
+        if random.random() < 0.5:
+            return random.choice([0x00, 0x01, 0x7F, 0x80, 0xFE, 0xFF])
+        return random.randint(0x00, 0xFF)
+
+    async def random_write(address, data):
+        # one place for every random write: pick the CRC, do it on the bus,
+        # tell the model, and describe what happened
+        crc_ok = random.random() < 0.9                    # 1 write in 10 is corrupted
+        await spi_write(dut, address, data, corrupt_crc=not crc_ok)
+        model.apply_write(address, data, crc_ok=crc_ok)
+        return f"write @{address:#04x} {[hex(b) for b in data]} crc_ok={crc_ok}"
+
+    # STATUS_WIDTHS: width of each status input, so a random value always fits
+    STATUS_WIDTHS = {
+        "PGOOD": 1, "latch_stat_sync_db": 1, "en_from_switch_sync_db": 1,
+        "CP_sync": 1, "OTP_sync_db": 1, "UVLO_sync_db": 1,
+        "strike_level": 2, "duty_count": 8, "prev_period": 8,
+        "fault_count_run": 5, "fault_count_ss": 6, "fault_reg": 5, "fault_time": 24,
+    }
+
+    # timestamp: the time this test has driven so far; time events add to it
+    timestamp = 0
+    # event_counts: how many times each kind was drawn this run
+    event_counts = {kind: 0 for kind in EVENT_KINDS}
+
+    for event_number in range(1, RANDOM_EVENTS + 1):
+
+        random_event = random.choices(EVENT_KINDS, weights=EVENT_WEIGHTS)[0]
+        event_counts[random_event] = event_counts[random_event] + 1
+
+        if random_event == "read":
+            rand_start_addr = random.randint(0x00, 0x7F)
+            rand_count      = random.randint(1, 16)
+
+            read_model_bytes = model.predict_reads(rand_start_addr, rand_count)   # before the read
+            read_dut_bytes   = await spi_read(dut, rand_start_addr, rand_count)
+
+            if read_dut_bytes != read_model_bytes:
+                # list only the addresses that differ, so a 16-byte burst is not a wall of hex
+                diffs = [f"{(rand_start_addr + i) & 0x7F:#04x}: DUT {d:#04x} model {m:#04x}"
+                         for i, (d, m) in enumerate(zip(read_dut_bytes, read_model_bytes))
+                         if d != m]
+                assert False, (f"event {event_number}: read @{rand_start_addr:#04x} x{rand_count} "
+                               f"mismatch at {len(diffs)} address(es):\n  " + "\n  ".join(diffs))
+
+            note = f"read @{rand_start_addr:#04x} x{rand_count} -> {[hex(b) for b in read_dut_bytes]}"
+
+        elif random_event == "scratch":
+            note = await random_write(ADDR_SCRATCH, [random.randint(0x00, 0xFF)])
+
+        elif random_event == "threshold":
+            # constrained shape: start at the write key so the first byte IS the key;
+            # right key 80% of the time, then 1-11 threshold bytes
+            key  = WRITE_KEY if random.random() < 0.8 else biased_byte()
+            data = [key] + [biased_byte() for _ in range(random.randint(1, 11))]
+            note = await random_write(ADDR_WRITE_KEY, data)
+
+        elif random_event == "control":
+            control_byte = random.choice([0x00, 0x01])          # disable or enable
+            if random.random() < 0.5:
+                # keyed form: [disable key, CONTROL]; right key 70% of the time
+                key  = DISABLE_KEY if random.random() < 0.7 else biased_byte()
+                note = await random_write(ADDR_DISABLE_KEY, [key, control_byte])
+            else:
+                # plain CONTROL write: an enable works, a disable is ignored
+                note = await random_write(ADDR_CONTROL, [control_byte])
+
+        elif random_event == "raw_write":
+            # no constraint: anywhere, 1-8 bytes - read-only addresses, wraps past
+            # 0x7F, and the occasional accidental key all come from here
+            address = random.randint(0x00, 0x7F)
+            data    = [biased_byte() for _ in range(random.randint(1, 8))]
+            note    = await random_write(address, data)
+
+        elif random_event == "sup_state":
+            # any supervisor state; outside S_OFF the S_OFF-only thresholds are refused
+            rand_state = random.choice([SUP_S_OFF, SUP_S_SS, SUP_S_RUN, SUP_S_HICCUP])
+            set_sup_state(dut, model, rand_state)
+            note = f"sup_state -> {rand_state}"
+
+        elif random_event == "status":
+            # one random status input, a random value that fits its width
+            rand_port  = random.choice(list(STATUS_WIDTHS))
+            rand_value = random.randint(0, (1 << STATUS_WIDTHS[rand_port]) - 1)
+            set_status_input(dut, model, rand_port, rand_value)
+            note = f"{rand_port} -> {rand_value:#x}"
+
+        elif random_event == "time":
+            # steps biased to land on the watchdog boundary, plus any jump
+            rand_step = random.choice([1, 100, WD_TIMEOUT_MS - 1, WD_TIMEOUT_MS,
+                                       WD_TIMEOUT_MS + 1, random.randint(0, 20000)])
+            timestamp = (timestamp + rand_step) & TIMESTAMP_MASK
+            await set_timestamp(dut, model, timestamp)
+            note = f"time +{rand_step} -> {timestamp}"
+
+        elif random_event == "switch":
+            # the physical enable switch: forces spi_enable high, overriding a veto
+            await pulse_switch_rise(dut, model)
+            note = "switch pulse"
+
+        # one line per event: what happened, in order - the log a failure is read from
+        dut._log.info(f"event {event_number}: {random_event}: {note}")
+
+        if csv_writer:
+            csv_writer.writerow([cocotb.RANDOM_SEED, event_number, random_event, note,
+                                 model.sup_state, model.spi_enable, model.wd_restored,
+                                 model.write_rejected, model.bus_err_count,
+                                 model.timestamp_ms, model.scratch]
+                                + [model.thresholds[name] for name in THRESHOLD_DEFAULTS])
+            csv_file.flush()      # keep every row even if a later event fails the test
+
+        if event_number % SCOREBOARD_EVERY == 0:
+            dut._log.info(f"event {event_number}: scoreboard check")
+            await scoreboard_check(dut, model)
+
+    dut._log.info(f"random_walk: events drawn per kind: {event_counts}")
+    never_drawn = [kind for kind, count in event_counts.items() if count == 0]
+    if never_drawn:
+        dut._log.warning(f"random_walk: never drawn this run: {never_drawn}")
+
+    if csv_file:
+        csv_file.close()
+
+    dut._log.info(f"random_walk: all {RANDOM_EVENTS} events done, final scoreboard check")
     await scoreboard_check(dut, model)
     await check_sva(dut, failures_before)

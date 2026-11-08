@@ -27,9 +27,8 @@ async def scoreboard_check(dut, model):
   """
 
   mismatches = []
-  
   telemetry_read     = await spi_read(dut, ADDR_STATUS, TELEMETRY_BYTES)
-  telemetry_expected = model.expected_bytes(ADDR_STATUS, TELEMETRY_BYTES)
+  telemetry_expected = model.predict_reads(ADDR_STATUS, TELEMETRY_BYTES)
   for offset, (dut_byte, model_byte) in enumerate(zip(telemetry_read, telemetry_expected)):
     if dut_byte != model_byte:
       mismatches.append(f"telemetry {ADDR_STATUS + offset:#04x}: DUT {dut_byte:#04x}, model {model_byte:#04x}")
