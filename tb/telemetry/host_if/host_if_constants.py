@@ -77,3 +77,16 @@ ADDR_FTIME_2      = 0x20
 TELEMETRY_BYTES   = 17
 # CAPABILITY_VAL: reg_file CAPABILITY byte at 0x02 (build configuration)
 CAPABILITY_VAL = 0x3D
+# SCK_TIMEOUT_NS: spi_slave's SCK idle timeout in the wrapper - host_if_wrapper's
+#                 SCK_IDLE_TIMEOUT_CLKS (100) x CLK_PERIOD_NS. Keep in step with it.
+SCK_TIMEOUT_NS  = 100 * CLK_PERIOD_NS
+# SCK_PAUSE_NS: an SCK stall long enough to send spi_slave to S_DEAD - twice the timeout
+SCK_PAUSE_NS    = 2 * SCK_TIMEOUT_NS
+# ARM_LAPSE_NS: a stall past reg_file's arm timer (2^16 clocks) with margin
+ARM_LAPSE_NS    = 1_400_000
+# SCK_HALF_PERIODS: SCK speeds random_walk picks from, all within the spec:
+#                   500 ns = the 1 MHz maximum, slower values are legal hosts.
+#                   Each a multiple of CLK_PERIOD_NS (drive alignment), and
+#                   below the wrapper's SCK timeout (100 clocks = 2000 ns) with
+#                   margin, so a slow host is never mistaken for a dead one.
+SCK_HALF_PERIODS = [500, 600, 760, 1000, 1500]

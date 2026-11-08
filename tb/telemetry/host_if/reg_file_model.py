@@ -3,6 +3,7 @@ from host_if_constants import (ADDR_SCRATCH, ADDR_TRIP_RUN, ADDR_WRITE_KEY, WRIT
                                SUP_S_OFF, ADDR_DISABLE_KEY, ADDR_CONTROL, DISABLE_KEY,
                                WD_TIMEOUT_MS, TIMESTAMP_MASK, ADDR_STATUS, PMIC_ID, VERSION_ID,
                                CAPABILITY_VAL)
+from spi_driver import crc8
 
 
 # THRESHOLD_DEFAULTS: Dictionary holding constants and their reset values, taken from 
@@ -153,6 +154,57 @@ class RegfileModel():
         """
         return [self.predict_read((address + i) & 0x7F) for i in range(count)]
 
+    def apply_abort(self):
+
+        """
+        Purpose: Models a write transaction spi_slave rejects with txn_abort -
+                 bad CRC, CS rising mid-byte, fewer than three bytes, a
+                 truncated command, or an SCK timeout. Nothing commits; the
+                 bus-error counter counts it, saturating at 0xFFFF.
+        """
+        self.bus_err_count = min(self.bus_err_count + 1, 0xFFFF)
+
+    def apply_frame(self, frame, bits_sent=None, dead_after_bits=None):
+
+        """
+        Purpose: Predicts what spi_slave + reg_file do with ANY frame, however
+                 the host ended it - the general form of apply_write.
+                   bits_sent       - bits clocked before CS rose (None = all)
+                   dead_after_bits - bits clocked before an SCK stall sent
+                                     spi_slave to S_DEAD (None = no stall)
+                 Rules, from spi_slave's contract:
+                   - command byte never accepted (CS rose, or the slave went
+                     dead, before 8 bits): judged a write -> txn_abort
+                   - a read never commits and never aborts
+                   - a write commits only if CS rose on a byte boundary, at
+                     least 3 bytes arrived, the slave never went dead, and the
+                     CRC over everything received is zero; otherwise txn_abort
+                 The CRC is computed over the bytes actually received, so a
+                 write cut on a byte boundary whose last received byte happens
+                 to be a valid CRC is predicted to commit, as spi_slave would.
+        """
+        if bits_sent is None:
+            bits_sent = 8 * len(frame)
+
+        command_bits = bits_sent if dead_after_bits is None else min(bits_sent, dead_after_bits)
+        if command_bits < 8:
+            self.apply_abort()                  # command never accepted
+            return
+
+        if frame[0] & 0x80:
+            return                              # a read: no commit, no abort
+
+        if dead_after_bits is not None:
+            self.apply_abort()                  # timed out: S_DEAD discards the write
+            return
+
+        received = frame[: bits_sent // 8]
+        framed   = (bits_sent % 8 == 0) and (len(received) >= 3)
+        if framed and crc8(received) == 0:
+            self.apply_write(received[0] & 0x7F, received[1:-1])
+        else:
+            self.apply_abort()
+
     def apply_write(self, address, data_bytes, crc_ok=True):
         """
         Purpose: It predicts the effect of one write transaction:
@@ -167,7 +219,7 @@ class RegfileModel():
         en_pending    = None     # CONTROL change to apply at commit; None = no change
 
         if not crc_ok:
-            self.bus_err_count = min(self.bus_err_count + 1, 0xFFFF)
+            self.apply_abort()
             return
 
         for offset,value in enumerate(data_bytes):

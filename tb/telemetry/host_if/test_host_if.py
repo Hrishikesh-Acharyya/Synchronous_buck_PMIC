@@ -22,13 +22,14 @@ from host_if_constants import (S_IDLE, READ_FLAG, ADDR_PMIC_ID, PMIC_ID, VERSION
                                ADDR_SCRATCH, ADDR_BUS_ERR_L, ADDR_TRIP_RUN, IDLE_CLKS,
                                ADDR_WRITE_KEY, WRITE_KEY, ADDR_DISABLE_KEY, DISABLE_KEY,
                                ADDR_CONTROL, SUP_S_OFF, SUP_S_SS, SUP_S_RUN, SUP_S_HICCUP,
-                               WD_TIMEOUT_MS, TIMESTAMP_MASK,
-                               ADDR_TIME_0, ADDR_FAULT_CAUSE, ADDR_FTIME_2)
+                               WD_TIMEOUT_MS, TIMESTAMP_MASK, SCK_PAUSE_NS, ADDR_STATUS,
+                               ADDR_TIME_0, ADDR_FAULT_CAUSE, ADDR_FTIME_2, ARM_LAPSE_NS, SCK_HALF_PERIODS)
 from tb_utils import (start_test, check_sva, set_sup_state, set_status_input,
                       set_timestamp, pulse_switch_rise)
-from spi_driver import spi_transfer, spi_write, spi_read, crc8
-from reg_file_model import THRESHOLD_DEFAULTS, clamp, RegfileModel
+from spi_driver import spi_transfer, spi_write, spi_read, crc8, build_write_frame
+from reg_file_model import THRESHOLD_DEFAULTS, clamp, RegfileModel, THRESHOLD_BIODATA
 from scoreboard import read_thresholds, scoreboard_check
+
 
 @cocotb.test()
 async def idle_bus_after_reset(dut): 
@@ -583,9 +584,11 @@ async def random_walk(dut):
                              "timestamp_ms", "scratch"] + list(THRESHOLD_DEFAULTS))
 
     EVENT_KINDS   = ["read", "scratch", "threshold", "control", "raw_write",
-                     "sup_state", "status", "time", "switch"]
+                     "sup_state", "status", "time", "switch",
+                     "broken_write", "broken_read"]
     EVENT_WEIGHTS = [25,     8,         20,          12,        15,
-                     7,           7,        7,      3]
+                     7,           7,        7,      3,
+                     6,              3]
 
     def biased_byte():
         # half the time an edge value, the other half anything
@@ -593,13 +596,38 @@ async def random_walk(dut):
             return random.choice([0x00, 0x01, 0x7F, 0x80, 0xFE, 0xFF])
         return random.randint(0x00, 0xFF)
 
-    async def random_write(address, data):
-        # one place for every random write: pick the CRC, do it on the bus,
-        # tell the model, and describe what happened
+    def threshold_value(name):
+        # one of five regions of the register's range, equally likely - so
+        # in-range commits are as common as clamped ones
+        info = THRESHOLD_BIODATA[name]
+        low, high = info["min"], info["max"]
+        top = (1 << (8 * info["bytes"])) - 1          # largest value the bytes can carry
+        region = random.choice(["below", "at_min", "inside", "at_max", "above"])
+        if region == "below":
+            return random.randint(0, low - 1)
+        if region == "at_min":
+            return low
+        if region == "inside":
+            return random.randint(low, high)
+        if region == "at_max":
+            return high
+        return random.randint(high + 1, top)
+
+    def threshold_bank_bytes():
+        # all 11 bank bytes, 0x50..0x5A, one region-picked value per register,
+        # multi-byte registers low byte first (THRESHOLD_BIODATA is in address order)
+        bank = []
+        for name, info in THRESHOLD_BIODATA.items():
+            value = threshold_value(name)
+            bank += [(value >> (8 * i)) & 0xFF for i in range(info["bytes"])]
+        return bank
+
+    async def random_write(address, data, half_period_ns):
         crc_ok = random.random() < 0.9                    # 1 write in 10 is corrupted
-        await spi_write(dut, address, data, corrupt_crc=not crc_ok)
+        await spi_write(dut, address, data, corrupt_crc=not crc_ok,
+                        half_period_ns=half_period_ns)
         model.apply_write(address, data, crc_ok=crc_ok)
-        return f"write @{address:#04x} {[hex(b) for b in data]} crc_ok={crc_ok}"
+        return f"write @{address:#04x} {[hex(b) for b in data]} crc_ok={crc_ok} sck_half={half_period_ns}"
 
     # STATUS_WIDTHS: width of each status input, so a random value always fits
     STATUS_WIDTHS = {
@@ -618,6 +646,7 @@ async def random_walk(dut):
 
         random_event = random.choices(EVENT_KINDS, weights=EVENT_WEIGHTS)[0]
         event_counts[random_event] = event_counts[random_event] + 1
+        half_period_ns = random.choice(SCK_HALF_PERIODS)
 
         if random_event == "read":
             rand_start_addr = random.randint(0x00, 0x7F)
@@ -637,31 +666,31 @@ async def random_walk(dut):
             note = f"read @{rand_start_addr:#04x} x{rand_count} -> {[hex(b) for b in read_dut_bytes]}"
 
         elif random_event == "scratch":
-            note = await random_write(ADDR_SCRATCH, [random.randint(0x00, 0xFF)])
+            note = await random_write(ADDR_SCRATCH, [random.randint(0x00, 0xFF)], half_period_ns)
 
         elif random_event == "threshold":
             # constrained shape: start at the write key so the first byte IS the key;
             # right key 80% of the time, then 1-11 threshold bytes
             key  = WRITE_KEY if random.random() < 0.8 else biased_byte()
-            data = [key] + [biased_byte() for _ in range(random.randint(1, 11))]
-            note = await random_write(ADDR_WRITE_KEY, data)
+            data = [key] + threshold_bank_bytes()[:random.randint(1, 11)]
+            note = await random_write(ADDR_WRITE_KEY, data, half_period_ns)
 
         elif random_event == "control":
             control_byte = random.choice([0x00, 0x01])          # disable or enable
             if random.random() < 0.5:
                 # keyed form: [disable key, CONTROL]; right key 70% of the time
                 key  = DISABLE_KEY if random.random() < 0.7 else biased_byte()
-                note = await random_write(ADDR_DISABLE_KEY, [key, control_byte])
+                note = await random_write(ADDR_DISABLE_KEY, [key, control_byte], half_period_ns)
             else:
                 # plain CONTROL write: an enable works, a disable is ignored
-                note = await random_write(ADDR_CONTROL, [control_byte])
+                note = await random_write(ADDR_CONTROL, [control_byte], half_period_ns)
 
         elif random_event == "raw_write":
             # no constraint: anywhere, 1-8 bytes - read-only addresses, wraps past
             # 0x7F, and the occasional accidental key all come from here
             address = random.randint(0x00, 0x7F)
             data    = [biased_byte() for _ in range(random.randint(1, 8))]
-            note    = await random_write(address, data)
+            note    = await random_write(address, data, half_period_ns)
 
         elif random_event == "sup_state":
             # any supervisor state; outside S_OFF the S_OFF-only thresholds are refused
@@ -689,6 +718,39 @@ async def random_walk(dut):
             await pulse_switch_rise(dut, model)
             note = "switch pulse"
 
+        elif random_event == "broken_write":
+            # a write the host ends badly: cut at a random bit, or stalled past
+            # the SCK timeout at a random bit. 0-4 data bytes, so short frames too
+            frame = build_write_frame(random.randint(0x00, 0x7F),
+                                      [biased_byte() for _ in range(random.randint(0, 4))])
+            total_bits = 8 * len(frame)
+            if random.random() < 0.5:
+                stop_after_bits, pause_after_bits = random.randint(0, total_bits - 1), None
+            else:
+                stop_after_bits, pause_after_bits = None, random.randint(0, total_bits)
+            await spi_transfer(dut, frame, half_period_ns=half_period_ns,
+                               stop_after_bits=stop_after_bits, pause_after_bits=pause_after_bits,
+                               pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
+            model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            note = (f"broken write {[hex(b) for b in frame]} cut={stop_after_bits} "
+                    f"stall={pause_after_bits} sck_half={half_period_ns}")
+
+        elif random_event == "broken_read":
+            # a read the host ends badly: cut or stalled anywhere, including
+            # during its command (which counts as an aborted write)
+            frame = [READ_FLAG | random.randint(0x00, 0x7F), 0x00] + [0x00] * random.randint(1, 8)
+            total_bits = 8 * len(frame)
+            if random.random() < 0.5:
+                stop_after_bits, pause_after_bits = random.randint(0, total_bits - 1), None
+            else:
+                stop_after_bits, pause_after_bits = None, random.randint(0, total_bits)
+            await spi_transfer(dut, frame, half_period_ns=half_period_ns,
+                               stop_after_bits=stop_after_bits, pause_after_bits=pause_after_bits,
+                               pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
+            model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+            note = (f"broken read @{frame[0] & 0x7F:#04x} cut={stop_after_bits} "
+                    f"stall={pause_after_bits} sck_half={half_period_ns}")
+
         # one line per event: what happened, in order - the log a failure is read from
         dut._log.info(f"event {event_number}: {random_event}: {note}")
 
@@ -713,5 +775,116 @@ async def random_walk(dut):
         csv_file.close()
 
     dut._log.info(f"random_walk: all {RANDOM_EVENTS} events done, final scoreboard check")
+    await scoreboard_check(dut, model)
+    await check_sva(dut, failures_before)
+
+@cocotb.test()
+async def broken_frames_through_model(dut):
+
+    """
+    Purpose: Drives every way a host can end a frame badly, each checked by
+             the model and the scoreboard: commands cut short (after a read,
+             after a write, and a CS blip with no clocks), a write cut mid-byte
+             and on a byte boundary, a short [command][CRC] frame, SCK stalls
+             past the timeout in S_CMD / S_WRITE / after a whole frame / in
+             S_TURN / S_READ, a read stalled during its command, and a read
+             cut mid-byte. Writes that end badly must abort and count one bus
+             error; reads must change nothing. Ends with a clean write to show
+             the slave recovers. First exercise of spi_slave_sva's timeout
+             and abort properties.
+    """
+    failures_before = await start_test(dut)
+    model = RegfileModel()
+
+    good_write = build_write_frame(ADDR_SCRATCH, [0x5A])          # 24 bits
+    short_frm  = build_write_frame(ADDR_SCRATCH, [])              # [command][CRC]: 16 bits
+    read_frm   = [READ_FLAG | ADDR_STATUS, 0x00, 0x00, 0x00]      # 32 bits
+
+    # (description, frame, stop_after_bits, pause_after_bits, scoreboard after?)
+    # the scoreboard READS, so it is skipped where the next row needs the
+    # previous completed command to have been a WRITE
+    broken_cases = [
+        ("clean write",                        good_write, None, None, False),
+        ("command cut after a write",          good_write, 5,    None, True),
+        ("clean read",                         read_frm,   None, None, False),
+        ("command cut after a read",           read_frm,   4,    None, True),
+        ("CS blip, no clocks",                 good_write, 0,    None, True),
+        ("write cut mid-byte",                 good_write, 13,   None, True),
+        ("write cut on a byte boundary",       good_write, 16,   None, True),
+        ("short frame [command][CRC]",         short_frm,  None, None, True),
+        ("SCK stall in S_CMD (write)",         good_write, None, 3,    True),
+        ("SCK stall in S_WRITE",               good_write, None, 12,   True),
+        ("SCK stall after the whole frame",    good_write, None, 24,   True),
+        ("SCK stall in S_TURN",                read_frm,   None, 12,   True),
+        ("SCK stall in S_READ",                read_frm,   None, 20,   True),
+        ("SCK stall in a read's command",      read_frm,   None, 3,    True),
+        ("read cut mid-byte",                  read_frm,   20,   None, True),
+        ("clean write: slave recovered",       build_write_frame(ADDR_SCRATCH, [0xC3]),
+                                                           None, None, True),
+    ]
+
+    for description, frame, stop_after_bits, pause_after_bits, check_after in broken_cases:
+        dut._log.info(f"broken-frame row: {description}")
+
+        await spi_transfer(dut, frame, stop_after_bits=stop_after_bits,
+                           pause_after_bits=pause_after_bits,
+                           pause_ns=SCK_PAUSE_NS if pause_after_bits is not None else 0)
+        model.apply_frame(frame, bits_sent=stop_after_bits, dead_after_bits=pause_after_bits)
+
+        if check_after:
+            await scoreboard_check(dut, model)
+
+    await check_sva(dut, failures_before)
+
+@cocotb.test()
+async def arm_key_lapses(dut):
+
+    """
+    Purpose: A key left armed lapses after 2^16 clocks. A frame
+             from the write key carries one more byte so the key is RELEASED
+             (spi_slave strobes a byte only when the next one completes), then
+             SCK stalls with CS low for ARM_LAPSE_NS (~1.4 ms, past the arm
+             timer). The slave also times out, so the frame ends in an abort.
+             Hits c_arm_lapse and exercises a_arm_timer_lapses_keys. Slow:
+             about 1.4 ms of simulated time.
+    """
+    failures_before = await start_test(dut)
+    model = RegfileModel()
+
+    frame = build_write_frame(ADDR_WRITE_KEY, [WRITE_KEY, 0x10])   # key, then trip_run
+    await spi_transfer(dut, frame, pause_after_bits=24, pause_ns=ARM_LAPSE_NS)
+    model.apply_frame(frame, dead_after_bits=24)
+
+    await scoreboard_check(dut, model)
+    await check_sva(dut, failures_before)
+
+
+@cocotb.test()
+async def bus_error_counter_saturates(dut):
+
+    """
+    Purpose: The bus-error counter holds at 0xFFFF instead of
+             wrapping. Rather than 65,535 aborts, the counter is DEPOSITED at
+             0xFFFE (model told the same), then two bad-CRC writes take it to
+             0xFFFF and try to go past it; the scoreboard checks the result.
+
+             A cocotb deposit is invisible to Verilator's $stable / $past
+             sampling, so a_bus_err_moves_only_on_abort does NOT fire on the
+             deposit. That property was confirmed separately : it
+             fires when the RTL moves the count without an abort. This test
+             therefore expects zero SVA failures; what it relies on is the
+             scoreboard and a_bus_err_saturates.
+    """
+    failures_before = await start_test(dut)
+    model = RegfileModel()
+
+    await FallingEdge(dut.clk)                       # never change state on a rising edge
+    dut.u_reg_file.bus_err_count.value = 0xFFFE
+    model.bus_err_count = 0xFFFE
+
+    for _ in range(2):
+        await spi_write(dut, ADDR_SCRATCH, [0x11], corrupt_crc=True)
+        model.apply_write(ADDR_SCRATCH, [0x11], crc_ok=False)
+
     await scoreboard_check(dut, model)
     await check_sva(dut, failures_before)

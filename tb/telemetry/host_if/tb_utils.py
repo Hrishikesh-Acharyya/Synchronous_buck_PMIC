@@ -45,12 +45,18 @@ async def start_test(dut):
 
     return failures_before
 
-async def check_sva(dut, failures_before):
+async def check_sva(dut, failures_before, expected_failures=0):
 
+    """
+    Purpose: Settle, then assert this test caused exactly expected_failures
+             SVA failures. Normally zero; a test that deliberately forces DUT
+             state (a deposit) breaks a "moves only when..." property exactly
+             once and says so here.
+    """
     await ClockCycles(dut.clk, IDLE_CLKS)
-
-    assertion_fail_count = int(dut.sva_fail_count.value)
-    assert assertion_fail_count == failures_before, f"{assertion_fail_count - failures_before} SVA failure(s) during this test"
+    new_failures = int(dut.sva_fail_count.value) - failures_before
+    assert new_failures == expected_failures, \
+        f"{new_failures} SVA failure(s) during this test, expected {expected_failures}"
 
 def set_sup_state(dut, model, state):
 
@@ -96,6 +102,7 @@ def set_status_input(dut, model, port_name, value):
     """
     getattr(dut, port_name).value = value
     model.status_inputs[port_name] = value
+
 
 
     
