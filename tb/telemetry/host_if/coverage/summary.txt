@@ -1,7 +1,43 @@
-cov_all: full suite + 5 random runs x 30 events - Sun Nov  8 19:46:22 UTC 2026
+cov_all: full suite + 5 random runs x 30 events - Mon Nov  9 16:23:49 UTC 2026
 result: every test passed (cov_all stops at the first failure)
 covers hit per checker:
   reg_file_sva: 26 of 26 covers hit, 0 at zero
   spi_slave_sva: 28 of 28 covers hit, 0 at zero
 zero-hit covers:
   no zero-hit covers
+functional coverage (covergroups):
+  host_if.threshold.reason                   4 of 4   bins hit
+  host_if.threshold.state                    3 of 4   bins hit
+  host_if.threshold.reason_x_state           8 of 15  bins hit
+  host_if.frame.ending                       7 of 9   bins hit
+  host_if.clamp.register                     7 of 7   bins hit
+  host_if.clamp.region                       5 of 5   bins hit
+  host_if.clamp.register_x_region           18 of 35  bins hit
+empty bins:
+  host_if.threshold.state: 1
+  host_if.threshold.reason_x_state: ('accepted', 1)
+  host_if.threshold.reason_x_state: ('accepted', 2)
+  host_if.threshold.reason_x_state: ('no_key', 1)
+  host_if.threshold.reason_x_state: ('partial', 1)
+  host_if.threshold.reason_x_state: ('partial', 2)
+  host_if.threshold.reason_x_state: ('not_off', 1)
+  host_if.threshold.reason_x_state: ('not_off', 2)
+  host_if.frame.ending: short
+  host_if.frame.ending: read_cut
+  host_if.clamp.register_x_region: ('trip_run', 'at_min')
+  host_if.clamp.register_x_region: ('trip_ss', 'below')
+  host_if.clamp.register_x_region: ('max_strikes', 'inside')
+  host_if.clamp.register_x_region: ('max_on_limit', 'below')
+  host_if.clamp.register_x_region: ('max_on_limit', 'inside')
+  host_if.clamp.register_x_region: ('max_on_limit', 'at_max')
+  host_if.clamp.register_x_region: ('hiccup_base', 'at_min')
+  host_if.clamp.register_x_region: ('hiccup_base', 'at_max')
+  host_if.clamp.register_x_region: ('hiccup_base', 'above')
+  host_if.clamp.register_x_region: ('cycles_per_step', 'below')
+  host_if.clamp.register_x_region: ('cycles_per_step', 'at_min')
+  host_if.clamp.register_x_region: ('cycles_per_step', 'inside')
+  host_if.clamp.register_x_region: ('cycles_per_step', 'above')
+  host_if.clamp.register_x_region: ('clean_run_target', 'below')
+  host_if.clamp.register_x_region: ('clean_run_target', 'inside')
+  host_if.clamp.register_x_region: ('clean_run_target', 'at_max')
+  host_if.clamp.register_x_region: ('clean_run_target', 'above')

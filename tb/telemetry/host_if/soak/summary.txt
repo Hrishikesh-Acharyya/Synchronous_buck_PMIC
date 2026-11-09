@@ -1,14 +1,15 @@
   reg_file_sva: 24 of 26 covers hit, 2 at zero
-  spi_slave_sva: 18 of 27 covers hit, 9 at zero
+  spi_slave_sva: 28 of 28 covers hit, 0 at zero
 zero-hit covers:
   host_if_wrapper.u_reg_file.u_sva.c_arm_lapse  (reg_file_sva.sv:589)
   host_if_wrapper.u_reg_file.u_sva.c_bus_err_saturated  (reg_file_sva.sv:786)
-  host_if_wrapper.u_spi_slave.u_sva.c_timeout_in_cmd  (spi_slave_sva.sv:548)
-  host_if_wrapper.u_spi_slave.u_sva.c_timeout_in_write  (spi_slave_sva.sv:550)
-  host_if_wrapper.u_spi_slave.u_sva.c_timeout_in_read  (spi_slave_sva.sv:552)
-  host_if_wrapper.u_spi_slave.u_sva.c_abort_mid_byte  (spi_slave_sva.sv:983)
-  host_if_wrapper.u_spi_slave.u_sva.c_abort_short  (spi_slave_sva.sv:985)
-  host_if_wrapper.u_spi_slave.u_sva.c_abort_after_timeout  (spi_slave_sva.sv:987)
-  host_if_wrapper.u_spi_slave.u_sva.c_read_closed_mid_byte  (spi_slave_sva.sv:989)
-  host_if_wrapper.u_spi_slave.u_sva.c_closed_before_command_after_read  (spi_slave_sva.sv:991)
-  host_if_wrapper.u_spi_slave.u_sva.c_closed_before_command_after_write  (spi_slave_sva.sv:993)
+functional coverage (covergroups):
+  host_if.threshold.reason                   4 of 4   bins hit
+  host_if.threshold.state                    4 of 4   bins hit
+  host_if.threshold.reason_x_state          15 of 15  bins hit
+  host_if.frame.ending                       9 of 9   bins hit
+  host_if.clamp.register                     7 of 7   bins hit
+  host_if.clamp.region                       5 of 5   bins hit
+  host_if.clamp.register_x_region           35 of 35  bins hit
+empty bins:
+  no empty bins

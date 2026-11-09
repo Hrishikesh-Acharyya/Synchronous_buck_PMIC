@@ -2,7 +2,7 @@
 
 Output of `make soak` in `tb/telemetry/host_if`: constrained-random `random_walk` runs, each with a new seed, checked by the scoreboard and reference model, with the bound SVA checkers active. A soak never stops on a failure, so every seed runs.
 
-Only these five files are tracked. A new `make soak` replaces the last four; this README is never touched.
+Only these six files are tracked. A new `make soak` replaces the last five; this README is never touched.
 
 | File | Contents |
 |---|---|
@@ -10,21 +10,32 @@ Only these five files are tracked. A new `make soak` replaces the last four; thi
 | `summary.txt` | Covers hit vs. at zero for each checker (`reg_file_sva`, `spi_slave_sva`), then every cover that no run reached. |
 | `all_events.csv` | Every event of every run under one header: seed, event number, kind, what was sent, and the DUT state after it. |
 | `merged.dat` | The merged Verilator coverage of all runs, which `summary.txt` was computed from. `make cov_summary` and `make cov_zero` read it. |
+| `functional_coverage.xml` | The merged covergroups of all runs (cocotb-coverage); their readable report closes `summary.txt`. |
 
 Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`) are written to `raw/`. They stay on disk for digging into one run, but are gitignored.
 
-## Latest soak
+## Latest soak - the closing run for this module
 
-- **40 runs × 200 events = 8,000 random events**, 8 Nov 2026, about 1.5 hours.
-- **40 of 40 runs passed**: no scoreboard mismatch and no assertion failure.
-- **Event mix**: reads 1,891; threshold writes 1,560; raw writes 1,157; control writes 937; scratch 621; time 568; supervisor-state changes 522; status reads 513; switch events 231.
-- **Coverage**: `reg_file_sva` 24 of 26 covers hit, `spi_slave_sva` 18 of 27.
+- **100 runs × 200 events = 20,000 random events**, 9 Nov 2026, 02:22 to 07:55 (5 h 32 min).
+- **100 of 100 runs passed**: no scoreboard mismatch, no read mismatch and no assertion failure in any run.
+- **Event mix**: reads 4,367; threshold writes 3,538; raw writes 2,655; control writes 2,165; SCRATCH 1,449; time steps 1,260; status-input changes 1,239; supervisor-state changes 1,218; broken writes 1,101; switch pulses 522; broken reads 486.
+- **Covergroups**: **79 of 79 bins hit** - every threshold verdict in every supervisor state, every way a frame can end, and every threshold register committed below, at and between its bounds.
+- **SVA covers**: `spi_slave_sva` 28 of 28; `reg_file_sva` 24 of 26. The two at zero, `c_arm_lapse` and `c_bus_err_saturated`, need a 1.4 ms SCK stall and 65,535 aborts; random traffic is not meant to produce either, and the directed tests `arm_key_lapses` and `bus_error_counter_saturates` hit both.
 
-The covers at zero are listed in `summary.txt`: SCK timeouts, mid-byte and short-frame aborts, a read closed mid-byte, truncated commands, the arm-key lapse and bus-error saturation. This soak predates the broken-frame events in `random_walk` and the directed tests that reach these cases. A soak runs `random_walk` only, so for the coverage of the whole testbench see `../coverage/summary.txt`, written by `make cov_all`.
+## Verification closure
+
+Every SVA cover and every covergroup bin is hit by at least one recorded run:
+
+| Evidence | What it shows |
+|---|---|
+| this soak | 20,000 random events with no failure; covergroups 79/79 |
+| `../coverage/summary.txt` (`make cov_all`) | the directed tests plus random runs: SVA covers `reg_file_sva` 26/26, `spi_slave_sva` 28/28 |
+
+Together with the bound checkers (every assertion shown able to fail) and the reference model compared on every read and scoreboard check, the host interface - `spi_slave` and `reg_file` - is verified.
 
 ## Reproducing
 
 ```bash
 cd tb/telemetry/host_if
-make soak SEEDS=40 EVENTS=200
+make soak SEEDS=100 EVENTS=200
 ```
