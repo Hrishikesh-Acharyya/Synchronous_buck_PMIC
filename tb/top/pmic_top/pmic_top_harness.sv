@@ -13,9 +13,15 @@
 #                     modulator    Osc_in, a free-running PWM of OSC_PERIOD_CLKS
 #                                  clocks (450 kHz at 50 MHz) with osc_on_clks
 #                                  of on-time; 0 holds it low (modulator off)
-#                     valley comp  CP_trig high through the low-side phase
-#                                  while overcurrent is set, so fault_arbiter's
-#                                  valley sample sees a faulted cycle
+#                     valley comp  CP_trig high while the low-side FET conducts
+#                                  (En high, PWM_out low) in a faulted cycle,
+#                                  so fault_arbiter's valley sample sees it. A
+#                                  cycle is faulted while overcurrent is set,
+#                                  or by oc_per16: the first oc_per16 cycles
+#                                  of every 16 - a fault duty that any 16-cycle
+#                                  window (and any 32-cycle window, twice
+#                                  over) sees exactly, for testing the window
+#                                  thresholds at their edges
 #                     SCR latch    latch_stat, set by the CPLD's latch_out or by
 #                                  the analog OVP comparator (ovp_trip), and
 #                                  cleared only by the reset button
@@ -50,7 +56,8 @@ module pmic_top_harness #(
     input  wire logic       reset_button,     // 1 = held: rst_n_pin low, SCR drained
     input  wire logic       en_from_switch,   // the physical enable switch
     input  wire logic [7:0] osc_on_clks,      // modulator on-time in clocks; 0 = stopped
-    input  wire logic       overcurrent,      // valley current above the limit
+    input  wire logic       overcurrent,      // valley current above the limit, every cycle
+    input  wire logic [4:0] oc_per16,         // faulted cycles out of every 16; 0 = none
     input  wire logic       OTP_trig,         // over-temperature comparator
     input  wire logic       UVLO_trig,        // input undervoltage comparator
     input  wire logic       PGOOD_comp,       // output rail in its window
@@ -87,6 +94,10 @@ always #10 clk = !clk;
 
 // osc_count: position in the current modulator period
 logic [7:0] osc_count;
+// osc_cycle: modulator periods, modulo 16 - the oc_per16 pattern's position
+logic [3:0] osc_cycle;
+// cycle_faulted: this period carries an overcurrent
+logic       cycle_faulted;
 // scr: the SCR protection latch
 logic       scr;
 
@@ -99,23 +110,33 @@ so it starts from an initial value; plain always, not always_ff, because the
 initial block is a second writer.
 */
 always @(posedge clk) begin
-  if (osc_count >= 8'(OSC_PERIOD_CLKS - 1)) osc_count <= 8'd0;
-  else                                      osc_count <= osc_count + 8'd1;
+  if (osc_count >= 8'(OSC_PERIOD_CLKS - 1)) begin
+    osc_count <= 8'd0;
+    osc_cycle <= osc_cycle + 4'd1;
+  end
+  else osc_count <= osc_count + 8'd1;
 end
 
-initial osc_count = 8'd0;
+initial begin
+  osc_count = 8'd0;
+  osc_cycle = 4'd0;
+end
 
 always_comb begin
   /*
   Purpose:
   ---
   Modulator output and the valley comparator. The comparator reads the
-  low-side current, so it can only report during the low phase; that is
-  where fault_arbiter's blanked sample, taken just before the next rising
-  edge, finds it.
+  low-side FET's current, so it reports only while that FET conducts: the
+  converter enabled and the gate drive low. fault_arbiter's blanked sample,
+  taken just before the modulator's next rising edge, finds it there - also
+  when pwm_mask has cut the pulse short of the modulator's, because the
+  low-side FET then conducts from the cut onward. The pattern index changes
+  at the period boundary, so a whole low phase belongs to one cycle.
   */
-  Osc_in  = (osc_count < osc_on_clks);
-  CP_trig = overcurrent && !Osc_in;
+  Osc_in        = (osc_count < osc_on_clks);
+  cycle_faulted = overcurrent || ({1'b0, osc_cycle} < oc_per16);
+  CP_trig       = cycle_faulted && En && !PWM_out;
 end
 
 /*

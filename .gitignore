@@ -91,3 +91,15 @@ tb/telemetry/host_if/soak/*
 # per-run files that older MAKEFILE versions wrote next to the testbench
 tb/telemetry/host_if/cov_run*.dat
 tb/telemetry/host_if/merged.dat
+
+# cocotb whole-supervisor testbench (tb/top/pmic_top): the same layout as
+# host_if - working coverage in cov/, a soak's per-run files in soak/raw/,
+# only the soak's evidence tracked.
+tb/top/pmic_top/cov/
+tb/top/pmic_top/soak/*
+!tb/top/pmic_top/soak/README.md
+!tb/top/pmic_top/soak/results.txt
+!tb/top/pmic_top/soak/summary.txt
+!tb/top/pmic_top/soak/all_events.csv
+!tb/top/pmic_top/soak/merged.dat
+!tb/top/pmic_top/soak/functional_coverage.xml

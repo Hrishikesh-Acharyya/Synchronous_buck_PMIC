@@ -17,7 +17,8 @@
 #                   folder.
 #
 # Global variables: HOSTIF_DIR, HOSTIF_EVENTS, HOSTIF_FLAGS, TOPCOCO_DIR,
-#                   TOPCOCO_FLAGS, TOPCOCO_EQUIV_WAIVERS, COCOTB_FLAGS, run_cocotb
+#                   TOPCOCO_EVENTS, TOPCOCO_FLAGS, TOPCOCO_EQUIV_WAIVERS,
+#                   COCOTB_FLAGS, FCOV_REPORT, run_cocotb
 
 ##@ cocotb suites (tb/telemetry/host_if, tb/top/pmic_top)
 
@@ -30,6 +31,15 @@ TOPCOCO_DIR := $(abspath ../tb/top/pmic_top)
 #                random traffic reaches, such as an address wrap at 0x7F -
 #                fires in one run.
 HOSTIF_EVENTS ?= 400
+
+# TOPCOCO_EVENTS: random_walk events inside the whole-supervisor suite run.
+#                 Board events cost milliseconds of simulated time each, so
+#                 this is kept small; the suite's own soak is the long run.
+TOPCOCO_EVENTS ?= 12
+
+# FCOV_REPORT: merges and reports cocotb-coverage exports - host_if's script,
+#              shared by both suites
+FCOV_REPORT := $(HOSTIF_DIR)/fcov_report.py
 
 # COCOTB_FLAGS: Verilator flags common to both suites - the module
 #               testbenches' lint level and waivers, without --binary
@@ -50,7 +60,7 @@ TOPCOCO_EQUIV_WAIVERS := $(EQUIV_WAIVERS) -Wno-UNUSEDSIGNAL
 #             flags, $(5) sources - absolute, since the suite runs from its
 #             build directory - $(6) extra make variables for the suite and
 #             $(7) a regex on the checker files whose covers decide the verdict
-run_cocotb = SUITE_VARS='$(6)' COVER_FILTER='$(7)' QUIET='$(QUIET)' NOFAIL='$(NOFAIL)' STRICT='$(STRICT)' \
+run_cocotb = SUITE_VARS='$(6)' COVER_FILTER='$(7)' FCOV_REPORT='$(FCOV_REPORT)' QUIET='$(QUIET)' NOFAIL='$(NOFAIL)' STRICT='$(STRICT)' \
              bash $(SCRIPTS)/run_cocotb.sh $(TBBUILD)/$(1)/$(2) $(1) $(2) $(3) '$(4)' $(5)
 
 .PHONY: tb_host_if equiv_host_if tb_top_cocotb equiv_top_cocotb
@@ -61,8 +71,8 @@ tb_host_if:  ## cocotb host-interface suite on the SystemVerilog source
 equiv_host_if: $(EQUIV_SRCS)  ## the same suite on the sv2v output (SPLIT=1: on rtl-verilog)
 	@$(call run_cocotb,$(EQUIV_FLOW),host_if_tb,$(HOSTIF_DIR),$(HOSTIF_FLAGS) $(EQUIV_WAIVERS),$(abspath $(PKG) $(EQUIV_SRCS)),RANDOM_EVENTS=$(HOSTIF_EVENTS))
 
-tb_top_cocotb:  ## cocotb whole-supervisor suite on the SystemVerilog source (~5 min)
-	@$(call run_cocotb,sv,pmic_top_cocotb,$(TOPCOCO_DIR),$(TOPCOCO_FLAGS),$(abspath $(RTL)),,pmic_top_sva)
+tb_top_cocotb:  ## cocotb whole-supervisor suite on the SystemVerilog source (~10 min)
+	@$(call run_cocotb,sv,pmic_top_cocotb,$(TOPCOCO_DIR),$(TOPCOCO_FLAGS),$(abspath $(RTL)),RANDOM_EVENTS=$(TOPCOCO_EVENTS),pmic_top_sva)
 
 equiv_top_cocotb: $(EQUIV_SRCS)  ## the same suite on the sv2v output (SPLIT=1: on rtl-verilog)
-	@$(call run_cocotb,$(EQUIV_FLOW),pmic_top_cocotb,$(TOPCOCO_DIR),$(TOPCOCO_FLAGS) $(TOPCOCO_EQUIV_WAIVERS),$(abspath $(PKG) $(EQUIV_SRCS)),,pmic_top_sva)
+	@$(call run_cocotb,$(EQUIV_FLOW),pmic_top_cocotb,$(TOPCOCO_DIR),$(TOPCOCO_FLAGS) $(TOPCOCO_EQUIV_WAIVERS),$(abspath $(PKG) $(EQUIV_SRCS)),RANDOM_EVENTS=$(TOPCOCO_EVENTS),pmic_top_sva)

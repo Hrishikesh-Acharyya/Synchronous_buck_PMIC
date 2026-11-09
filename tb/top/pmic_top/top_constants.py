@@ -28,6 +28,13 @@ OSC_ON_ABOVE_CEILING = 100
 MAX_ON_COUNTS = 83
 # RESET_PRESS_CLKS: how long the test holds the reset button
 RESET_PRESS_CLKS = 20
+# CYCLE_MS: one switching period in ms (111 clocks of 20 ns)
+CYCLE_MS = OSC_PERIOD_CLKS * CLK_PERIOD_NS / 1_000_000
+# MIN_ON_COUNTS: the soft-start floor - ns_to_clks(128 + 112), rounded up
+MIN_ON_COUNTS = 12
+# OSC_ON_NEAR_FULL: a modulator pulse that leaves only 3 clocks of its own low
+#                   phase - shorter than fault_arbiter's 5-clock lookback
+OSC_ON_NEAR_FULL = OSC_PERIOD_CLKS - 3
 
 # ==============================================================================
 # RTL timings the tests wait out (pmic_types_pkg, pmic_top)
@@ -42,6 +49,25 @@ FAULT_ASSERT_MS = 1
 FAULT_RELEASE_MS = 0.2
 # PGOOD_DELAY_MS: the rail must be good this long in S_RUN before PGOOD
 PGOOD_DELAY_MS = 9
+# PGOOD_DELAY_EXACT_MS: the same, as the RTL counts it - ms_to_sw_cycles(9) =
+#                       4050 switching cycles
+PGOOD_DELAY_EXACT_MS = 4050 * CYCLE_MS
+# WINDOW_RUN / TRIP_RUN_DEFAULT, WINDOW_SS / TRIP_SS_DEFAULT: fault_arbiter's
+#                       windows and the reset thresholds (12 of 16, 28 of 32)
+WINDOW_RUN, TRIP_RUN_DEFAULT = 16, 12
+WINDOW_SS,  TRIP_SS_DEFAULT  = 32, 28
+
+# ==============================================================================
+# Reset values of the S_OFF-only timers - in force after every reset until the
+# test programs the fast ones
+# ==============================================================================
+
+# DEFAULT_HICCUP_MS: HICCUP_BASE_MS
+DEFAULT_HICCUP_MS = 5
+# DEFAULT_CYCLES_PER_STEP: CYCLES_PER_STEP_DEFAULT
+DEFAULT_CYCLES_PER_STEP = 16
+# DEFAULT_CLEAN_RUN_MS: ms_to_sw_cycles(1000) cycles, in ms
+DEFAULT_CLEAN_RUN_MS = 450_000 * CYCLE_MS
 
 # ==============================================================================
 # Fast timers, programmed over SPI before each test switches the converter on
@@ -56,7 +82,7 @@ FAST_HICCUP_MS = 1
 FAST_CYCLES_PER_STEP = 1
 # FAST_CLEAN_RUN: 100 ms of switching cycles - the shortest clean-run window
 FAST_CLEAN_RUN = 45_000
-# FAST_CLEAN_RUN_MS: the same, in ms
+# FAST_CLEAN_RUN_MS: the same, in ms (to the cycle: 99.9 ms)
 FAST_CLEAN_RUN_MS = 100
 # MAX_STRIKES: strikes before the latch trips - the reset default
 MAX_STRIKES = 3
@@ -76,4 +102,15 @@ SETTLE_FAULT_MS = FAULT_ASSERT_MS + 1
 SETTLE_HICCUP_MS = 2 * FAST_HICCUP_MS + 2
 # SETTLE_LATCH_MS: a persistent overcurrent to the latch - three trips and the
 #                  1 + 2 ms cool-downs between them, then the latch read-back
-SETTLE_LATCH_MS = (1 + 2) * FAST_HICCUP_MS + FAULT_ASSERT_MS + 4
+SETTLE_LATCH_MS = (2 + 4) * FAST_HICCUP_MS + FAULT_ASSERT_MS + 3
+
+# ==============================================================================
+# Timing uncertainty. The model knows when each event's effect lands only to
+# within a few switching cycles; a check this close to a boundary is skipped
+# for the one field the boundary decides, never for the rest.
+# ==============================================================================
+
+# BOUNDARY_MARGIN_MS: half-width of the band around the PGOOD qualification
+#                     and the clean-run window inside which their outcome is
+#                     left unchecked
+BOUNDARY_MARGIN_MS = 0.5

@@ -34,6 +34,8 @@
 #                   COVER_FILTER - regex on the checker file name: only those
 #                                checkers' covers count toward the verdict.
 #                                Empty = every bound checker's covers.
+#                   FCOV_REPORT - the covergroup report script; default the
+#                                suite's own fcov_report.py
 #                   QUIET, NOFAIL, STRICT, COLOR, RAW - as for run_tb.sh
 
 set -uo pipefail
@@ -108,7 +110,7 @@ fi
 covers_hit=$(( covers_total - covers_zero ))
 
 # functional coverage: bins hit / total, for report.sh - suites with covergroups
-FCOV_REPORT=$SUITE_DIR/fcov_report.py
+FCOV_REPORT=${FCOV_REPORT:-$SUITE_DIR/fcov_report.py}
 if [[ -f $DIR/fcov.xml && -f $FCOV_REPORT ]]; then
     python3 "$FCOV_REPORT" summary "$DIR/fcov.xml" | tr ' ' '\t' > "$DIR/fcov.tsv"
 fi

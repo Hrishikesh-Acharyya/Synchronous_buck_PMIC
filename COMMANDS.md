@@ -81,12 +81,13 @@ The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types
 
 ## Whole-supervisor suite (`tb/top/pmic_top`, cocotb)
 
-`pmic_top` inside a board model (modulator, valley comparator, SCR latch, fault comparators, reset button), checked after every board event against a supervisor model, with `pmic_top_sva` and every block's checker bound. Listed as `pmic_top_cocotb`. See `tb/top/pmic_top/COMMANDS.md`.
+`pmic_top` inside a board model (modulator, valley comparator, SCR latch, fault comparators, reset button), checked after every board event against a supervisor model, with `pmic_top_sva` and every block's checker bound. Directed tests, design-intent edge cases, a constrained-random board walk (`random_walk`) and covergroups. Listed as `pmic_top_cocotb`, with a `covergroups` line like `host_if_tb`. The suite's own random, replay, soak and coverage targets are in `tb/top/pmic_top/COMMANDS.md`.
 
 | Command | What it does |
 |---|---|
-| `make tb_top_cocotb` | the whole cocotb suite on the SystemVerilog source (a few minutes) |
+| `make tb_top_cocotb` | the whole cocotb suite on the SystemVerilog source (about 10 minutes) |
 | `make equiv_top_cocotb` | the same suite on the sv2v output (`SPLIT=1`: on `rtl-verilog/`) |
+| `make tb_top_cocotb TOPCOCO_EVENTS=40` | a longer `random_walk` inside the suite (default 12; each event costs milliseconds of simulated time) |
 
 ## Host-interface suite (`tb/telemetry/host_if`, cocotb)
 
