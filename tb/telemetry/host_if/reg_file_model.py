@@ -265,14 +265,19 @@ class RegfileModel():
                  wrap) and nothing commits until the end of the frame:
                    - SCRATCH and CONTROL commit on their own;
                    - the threshold writes commit all or nothing - one refused
-                     write (no key, an S_OFF-only register outside S_OFF, a
-                     partially written multi-byte register) rejects them all
-                     and sets write_rejected; an accepted set clears it;
+                     write (no key, a CHANGE to an S_OFF-only register outside
+                     S_OFF, a partially written multi-byte register) rejects
+                     them all and sets write_rejected; an accepted set clears
+                     it. Writing back an S_OFF-only register's present value -
+                     raw bytes equal to the live register - is not a change
+                     and is accepted in any state;
                    - a frame with no threshold write leaves write_rejected alone;
                    - any valid write re-marks the watchdog.
                  Returns the threshold verdict for the coverage - accepted,
-                 no_key, partial or not_off - or None if the frame wrote no
-                 threshold (or failed its CRC).
+                 writeback (accepted outside S_OFF with an S_OFF-only
+                 register written back unchanged), no_key, partial or
+                 not_off - or None if the frame wrote no threshold (or failed
+                 its CRC).
         """
 
         pending_scratch = None
@@ -325,18 +330,26 @@ class RegfileModel():
 
         if staged:
             # ---- decide: one pass over every register, nothing changed yet ----
-            no_key  = not unlocked
-            not_off = False
-            partial = False
+            no_key    = not unlocked
+            not_off   = False
+            partial   = False
+            writeback = False
             for name, info in THRESHOLD_BIODATA.items():
                 addresses = range(info["address"], info["address"] + info["bytes"])
                 written   = [a in staged for a in addresses]
 
-                if any(written) and info["S_OFF_only"] and self.sup_state != SUP_S_OFF:
-                    not_off = True      # an S_OFF-only register written outside S_OFF
-
                 if any(written) and not all(written):
                     partial = True      # a multi-byte register only partly written
+
+                if all(written) and info["S_OFF_only"] and self.sup_state != SUP_S_OFF:
+                    # raw bytes against the live (post-clamp) value: only a
+                    # change is refused outside S_OFF, a write-back is not.
+                    # A partly written register is rejected as partial anyway.
+                    raw_value = sum(staged[a] << (8 * i) for i, a in enumerate(addresses))
+                    if raw_value != self.thresholds[name]:
+                        not_off = True
+                    else:
+                        writeback = True
 
             rejected = no_key or not_off or partial
 
@@ -347,6 +360,8 @@ class RegfileModel():
                 threshold_reason = "partial"
             elif not_off:
                 threshold_reason = "not_off"
+            elif writeback:
+                threshold_reason = "writeback"
             else:
                 threshold_reason = "accepted"
 

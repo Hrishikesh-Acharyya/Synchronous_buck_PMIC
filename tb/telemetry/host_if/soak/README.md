@@ -16,6 +16,8 @@ Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`) are written to `ra
 
 ## Latest soak - the closing run for this module
 
+> Recorded before the S_OFF write-back change: `reg_file` now accepts the S_OFF-only registers (`hiccup_base`, `cycles_per_step`, `clean_run_target`) written back with their present value in any state, and refuses only a change. That added a `writeback` threshold reason (covergroups now 83 bins) and two `reg_file_sva` covers. The figures below are the last soak's; a new `make soak` is needed to close the module again.
+
 - **100 runs × 200 events = 20,000 random events**, 9 Nov 2026, 02:22 to 07:55 (5 h 32 min).
 - **100 of 100 runs passed**: no scoreboard mismatch, no read mismatch and no assertion failure in any run.
 - **Event mix**: reads 4,367; threshold writes 3,538; raw writes 2,655; control writes 2,165; SCRATCH 1,449; time steps 1,260; status-input changes 1,239; supervisor-state changes 1,218; broken writes 1,101; switch pulses 522; broken reads 486.

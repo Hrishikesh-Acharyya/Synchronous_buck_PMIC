@@ -360,7 +360,7 @@ Over-temperature, undervoltage, the latch (set by either source) or a disable fo
 | What | Status |
 |---|---|
 | Unit testbenches with bound SVA checkers | 14 modules: `reset_sync`, `input_sync`, `input_debounce`, `pwm_mask`, `soft_start`, `fault_arbiter`, `hiccup_timer`, `strike_counter`, `supervisor`, `pgood_gen`, `timestamp`, `fault_LED`, `pwm_stats`, `fault_cause` — all passing |
-| Host interface, cocotb (`tb/telemetry/host_if`) | `spi_slave` + `reg_file`: reference model, scoreboard, constrained-random traffic, covergroups. **Closed:** a 100-run, 20,000-event soak with no failure and 79/79 covergroup bins, and every SVA cover hit across the directed suite and random runs — see [`soak/README.md`](tb/telemetry/host_if/soak/README.md) |
+| Host interface, cocotb (`tb/telemetry/host_if`) | `spi_slave` + `reg_file`: reference model, scoreboard, constrained-random traffic, covergroups. A 100-run, 20,000-event soak passed with no failure and 79/79 covergroup bins — see [`soak/README.md`](tb/telemetry/host_if/soak/README.md). Since then `reg_file` accepts a write-back of the S_OFF-only registers in any state; the suite covers it, and a fresh soak is needed to close again |
 | Whole supervisor, cocotb (`tb/top/pmic_top`) | `pmic_top` in a board model with a timed supervisor reference model and a top-level checker: directed tests, design-intent edge cases, a constrained-random board walk and covergroups; soak pending |
 | Integration testbench `tb/pmic_top_tb.v` | whole chip through its pins and SPI, self-checking, two scoreboards and 86 coverage bins: 277 checks passing; the SPI-less build 173 checks |
 | Converted Verilog | every testbench also runs against the sv2v output, and `rtl-verilog/` is checked to match it code for code |

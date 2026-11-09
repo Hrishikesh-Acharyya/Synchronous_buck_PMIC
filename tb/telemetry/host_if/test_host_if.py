@@ -11,7 +11,8 @@
 #                     directed   - reset and idle bus, identity read, SCRATCH
 #                                  write/readback, bad-CRC discard, threshold
 #                                  defaults, then model-checked walks of the
-#                                  threshold rules, the enable path, the
+#                                  threshold rules, the bank write-back
+#                                  while running, the enable path, the
 #                                  watchdog, telemetry mapping, the timestamp
 #                                  snapshot, the fault-record clear, broken
 #                                  frames, key lapse and counter saturation
@@ -318,6 +319,58 @@ async def threshold_writes_through_model(dut):
         await spi_write(dut, address, data, corrupt_crc=not crc_ok)
         model.apply_write(address, data, crc_ok=crc_ok)
 
+        await scoreboard_check(dut, model)
+
+    await check_sva(dut, failures_before)
+
+@cocotb.test()
+async def bank_writeback_while_running(dut):
+
+    """
+    Purpose: The S_OFF gate refuses a CHANGE to hiccup_base, cycles_per_step
+             or clean_run_target outside S_OFF, not a write that passes
+             through them. Firmware reaches a threshold by rewriting the bank
+             from 0x4F upward, as read back; each row builds that frame from
+             the model's live values and checks every register afterwards:
+               - S_RUN, whole bank, trip_run changed: accepted
+               - S_RUN, whole bank, hiccup_base one count higher: rejected,
+                 trip_run's change with it (all or nothing)
+               - S_OFF, cycles_per_step set to its ceiling (64)
+               - S_RUN, cycles_per_step written raw 200, which would clamp to
+                 the live 64: still a change (raw is compared), rejected
+               - S_RUN, the frame cut inside hiccup_base, bytes unchanged:
+                 rejected as partial - that rule holds whatever the value
+               - S_SS and S_HICCUP, the bank written back unchanged: accepted,
+                 and write_rejected clears
+    """
+    failures_before = await start_test(dut)
+    model = RegfileModel()
+
+    def bank(**changes):
+        values = dict(model.thresholds)
+        values.update(changes)
+        data = [WRITE_KEY]
+        for name, info in THRESHOLD_BIODATA.items():
+            data += [(values[name] >> (8 * i)) & 0xFF for i in range(info["bytes"])]
+        return data
+
+    rows = [
+        ("running, trip_run changed",              SUP_S_RUN,    lambda: bank(trip_run=9),                          "writeback"),
+        ("running, hiccup_base + 1",               SUP_S_RUN,    lambda: bank(trip_run=7, hiccup_base=model.thresholds["hiccup_base"] + 1), "not_off"),
+        ("off, cycles_per_step to its ceiling",    SUP_S_OFF,    lambda: bank(cycles_per_step=64),                  "accepted"),
+        ("running, cycles_per_step raw 200 -> 64", SUP_S_RUN,    lambda: bank(cycles_per_step=200),                 "not_off"),
+        ("running, cut inside hiccup_base",        SUP_S_RUN,    lambda: bank()[:6],                                "partial"),
+        ("soft start, unchanged bank",             SUP_S_SS,     lambda: bank(),                                    "writeback"),
+        ("hiccup, unchanged bank",                 SUP_S_HICCUP, lambda: bank(),                                    "writeback"),
+    ]
+
+    for description, state, frame, wanted in rows:
+        dut._log.info(f"write-back row: {description}")
+        set_sup_state(dut, model, state)
+        data = frame()
+        await spi_write(dut, ADDR_WRITE_KEY, data)
+        reason = model.apply_write(ADDR_WRITE_KEY, data)
+        assert reason == wanted, f"{description}: model decided {reason}, the row expects {wanted}"
         await scoreboard_check(dut, model)
 
     await check_sva(dut, failures_before)
@@ -631,6 +684,23 @@ async def random_walk(dut):
             bank += [(value >> (8 * i)) & 0xFF for i in range(info["bytes"])]
         return bank
 
+    def bank_read_modify_write():
+        # what firmware actually sends: the bank as read back (the live,
+        # post-clamp values), with at most one register changed - a live
+        # threshold, an S_OFF-only one, or none at all
+        values = dict(model.thresholds)
+        change = random.choice(["live", "live", "off_only", "none"])
+        if change == "live":
+            name = random.choice([n for n, i in THRESHOLD_BIODATA.items() if not i["S_OFF_only"]])
+            values[name] = threshold_value(name)
+        elif change == "off_only":
+            name = random.choice([n for n, i in THRESHOLD_BIODATA.items() if i["S_OFF_only"]])
+            values[name] = threshold_value(name)
+        bank = []
+        for name, info in THRESHOLD_BIODATA.items():
+            bank += [(values[name] >> (8 * i)) & 0xFF for i in range(info["bytes"])]
+        return bank
+
     async def random_write(address, data, half_period_ns):
         crc_ok = random.random() < 0.9                    # 1 write in 10 is corrupted
         await spi_write(dut, address, data, corrupt_crc=not crc_ok,
@@ -687,9 +757,15 @@ async def random_walk(dut):
 
         elif random_event == "threshold":
             # constrained shape: start at the write key so the first byte IS the key;
-            # right key 80% of the time, then 1-11 threshold bytes
+            # right key 80% of the time, then 1-11 threshold bytes - fresh
+            # region-picked values, or (40%) a read-modify-write of the bank,
+            # usually the whole bank
             key  = WRITE_KEY if random.random() < 0.8 else biased_byte()
-            data = [key] + threshold_bank_bytes()[:random.randint(1, 11)]
+            if random.random() < 0.4:
+                length = 11 if random.random() < 0.7 else random.randint(1, 11)
+                data   = [key] + bank_read_modify_write()[:length]
+            else:
+                data   = [key] + threshold_bank_bytes()[:random.randint(1, 11)]
             note = await random_write(ADDR_WRITE_KEY, data, half_period_ns)
 
         elif random_event == "control":

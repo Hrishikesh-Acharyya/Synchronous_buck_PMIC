@@ -112,6 +112,9 @@ bind reg_file reg_file_sva #(
 ) u_sva (
     .dut_scratch_r      (scratch_r),
     .dut_temp_dirty     (temp_dirty),
+    .dut_temp_cyc_step  (temp_cyc_step),
+    .dut_temp_hiccup_full(temp_hiccup_full),
+    .dut_temp_clean_full(temp_clean_full),
     .dut_en_pending     (en_pending),
     .dut_en_pending_val (en_pending_val),
     .dut_scratch_pending(scratch_pending),

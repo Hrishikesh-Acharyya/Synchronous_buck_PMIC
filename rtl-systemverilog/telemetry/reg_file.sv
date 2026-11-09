@@ -61,8 +61,10 @@ module reg_file
 
     // ---- status in (read path sources) ----
     
-    // sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base and
-    //            cycles_per_step writes - those are only accepted in S_OFF
+    // sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base,
+    //            cycles_per_step and clean_run_target - those never change
+    //            outside S_OFF (writing back their present value is allowed
+    //            in any state)
     input state_t sup_state,
     input wire logic pgood,
     input wire logic latch_state,
@@ -89,7 +91,7 @@ module reg_file
     output logic [STRIKE_W-1:0]      max_strikes,
     output logic [ON_TIME_W-1:0]     max_on_limit,
 
-    // ---------------- thresholds writable only in S_OFF ----------------
+    // ---------------- thresholds that change only in S_OFF ----------------
   
      // hiccup_base: strike-level-0 cool-down in clk counts, not milliseconds
     output logic [HICCUP_BASE_W-1:0] hiccup_base,
@@ -696,14 +698,44 @@ module reg_file
     always_comb clean_all  = &temp_dirty[10:8];
     always_comb clean_any  = |temp_dirty[10:8];
 
-    // off_ok: the three registers compared against FREE-RUNNING counters are
-    //         accepted only in S_OFF, when neither counter is live. A live change
+    // off_ok: the three registers compared against FREE-RUNNING counters change
+    //         only in S_OFF, when neither counter is live. A live change
     //         landing below the current count would expire that counter instantly.
     logic off_ok;
     always_comb off_ok = (sup_state == S_OFF);
 
+    // off_change: this transaction would CHANGE an S_OFF-only register - its
+    //             staged raw value differs from the live one. Writing back the
+    //             present value is not a change, so firmware can rewrite the
+    //             whole bank in any state.
+    logic off_change;
+    always_comb begin
+    /*
+    Purpose:
+    ---
+    Tell a change to an S_OFF-only register from a write-back of its present
+    value. The key lives for one transaction and addresses only increment, so
+    reaching any threshold means writing every register below it; firmware does
+    that as a read-modify-write of the bank. Without this test a running
+    converter would refuse the whole frame for passing through hiccup_base,
+    cycles_per_step and clean_run_target with their own values, leaving only the
+    four live thresholds below 0x54 writable.
+
+    The comparison is RAW (pre-clamp) staged value against the live register.
+    Readback is post-clamp, so a value read back equals the live one exactly and
+    a read-modify-write passes. A raw value that would only clamp TO the live
+    value is still a change and is refused outside S_OFF: the rule stays "write
+    back exactly what you read", with no clamp arithmetic in the decision.
+    For a partly written multi-byte register the comparison reads stale temp
+    bytes, but the partial rule below rejects that transaction regardless.
+    */
+        off_change = (temp_dirty[7] && (temp_cyc_step    != 8'(cycles_per_step)))
+                  || (hiccup_any    && (temp_hiccup_full != 24'(hiccup_base)))
+                  || (clean_any     && (temp_clean_full  != 24'(clean_run_target)));
+    end
+
     // threshold_reject: some threshold write in this transaction cannot be
-    //                   honoured - no key, an S_OFF-only register written
+    //                   honoured - no key, a change to an S_OFF-only register
     //                   outside S_OFF, or a partial multi-byte write. Any one
     //                   of them rejects every threshold write in the transaction.
     logic threshold_reject;
@@ -713,12 +745,13 @@ module reg_file
     ---
     Decide, before anything commits, whether the transaction's threshold writes
     can be honoured as a whole. Evaluated only where temp_dirty is non-zero; a
-    transaction that wrote no threshold is never a rejection.
+    transaction that wrote no threshold is never a rejection. The partial
+    multi-byte rule holds in every state, whatever the value.
     */
         threshold_reject = !unlock_armed
-                         || (temp_dirty[7] && !off_ok)
-                         || (hiccup_any && !(hiccup_all && off_ok))
-                         || (clean_any  && !(clean_all  && off_ok));
+                         || (off_change && !off_ok)
+                         || (hiccup_any && !hiccup_all)
+                         || (clean_any  && !clean_all);
     end
 
     // ==================================================================
@@ -732,9 +765,10 @@ module reg_file
     way IN rather than on the way out. Clamping on write means the register always
     holds a legal value, so a host readback shows what is actually in effect.
 
-    Gating is decided once, in threshold_reject: no key, an S_OFF-only register
-    outside S_OFF, or a partial multi-byte write rejects every threshold write in
-    the transaction. All or nothing, the strict multi-byte rule extended to the
+    Gating is decided once, in threshold_reject: no key, a change to an
+    S_OFF-only register outside S_OFF, or a partial multi-byte write rejects every
+    threshold write in the transaction. An accepted write-back of an S_OFF-only
+    register commits its clamped value, which is the value it already holds. All or nothing, the strict multi-byte rule extended to the
     whole transaction, so the converter never runs a half-applied configuration.
     (hiccup_base, cycles_per_step and clean_run_target are S_OFF-only because they
     are compared against free-running counters; trip_run, trip_ss, max_strikes and

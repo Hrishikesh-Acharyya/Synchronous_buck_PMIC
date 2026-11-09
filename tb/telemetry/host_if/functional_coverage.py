@@ -16,8 +16,10 @@
 from cocotb_coverage.coverage import CoverPoint, CoverCross, coverage_db
 from reg_file_model import THRESHOLD_BIODATA
 
-# THRESHOLD_REASONS: RegfileModel.apply_write's verdict on a threshold frame
-THRESHOLD_REASONS = ["accepted", "no_key", "partial", "not_off"]
+# THRESHOLD_REASONS: RegfileModel.apply_write's verdict on a threshold frame;
+#                    writeback is an acceptance outside S_OFF that passed
+#                    through an S_OFF-only register with its present value
+THRESHOLD_REASONS = ["accepted", "writeback", "no_key", "partial", "not_off"]
 # SUP_STATES: sup_state encodings - OFF, SS, RUN, HICCUP
 SUP_STATES        = [0, 1, 2, 3]
 # FRAME_ENDINGS: RegfileModel.apply_frame's verdict, plus clean/bad_crc from random_write
@@ -28,7 +30,8 @@ FRAME_ENDINGS     = ["clean", "bad_crc", "cut_mid_byte", "short", "truncated_cmd
 @CoverPoint("host_if.threshold.state",  xf=lambda reason, state: state,  bins=SUP_STATES)
 @CoverCross("host_if.threshold.reason_x_state",
             items=["host_if.threshold.reason", "host_if.threshold.state"],
-            ign_bins=[("not_off", 0)])          # S_OFF-only refusals cannot happen IN S_OFF
+            # S_OFF-only refusals and write-backs exist only outside S_OFF
+            ign_bins=[("not_off", 0), ("writeback", 0)])
 def sample_threshold(reason, state):
 
     """

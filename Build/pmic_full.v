@@ -1230,11 +1230,21 @@ module reg_file (
 			;
 		off_ok = sup_state == 2'b00;
 	end
+	reg off_change;
+	function automatic [23:0] sv2v_cast_24;
+		input reg [23:0] inp;
+		sv2v_cast_24 = inp;
+	endfunction
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		off_change = ((temp_dirty[7] && (temp_cyc_step != sv2v_cast_8(cycles_per_step))) || (hiccup_any && (temp_hiccup_full != sv2v_cast_24(hiccup_base)))) || (clean_any && (temp_clean_full != sv2v_cast_24(clean_run_target)));
+	end
 	reg threshold_reject;
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		threshold_reject = ((!unlock_armed || (temp_dirty[7] && !off_ok)) || (hiccup_any && !(hiccup_all && off_ok))) || (clean_any && !(clean_all && off_ok));
+		threshold_reject = ((!unlock_armed || (off_change && !off_ok)) || (hiccup_any && !hiccup_all)) || (clean_any && !clean_all);
 	end
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;

@@ -22,19 +22,22 @@
 #                   on the writes the testbench chose.
 #
 #                   INTERNALS. Read through dut_ ports connected in
-#                   bind_sva.sv: the pending state (temp_dirty, en_pending,
+#                   bind_sva.sv: the pending state (temp_dirty, the staged raw
+#                   values of the three S_OFF-only registers, en_pending,
 #                   en_pending_val, scratch_pending), the keys and arm timer,
 #                   the watchdog mark and flag, write_rejected, scratch_r,
 #                   bus_err_count and timestamp_snap. All are declared and
 #                   described in reg_file's "Internal state" section, so they
 #                   are contract rather than implementation detail.
 #
-#                   INDEPENDENCE. threshold_reject is NOT read from the DUT.
-#                   The S_OFF gate, the all-three-bytes rule and the key gate
-#                   are each checked directly from sup_state, temp_dirty and
-#                   unlock_armed; only the cross-register all-or-nothing claim
-#                   needs a rejection decision, and chk_reject rebuilds it from
-#                   the contract's three conditions.
+#                   INDEPENDENCE. threshold_reject and off_change are NOT read
+#                   from the DUT. The S_OFF gate, the all-three-bytes rule and
+#                   the key gate are each checked directly from sup_state,
+#                   temp_dirty, the live registers and unlock_armed; only the
+#                   cross-register all-or-nothing claim needs a rejection
+#                   decision, and chk_reject rebuilds it from the contract's
+#                   three conditions, with chk_off_change comparing the staged
+#                   raw values against the live registers itself.
 #
 #                   COPIED CONSTANTS. The register addresses, CAPABILITY_VAL
 #                   and WD_TIMEOUT_MS are localparams inside reg_file, not
@@ -93,6 +96,9 @@ module reg_file_sva
     // ---- DUT internals, connected explicitly in bind_sva.sv ----
     input  wire logic [7:0]               dut_scratch_r,
     input  wire logic [10:0]              dut_temp_dirty,
+    input  wire logic [7:0]               dut_temp_cyc_step,
+    input  wire logic [23:0]              dut_temp_hiccup_full,
+    input  wire logic [23:0]              dut_temp_clean_full,
     input  wire logic                     dut_en_pending,
     input  wire logic                     dut_en_pending_val,
     input  wire logic                     dut_scratch_pending,
@@ -125,6 +131,14 @@ localparam int WD_TIMEOUT_MS = 5000;
 //             cycles_per_step and clean_run_target may change
 logic chk_off_ok;
 
+// chk_off_change: the transaction would change an S_OFF-only register - a
+//                 written register whose staged raw value differs from its
+//                 live one. A write-back of the present value is not a change.
+logic chk_off_change;
+
+// chk_off_written: the transaction wrote some byte of an S_OFF-only register
+logic chk_off_written;
+
 // chk_hiccup_any / chk_hiccup_all: some / all three hiccup_base bytes written
 //                                  in this transaction
 logic chk_hiccup_any, chk_hiccup_all;
@@ -132,9 +146,9 @@ logic chk_hiccup_any, chk_hiccup_all;
 // chk_clean_any / chk_clean_all: the same for clean_run_target
 logic chk_clean_any, chk_clean_all;
 
-// chk_reject: the contract's rejection rule - no key, an S_OFF-only register
-//             outside S_OFF, or a partial multi-byte write. Rebuilt here,
-//             never read from the DUT.
+// chk_reject: the contract's rejection rule - no key, a change to an
+//             S_OFF-only register outside S_OFF, or a partial multi-byte
+//             write. Rebuilt here, never read from the DUT.
 logic chk_reject;
 
 // chk_wd_expired: the veto is held and the host has not completed a valid
@@ -151,10 +165,14 @@ assign chk_hiccup_any = |dut_temp_dirty[6:4];
 assign chk_hiccup_all = &dut_temp_dirty[6:4];
 assign chk_clean_any  = |dut_temp_dirty[10:8];
 assign chk_clean_all  = &dut_temp_dirty[10:8];
+assign chk_off_change  = (dut_temp_dirty[7] && (dut_temp_cyc_step    != 8'(cycles_per_step)))
+                       || (chk_hiccup_any    && (dut_temp_hiccup_full != 24'(hiccup_base)))
+                       || (chk_clean_any     && (dut_temp_clean_full  != 24'(clean_run_target)));
+assign chk_off_written = dut_temp_dirty[7] || chk_hiccup_any || chk_clean_any;
 assign chk_reject     = !dut_unlock_armed
-                      || (dut_temp_dirty[7] && !chk_off_ok)
-                      || (chk_hiccup_any && !(chk_hiccup_all && chk_off_ok))
-                      || (chk_clean_any  && !(chk_clean_all  && chk_off_ok));
+                      || (chk_off_change && !chk_off_ok)
+                      || (chk_hiccup_any && !chk_hiccup_all)
+                      || (chk_clean_any  && !chk_clean_all);
 assign chk_wd_expired = !spi_enable
                       && ((timestamp_ms - dut_wd_mark) >= TIMESTAMP_W'(WD_TIMEOUT_MS));
 
@@ -329,7 +347,8 @@ Purpose: PAC(Property, Assertion, Cover) Group 4 (contract C2-C4, C6, C7):
          The threshold commit gates, each checked on its own.
            - No key, no change: a commit without unlock_armed moves nothing.
            - S_OFF only: hiccup_base, cycles_per_step and clean_run_target
-             never change at a commit outside S_OFF.
+             never change at a commit outside S_OFF. Writing back their
+             present value is allowed in any state; it commits nothing new.
            - All three bytes: hiccup_base and clean_run_target never change
              unless all three of their bytes were written.
            - Only what was written: a threshold whose temp was not dirty is
@@ -445,7 +464,12 @@ c_rejected_no_key:      cover property (@(posedge clk) disable iff (!rst_n)
                             integrity_OK && (|dut_temp_dirty) && !dut_unlock_armed);
 c_rejected_not_off:     cover property (@(posedge clk) disable iff (!rst_n)
                             integrity_OK && dut_unlock_armed && !chk_off_ok
-                            && (dut_temp_dirty[7] || chk_hiccup_any || chk_clean_any));
+                            && chk_off_change);
+c_writeback_running:    cover property (@(posedge clk) disable iff (!rst_n)
+                            integrity_OK && !chk_off_ok && chk_off_written && !chk_reject);
+c_writeback_with_change: cover property (@(posedge clk) disable iff (!rst_n)
+                            integrity_OK && !chk_off_ok && chk_off_written && !chk_reject
+                            && (|dut_temp_dirty[3:0]));
 c_rejected_partial:     cover property (@(posedge clk) disable iff (!rst_n)
                             integrity_OK && dut_unlock_armed && chk_off_ok
                             && ((chk_hiccup_any && !chk_hiccup_all) || (chk_clean_any && !chk_clean_all)));
