@@ -319,6 +319,24 @@ initial begin
 
     repeat (QUAL_CYCLES_TB + 1) drive_cycle();
 
+    /*
+    Group 9: a single-clock rail drop-out at saturation.
+    ---
+    PGOOD is up and the counter saturated; the comparator drops for exactly
+    one clock. pgood_comp is not debounced, so that one clock clears the
+    counter and PGOOD must requalify from zero. The shortest dip is the one
+    that separates the edge the counter is cleared on from the edge after
+    it: a saturation check that read pgood_comp a clock late saw the rail
+    already good again and reported the clear as a wrap. Found by the
+    whole-supervisor suite.
+    */
+
+    @(posedge clk);
+    #(DRIVE_OFFSET_NS) pgood_comp = 1'b0;
+    @(posedge clk);
+    #(DRIVE_OFFSET_NS) pgood_comp = 1'b1;
+    repeat (QUAL_CYCLES_TB + 1) drive_cycle();
+
     finish_run("normal end");
 end
 

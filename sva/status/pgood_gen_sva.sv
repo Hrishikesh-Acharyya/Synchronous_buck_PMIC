@@ -219,16 +219,20 @@ Purpose: PAC(Property, Assertion, Cover) Group 6:
          low again on a rail that is still good - a spurious changeover back
          to the LDO.
 
-         The consequent is guarded rather than demanded: a drop in pgood_comp
-         or run_active legitimately clears the counter, which group 4 asserts.
-         Without the guard the two properties would contradict each other.
+         Only a saturated counter that is NOT being cleared is held to it: a
+         drop in pgood_comp or run_active legitimately clears the counter,
+         which group 4 asserts. The condition sits in the antecedent, on the
+         same edge whose sampled inputs the RTL acts on. Placed as a guard on
+         the consequent it read pgood_comp one clock late, so a rail drop-out
+         of a single clock - cleared on edge N, rail good again by edge N+1 -
+         was reported as a wrap.
 */
 
 property p_qualify_counter_saturates;
 
   @(posedge clk) disable iff (!rst_n)
-        (dut_qualify_counter == QUAL_CYCLES)
-        |=> ((pgood_comp && run_active) -> $stable(dut_qualify_counter));
+        (dut_qualify_counter == QUAL_CYCLES) && pgood_comp && run_active
+        |=> $stable(dut_qualify_counter);
 
 endproperty
 
