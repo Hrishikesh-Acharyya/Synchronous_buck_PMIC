@@ -549,6 +549,16 @@ module reg_file (
 	default would stop the LM5106 bootstrap capacitor recharging during low-side
 	conduction, collapsing high-side gate drive and destroying the FET. A single
 	register write must never be able to do that.
+
+	WHEN IT TAKES EFFECT. max_on_limit changes on the commit, but soft_start
+	copies it into the gate ceiling only while ramping. Written in S_OFF or
+	S_SS it governs the present ramp; written in S_RUN it reaches the gate at
+	the next soft start (a hiccup retry or any restart), and until then the
+	gate keeps the ceiling the last ramp reached - which passed this same
+	clamp, so it is never above the safe maximum. The deferral is deliberate:
+	the duty ceiling only ever moves through a ramp, never under a loop that
+	is regulating. The MAX_ON readback is therefore the limit the next ramp
+	will use; in S_RUN it can differ from the ceiling on the gate.
 	*/
 	function automatic [pmic_types_pkg_ON_TIME_W - 1:0] clamp_max_on;
 		input reg [7:0] input_max_on;

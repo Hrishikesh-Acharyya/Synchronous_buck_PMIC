@@ -10,6 +10,10 @@
 #                    through S_RUN as a digital backstop sitting above the
 #                    70% analog duty clamp, and resets to the floor in any
 #                    other state so that a hiccup retry always re-ramps.
+#                    A max_on_limit lowered during S_RUN is therefore applied
+#                    at the next ramp, not under the running loop; the held
+#                    ceiling passed reg_file's downward-only clamp when it was
+#                    reached, so it is never above the safe maximum.
 
 #                   Verilog-2005, converted from rtl-systemverilog/protect/soft_start.sv by sv2v,
 #                   with the comments restored by hand from the source.

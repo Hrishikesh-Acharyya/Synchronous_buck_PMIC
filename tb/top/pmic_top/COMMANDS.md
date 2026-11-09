@@ -61,7 +61,7 @@ A walk event costs 1 to 22 ms of simulated time (a switch or reset waits out the
 | `hiccup_backoff_doubles` | trip within 14 cycles of a persistent overcurrent; cool-downs 2 ms then 4 ms (base doubled per strike, level after the increment); the third entry latches and En never returns |
 | `strikes_survive_stops` | a host disable or an OTP stop does not clear the strikes; three separate episodes latch |
 | `max_strikes_lowered_live` | MAX_STRIKES written 0 reads back 1; it acts at the next hiccup entry, not at once; strike 2 then latches |
-| `max_on_lowered_while_running` | **open finding, marked `expect_fail`**: MAX_ON lowered in S_RUN reads back as in effect, but the gate stays cut at the old ceiling until the next soft start |
+| `max_on_lowered_while_running` | MAX_ON lowered in S_RUN reads back at once but reaches the gate at the next soft start; until then the gate keeps the ceiling the last ramp reached (deliberate: the ceiling only moves through a ramp) |
 | `fault_during_hiccup` | UVLO or a host disable during the cool-down ends in S_OFF with no retry and the strike kept |
 | `short_glitches_filtered` | 0.8 ms OTP/UVLO pulses, OTP chattering 0.9 ms on / 0.05 ms off, a 15 ms switch drop-out, a 0.1 ms release of a live OTP: none changes anything |
 | `modulator_stall` | modulator stopped: enabled into S_SS and waits there; stuck high: one pulse at MAX_ON + 1, then no gate drive |

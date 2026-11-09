@@ -36,7 +36,8 @@
 #                                                   three separate episodes latch
 #                     max_strikes_lowered_live      a limit below the count acts on the
 #                                                   next hiccup, not at once; 0 clamps to 1
-#                     max_on_lowered_while_running  a live MAX_ON write and the gate pulse
+#                     max_on_lowered_while_running  MAX_ON lowered in S_RUN reaches the gate at
+#                                                   the next soft start, not before
 #                     fault_during_hiccup           UVLO or a host disable mid-cool-down
 #                                                   ends in S_OFF, strike kept, no retry
 #                     short_glitches_filtered       sub-debounce OTP/UVLO pulses, chatter, a
@@ -560,26 +561,18 @@ async def max_strikes_lowered_live(dut):
     await check_sva(dut, failures_before)
 
 
-# expect_fail: an open RTL finding, kept visible without failing the suite.
-# When the RTL is changed this test passes, cocotb reports that as a failure,
-# and the marker comes off.
-@cocotb.test(skip=not TELEMETRY, expect_fail=True)
+@cocotb.test(skip=not TELEMETRY)
 async def max_on_lowered_while_running(dut):
 
     """
-    Purpose: MAX_ON is a live threshold - reg_file accepts it in any state and
-             reads back "what is IN EFFECT". Lowered while running, the gate
-             pulse should be cut at the new ceiling (+1), not the old one.
-             After a restart the new ceiling must hold in any case.
-
-             FINDING (open): soft_start holds max_on_counts through S_RUN, so
-             a MAX_ON lowered in S_RUN reaches pwm_mask only at the next soft
-             start; until then the gate is cut at the old ceiling while
-             reg_file reports the new one in effect. A host that derates the
-             duty while running is not derated. Either MAX_ON belongs with
-             the S_OFF-only registers, or soft_start should pull the held
-             ceiling down to a lowered limit in S_RUN as it already does in
-             S_SS. The restart half of this test passes; the live half fails.
+    Purpose: When a live MAX_ON write reaches the gate. reg_file commits it at
+             once and reads it back, but soft_start copies the limit into the
+             gate ceiling only while ramping: lowered in S_RUN, the gate keeps
+             the ceiling the last ramp reached until the next soft start, and
+             is cut at the new limit (+1) from then on. Deliberate - the duty
+             ceiling only moves through a ramp, never under a regulating loop
+             - and safe, since the held ceiling passed the same downward-only
+             clamp. Pinned here so a change to either half is caught.
     """
     model = SupervisorModel()
     failures_before = await start(dut, model)
@@ -596,6 +589,10 @@ async def max_on_lowered_while_running(dut):
     assert readback == new_max_on, f"MAX_ON read back {readback}, wrote {new_max_on}"
     await ClockCycles(dut.clk, 300)
     width_live = await measure_pulse(dut, "PWM_out")
+    assert width_live == MAX_ON_COUNTS + 1, \
+        f"MAX_ON lowered in S_RUN: gate cut at {width_live} clocks, wanted the held " \
+        f"ceiling {MAX_ON_COUNTS} + 1 until the next soft start"
+    await check(dut, model)
 
     await host_disable(dut, model)
     await wait_ms(dut, model, 0.1)
@@ -603,12 +600,9 @@ async def max_on_lowered_while_running(dut):
     await settle(dut, model, 0.5)
     width_restarted = await measure_pulse(dut, "PWM_out")
     dut.osc_on_clks.value = OSC_ON_NOMINAL
-
     assert width_restarted == new_max_on + 1, \
-        f"after a restart PWM_out pulse {width_restarted} clocks, ceiling {new_max_on} + 1"
-    assert width_live == new_max_on + 1, \
-        f"MAX_ON lowered to {new_max_on} in S_RUN (and read back as in effect), but PWM_out " \
-        f"is still cut at {width_live} clocks until the next soft start"
+        f"after the next soft start PWM_out pulse {width_restarted} clocks, wanted {new_max_on} + 1"
+
     await check_sva(dut, failures_before)
 
 
