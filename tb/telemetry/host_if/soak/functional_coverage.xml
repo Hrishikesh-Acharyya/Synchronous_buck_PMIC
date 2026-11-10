@@ -1,102 +1,106 @@
-<top abs_name="top" size="79" coverage="79" cover_percentage="100.0">
-  <host_if size="79" coverage="79" cover_percentage="100.0" abs_name="top.host_if">
-    <threshold size="23" coverage="23" cover_percentage="100.0" abs_name="top.host_if.threshold">
-      <reason size="4" coverage="4" cover_percentage="100.0" abs_name="top.host_if.threshold.reason" weight="1" at_least="1">
-        <bin0 bin="accepted" hits="1128" abs_name="top.host_if.threshold.reason.bin0" />
-        <bin1 bin="no_key" hits="898" abs_name="top.host_if.threshold.reason.bin1" />
-        <bin2 bin="partial" hits="972" abs_name="top.host_if.threshold.reason.bin2" />
-        <bin3 bin="not_off" hits="438" abs_name="top.host_if.threshold.reason.bin3" />
+<top abs_name="top" size="83" coverage="83" cover_percentage="100.0">
+  <host_if size="83" coverage="83" cover_percentage="100.0" abs_name="top.host_if">
+    <threshold size="27" coverage="27" cover_percentage="100.0" abs_name="top.host_if.threshold">
+      <reason size="5" coverage="5" cover_percentage="100.0" abs_name="top.host_if.threshold.reason" weight="1" at_least="1">
+        <bin0 bin="accepted" hits="2153" abs_name="top.host_if.threshold.reason.bin0" />
+        <bin1 bin="writeback" hits="889" abs_name="top.host_if.threshold.reason.bin1" />
+        <bin2 bin="no_key" hits="1806" abs_name="top.host_if.threshold.reason.bin2" />
+        <bin3 bin="partial" hits="1337" abs_name="top.host_if.threshold.reason.bin3" />
+        <bin4 bin="not_off" hits="735" abs_name="top.host_if.threshold.reason.bin4" />
       </reason>
       <state size="4" coverage="4" cover_percentage="100.0" abs_name="top.host_if.threshold.state" weight="1" at_least="1">
-        <bin0 bin="0" hits="1094" abs_name="top.host_if.threshold.state.bin0" />
-        <bin1 bin="1" hits="826" abs_name="top.host_if.threshold.state.bin1" />
-        <bin2 bin="2" hits="747" abs_name="top.host_if.threshold.state.bin2" />
-        <bin3 bin="3" hits="769" abs_name="top.host_if.threshold.state.bin3" />
+        <bin0 bin="0" hits="2157" abs_name="top.host_if.threshold.state.bin0" />
+        <bin1 bin="1" hits="1513" abs_name="top.host_if.threshold.state.bin1" />
+        <bin2 bin="2" hits="1606" abs_name="top.host_if.threshold.state.bin2" />
+        <bin3 bin="3" hits="1644" abs_name="top.host_if.threshold.state.bin3" />
       </state>
-      <reason_x_state size="15" coverage="15" cover_percentage="100.0" abs_name="top.host_if.threshold.reason_x_state" weight="1" at_least="1">
-        <bin0 bin="('accepted', 0)" hits="510" abs_name="top.host_if.threshold.reason_x_state.bin0" />
-        <bin1 bin="('accepted', 1)" hits="219" abs_name="top.host_if.threshold.reason_x_state.bin1" />
-        <bin2 bin="('accepted', 2)" hits="206" abs_name="top.host_if.threshold.reason_x_state.bin2" />
-        <bin3 bin="('accepted', 3)" hits="193" abs_name="top.host_if.threshold.reason_x_state.bin3" />
-        <bin4 bin="('no_key', 0)" hits="281" abs_name="top.host_if.threshold.reason_x_state.bin4" />
-        <bin5 bin="('no_key', 1)" hits="206" abs_name="top.host_if.threshold.reason_x_state.bin5" />
-        <bin6 bin="('no_key', 2)" hits="200" abs_name="top.host_if.threshold.reason_x_state.bin6" />
-        <bin7 bin="('no_key', 3)" hits="211" abs_name="top.host_if.threshold.reason_x_state.bin7" />
-        <bin8 bin="('partial', 0)" hits="303" abs_name="top.host_if.threshold.reason_x_state.bin8" />
-        <bin9 bin="('partial', 1)" hits="244" abs_name="top.host_if.threshold.reason_x_state.bin9" />
-        <bin10 bin="('partial', 2)" hits="197" abs_name="top.host_if.threshold.reason_x_state.bin10" />
-        <bin11 bin="('partial', 3)" hits="228" abs_name="top.host_if.threshold.reason_x_state.bin11" />
-        <bin12 bin="('not_off', 1)" hits="157" abs_name="top.host_if.threshold.reason_x_state.bin12" />
-        <bin13 bin="('not_off', 2)" hits="144" abs_name="top.host_if.threshold.reason_x_state.bin13" />
-        <bin14 bin="('not_off', 3)" hits="137" abs_name="top.host_if.threshold.reason_x_state.bin14" />
+      <reason_x_state size="18" coverage="18" cover_percentage="100.0" abs_name="top.host_if.threshold.reason_x_state" weight="1" at_least="1">
+        <bin0 bin="('accepted', 0)" hits="1185" abs_name="top.host_if.threshold.reason_x_state.bin0" />
+        <bin1 bin="('accepted', 1)" hits="310" abs_name="top.host_if.threshold.reason_x_state.bin1" />
+        <bin2 bin="('accepted', 2)" hits="332" abs_name="top.host_if.threshold.reason_x_state.bin2" />
+        <bin3 bin="('accepted', 3)" hits="326" abs_name="top.host_if.threshold.reason_x_state.bin3" />
+        <bin4 bin="('writeback', 1)" hits="280" abs_name="top.host_if.threshold.reason_x_state.bin4" />
+        <bin5 bin="('writeback', 2)" hits="302" abs_name="top.host_if.threshold.reason_x_state.bin5" />
+        <bin6 bin="('writeback', 3)" hits="307" abs_name="top.host_if.threshold.reason_x_state.bin6" />
+        <bin7 bin="('no_key', 0)" hits="560" abs_name="top.host_if.threshold.reason_x_state.bin7" />
+        <bin8 bin="('no_key', 1)" hits="394" abs_name="top.host_if.threshold.reason_x_state.bin8" />
+        <bin9 bin="('no_key', 2)" hits="427" abs_name="top.host_if.threshold.reason_x_state.bin9" />
+        <bin10 bin="('no_key', 3)" hits="425" abs_name="top.host_if.threshold.reason_x_state.bin10" />
+        <bin11 bin="('partial', 0)" hits="412" abs_name="top.host_if.threshold.reason_x_state.bin11" />
+        <bin12 bin="('partial', 1)" hits="298" abs_name="top.host_if.threshold.reason_x_state.bin12" />
+        <bin13 bin="('partial', 2)" hits="307" abs_name="top.host_if.threshold.reason_x_state.bin13" />
+        <bin14 bin="('partial', 3)" hits="320" abs_name="top.host_if.threshold.reason_x_state.bin14" />
+        <bin15 bin="('not_off', 1)" hits="231" abs_name="top.host_if.threshold.reason_x_state.bin15" />
+        <bin16 bin="('not_off', 2)" hits="238" abs_name="top.host_if.threshold.reason_x_state.bin16" />
+        <bin17 bin="('not_off', 3)" hits="266" abs_name="top.host_if.threshold.reason_x_state.bin17" />
       </reason_x_state>
     </threshold>
     <frame size="9" coverage="9" cover_percentage="100.0" abs_name="top.host_if.frame">
       <ending size="9" coverage="9" cover_percentage="100.0" abs_name="top.host_if.frame.ending" weight="1" at_least="1">
-        <bin0 bin="clean" hits="8864" abs_name="top.host_if.frame.ending.bin0" />
-        <bin1 bin="bad_crc" hits="959" abs_name="top.host_if.frame.ending.bin1" />
-        <bin2 bin="cut_mid_byte" hits="365" abs_name="top.host_if.frame.ending.bin2" />
-        <bin3 bin="short" hits="39" abs_name="top.host_if.frame.ending.bin3" />
-        <bin4 bin="truncated_cmd" hits="377" abs_name="top.host_if.frame.ending.bin4" />
-        <bin5 bin="write_stall" hits="390" abs_name="top.host_if.frame.ending.bin5" />
-        <bin6 bin="read" hits="4392" abs_name="top.host_if.frame.ending.bin6" />
-        <bin7 bin="read_cut" hits="170" abs_name="top.host_if.frame.ending.bin7" />
-        <bin8 bin="read_stall" hits="205" abs_name="top.host_if.frame.ending.bin8" />
+        <bin0 bin="clean" hits="17561" abs_name="top.host_if.frame.ending.bin0" />
+        <bin1 bin="bad_crc" hits="1978" abs_name="top.host_if.frame.ending.bin1" />
+        <bin2 bin="cut_mid_byte" hits="654" abs_name="top.host_if.frame.ending.bin2" />
+        <bin3 bin="short" hits="79" abs_name="top.host_if.frame.ending.bin3" />
+        <bin4 bin="truncated_cmd" hits="787" abs_name="top.host_if.frame.ending.bin4" />
+        <bin5 bin="write_stall" hits="772" abs_name="top.host_if.frame.ending.bin5" />
+        <bin6 bin="read" hits="8894" abs_name="top.host_if.frame.ending.bin6" />
+        <bin7 bin="read_cut" hits="405" abs_name="top.host_if.frame.ending.bin7" />
+        <bin8 bin="read_stall" hits="428" abs_name="top.host_if.frame.ending.bin8" />
       </ending>
     </frame>
     <clamp size="47" coverage="47" cover_percentage="100.0" abs_name="top.host_if.clamp">
       <register size="7" coverage="7" cover_percentage="100.0" abs_name="top.host_if.clamp.register" weight="1" at_least="1">
-        <bin0 bin="trip_run" hits="1128" abs_name="top.host_if.clamp.register.bin0" />
-        <bin1 bin="trip_ss" hits="892" abs_name="top.host_if.clamp.register.bin1" />
-        <bin2 bin="max_strikes" hits="657" abs_name="top.host_if.clamp.register.bin2" />
-        <bin3 bin="max_on_limit" hits="429" abs_name="top.host_if.clamp.register.bin3" />
-        <bin4 bin="hiccup_base" hits="194" abs_name="top.host_if.clamp.register.bin4" />
-        <bin5 bin="cycles_per_step" hits="139" abs_name="top.host_if.clamp.register.bin5" />
-        <bin6 bin="clean_run_target" hits="69" abs_name="top.host_if.clamp.register.bin6" />
+        <bin0 bin="trip_run" hits="3042" abs_name="top.host_if.clamp.register.bin0" />
+        <bin1 bin="trip_ss" hits="2698" abs_name="top.host_if.clamp.register.bin1" />
+        <bin2 bin="max_strikes" hits="2348" abs_name="top.host_if.clamp.register.bin2" />
+        <bin3 bin="max_on_limit" hits="2001" abs_name="top.host_if.clamp.register.bin3" />
+        <bin4 bin="hiccup_base" hits="1653" abs_name="top.host_if.clamp.register.bin4" />
+        <bin5 bin="cycles_per_step" hits="1499" abs_name="top.host_if.clamp.register.bin5" />
+        <bin6 bin="clean_run_target" hits="1372" abs_name="top.host_if.clamp.register.bin6" />
       </register>
       <region size="5" coverage="5" cover_percentage="100.0" abs_name="top.host_if.clamp.region" weight="1" at_least="1">
-        <bin0 bin="below" hits="698" abs_name="top.host_if.clamp.region.bin0" />
-        <bin1 bin="at_min" hits="734" abs_name="top.host_if.clamp.region.bin1" />
-        <bin2 bin="inside" hits="559" abs_name="top.host_if.clamp.region.bin2" />
-        <bin3 bin="at_max" hits="786" abs_name="top.host_if.clamp.region.bin3" />
-        <bin4 bin="above" hits="731" abs_name="top.host_if.clamp.region.bin4" />
+        <bin0 bin="below" hits="1098" abs_name="top.host_if.clamp.region.bin0" />
+        <bin1 bin="at_min" hits="3691" abs_name="top.host_if.clamp.region.bin1" />
+        <bin2 bin="inside" hits="4520" abs_name="top.host_if.clamp.region.bin2" />
+        <bin3 bin="at_max" hits="4166" abs_name="top.host_if.clamp.region.bin3" />
+        <bin4 bin="above" hits="1138" abs_name="top.host_if.clamp.region.bin4" />
       </region>
       <register_x_region size="35" coverage="35" cover_percentage="100.0" abs_name="top.host_if.clamp.register_x_region" weight="1" at_least="1">
-        <bin0 bin="('trip_run', 'below')" hits="219" abs_name="top.host_if.clamp.register_x_region.bin0" />
-        <bin1 bin="('trip_run', 'at_min')" hits="235" abs_name="top.host_if.clamp.register_x_region.bin1" />
-        <bin2 bin="('trip_run', 'inside')" hits="195" abs_name="top.host_if.clamp.register_x_region.bin2" />
-        <bin3 bin="('trip_run', 'at_max')" hits="244" abs_name="top.host_if.clamp.register_x_region.bin3" />
-        <bin4 bin="('trip_run', 'above')" hits="235" abs_name="top.host_if.clamp.register_x_region.bin4" />
-        <bin5 bin="('trip_ss', 'below')" hits="179" abs_name="top.host_if.clamp.register_x_region.bin5" />
-        <bin6 bin="('trip_ss', 'at_min')" hits="180" abs_name="top.host_if.clamp.register_x_region.bin6" />
-        <bin7 bin="('trip_ss', 'inside')" hits="176" abs_name="top.host_if.clamp.register_x_region.bin7" />
-        <bin8 bin="('trip_ss', 'at_max')" hits="184" abs_name="top.host_if.clamp.register_x_region.bin8" />
-        <bin9 bin="('trip_ss', 'above')" hits="173" abs_name="top.host_if.clamp.register_x_region.bin9" />
-        <bin10 bin="('max_strikes', 'below')" hits="122" abs_name="top.host_if.clamp.register_x_region.bin10" />
-        <bin11 bin="('max_strikes', 'at_min')" hits="162" abs_name="top.host_if.clamp.register_x_region.bin11" />
-        <bin12 bin="('max_strikes', 'inside')" hits="36" abs_name="top.host_if.clamp.register_x_region.bin12" />
-        <bin13 bin="('max_strikes', 'at_max')" hits="196" abs_name="top.host_if.clamp.register_x_region.bin13" />
-        <bin14 bin="('max_strikes', 'above')" hits="141" abs_name="top.host_if.clamp.register_x_region.bin14" />
-        <bin15 bin="('max_on_limit', 'below')" hits="92" abs_name="top.host_if.clamp.register_x_region.bin15" />
-        <bin16 bin="('max_on_limit', 'at_min')" hits="87" abs_name="top.host_if.clamp.register_x_region.bin16" />
-        <bin17 bin="('max_on_limit', 'inside')" hits="72" abs_name="top.host_if.clamp.register_x_region.bin17" />
-        <bin18 bin="('max_on_limit', 'at_max')" hits="83" abs_name="top.host_if.clamp.register_x_region.bin18" />
-        <bin19 bin="('max_on_limit', 'above')" hits="95" abs_name="top.host_if.clamp.register_x_region.bin19" />
-        <bin20 bin="('hiccup_base', 'below')" hits="45" abs_name="top.host_if.clamp.register_x_region.bin20" />
-        <bin21 bin="('hiccup_base', 'at_min')" hits="30" abs_name="top.host_if.clamp.register_x_region.bin21" />
-        <bin22 bin="('hiccup_base', 'inside')" hits="35" abs_name="top.host_if.clamp.register_x_region.bin22" />
-        <bin23 bin="('hiccup_base', 'at_max')" hits="38" abs_name="top.host_if.clamp.register_x_region.bin23" />
-        <bin24 bin="('hiccup_base', 'above')" hits="46" abs_name="top.host_if.clamp.register_x_region.bin24" />
-        <bin25 bin="('cycles_per_step', 'below')" hits="28" abs_name="top.host_if.clamp.register_x_region.bin25" />
-        <bin26 bin="('cycles_per_step', 'at_min')" hits="30" abs_name="top.host_if.clamp.register_x_region.bin26" />
-        <bin27 bin="('cycles_per_step', 'inside')" hits="25" abs_name="top.host_if.clamp.register_x_region.bin27" />
-        <bin28 bin="('cycles_per_step', 'at_max')" hits="30" abs_name="top.host_if.clamp.register_x_region.bin28" />
-        <bin29 bin="('cycles_per_step', 'above')" hits="26" abs_name="top.host_if.clamp.register_x_region.bin29" />
-        <bin30 bin="('clean_run_target', 'below')" hits="13" abs_name="top.host_if.clamp.register_x_region.bin30" />
-        <bin31 bin="('clean_run_target', 'at_min')" hits="10" abs_name="top.host_if.clamp.register_x_region.bin31" />
-        <bin32 bin="('clean_run_target', 'inside')" hits="20" abs_name="top.host_if.clamp.register_x_region.bin32" />
-        <bin33 bin="('clean_run_target', 'at_max')" hits="11" abs_name="top.host_if.clamp.register_x_region.bin33" />
-        <bin34 bin="('clean_run_target', 'above')" hits="15" abs_name="top.host_if.clamp.register_x_region.bin34" />
+        <bin0 bin="('trip_run', 'below')" hits="325" abs_name="top.host_if.clamp.register_x_region.bin0" />
+        <bin1 bin="('trip_run', 'at_min')" hits="831" abs_name="top.host_if.clamp.register_x_region.bin1" />
+        <bin2 bin="('trip_run', 'inside')" hits="638" abs_name="top.host_if.clamp.register_x_region.bin2" />
+        <bin3 bin="('trip_run', 'at_max')" hits="895" abs_name="top.host_if.clamp.register_x_region.bin3" />
+        <bin4 bin="('trip_run', 'above')" hits="353" abs_name="top.host_if.clamp.register_x_region.bin4" />
+        <bin5 bin="('trip_ss', 'below')" hits="267" abs_name="top.host_if.clamp.register_x_region.bin5" />
+        <bin6 bin="('trip_ss', 'at_min')" hits="726" abs_name="top.host_if.clamp.register_x_region.bin6" />
+        <bin7 bin="('trip_ss', 'inside')" hits="667" abs_name="top.host_if.clamp.register_x_region.bin7" />
+        <bin8 bin="('trip_ss', 'at_max')" hits="738" abs_name="top.host_if.clamp.register_x_region.bin8" />
+        <bin9 bin="('trip_ss', 'above')" hits="300" abs_name="top.host_if.clamp.register_x_region.bin9" />
+        <bin10 bin="('max_strikes', 'below')" hits="235" abs_name="top.host_if.clamp.register_x_region.bin10" />
+        <bin11 bin="('max_strikes', 'at_min')" hits="805" abs_name="top.host_if.clamp.register_x_region.bin11" />
+        <bin12 bin="('max_strikes', 'inside')" hits="135" abs_name="top.host_if.clamp.register_x_region.bin12" />
+        <bin13 bin="('max_strikes', 'at_max')" hits="975" abs_name="top.host_if.clamp.register_x_region.bin13" />
+        <bin14 bin="('max_strikes', 'above')" hits="198" abs_name="top.host_if.clamp.register_x_region.bin14" />
+        <bin15 bin="('max_on_limit', 'below')" hits="145" abs_name="top.host_if.clamp.register_x_region.bin15" />
+        <bin16 bin="('max_on_limit', 'at_min')" hits="503" abs_name="top.host_if.clamp.register_x_region.bin16" />
+        <bin17 bin="('max_on_limit', 'inside')" hits="383" abs_name="top.host_if.clamp.register_x_region.bin17" />
+        <bin18 bin="('max_on_limit', 'at_max')" hits="817" abs_name="top.host_if.clamp.register_x_region.bin18" />
+        <bin19 bin="('max_on_limit', 'above')" hits="153" abs_name="top.host_if.clamp.register_x_region.bin19" />
+        <bin20 bin="('hiccup_base', 'below')" hits="50" abs_name="top.host_if.clamp.register_x_region.bin20" />
+        <bin21 bin="('hiccup_base', 'at_min')" hits="312" abs_name="top.host_if.clamp.register_x_region.bin21" />
+        <bin22 bin="('hiccup_base', 'inside')" hits="850" abs_name="top.host_if.clamp.register_x_region.bin22" />
+        <bin23 bin="('hiccup_base', 'at_max')" hits="373" abs_name="top.host_if.clamp.register_x_region.bin23" />
+        <bin24 bin="('hiccup_base', 'above')" hits="68" abs_name="top.host_if.clamp.register_x_region.bin24" />
+        <bin25 bin="('cycles_per_step', 'below')" hits="47" abs_name="top.host_if.clamp.register_x_region.bin25" />
+        <bin26 bin="('cycles_per_step', 'at_min')" hits="284" abs_name="top.host_if.clamp.register_x_region.bin26" />
+        <bin27 bin="('cycles_per_step', 'inside')" hits="895" abs_name="top.host_if.clamp.register_x_region.bin27" />
+        <bin28 bin="('cycles_per_step', 'at_max')" hits="233" abs_name="top.host_if.clamp.register_x_region.bin28" />
+        <bin29 bin="('cycles_per_step', 'above')" hits="40" abs_name="top.host_if.clamp.register_x_region.bin29" />
+        <bin30 bin="('clean_run_target', 'below')" hits="29" abs_name="top.host_if.clamp.register_x_region.bin30" />
+        <bin31 bin="('clean_run_target', 'at_min')" hits="230" abs_name="top.host_if.clamp.register_x_region.bin31" />
+        <bin32 bin="('clean_run_target', 'inside')" hits="952" abs_name="top.host_if.clamp.register_x_region.bin32" />
+        <bin33 bin="('clean_run_target', 'at_max')" hits="135" abs_name="top.host_if.clamp.register_x_region.bin33" />
+        <bin34 bin="('clean_run_target', 'above')" hits="26" abs_name="top.host_if.clamp.register_x_region.bin34" />
       </register_x_region>
     </clamp>
   </host_if>

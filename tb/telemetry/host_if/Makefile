@@ -106,7 +106,7 @@ RANDOM_ARGS = TESTCASE=$(RANDOM_TEST) RANDOM_EVENTS=$(EVENTS) SCOREBOARD_EVERY=$
 # SVA_COVER_FILTER: the checkers whose covers the coverage reports list
 SVA_COVER_FILTER := reg_file_sva|spi_slave_sva
 
-.PHONY: help random quick replay random_seeds soak cov_all cov_zero cov_summary clean_cov check_merged
+.PHONY: help random quick replay random_seeds soak cov_all cov_zero cov_summary clean_cov check_merged audit_soak
 
 help:
 	@echo "host_if cocotb targets:"
@@ -116,6 +116,7 @@ help:
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
 	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), never stops; evidence in soak/"
+	@echo "  make audit_soak              check every soak transaction against the register-map rules, independently of the model"
 	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged - the true coverage picture; evidence in coverage/"
 	@echo "  make cov_zero                list covers no merged run has reached (newest merge, or MERGED=<file>)"
 	@echo "  make cov_summary             covers hit vs zero, per checker (newest merge, or MERGED=<file>)"
@@ -240,6 +241,13 @@ soak:
 	@python3 $(TB_DIR)/fcov_report.py report $(SOAK_DIR)/functional_coverage.xml >> $(SOAK_DIR)/summary.txt
 	@echo "soak: $$(grep -c ': PASS' $(SOAK_DIR)/results.txt) passed, $$(grep -c ': FAIL' $(SOAK_DIR)/results.txt) failed - see $(SOAK_DIR)/"
 	@cat $(SOAK_DIR)/summary.txt
+
+# audit_soak: audit_soak.py over the soak's transaction log - every event of
+# every run checked against the register map's rules, independently of the
+# model (see the script's header). Fails on any anomaly.
+audit_soak:
+	@test -f $(SOAK_DIR)/all_events.csv || { echo "no $(SOAK_DIR)/all_events.csv - run 'make soak' first"; exit 1; }
+	@python3 $(TB_DIR)/audit_soak.py $(SOAK_DIR)/all_events.csv
 
 # check_merged: cov_zero / cov_summary need a merge to read
 check_merged:
