@@ -41,3 +41,5 @@ Together with the bound checkers (every assertion shown able to fail) and the re
 cd tb/telemetry/host_if
 make soak SEEDS=100 EVENTS=200
 ```
+
+or, from `sim/`, `make soak_host_if`. Seeds run one per CPU core: a 200-event seed takes about 3 minutes, so 100 seeds on 8 cores take about 40 minutes (the closing soak above ran one seed at a time, 5 h 32 min).

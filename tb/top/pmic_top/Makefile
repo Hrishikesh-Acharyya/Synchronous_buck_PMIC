@@ -61,8 +61,8 @@ TELEMETRY_EN ?= 1
 #                   sim/ flow builds it
 #   top           - pmic_top_sva alone (bind_top_only.sv), about ten times
 #                   faster: the block checkers cost ~90 % of the simulation.
-#                   The soak's default (SOAK_CHECKERS); each block was closed
-#                   by its own testbench, and every other target keeps all.
+#                   For a quick soak (SOAK_CHECKERS=top); each block was
+#                   closed by its own testbench.
 #   A top build gets its own SIM_BUILD, so the two never overwrite each other.
 CHECKERS ?= all
 ifeq ($(CHECKERS),top)
@@ -131,10 +131,13 @@ SEEDS  ?= 5
 
 # SOAK_JOBS: soak runs simulated at once - every core by default; each run is
 #            single-threaded
-# SOAK_CHECKERS: the checker set the soak builds with (see CHECKERS) - top by
-#            default, SOAK_CHECKERS=all for every block's checker as well
+# SOAK_CHECKERS: the checker set the soak builds with (see CHECKERS) - all by
+#            default, every block's checker as well as pmic_top_sva;
+#            SOAK_CHECKERS=top is about ten times faster
+# SOAK_RUN: one soak run, shared with host_if's soak
 SOAK_JOBS     ?= $(shell nproc 2>/dev/null || echo 1)
-SOAK_CHECKERS ?= top
+SOAK_CHECKERS ?= all
+SOAK_RUN      := $(REPO)/sim/scripts/soak_run.sh
 
 # RANDOM_TEST: the constrained-random test's name
 RANDOM_TEST := random_walk
@@ -160,7 +163,7 @@ help:
 	@echo "  make quick                   random_walk once, 8 events - while editing"
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
-	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), pmic_top_sva only (SOAK_CHECKERS=all for every checker); evidence in soak/"
+	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), every checker (SOAK_CHECKERS=top: pmic_top_sva only, ~10x faster); evidence in soak/"
 	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged; evidence in coverage/"
 	@echo "  make cov_zero                list pmic_top_sva covers no merged run has reached"
 	@echo "  make cov_summary             pmic_top_sva covers hit vs zero (newest merge, or MERGED=<file>)"
@@ -228,11 +231,11 @@ cov_all: clean_cov
 # soak: every seed runs, failures included; evidence in SOAK_DIR (tracked),
 # per-run logs, event CSVs, coverage and covergroups in SOAK_RAW (gitignored).
 # A new soak replaces the previous one's files; SOAK_DIR/README.md is kept.
-# Built with SOAK_CHECKERS (pmic_top_sva alone by default, ~10x faster). Run 1
-# goes alone and builds SOAK_RAW/build; the rest run SOAK_JOBS at a time
-# through soak_run.sh, each in its own folder with seed = start time + run
-# number, so runs started together never share a seed. make replay rebuilds
-# with every checker, so a failing seed is re-examined in full.
+# Built with SOAK_CHECKERS (every checker by default; top for pmic_top_sva
+# alone, ~10x faster). Run 1 goes alone and builds SOAK_RAW/build; the rest
+# run SOAK_JOBS at a time through sim/scripts/soak_run.sh, each in its own folder with seed = start time + run
+# number, so runs started together never share a seed. make replay always
+# builds with every checker.
 soak:
 	@mkdir -p $(SOAK_RAW)
 	@rm -f $(SOAK_RAW)/run*.log $(SOAK_RAW)/events_run*.csv $(SOAK_RAW)/cov_run*.dat \
@@ -242,11 +245,11 @@ soak:
 	@echo "soak: $(SEEDS) runs x $(EVENTS) events, $(SOAK_JOBS) at a time, checkers: $(SOAK_CHECKERS) - started $$(date)" \
 	    | tee $(SOAK_DIR)/results.txt
 	@base=$$(date +%s); \
-	export TB_DIR=$(TB_DIR) SOAK_RAW=$(SOAK_RAW) EVENTS=$(EVENTS) \
-	       CHECKERS=$(SOAK_CHECKERS) SIM_BUILD=$(SOAK_RAW)/build; \
+	export SUITE_MAKEFILE=$(TB_DIR)/Makefile SOAK_RAW=$(SOAK_RAW) SIM_BUILD=$(SOAK_RAW)/build \
+	       SOAK_ARGS="$(RANDOM_ARGS) CHECKERS=$(SOAK_CHECKERS)"; \
 	echo "  run 1 builds the simulation first, then $(SOAK_JOBS) at a time"; \
-	bash $(TB_DIR)/soak_run.sh 1 $$base | tee -a $(SOAK_RAW)/runs.txt; \
-	seq 2 $(SEEDS) | xargs -r -P $(SOAK_JOBS) -I{} bash $(TB_DIR)/soak_run.sh {} $$base \
+	bash $(SOAK_RUN) 1 $$base | tee -a $(SOAK_RAW)/runs.txt; \
+	seq 2 $(SEEDS) | xargs -r -P $(SOAK_JOBS) -I{} bash $(SOAK_RUN) {} $$base \
 	    | tee -a $(SOAK_RAW)/runs.txt
 	@sort -t' ' -k2,2n $(SOAK_RAW)/runs.txt >> $(SOAK_DIR)/results.txt
 	@echo "soak: finished $$(date)" | tee -a $(SOAK_DIR)/results.txt

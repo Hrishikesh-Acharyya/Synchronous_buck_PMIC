@@ -91,6 +91,12 @@ TESTS_PASSED := { test -f results.xml && grep -q '<testcase' results.xml && ! gr
 SEEDS  ?= 5
 EVERY  ?= 10
 
+# SOAK_JOBS: soak runs simulated at once - every core by default; each run is
+#            single-threaded
+# SOAK_RUN: one soak run, shared with pmic_top's soak
+SOAK_JOBS ?= $(shell nproc 2>/dev/null || echo 1)
+SOAK_RUN  := $(REPO)/sim/scripts/soak_run.sh
+
 # RANDOM_TEST: the constrained-random test's name, used by every target below
 RANDOM_TEST := random_walk
 
@@ -109,7 +115,7 @@ help:
 	@echo "  make quick                   random_walk once, 30 events - while editing"
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
-	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; evidence in soak/, per-run files in soak/raw/"
+	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), never stops; evidence in soak/"
 	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged - the true coverage picture; evidence in coverage/"
 	@echo "  make cov_zero                list covers no merged run has reached (newest merge, or MERGED=<file>)"
 	@echo "  make cov_summary             covers hit vs zero, per checker (newest merge, or MERGED=<file>)"
@@ -203,29 +209,32 @@ cov_all: clean_cov
 # Per-run files - runN.log, events_runN.csv, cov_runN.dat and fcov_runN.xml
 # (the run's functional coverage) - go to SOAK_RAW
 # (gitignored, kept on disk). A new soak replaces the previous soak's files;
-# SOAK_DIR/README.md is never touched.
+# SOAK_DIR/README.md is never touched. Run 1 goes alone and builds
+# SOAK_RAW/build; the rest run SOAK_JOBS at a time through
+# sim/scripts/soak_run.sh, each in its own folder with seed = start time + run
+# number, so runs started together never share a seed.
 soak:
 	@mkdir -p $(SOAK_RAW)
-	@rm -f soak/raw/run*.log soak/raw/events_run*.csv soak/raw/cov_run*.dat soak/raw/fcov_run*.xml \
-	       soak/results.txt soak/summary.txt soak/all_events.csv soak/merged.dat \
-	       soak/functional_coverage.xml
-	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
-	@for run in $$(seq 1 $(SEEDS)); do \
-	    $(RUN_FRESH) if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
-	           RANDOM_CSV=$(CURDIR)/$(SOAK_RAW)/events_run$$run.csv \
-	           FCOV_XML=$(CURDIR)/$(SOAK_RAW)/fcov_run$$run.xml > $(SOAK_RAW)/run$$run.log 2>&1 \
-	       && $(TESTS_PASSED); \
-	    then status=PASS; else status=FAIL; fi; \
-	    seed=$$(grep -o 'SEED=[0-9]*' $(SOAK_RAW)/run$$run.log | head -1); \
-	    echo "run $$run: $$status $$seed" | tee -a $(SOAK_DIR)/results.txt; \
-	    if [ -f coverage.dat ]; then cp coverage.dat $(SOAK_RAW)/cov_run$$run.dat; fi; \
-	done
+	@rm -f $(SOAK_RAW)/run*.log $(SOAK_RAW)/events_run*.csv $(SOAK_RAW)/cov_run*.dat \
+	       $(SOAK_RAW)/fcov_run*.xml $(SOAK_RAW)/runs.txt \
+	       $(SOAK_DIR)/results.txt $(SOAK_DIR)/summary.txt $(SOAK_DIR)/all_events.csv \
+	       $(SOAK_DIR)/merged.dat $(SOAK_DIR)/functional_coverage.xml
+	@echo "soak: $(SEEDS) runs x $(EVENTS) events, $(SOAK_JOBS) at a time - started $$(date)" \
+	    | tee $(SOAK_DIR)/results.txt
+	@base=$$(date +%s); \
+	export SUITE_MAKEFILE=$(TB_DIR)/Makefile SOAK_RAW=$(abspath $(SOAK_RAW)) \
+	       SIM_BUILD=$(abspath $(SOAK_RAW))/build SOAK_ARGS="$(RANDOM_ARGS)"; \
+	echo "  run 1 builds the simulation first, then $(SOAK_JOBS) at a time"; \
+	bash $(SOAK_RUN) 1 $$base | tee $(SOAK_RAW)/runs.txt; \
+	seq 2 $(SEEDS) | xargs -r -P $(SOAK_JOBS) -I{} bash $(SOAK_RUN) {} $$base \
+	    | tee -a $(SOAK_RAW)/runs.txt
+	@sort -t' ' -k2,2n $(SOAK_RAW)/runs.txt >> $(SOAK_DIR)/results.txt
 	@echo "soak: finished $$(date)" | tee -a $(SOAK_DIR)/results.txt
 	@verilator_coverage --write $(SOAK_DIR)/merged.dat $(SOAK_RAW)/cov_run*.dat
 	@$(MAKE) --no-print-directory cov_summary MERGED=$(SOAK_DIR)/merged.dat  > $(SOAK_DIR)/summary.txt
 	@echo "zero-hit covers:"                                                 >> $(SOAK_DIR)/summary.txt
 	@$(MAKE) --no-print-directory cov_zero    MERGED=$(SOAK_DIR)/merged.dat >> $(SOAK_DIR)/summary.txt
-	@awk 'FNR == 1 && NR != 1 { next } { print }' $(SOAK_RAW)/events_run*.csv > $(SOAK_DIR)/all_events.csv
+	@awk 'FNR == 1 && NR != 1 { next } { print }' $$(ls $(SOAK_RAW)/events_run*.csv | sort -V) > $(SOAK_DIR)/all_events.csv
 	@python3 $(TB_DIR)/fcov_report.py merge $(SOAK_DIR)/functional_coverage.xml $(SOAK_RAW)/fcov_run*.xml
 	@echo "functional coverage (covergroups):"                                >> $(SOAK_DIR)/summary.txt
 	@python3 $(TB_DIR)/fcov_report.py report $(SOAK_DIR)/functional_coverage.xml >> $(SOAK_DIR)/summary.txt

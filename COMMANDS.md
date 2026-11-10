@@ -99,6 +99,20 @@ The testbench's clock is read from `CLK_HZ` in `rtl-systemverilog/pkg/pmic_types
 | `make equiv_host_if` | the same suite on the sv2v output (`SPLIT=1`: on `rtl-verilog/`) |
 | `make tb_host_if HOSTIF_EVENTS=1000` | a longer `random_walk` inside the suite (default 400) |
 
+## Soaks and the complete verification
+
+A soak is a long constrained-random sweep of one cocotb suite: many seeds, each a `random_walk` checked against the suite's model, run one seed per CPU core (`nproc` shows how many). A soak never stops on a failing seed; the target fails at the end if any seed did, and lists them. The evidence lands in the suite's `soak/` folder, exactly as when the soak is run from there (see its `soak/README.md`).
+
+| Command | What it does |
+|---|---|
+| `make soak_host_if` | host_if soak, 100 seeds x 200 events (`HOSTIF_SOAK_SEEDS`, `HOSTIF_SOAK_EVENTS`) |
+| `make soak_top_cocotb` | pmic_top soak, 64 seeds x 200 events with every checker bound (`TOPCOCO_SOAK_SEEDS`, `TOPCOCO_SOAK_EVENTS`; `TOPCOCO_SOAK_CHECKERS=top` binds `pmic_top_sva` alone, about ten times faster) |
+| `make soak_all` | both soaks, one after the other - each already uses every core |
+| `make verify_all` | **the complete verification in one command**: `make ci` (lint, conversion checks, every testbench in both flows - unit, integration, host_if, pmic_top), then `make soak_all`. Hours. |
+| `... SOAK_JOBS=4` | on any soak target: use 4 cores instead of all, to keep the machine usable |
+
+Rough wall time, total ≈ seeds x minutes per seed / cores: a host_if seed of 200 events takes about 3 minutes; a pmic_top seed of 200 events about 10 minutes with every checker (about 1 with `top`). On 8 cores the default `soak_all` is therefore about 40 + 80 minutes.
+
 The suite's own random-test targets - `soak`, `cov_all`, `replay` - are run from `tb/telemetry/host_if`; see its `COMMANDS.md`.
 
 ## Lint and script checks
