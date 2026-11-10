@@ -31,11 +31,11 @@ The model keeps simulation time: each enabling input becomes effective after its
 | `make replay SEED=<n> EVENTS=<n>` | rerun the exact walk the log names |
 | `make random_seeds` | `SEEDS` walks (default 5), stop at the first failure, merge SVA and covergroup coverage into `cov/` |
 | `make cov_all` | the whole suite once plus `SEEDS` walks, merged; the summary goes to `coverage/summary.txt` (tracked) |
-| `make soak SEEDS=<n> EVENTS=<n>` | unattended sweep that never stops on a failure; evidence in `soak/` (tracked), per-run files in `soak/raw/`. A run is PASS only if its `results.xml` has a test and no failure - cocotb 1.x exits 0 even when a test fails |
+| `make soak SEEDS=<n> EVENTS=<n>` | unattended sweep that never stops on a failure; evidence in `soak/` (tracked), per-run files in `soak/raw/`. Runs `SOAK_JOBS` at a time (default every core) and builds with `pmic_top_sva` only (`SOAK_CHECKERS=all` for every block checker too, ~10x slower). A run is PASS only if its `results.xml` has a test and no failure - cocotb 1.x exits 0 even when a test fails |
 | `make cov_summary` / `make cov_zero` | `pmic_top_sva` covers hit, and the ones at zero, in the newest merge (or `MERGED=<file>`) |
 | `make clean_cov` | delete `cov/`'s files; soak evidence is kept |
 
-A walk event costs 1 to 22 ms of simulated time (a switch or reset waits out the 20 ms debounce; a clean-run event about 100 ms), about 5 ms on average. At roughly 2 ms simulated per second, 30 events take a minute or two and a 200-event soak run about 10 minutes.
+A walk event costs 1 to 22 ms of simulated time (a switch or reset waits out the 20 ms debounce; a clean-run event about 100 ms), about 5 ms on average. With every checker bound the simulation runs about 1.5 ms per second - the 19 block checkers take ~90 % of it; with `pmic_top_sva` alone (the soak's build) about 13 ms per second. A 150-event soak run is then about a minute, and the soak runs one per core.
 
 ## Tests
 

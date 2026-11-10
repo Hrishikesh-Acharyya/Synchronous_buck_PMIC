@@ -29,7 +29,7 @@ The model now has both, `host_disable_and_enable` checks the second directly, an
 
 ```bash
 cd tb/top/pmic_top
-make soak SEEDS=30 EVENTS=150
+make soak SEEDS=200 EVENTS=200
 ```
 
-A walk event averages about 5 ms of simulated time, so a 150-event run takes roughly 12 minutes and 30 runs about six hours.
+The soak builds with `pmic_top_sva` alone (the block checkers are ~90 % of simulation time; each block was closed by its own testbench, and the full set runs in CI and in `make replay`) and runs one seed per core. A 200-event run takes about a minute and a half, so 200 runs on 8 cores take about 40 minutes. `SOAK_CHECKERS=all` keeps every block checker, about ten times slower.

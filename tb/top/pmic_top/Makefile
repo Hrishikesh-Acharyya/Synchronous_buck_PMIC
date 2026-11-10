@@ -56,6 +56,20 @@ HOSTIF_DIR := $(REPO)/tb/telemetry/host_if
 #               its run checks pins only; see COMMANDS.md.
 TELEMETRY_EN ?= 1
 
+# CHECKERS: the bound checkers the build carries.
+#   all (default) - every block's checker plus pmic_top_sva, exactly as the
+#                   sim/ flow builds it
+#   top           - pmic_top_sva alone (bind_top_only.sv), about ten times
+#                   faster: the block checkers cost ~90 % of the simulation.
+#                   The soak's default (SOAK_CHECKERS); each block was closed
+#                   by its own testbench, and every other target keeps all.
+#   A top build gets its own SIM_BUILD, so the two never overwrite each other.
+CHECKERS ?= all
+ifeq ($(CHECKERS),top)
+SVA_SRCS  := $(REPO)/sva/sva_pkg.sv $(REPO)/sva/top/pmic_top_sva.sv $(TB_DIR)/bind_top_only.sv
+SIM_BUILD ?= sim_build_top
+endif
+
 # ==============================================================================
 # cocotb
 # ==============================================================================
@@ -115,6 +129,13 @@ RUN_FRESH    := rm -f results.xml;
 TESTS_PASSED := { test -f results.xml && grep -q '<testcase' results.xml && ! grep -q -E '<failure|<error' results.xml; }
 SEEDS  ?= 5
 
+# SOAK_JOBS: soak runs simulated at once - every core by default; each run is
+#            single-threaded
+# SOAK_CHECKERS: the checker set the soak builds with (see CHECKERS) - top by
+#            default, SOAK_CHECKERS=all for every block's checker as well
+SOAK_JOBS     ?= $(shell nproc 2>/dev/null || echo 1)
+SOAK_CHECKERS ?= top
+
 # RANDOM_TEST: the constrained-random test's name
 RANDOM_TEST := random_walk
 
@@ -139,7 +160,7 @@ help:
 	@echo "  make quick                   random_walk once, 8 events - while editing"
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
-	@echo "  make soak                    unattended SEEDS x EVENTS sweep, never stops; evidence in soak/, per-run files in soak/raw/"
+	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), pmic_top_sva only (SOAK_CHECKERS=all for every checker); evidence in soak/"
 	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged; evidence in coverage/"
 	@echo "  make cov_zero                list pmic_top_sva covers no merged run has reached"
 	@echo "  make cov_summary             pmic_top_sva covers hit vs zero (newest merge, or MERGED=<file>)"
@@ -207,28 +228,33 @@ cov_all: clean_cov
 # soak: every seed runs, failures included; evidence in SOAK_DIR (tracked),
 # per-run logs, event CSVs, coverage and covergroups in SOAK_RAW (gitignored).
 # A new soak replaces the previous one's files; SOAK_DIR/README.md is kept.
+# Built with SOAK_CHECKERS (pmic_top_sva alone by default, ~10x faster). Run 1
+# goes alone and builds SOAK_RAW/build; the rest run SOAK_JOBS at a time
+# through soak_run.sh, each in its own folder with seed = start time + run
+# number, so runs started together never share a seed. make replay rebuilds
+# with every checker, so a failing seed is re-examined in full.
 soak:
 	@mkdir -p $(SOAK_RAW)
 	@rm -f $(SOAK_RAW)/run*.log $(SOAK_RAW)/events_run*.csv $(SOAK_RAW)/cov_run*.dat \
-	       $(SOAK_RAW)/fcov_run*.xml $(SOAK_DIR)/results.txt $(SOAK_DIR)/summary.txt \
-	       $(SOAK_DIR)/all_events.csv $(SOAK_DIR)/merged.dat $(SOAK_DIR)/functional_coverage.xml
-	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
-	@for run in $$(seq 1 $(SEEDS)); do \
-	    $(RUN_FRESH) if $(MAKE) --no-print-directory -f $(TB_DIR)/Makefile $(RANDOM_ARGS) \
-	           RANDOM_CSV=$(SOAK_RAW)/events_run$$run.csv \
-	           FCOV_XML=$(SOAK_RAW)/fcov_run$$run.xml > $(SOAK_RAW)/run$$run.log 2>&1 \
-	       && $(TESTS_PASSED); \
-	    then status=PASS; else status=FAIL; fi; \
-	    seed=$$(grep -o 'SEED=[0-9]*' $(SOAK_RAW)/run$$run.log | head -1); \
-	    echo "run $$run: $$status $$seed" | tee -a $(SOAK_DIR)/results.txt; \
-	    if [ -f coverage.dat ]; then cp coverage.dat $(SOAK_RAW)/cov_run$$run.dat; fi; \
-	done
+	       $(SOAK_RAW)/fcov_run*.xml $(SOAK_RAW)/runs.txt $(SOAK_DIR)/results.txt \
+	       $(SOAK_DIR)/summary.txt $(SOAK_DIR)/all_events.csv $(SOAK_DIR)/merged.dat \
+	       $(SOAK_DIR)/functional_coverage.xml
+	@echo "soak: $(SEEDS) runs x $(EVENTS) events, $(SOAK_JOBS) at a time, checkers: $(SOAK_CHECKERS) - started $$(date)" \
+	    | tee $(SOAK_DIR)/results.txt
+	@base=$$(date +%s); \
+	export TB_DIR=$(TB_DIR) SOAK_RAW=$(SOAK_RAW) EVENTS=$(EVENTS) \
+	       CHECKERS=$(SOAK_CHECKERS) SIM_BUILD=$(SOAK_RAW)/build; \
+	echo "  run 1 builds the simulation first, then $(SOAK_JOBS) at a time"; \
+	bash $(TB_DIR)/soak_run.sh 1 $$base | tee -a $(SOAK_RAW)/runs.txt; \
+	seq 2 $(SEEDS) | xargs -r -P $(SOAK_JOBS) -I{} bash $(TB_DIR)/soak_run.sh {} $$base \
+	    | tee -a $(SOAK_RAW)/runs.txt
+	@sort -t' ' -k2,2n $(SOAK_RAW)/runs.txt >> $(SOAK_DIR)/results.txt
 	@echo "soak: finished $$(date)" | tee -a $(SOAK_DIR)/results.txt
 	@verilator_coverage --write $(SOAK_DIR)/merged.dat $(SOAK_RAW)/cov_run*.dat
 	@$(MAKE) --no-print-directory -f $(TB_DIR)/Makefile cov_summary MERGED=$(SOAK_DIR)/merged.dat  > $(SOAK_DIR)/summary.txt
 	@echo "zero-hit covers:"                                                                       >> $(SOAK_DIR)/summary.txt
 	@$(MAKE) --no-print-directory -f $(TB_DIR)/Makefile cov_zero    MERGED=$(SOAK_DIR)/merged.dat >> $(SOAK_DIR)/summary.txt
-	@awk 'FNR == 1 && NR != 1 { next } { print }' $(SOAK_RAW)/events_run*.csv > $(SOAK_DIR)/all_events.csv
+	@awk 'FNR == 1 && NR != 1 { next } { print }' $$(ls $(SOAK_RAW)/events_run*.csv | sort -V) > $(SOAK_DIR)/all_events.csv
 	@$(FCOV) merge $(SOAK_DIR)/functional_coverage.xml $(SOAK_RAW)/fcov_run*.xml
 	@echo "functional coverage (covergroups):"                  >> $(SOAK_DIR)/summary.txt
 	@$(FCOV) report $(SOAK_DIR)/functional_coverage.xml          >> $(SOAK_DIR)/summary.txt
