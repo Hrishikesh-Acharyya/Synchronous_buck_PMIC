@@ -277,7 +277,10 @@ async def host_disable_and_enable(dut):
 
     """
     Purpose: The host vetoes the converter with a keyed disable over SPI and
-             releases it with a plain enable; the converter follows.
+             releases it with a plain enable; the converter follows. Then the
+             physical switch's precedence: with the host's disable in force,
+             switching off and on again re-enables the host enable and starts
+             the converter.
     """
     model = SupervisorModel()
     failures_before = await start(dut, model)
@@ -289,6 +292,18 @@ async def host_disable_and_enable(dut):
     await host_enable(dut, model)
     await wait_ms(dut, model, 1)
     await check(dut, model)
+
+    # the physical switch outranks the host: turning it on cancels a host
+    # disable (reg_file applies en_switch_rise last), so the converter starts
+    await host_disable(dut, model)
+    await set_knob(dut, model, "en_from_switch", 0)
+    await wait_ms(dut, model, SETTLE_START_MS)
+    await check(dut, model)
+    assert not model.host_enable
+    await set_knob(dut, model, "en_from_switch", 1)
+    await settle(dut, model, SETTLE_START_MS)
+    await check(dut, model)
+    assert model.host_enable and model.state() == S_RUN
 
     await check_sva(dut, failures_before)
 
@@ -843,8 +858,9 @@ async def random_walk(dut):
                wait            1 to 12 ms of steady board
                thresholds      a live write of TRIP_RUN, TRIP_SS and
                                MAX_STRIKES - raw values, clamped by reg_file
-               glitch          a sub-debounce disturbance the model is not
-                               told about: the board must not change
+               glitch          a sub-debounce disturbance: against a settled
+                               input the board must not change; during that
+                               input's own debounce it restarts the count
                fault_in_hiccup a trip, then OTP, UVLO, a host disable, the
                                OVP or the reset button during the cool-down
                clean_run       run past the clean-run window: strikes clear
@@ -932,6 +948,7 @@ async def random_walk(dut):
         if kind in ["switch", "otp", "uvlo"]:
             knob  = {"switch": "en_from_switch", "otp": "OTP_trig", "uvlo": "UVLO_trig"}[kind]
             value = 1 - int(getattr(dut, knob).value)
+            host_was_disabled = not model.host_enable
             await set_knob(dut, model, knob, value)
             note = f"{knob}={value}"
             await settle(dut, model, SETTLE_START_MS if kind == "switch" else SETTLE_FAULT_MS)
@@ -939,6 +956,8 @@ async def random_walk(dut):
                 fcov.sample_stop(kind, "run")
             if not was_running and model.state() == S_RUN:
                 fcov.sample_recovery("switch_on" if kind == "switch" else "fault_cleared")
+            if kind == "switch" and value and host_was_disabled and model.host_enable:
+                fcov.sample_recovery("switch_over_host")
 
         elif kind == "host":
             if model.host_enable:
@@ -1021,10 +1040,12 @@ async def random_walk(dut):
                     clocks, name = ms_clocks(0.8 * FAULT_ASSERT_MS), f"{glitch}_pulse"
                 else:
                     clocks, name = ms_clocks(0.5 * FAULT_RELEASE_MS), f"{glitch}_dropout"
+            started = model.clock()
             await glitch_knob(dut, knob, level, clocks)
-            fcov.sample_glitch(name)
-            note = name
-            await wait_ms(dut, model, 0.5)
+            pending = model.glitch(glitch, started, model.clock())
+            fcov.sample_glitch(name, pending)
+            note = name + (" during a debounce" if pending else "")
+            await settle(dut, model, 0.5)
 
         elif kind == "fault_in_hiccup":
             stop = random.choice(["otp", "uvlo", "host", "ovp", "reset"])

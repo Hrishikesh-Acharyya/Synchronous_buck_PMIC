@@ -39,7 +39,7 @@ to the 10-event window before the last `scoreboard check` line.
 |---|---|
 | `make random_seeds` | `SEEDS` runs (default 5), stops at the first failure, merges coverage |
 | `make random_seeds SEEDS=20 EVENTS=200` | a bigger sweep |
-| `make soak SEEDS=40 EVENTS=200` | unattended sweep that never stops on a failure; evidence in `soak/` (see `soak/README.md`) |
+| `make soak SEEDS=40 EVENTS=200` | unattended sweep that never stops on a failure; evidence in `soak/` (see `soak/README.md`). A run is PASS only if its `results.xml` has a test and no failure - cocotb 1.x exits 0 even when a test fails |
 | `make cov_all` | the whole suite once, plus `SEEDS` random runs, merged into `cov/merged_all.dat`. This is the real coverage picture; target: no zero-hit covers. Its summary - SVA covers and covergroups - is written to `coverage/summary.txt` |
 | `make cov_summary` | per checker: covers hit vs at zero, across the merged runs |
 | `make cov_zero` | the zero-hit covers, one per line as `<hierarchy>.<cover>  (<checker>.sv:<line>)` — the to-do list for stimulus |

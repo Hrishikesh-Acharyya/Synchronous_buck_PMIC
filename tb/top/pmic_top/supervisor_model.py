@@ -80,6 +80,11 @@ class SupervisorModel():
         self.run_entry    = None
         # rail_good_at: when the rail comparator last returned to good
         self.rail_good_at = now
+        # switch_rise_at: when the debounced switch will rise, if a turn-on is
+        #                 still being debounced. That edge re-enables the host
+        #                 enable (reg_file: en_switch_rise wins over a host
+        #                 disable), so it is tracked for its own sake.
+        self.switch_rise_at = None
 
     # ---- timers ----
 
@@ -178,9 +183,17 @@ class SupervisorModel():
     def _sync(self):
 
         """
-        Purpose: Apply what time alone does: a clean run as long as the window
-                 clears the strikes. Called before every event and prediction.
+        Purpose: Apply what time alone does: the debounced switch rise, which
+                 re-enables the host enable, and a clean run as long as the
+                 window clears the strikes. Called before every event and
+                 prediction.
         """
+        if self.switch_rise_at is not None and self.clock() >= self.switch_rise_at:
+            rise, self.switch_rise_at = self.switch_rise_at, None
+            if not self.host_enable:
+                self.host_enable = 1
+                self.ready_at["host"] = rise
+                self._changed()
         if self.run_entry is not None and self.strikes and not self.latched():
             if self.clock() - self.run_entry >= self.clean_run_ms + BOUNDARY_MARGIN_MS:
                 self.strikes = 0
@@ -233,6 +246,7 @@ class SupervisorModel():
         self._sync()
         if int(on) != self.switch:
             self.ready_at["switch"] = self.clock() + SWITCH_DEBOUNCE_MS
+            self.switch_rise_at = self.ready_at["switch"] if on else None
         self.switch = int(on)
         self._changed()
 
@@ -261,6 +275,33 @@ class SupervisorModel():
         if int(good) and not self.pgood_comp:
             self.rail_good_at = self.clock()
         self.pgood_comp = int(good)
+
+    def glitch(self, which, start_ms, end_ms):
+
+        """
+        Purpose: A sub-debounce glitch on one input ("switch", "otp" or
+                 "uvlo"), from start_ms to end_ms, driven to the opposite of
+                 the knob's level. Against a settled input it changes
+                 nothing. While that input's own transition is still being
+                 debounced, though, the glitch drives it back to the level the
+                 design still holds, and input_debounce restarts its count
+                 from zero (its documented disagreement-counter rule): the
+                 transition then lands a full debounce after the glitch ends.
+                 Returns whether the glitch caught a debounce in progress.
+        """
+        self._sync()
+        if start_ms >= self.ready_at[which]:
+            return False
+        if which == "switch":
+            delay = SWITCH_DEBOUNCE_MS
+        else:
+            delay = FAULT_ASSERT_MS if getattr(self, which) else FAULT_RELEASE_MS
+        self.ready_at[which] = end_ms + delay
+        if which == "switch" and self.switch_rise_at is not None:
+            self.switch_rise_at = self.ready_at["switch"]
+        if self.allowed() and self.run_entry is not None:
+            self.run_entry = max(self.ready_at.values()) + self.ramp_ms()
+        return True
 
     def set_max_strikes(self, raw):
 
@@ -341,6 +382,7 @@ class SupervisorModel():
         self.switch, self.otp, self.uvlo, self.pgood_comp = board
         now = self.clock()
         self.ready_at["switch"] = now + (SWITCH_DEBOUNCE_MS if self.switch else 0)
+        self.switch_rise_at = self.ready_at["switch"] if self.switch else None
         self.ready_at["otp"]    = now + FAULT_RELEASE_MS
         self.ready_at["uvlo"]   = now + FAULT_RELEASE_MS
         self._changed()

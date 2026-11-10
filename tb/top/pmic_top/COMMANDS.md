@@ -31,7 +31,7 @@ The model keeps simulation time: each enabling input becomes effective after its
 | `make replay SEED=<n> EVENTS=<n>` | rerun the exact walk the log names |
 | `make random_seeds` | `SEEDS` walks (default 5), stop at the first failure, merge SVA and covergroup coverage into `cov/` |
 | `make cov_all` | the whole suite once plus `SEEDS` walks, merged; the summary goes to `coverage/summary.txt` (tracked) |
-| `make soak SEEDS=<n> EVENTS=<n>` | unattended sweep that never stops on a failure; evidence in `soak/` (tracked), per-run files in `soak/raw/` |
+| `make soak SEEDS=<n> EVENTS=<n>` | unattended sweep that never stops on a failure; evidence in `soak/` (tracked), per-run files in `soak/raw/`. A run is PASS only if its `results.xml` has a test and no failure - cocotb 1.x exits 0 even when a test fails |
 | `make cov_summary` / `make cov_zero` | `pmic_top_sva` covers hit, and the ones at zero, in the newest merge (or `MERGED=<file>`) |
 | `make clean_cov` | delete `cov/`'s files; soak evidence is kept |
 
@@ -47,7 +47,7 @@ A walk event costs 1 to 22 ms of simulated time (a switch or reset waits out the
 | `overcurrent_hiccup_and_retry` | one trip: hiccup, retry, one strike outstanding |
 | `persistent_overcurrent_latches` | strikes to the latch; no restart; the reset button recovers |
 | `otp_and_uvlo_stop_and_recover` | each fault from S_RUN and back |
-| `host_disable_and_enable` | keyed host disable and enable over SPI |
+| `host_disable_and_enable` | keyed host disable and enable over SPI; then the switch's precedence: switching off and on cancels a host disable |
 | `analog_ovp_trip` | the SCR tripped by the board, not the CPLD |
 | `switch_off_and_on` | the physical switch |
 | `strikes_clear_after_clean_run` | a strike forgotten after the 100 ms clean window |
@@ -83,7 +83,7 @@ From a settled S_RUN, `RANDOM_EVENTS` events (12 inside `make` and the outer flo
 | `reset` | the reset button, then the fast timers again |
 | `wait` | 1 to 12 ms of steady board |
 | `thresholds` | a live write of TRIP_RUN, TRIP_SS, MAX_STRIKES, raw values including out-of-range ones |
-| `glitch` | a sub-debounce disturbance the model is not told about |
+| `glitch` | a sub-debounce disturbance: against a settled input nothing may change; during that input's own debounce (for example the switch's 20 ms after a reset) it restarts the count, and the model moves the expected transition to a full debounce after the glitch |
 | `fault_in_hiccup` | a trip, then OTP, UVLO, a host disable, the OVP or the reset button during the cool-down |
 | `clean_run` | run past the clean-run window, so the strikes clear |
 
@@ -94,9 +94,9 @@ Covergroups (`top_coverage.py`):
 | `pmic_top.event` | every event kind from every condition (off, running, latched) |
 | `pmic_top.stop` | switch, host, OTP, UVLO, OVP, strike latch, reset - from S_RUN and from mid-hiccup |
 | `pmic_top.strike` | strike level 1-3 under MAX_STRIKES 1-3, latched or not |
-| `pmic_top.recovery` | hiccup retry, fault cleared, host enable, switch on, reset button, strikes forgotten |
+| `pmic_top.recovery` | hiccup retry, fault cleared, host enable, switch on, reset button, strikes forgotten, switch overriding a host disable |
 | `pmic_top.latch` | SCR tripped by the strike count or the OVP, running or off |
-| `pmic_top.filter` | every glitch kind rejected |
+| `pmic_top.filter` | every glitch kind, and whether it caught a debounce in progress |
 | `pmic_top.pgood` | PGOOD qualified, dropped by the rail, dropped by leaving S_RUN |
 
 ## The board model (`pmic_top_harness.sv`)

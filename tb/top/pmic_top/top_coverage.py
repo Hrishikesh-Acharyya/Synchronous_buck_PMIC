@@ -13,7 +13,8 @@
 #                                       MAX_STRIKES limit, and whether it latched
 #                     pmic_top.recovery every way a stopped converter comes back
 #                     pmic_top.latch    who tripped the SCR, running or off
-#                     pmic_top.filter   every glitch the debouncers must reject
+#                     pmic_top.filter   every glitch the debouncers must reject,
+#                                       against a settled input and mid-debounce
 #                     pmic_top.pgood    PGOOD qualified, dropped by the rail,
 #                                       dropped by leaving S_RUN
 #                   The SVA covers say a scenario happened at signal level;
@@ -39,9 +40,11 @@ STOP_FROM      = ["run", "hiccup"]
 # STRIKE_LEVELS / MAX_LIMITS: strike_level after a trip, and MAX_STRIKES in force
 STRIKE_LEVELS  = [1, 2, 3]
 MAX_LIMITS     = [1, 2, 3]
-# RECOVERY_PATHS: how a stopped or struck converter returned to normal
+# RECOVERY_PATHS: how a stopped or struck converter returned to normal;
+#                 switch_over_host is a switch turn-on that also cancelled a
+#                 host disable
 RECOVERY_PATHS = ["hiccup_retry", "fault_cleared", "host_enable", "switch_on", "reset_button",
-                  "strikes_forgotten"]
+                  "strikes_forgotten", "switch_over_host"]
 # LATCH_SOURCES / LATCH_WHEN: who tripped the SCR, and whether the converter
 #                             was running
 LATCH_SOURCES  = ["strikes", "ovp"]
@@ -126,11 +129,13 @@ def sample_latch(source, when):
     pass
 
 
-@CoverPoint("pmic_top.filter.glitch", xf=lambda kind: kind, bins=GLITCH_KINDS)
-def sample_glitch(kind):
+@CoverPoint("pmic_top.filter.glitch",  xf=lambda kind, pending: kind,    bins=GLITCH_KINDS)
+@CoverPoint("pmic_top.filter.pending", xf=lambda kind, pending: pending, bins=[False, True])
+def sample_glitch(kind, pending):
 
     """
-    Purpose: Sample one rejected glitch.
+    Purpose: Sample one sub-debounce glitch, and whether it caught that
+             input's debounce in progress (and so restarted it).
     """
     pass
 

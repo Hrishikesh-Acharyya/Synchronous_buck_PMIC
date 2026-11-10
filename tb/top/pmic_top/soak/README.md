@@ -16,7 +16,14 @@ Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`, `fcov_runN.xml`) a
 
 ## Latest soak
 
-Not run yet.
+Not run yet on the current testbench.
+
+The first soak (10 Nov, 30 runs x 150 events) is not evidence. 21 of its 30 runs failed but were recorded as PASS: the soak judged a run by make's exit status, and cocotb 1.x exits 0 when a test fails. Its 109/109 covergroup bins came from the 9 runs that finished. All 21 failures were the testbench's model, not the RTL, missing two documented behaviours:
+
+- a glitch that arrives while that input is still being debounced (the switch's 20 ms after a reset, typically) restarts the count, so the transition lands a full debounce after the glitch;
+- a debounced switch turn-on re-enables the host enable, cancelling a host disable (reg_file applies `en_switch_rise` last).
+
+The model now has both, `host_disable_and_enable` checks the second directly, and a run now passes only if its `results.xml` holds a test and no failure.
 
 ## Reproducing
 

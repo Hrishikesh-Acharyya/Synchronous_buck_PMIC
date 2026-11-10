@@ -80,6 +80,14 @@ include $(shell cocotb-config --makefiles)/Makefile.sim
 # ==============================================================================
 
 EVENTS ?= 30
+
+# TESTS_PASSED: the verdict of the run just made, from cocotb's results.xml -
+#   at least one test, and no failure or error. make's own exit status is not
+#   enough: older cocotb (1.x) exits 0 even when a test fails, which once let
+#   a soak record failing runs as PASS. RUN_FRESH removes the previous
+#   results.xml first, so a run that writes none cannot borrow one.
+RUN_FRESH    := rm -f results.xml;
+TESTS_PASSED := { test -f results.xml && grep -q '<testcase' results.xml && ! grep -q -E '<failure|<error' results.xml; }
 SEEDS  ?= 5
 EVERY  ?= 10
 
@@ -147,7 +155,7 @@ random_seeds: clean_cov
 	@mkdir -p $(COV_DIR)
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    echo "==== random_seeds: run $$run of $(SEEDS) ===="; \
-	    $(MAKE) --no-print-directory $(RANDOM_ARGS) || exit 1; \
+	    $(RUN_FRESH) $(MAKE) --no-print-directory $(RANDOM_ARGS) && $(TESTS_PASSED) || exit 1; \
 	    cp coverage.dat $(COV_DIR)/cov_run$$run.dat; \
 	done
 	@verilator_coverage --write $(COV_DIR)/merged.dat $(COV_DIR)/cov_run*.dat
@@ -163,11 +171,11 @@ random_seeds: clean_cov
 cov_all: clean_cov
 	@mkdir -p $(COV_DIR) $(COVERAGE_DIR)
 	@echo "==== cov_all: full suite ===="
-	@$(MAKE) --no-print-directory FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_suite.xml || exit 1
+	@$(RUN_FRESH) $(MAKE) --no-print-directory FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_suite.xml && $(TESTS_PASSED) || exit 1
 	@cp coverage.dat $(COV_DIR)/cov_suite.dat
 	@for run in $$(seq 1 $(SEEDS)); do \
 	    echo "==== cov_all: random run $$run of $(SEEDS) ===="; \
-	    $(MAKE) --no-print-directory $(RANDOM_ARGS) FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_run$$run.xml || exit 1; \
+	    $(RUN_FRESH) $(MAKE) --no-print-directory $(RANDOM_ARGS) FCOV_XML=$(CURDIR)/$(COV_DIR)/fcov_run$$run.xml && $(TESTS_PASSED) || exit 1; \
 	    cp coverage.dat $(COV_DIR)/cov_run$$run.dat; \
 	done
 	@verilator_coverage --write $(COV_DIR)/merged_all.dat $(COV_DIR)/cov_suite.dat $(COV_DIR)/cov_run*.dat
@@ -203,9 +211,10 @@ soak:
 	       soak/functional_coverage.xml
 	@echo "soak: $(SEEDS) runs x $(EVENTS) events - started $$(date)" | tee $(SOAK_DIR)/results.txt
 	@for run in $$(seq 1 $(SEEDS)); do \
-	    if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
+	    $(RUN_FRESH) if $(MAKE) --no-print-directory $(RANDOM_ARGS) \
 	           RANDOM_CSV=$(CURDIR)/$(SOAK_RAW)/events_run$$run.csv \
-	           FCOV_XML=$(CURDIR)/$(SOAK_RAW)/fcov_run$$run.xml > $(SOAK_RAW)/run$$run.log 2>&1; \
+	           FCOV_XML=$(CURDIR)/$(SOAK_RAW)/fcov_run$$run.xml > $(SOAK_RAW)/run$$run.log 2>&1 \
+	       && $(TESTS_PASSED); \
 	    then status=PASS; else status=FAIL; fi; \
 	    seed=$$(grep -o 'SEED=[0-9]*' $(SOAK_RAW)/run$$run.log | head -1); \
 	    echo "run $$run: $$status $$seed" | tee -a $(SOAK_DIR)/results.txt; \
