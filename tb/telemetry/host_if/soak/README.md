@@ -17,7 +17,7 @@ Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`) are written to `ra
 ## Latest soak - the closing run for this module
 
 - **200 runs x 200 events = 40,000 random events**, 10 Nov 2026, 01:06 to 15:27, one seed at a time, on the current RTL (the S_OFF write-back change included).
-- **Every run complete**: all 200 seeds in `results.txt` reach event 200 in `all_events.csv`, so no read or scoreboard mismatch stopped a run. The run's final checks - the scoreboard at event 200 and the SVA verdict - come after its last CSV row, and this soak predates the change that judges a run by its `results.xml`; they are confirmed from the run logs (see below).
+- **200 of 200 runs passed**: every seed reaches event 200 in `all_events.csv`, and every run log ends `FAIL=0` with no `SVA FAIL` line - no read, scoreboard or assertion failure in any run. (This soak predates the change that judges a run by its `results.xml`, so the logs were checked for the final scoreboard and SVA verdict: 200 of 200 `FAIL=0`, 0 logs with an SVA failure.)
 - **Event mix**: reads 8,834; threshold writes 7,120; raw writes 5,380; control writes 4,183; SCRATCH 2,828; status-input changes 2,523; time steps 2,459; supervisor-state changes 2,429; broken writes 2,117; broken reads 1,096; switch pulses 1,031.
 - **Covergroups**: **83 of 83 bins hit** - every threshold verdict, including the new `writeback` (889 frames written back through the S_OFF-only registers while the converter ran, all accepted) and `not_off` (735 refused for changing one), in every supervisor state; every way a frame can end; every threshold register committed below, at and between its bounds.
 - **SVA covers**: `spi_slave_sva` 28 of 28; `reg_file_sva` 26 of 28. The two at zero, `c_arm_lapse` and `c_bus_err_saturated`, need a 1.4 ms SCK stall and 65,535 aborts; random traffic is not meant to produce either, and the directed tests `arm_key_lapses` and `bus_error_counter_saturates` hit both.
@@ -27,10 +27,10 @@ Per-run files (`runN.log`, `events_runN.csv`, `cov_runN.dat`) are written to `ra
 
 | Evidence | What it shows |
 |---|---|
-| this soak | 40,000 random events, every run complete, no anomaly in the audit; covergroups 83/83 |
+| this soak | 40,000 random events, 200 of 200 runs passed, no anomaly in the audit; covergroups 83/83 |
 | `../coverage/summary.txt` (`make cov_all`, 10 Nov, current RTL) | the directed tests plus random runs: SVA covers `reg_file_sva` 28/28, `spi_slave_sva` 28/28 |
 
-Together with the bound checkers (every assertion shown able to fail) and the reference model compared on every read and scoreboard check, the host interface - `spi_slave` and `reg_file` - is verified, once the run logs confirm every run's final checks passed.
+Together with the bound checkers (every assertion shown able to fail) and the reference model compared on every read and scoreboard check, the host interface - `spi_slave` and `reg_file` - is verified. **Closed 10 Nov 2026.**
 
 ## Reproducing
 
