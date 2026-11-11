@@ -941,6 +941,7 @@ async def random_walk(dut):
         kind = random.choices(list(weights), weights=list(weights.values()))[0]
         event_counts[kind] += 1
         before = condition()
+        dut._log.info(f"event {event_number}: applying {kind} ({before})")
         fcov.sample_event(kind, before)
         was_running = model.state() == S_RUN
         note = ""

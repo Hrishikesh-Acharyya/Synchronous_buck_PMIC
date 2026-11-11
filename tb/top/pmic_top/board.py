@@ -313,7 +313,8 @@ async def check(dut, model, telemetry=TELEMETRY, pgood_settled=None):
             if wanted is not None and actual != wanted:
                 mismatches.append(f"{name}: DUT {actual}, model {wanted}")
 
-    assert not mismatches, "board mismatch:\n" + "\n".join(mismatches)
+    assert not mismatches, ("board mismatch:\n" + "\n".join(mismatches)
+                            + "\nmodel timing: " + model.timing_report())
     return expected
 
 

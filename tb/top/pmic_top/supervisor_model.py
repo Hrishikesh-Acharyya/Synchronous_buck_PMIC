@@ -387,6 +387,20 @@ class SupervisorModel():
         self.ready_at["uvlo"]   = now + FAULT_RELEASE_MS
         self._changed()
 
+    def timing_report(self):
+
+        """
+        Purpose: The model's timing state, for a mismatch message: now, when
+                 each input becomes effective, the pending switch rise, the
+                 RUN entry - enough to tell a model gap from a design fault.
+        """
+        ready = ", ".join(f"{k} {v:.4f}" for k, v in self.ready_at.items())
+        rise = "none" if self.switch_rise_at is None else f"{self.switch_rise_at:.4f}"
+        entry = "none" if self.run_entry is None else f"{self.run_entry:.4f}"
+        return (f"now {self.clock():.4f} ms; ready_at {ready}; switch_rise_at {rise}; "
+                f"run_entry {entry}; knobs switch={self.switch} host={self.host_enable} "
+                f"otp={self.otp} uvlo={self.uvlo} scr={self.scr} latch_out={self.latch_out}")
+
     # ---- predictions ----
 
     def pgood_expected(self):
