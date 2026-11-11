@@ -32,6 +32,7 @@ The model keeps simulation time: each enabling input becomes effective after its
 | `make random_seeds` | `SEEDS` walks (default 5), stop at the first failure, merge SVA and covergroup coverage into `cov/` |
 | `make cov_all` | the whole suite once plus `SEEDS` walks, merged; the summary goes to `coverage/summary.txt` (tracked) |
 | `make soak SEEDS=<n> EVENTS=<n>` | unattended sweep that never stops on a failure; evidence in `soak/` (tracked), per-run files in `soak/raw/`. Runs `SOAK_JOBS` at a time (default every core) with every checker bound (`SOAK_CHECKERS=top`: `pmic_top_sva` alone, ~10x faster). From `sim/`: `make soak_top_cocotb`. A run is PASS only if its `results.xml` has a test and no failure - cocotb 1.x exits 0 even when a test fails |
+| `make audit_soak` | every soak event checked against the supervisor's documented rules, independently of the model (`audit_soak.py`) |
 | `make cov_summary` / `make cov_zero` | `pmic_top_sva` covers hit, and the ones at zero, in the newest merge (or `MERGED=<file>`) |
 | `make clean_cov` | delete `cov/`'s files; soak evidence is kept |
 

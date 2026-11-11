@@ -154,7 +154,7 @@ FCOV := python3 $(HOSTIF_DIR)/fcov_report.py
 #                   but its corner covers are its own testbench's job
 SVA_COVER_FILTER := pmic_top_sva
 
-.PHONY: help random quick replay random_seeds soak cov_all cov_zero cov_summary clean_cov check_merged
+.PHONY: help random quick replay random_seeds soak cov_all cov_zero cov_summary clean_cov check_merged audit_soak
 
 help:
 	@echo "pmic_top cocotb targets:"
@@ -164,6 +164,7 @@ help:
 	@echo "  make replay SEED=<n>         rerun random_walk with that seed (EVENTS must match)"
 	@echo "  make random_seeds            SEEDS=$(SEEDS) runs, stop at first failure, merge coverage"
 	@echo "  make soak                    unattended SEEDS x EVENTS sweep, SOAK_JOBS at a time (default every core), every checker (SOAK_CHECKERS=top: pmic_top_sva only, ~10x faster); evidence in soak/"
+	@echo "  make audit_soak              check every soak event against the supervisor's documented rules, independently of the model"
 	@echo "  make cov_all                 whole suite once + SEEDS random runs, merged; evidence in coverage/"
 	@echo "  make cov_zero                list pmic_top_sva covers no merged run has reached"
 	@echo "  make cov_summary             pmic_top_sva covers hit vs zero (newest merge, or MERGED=<file>)"
@@ -263,6 +264,13 @@ soak:
 	@$(FCOV) report $(SOAK_DIR)/functional_coverage.xml          >> $(SOAK_DIR)/summary.txt
 	@echo "soak: $$(grep -c ': PASS' $(SOAK_DIR)/results.txt) passed, $$(grep -c ': FAIL' $(SOAK_DIR)/results.txt) failed - see $(SOAK_DIR)/"
 	@cat $(SOAK_DIR)/summary.txt
+
+# audit_soak: audit_soak.py over the soak's event log - every event of every
+# run checked against the supervisor's documented rules, independently of the
+# model (see the script's header). Fails on any anomaly.
+audit_soak:
+	@test -f $(SOAK_DIR)/all_events.csv || { echo "no $(SOAK_DIR)/all_events.csv - run 'make soak' first"; exit 1; }
+	@python3 $(TB_DIR)/audit_soak.py $(SOAK_DIR)/all_events.csv
 
 check_merged:
 	@test -n "$(MERGED)" -a -f "$(MERGED)" || \

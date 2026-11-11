@@ -305,8 +305,8 @@ async def check(dut, model, telemetry=TELEMETRY, pgood_settled=None):
             "STATUS state":       (status & 0x3,        expected["state"]),
             "STATUS latch":       ((status >> 3) & 1,   expected["latch_stat"]),
             "STATUS pgood":       ((status >> 2) & 1,   expected["PGOOD"]),
-            "STATUS en_switch":   ((status >> 4) & 1,   model.switch_seen()),
-            "STATUS spi_enable":  ((status >> 5) & 1,   model.host_enable),
+            "STATUS en_switch":   ((status >> 4) & 1,   expected["switch_seen"]),
+            "STATUS spi_enable":  ((status >> 5) & 1,   expected["host_enable"]),
             "STRIKE_LEVEL":       (strikes,             expected["strikes"]),
         }
         for name, (actual, wanted) in fields.items():

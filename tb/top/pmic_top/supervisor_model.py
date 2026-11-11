@@ -85,6 +85,8 @@ class SupervisorModel():
         #                 enable (reg_file: en_switch_rise wins over a host
         #                 disable), so it is tracked for its own sake.
         self.switch_rise_at = None
+        # host_restored_at: when a switch rise last re-enabled the host enable
+        self.host_restored_at = None
 
     # ---- timers ----
 
@@ -156,7 +158,7 @@ class SupervisorModel():
         now = self.clock()
         if self.run_entry is None or now >= self.run_entry:
             return S_RUN
-        if now < max(self.ready_at.values()):
+        if now < max(self.ready_at.values()) - BOUNDARY_MARGIN_MS:
             return S_OFF
         return None
 
@@ -193,6 +195,7 @@ class SupervisorModel():
             if not self.host_enable:
                 self.host_enable = 1
                 self.ready_at["host"] = rise
+                self.host_restored_at = rise
                 self._changed()
         if self.run_entry is not None and self.strikes and not self.latched():
             if self.clock() - self.run_entry >= self.clean_run_ms + BOUNDARY_MARGIN_MS:
@@ -288,9 +291,13 @@ class SupervisorModel():
                  from zero (its documented disagreement-counter rule): the
                  transition then lands a full debounce after the glitch ends.
                  Returns whether the glitch caught a debounce in progress.
+                 Called once the glitch is over, so the decision is taken
+                 before catching up on time: a transition the glitch cancelled
+                 (a switch rise, and the host re-enable it carries) must not be
+                 applied first.
         """
-        self._sync()
         if start_ms >= self.ready_at[which]:
+            self._sync()
             return False
         if which == "switch":
             delay = SWITCH_DEBOUNCE_MS
@@ -301,6 +308,7 @@ class SupervisorModel():
             self.switch_rise_at = self.ready_at["switch"]
         if self.allowed() and self.run_entry is not None:
             self.run_entry = max(self.ready_at.values()) + self.ramp_ms()
+        self._sync()
         return True
 
     def set_max_strikes(self, raw):
@@ -429,6 +437,16 @@ class SupervisorModel():
         self._sync()
         state   = self.state()
         running = state == S_RUN
+        now     = self.clock()
+        # the switch as STATUS shows it, and the host enable: unknown within the
+        # margin of the switch's debounced edge, which moves both. The check
+        # reads STATUS over SPI some tens of microseconds after this, so an
+        # exact instant cannot be compared.
+        switch_edge = self.ready_at["switch"]
+        switch_seen = None if now < switch_edge + BOUNDARY_MARGIN_MS else self.switch
+        host_restore = self.switch_rise_at if self.switch_rise_at is not None else self.host_restored_at
+        host = (None if host_restore is not None and abs(now - host_restore) < BOUNDARY_MARGIN_MS
+                else self.host_enable)
         on      = None if state is None else int(running)
         if pgood_settled is None:
             pgood = self.pgood_expected()
@@ -456,4 +474,6 @@ class SupervisorModel():
             "Red_LED1":      red1,
             "state":         state,
             "strikes":       strikes,
+            "switch_seen":   switch_seen,
+            "host_enable":   host,
         }

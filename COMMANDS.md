@@ -111,7 +111,7 @@ A soak is a long constrained-random sweep of one cocotb suite: many seeds, each 
 | `make verify_all` | **the complete verification in one command**: `make ci` (lint, conversion checks, every testbench in both flows - unit, integration, host_if, pmic_top), then `make soak_all`. Hours. |
 | `... SOAK_JOBS=4` | on any soak target: use 4 cores instead of all, to keep the machine usable |
 
-Rough wall time, total ≈ seeds x minutes per seed / cores: a host_if seed of 200 events takes about 3 minutes; a pmic_top seed of 200 events about 10 minutes with every checker (about 1 with `top`). On 8 cores the default `soak_all` is therefore about 40 + 80 minutes.
+Wall time depends heavily on the machine: with every core busy each simulation runs well below its single-run speed. Measured on an 8-core laptop under WSL (repository on the Windows drive): the host_if soak, 200 x 200 one seed at a time, 14 h; the pmic_top soak, 64 x 200 with every checker, 8 at a time, 9.5 h. `TOPCOCO_SOAK_CHECKERS=top` is about ten times faster; cloning the repository inside WSL's own filesystem (`~/`) instead of `/mnt/e` also helps.
 
 The suite's own random-test targets - `soak`, `cov_all`, `replay` - are run from `tb/telemetry/host_if`; see its `COMMANDS.md`.
 
