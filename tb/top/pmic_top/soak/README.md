@@ -30,7 +30,16 @@ Both were replayed with every checker (`make replay`), with the model's timing p
 - **Run 41** - a check that ended 20 us after the switch's 20 ms debounce edge, which follows a reset button press. The design's STATUS byte is sampled during the SPI read, tens of microseconds before the check ends: it still showed the switch off, correctly. The model judged the switch at the end of the check. The switch bit and the host enable are now left unchecked within 0.5 ms of that edge, as PGOOD and the clean-run window already are.
 - **Run 58** - a 15 ms switch blip that started before the switch's debounced rise after a reset. In the design the blip restarted the debounce, so the rise - and the host re-enable it carries - did not happen, correctly. The model caught up on time first, applying the rise, and only then handled the glitch. It now decides the glitch first.
 
-The corrected model passes the full suite (22 of 22, every checker) and fresh walks; the two seeds are replayed with it to close the module.
+The corrected model passes the full suite (22 of 22, every checker) and fresh walks, and both seeds replayed with it, every checker bound, pass: run 41 (`SEED=1794313621`) and run 58 (`SEED=1794313638`), 200 events each, `PASS=1 FAIL=0`.
+
+## Verification closure
+
+| Evidence | What it shows |
+|---|---|
+| this soak | 12,800 board events with every checker bound; 62 runs passed and the 2 failures were testbench model gaps, fixed and replayed to PASS; covergroups 112/112; no anomaly in the audit |
+| the directed suite (`make tb_top_cocotb`, both flows) | 22 tests including the design-intent edge cases; `pmic_top_sva` 14/14 covers |
+
+Together with `pmic_top_sva` and every block's checker bound throughout (each assertion shown able to fail), the whole supervisor - `pmic_top` - is verified. **Closed 11 Nov 2026.**
 
 ## Reproducing
 

@@ -361,7 +361,7 @@ Over-temperature, undervoltage, the latch (set by either source) or a disable fo
 |---|---|
 | Unit testbenches with bound SVA checkers | 14 modules: `reset_sync`, `input_sync`, `input_debounce`, `pwm_mask`, `soft_start`, `fault_arbiter`, `hiccup_timer`, `strike_counter`, `supervisor`, `pgood_gen`, `timestamp`, `fault_LED`, `pwm_stats`, `fault_cause` — all passing |
 | Host interface, cocotb (`tb/telemetry/host_if`) | `spi_slave` + `reg_file`: reference model, scoreboard, constrained-random traffic, covergroups. **Closed:** a 200-run, 40,000-event soak on the current RTL with no failure, 83/83 covergroup bins, every SVA cover hit across soak and directed suite, and an independent audit of every transaction found no anomaly — see [`soak/README.md`](tb/telemetry/host_if/soak/README.md) |
-| Whole supervisor, cocotb (`tb/top/pmic_top`) | `pmic_top` in a board model with a timed supervisor reference model and a top-level checker: directed tests, design-intent edge cases, a constrained-random board walk and covergroups; soak pending |
+| Whole supervisor, cocotb (`tb/top/pmic_top`) | `pmic_top` in a board model with a timed supervisor reference model and a top-level checker: directed tests, design-intent edge cases, a constrained-random board walk and covergroups. **Closed:** a 64-run soak with every checker bound, 112/112 covergroup bins, every `pmic_top_sva` cover hit across soak and directed suite, and an independent audit of every event found no anomaly — see [`soak/README.md`](tb/top/pmic_top/soak/README.md) |
 | Integration testbench `tb/pmic_top_tb.v` | whole chip through its pins and SPI, self-checking, two scoreboards and 86 coverage bins: 277 checks passing; the SPI-less build 173 checks |
 | Converted Verilog | every testbench also runs against the sv2v output, and `rtl-verilog/` is checked to match it code for code |
 | Synthesis (yosys, sky130) | about 720 flip-flops, roughly 32,000 µm² of standard cells — an estimate before place and route |
@@ -370,7 +370,6 @@ Commands: `cd sim && make help`; every target is listed with examples in [`COMMA
 
 ### Still open
 
-- **Whole-supervisor cocotb suite** (`tb/top/pmic_top`): the closing soak is still to run.
 - **Known issues:** the fault log's latch bit is never set in the full design (a latch trip is still visible through the STATUS latch bit and `Red_LED1`, and only a reset clears it); there is no minimum pulse width in `S_RUN`. The two equality-compare bugs - MAX_ON lowered during soft start, and MAX_STRIKES lowered below the strike count - are fixed and covered by the `soft_start` and `strike_counter` checkers. A MAX_ON written in `S_RUN` reaches the gate at the next soft start, by design: the duty ceiling only moves through a ramp, and the held one passed the same downward-only clamp.
 - **Board-level checks** still to do: level translation between the logic and the 5 V comparators and driver, and the effect on the analog loop of re-timing the PWM through the supervisor's clock.
 - **Place and route** to be redone once the testbenches are complete.
