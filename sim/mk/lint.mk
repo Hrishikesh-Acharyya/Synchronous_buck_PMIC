@@ -1,19 +1,16 @@
 #
 # Filename:         lint.mk
 #
-# File Description: Verilator lint of the RTL in both TELEMETRY_EN builds, the
-#                   house-style and rulebook lint of the RTL, checkers and
-#                   testbenches (verif_automation/tools/lint/sv_lint.py), and a static check
-#                   of the repository's own shell and Python scripts.
+# File Description: Verilator lint of the RTL in both TELEMETRY_EN builds, and a
+#                   static check of the repository's own shell and Python
+#                   scripts. The house-style linter has its own Makefile in
+#                   verif_automation/.
 #
-# Global variables: SV_LINT - the house-style linter
+# Global variables: none
 
 ##@ Lint
 
-.PHONY: lint lint_notel lint_all check_scripts lint_sv lint_sv_report lint_sv_evidence
-
-# SV_LINT: the house-style and rulebook linter (rules in verif_automation/tools/lint/RULES.md)
-SV_LINT := ../verif_automation/tools/lint/sv_lint.py
+.PHONY: lint lint_notel lint_all check_scripts
 
 # if/else rather than `command -v ... && ... || echo`: in that form a lint
 # failure falls through to the fallback and make exits 0.
@@ -41,24 +38,6 @@ lint_notel:  ## lint the SPI-less build (TELEMETRY_EN=0; UNUSEDSIGNAL waived)
 
 lint_all: lint lint_notel  ## both builds
 
-# lint_sv: the rules of docs/VERIFICATION_RULES.md and the coding standard
-#          that a script can judge - headers, Purpose blocks, begin / end and
-#          spacing, PAC naming and covers, testbench rules. It only reports.
-#          RULES=H1,C1 runs a subset; files or folders can follow in FILES=.
-lint_sv:  ## house-style and rulebook lint of RTL, checkers and testbenches (RULES=, FILES=)
-	@$(PYTHON) $(SV_LINT) $(if $(RULES),--rules $(RULES)) $(FILES)
-
-# lint_sv_report: the same, never failing - for reading the whole backlog
-lint_sv_report:  ## the same, report only (exit 0)
-	@$(PYTHON) $(SV_LINT) --report-only $(if $(RULES),--rules $(RULES)) $(FILES)
-
-# lint_sv_evidence: the full report saved as dated evidence in
-#                   verif_automation/evidence/lint/<date>_lint.txt; its first line names
-#                   the commit it was run on
-lint_sv_evidence:  ## save the full lint report to verif_automation/evidence/lint/<date>_lint.txt
-	@out=../verif_automation/evidence/lint/$$(date +%F)_lint.txt; \
-	$(PYTHON) $(SV_LINT) --report-only > $$out && $(call ok,lint report saved to $$out)
-
 # check_scripts: bash -n and shellcheck on every shell script, a compile of
 #                every Python script. shellcheck is optional locally (it is
 #                preinstalled on the GitHub runners); without it the syntax
@@ -71,7 +50,7 @@ check_scripts:  ## syntax-check the repo's shell and Python scripts (+ shellchec
 	else \
 	  $(call warn,shellcheck not installed - bash -n only); \
 	fi; \
-	for f in $(SCRIPTS)/*.py ../.github/scripts/*.py ../verif_automation/tools/*/*.py; do \
+	for f in $(SCRIPTS)/*.py ../.github/scripts/*.py; do \
 	  $(PYTHON) -c 'import ast, sys; ast.parse(open(sys.argv[1]).read(), sys.argv[1])' "$$f" || rc=1; \
 	done; \
 	if [ $$rc = 0 ]; then $(call ok,scripts check clean); else $(call err,script check failed); exit 1; fi

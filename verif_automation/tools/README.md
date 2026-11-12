@@ -23,14 +23,16 @@ saying what it checks and what it does not, and any configuration it needs.
 
 ## Commands
 
-All commands are run from `sim/`.
+From `verif_automation/`, which has its own Makefile, separate from
+`sim/Makefile` (that one runs the verification suites):
 
 | Command | What it does |
 |---|---|
-| `make lint_sv` | lint; fails on any error. `RULES=H1,C1` runs a subset; `FILES=` names files or folders |
-| `make lint_sv_report` | the same report, always exit 0 (for reading the backlog) |
-| `make lint_sv_evidence` | save the full report as `verif_automation/evidence/lint/<date>_lint.txt` |
-| `make check_scripts` | syntax check of every script, these tools included |
+| `make help` | list the commands |
+| `make lint` | lint; fails on any error. `RULES=H1,C1` runs a subset; `FILES=` names files or folders from the repository root |
+| `make lint_report` | the same report, always exit 0 (for reading the backlog) |
+| `make lint_evidence` | save the full report as `evidence/lint/<date>_lint.txt` |
+| `make check_scripts` | syntax check of every script under `tools/` and `ai/` |
 
 ## Language
 

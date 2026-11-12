@@ -123,9 +123,6 @@ The suite's own random-test targets - `soak`, `cov_all`, `replay` - are run from
 | `make lint_notel` | the same for the SPI-less build |
 | `make lint_all` | both |
 | `make check_scripts` | `bash -n` + shellcheck (if installed) on `sim/scripts/*.sh`, syntax check of every Python script |
-| `make lint_sv` | house-style and rulebook lint of the RTL, checkers and testbenches (`verif_automation/tools/lint`); fails on any error. `RULES=H1,C1` for a subset, `FILES=` for files or folders |
-| `make lint_sv_report` | the same report, always exit 0 |
-| `make lint_sv_evidence` | save the full report as `verif_automation/evidence/lint/<date>_lint.txt` |
 
 ## Conversion and synthesis
 
@@ -211,6 +208,8 @@ Put them after the target, e.g. `make tb_all QUIET=0` or `make syn YOSYS=yosys`.
 | Full regression (`full.yml`) | Actions tab > Run workflow, and weekly on main | everything above, plus Icarus in both builds, synthesis of both builds, and the two Verilog bundles as a downloadable artifact |
 
 `make ci` and `make ci_notel` run the RTL workflow's steps locally.
+
+The house-style linter is not here: it has its own Makefile in `verif_automation/` (`make help` there).
 
 ## Where things live
 

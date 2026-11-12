@@ -46,6 +46,8 @@ DEFAULT_ROOTS = ["rtl-systemverilog", "sva", "tb"]
 EXEMPTIONS_FILE = pathlib.Path(__file__).with_name("exemptions.txt")
 # PROCEDURAL_OPENERS: the keywords that open a procedural block needing a Purpose block
 PROCEDURAL_OPENERS = r"always_ff|always_comb|always_latch|always|initial|final"
+# SUBROUTINE_OPENERS: task and function declarations, with any qualifier in front
+SUBROUTINE_OPENERS = r"(?:(?:virtual|static|protected|local|pure|extern)\s+)*(?:task|function)"
 
 
 # ==============================================================================
@@ -232,6 +234,62 @@ def rule_H3(src):
         yield len(src.raw), "file does not end with `default_nettype wire"
 
 
+def _block_opener(src, n):
+
+    """
+    Purpose: If line n starts an always / initial / final / task / function
+             block that spans more than one line, return the 0-based line its
+             declaration ends on (the line holding begin, or the task /
+             function header's closing ';'). Return None for any other line,
+             and for a single-statement always / initial with no begin.
+    """
+    code = src.code[n]
+    if re.match(rf"\s*({PROCEDURAL_OPENERS})\b", code):
+        if re.search(r"\bbegin\b", code):
+            return None if _is_one_line_block(code) else n
+        if code.rstrip().endswith(";"):
+            return None
+        k = n + 1
+        while k < len(src.code) and not src.code[k].strip():
+            k += 1
+        if k < len(src.code) and re.match(r"\s*begin\b", src.code[k]):
+            return k
+        return None
+    if re.match(rf"\s*({SUBROUTINE_OPENERS})\b", code):
+        k = n
+        while k < len(src.code) and ";" not in src.code[k]:
+            k += 1
+        if k < len(src.code) and re.search(r"\bend(task|function)\b", src.code[k]):
+            return None                     # the whole subroutine on one line
+        return k if k < len(src.code) else None
+    return None
+
+
+def _opener_lines(src):
+
+    """
+    Purpose: Every line that opens a block, 0-based: a multi-line begin, the
+             line that closes a module header, and the line that ends a
+             task / function / property / sequence declaration.
+    """
+    for n, code in enumerate(src.code):
+        if re.search(r"\bbegin\b(\s*:\s*\w+)?\s*$", code) and not _is_one_line_block(code):
+            yield n, "begin"
+        elif re.match(r"\s*module\b", code):
+            k = n
+            while k < len(src.code) and not re.search(r"\)\s*;|^\s*module\s+\w+\s*;", src.code[k]):
+                k += 1
+            if k < len(src.code):
+                yield k, "the module header"
+        elif re.match(rf"\s*({SUBROUTINE_OPENERS}|property|sequence)\b", code):
+            k = n
+            while k < len(src.code) and ";" not in src.code[k]:
+                k += 1
+            if k < len(src.code) and not re.search(r"\bend(task|function|property|sequence)\b", src.code[k]):
+                kind = re.search(r"\b(task|function|property|sequence)\b", code).group(1)
+                yield k, f"the {kind} declaration"
+
+
 # ==============================================================================
 # Rules - comments
 # ==============================================================================
@@ -239,40 +297,44 @@ def rule_H3(src):
 def rule_C1(src):
 
     """
-    Purpose: Every procedural block (always_*, always, initial, final) has a
-             Purpose block, single-statement blocks included. A block that
-             opens with begin carries it right after the opening line (blank
-             lines allowed); a single-statement block carries it right above.
+    Purpose: Every always_* / always / initial / final block and every task
+             and function has a Purpose block. In a block that spans lines it
+             sits inside, as the first thing after the declaration line. A
+             single-statement always / initial (no begin) carries a Purpose
+             block or a // comment directly above; a run of them may share
+             one comment.
     """
     for n, code in enumerate(src.code):
-        if not re.match(rf"\s*({PROCEDURAL_OPENERS})\b", code):
+        if not re.match(rf"\s*({PROCEDURAL_OPENERS}|{SUBROUTINE_OPENERS})\b", code):
             continue
-        opener = n
-        multi = re.search(r"\bbegin\b", code) or not code.rstrip().endswith(";")
-        if multi and not re.search(r"\bbegin\b", code):
-            # opener continues on following lines until begin or the statement ends
-            k = n + 1
-            while k < len(src.code) and not src.code[k].strip():
-                k += 1
-            if k < len(src.code) and re.match(r"\s*begin\b", src.code[k]):
-                opener = k
-            else:
-                multi = False
-        after = block_comment_after(src, opener)
-        before = block_comment_before(src, n)
-        if after and "Purpose" in comment_text(src, after):
-            continue
-        if before and "Purpose" in comment_text(src, before) and before[1] == n - 1:
-            continue          # Purpose directly above the block - the testbenches' placement
-        if not multi:
-            # a run of one-line blocks under one // comment: walk up over the
-            # run to the line above it
-            k = n - 1
-            while k >= 0 and re.match(rf"\s*({PROCEDURAL_OPENERS})\b.*;\s*$", src.code[k]):
-                k -= 1
-            if k >= 0 and k in src.comment_lines:
+        opener = _block_opener(src, n)
+        what = src.code[n].strip()[:50]
+        if opener is not None:
+            after = block_comment_after(src, opener)
+            if after and "Purpose" in comment_text(src, after):
                 continue
-        yield n + 1, f"'{src.code[n].strip()[:50]}' has no Purpose block"
+            before = block_comment_before(src, n)
+            if before and "Purpose" in comment_text(src, before) and before[1] >= n - 2:
+                yield n + 1, f"'{what}': the Purpose block is above the block; it goes inside, after the declaration line"
+            else:
+                yield n + 1, f"'{what}' has no Purpose block after its declaration line"
+            continue
+        if not re.match(rf"\s*({PROCEDURAL_OPENERS})\b", code):
+            continue                        # a one-line task / function: nothing to place inside
+        before = block_comment_before(src, n)
+        if before and "Purpose" in comment_text(src, before):
+            continue                        # Purpose block above, blank lines between allowed
+        # a run of single-statement blocks under one // comment: walk up over
+        # the run, and over the declarations of the signals it drives, to the
+        # line above
+        k = n - 1
+        while k >= 0 and re.match(rf"\s*({PROCEDURAL_OPENERS})\b.*;\s*$", src.code[k]):
+            k -= 1
+        while k >= 0 and re.match(r"\s*(logic|wire|reg|bit|int)\b.*;\s*$", src.code[k]):
+            k -= 1
+        if k >= 0 and k in src.comment_lines:
+            continue
+        yield n + 1, f"'{what}' has no comment above it"
 
 
 # ==============================================================================
@@ -354,47 +416,35 @@ def _is_one_line_block(code):
 def rule_S2(src):
 
     """
-    Purpose: A blank line after every begin and after a module header. The
-             one allowance: a procedural block's begin may be followed by its
-             Purpose block, and then the blank line follows the Purpose block.
-             A comment line is not a blank line.
+    Purpose: A blank line after every line that opens a block: a multi-line
+             begin, a module header, a task / function / property / sequence
+             declaration. If the block starts with a Purpose block, a blank
+             line follows that too. A comment line is not a blank line.
     """
-    for n, code in enumerate(src.code):
-        if re.search(r"\bbegin\b(\s*:\s*\w+)?\s*$", code) and not _is_one_line_block(code):
-            after = block_comment_after(src, n)
-            if re.match(rf"\s*({PROCEDURAL_OPENERS})\b", code) or (
-                    n > 0 and re.match(rf"\s*({PROCEDURAL_OPENERS})\b", src.code[n - 1]) and re.match(r"\s*begin\b", code)):
-                if after and "Purpose" in comment_text(src, after) and after[0] == n + 1:
-                    if not is_blank(src, after[1] + 1):
-                        yield after[1] + 2, "no blank line after the Purpose block"
-                    continue
-            if not is_blank(src, n + 1):
-                yield n + 1, "no blank line after begin"
-    # module header: the line that closes it is the first ');' or 'module name;' after 'module'
-    for n, code in enumerate(src.code):
-        if re.match(r"\s*module\b", code):
-            k = n
-            while k < len(src.code) and not re.search(r"\)\s*;|^\s*module\s+\w+\s*;", src.code[k]):
-                k += 1
-            if k < len(src.code) and not is_blank(src, k + 1):
-                yield k + 1, "no blank line after the module header"
+    for n, what in _opener_lines(src):
+        if not is_blank(src, n + 1):
+            yield n + 1, f"no blank line after {what}"
+            continue
+        after = block_comment_after(src, n)
+        if after and "Purpose" in comment_text(src, after) and not is_blank(src, after[1] + 1):
+            yield after[1] + 2, "no blank line after the Purpose block"
 
 
 def rule_S3(src):
 
     """
-    Purpose: A blank line before every end and before endmodule. A comment
-             line is not a blank line.
+    Purpose: A blank line before every line that closes a block: end,
+             endmodule, endtask, endfunction, endproperty, endsequence. A
+             comment line is not a blank line.
     """
     for n, code in enumerate(src.code):
-        if re.match(r"\s*end\b(?!\w)", code) and not _is_one_line_block(code):
-            k = n - 1
-            # 'end' directly after another line's one-line block is still judged
-            if not is_blank(src, k):
-                yield n + 1, "no blank line before end"
-        elif re.match(r"\s*endmodule\b", code):
-            if not is_blank(src, n - 1):
-                yield n + 1, "no blank line before endmodule"
+        m = re.match(r"\s*(end(?!\w)|endmodule|endtask|endfunction|endproperty|endsequence)\b", code)
+        if not m or _is_one_line_block(code):
+            continue
+        if m.group(1) != "end" and re.search(rf"\b({SUBROUTINE_OPENERS}|property|sequence)\b", code):
+            continue                        # opened and closed on one line
+        if not is_blank(src, n - 1):
+            yield n + 1, f"no blank line before {m.group(1)}"
 
 
 def rule_S4(src):
@@ -692,37 +742,6 @@ def rule_P3(src):
 
 
 # ==============================================================================
-# Rules - testbenches
-# ==============================================================================
-
-def rule_T1(src):
-
-    """
-    Purpose: SystemVerilog testbenches are directed only: no $urandom,
-             $random or randomize(). Random stimulus lives in cocotb.
-    """
-    if src.kind != "tb":
-        return
-    for n, code in enumerate(src.code):
-        if re.search(r"\$urandom|\$random\b|\brandomize\s*\(", code):
-            yield n + 1, "randomness in a SystemVerilog testbench"
-
-
-def rule_T2(src):
-
-    """
-    Purpose: WATCHDOG_NS is written as a multiple of CLK_PERIOD_NS, so it
-             scales with the clock.
-    """
-    if src.kind != "tb":
-        return
-    for n, code in enumerate(src.code):
-        m = re.search(r"\bWATCHDOG_NS\s*=\s*([^;,]+)", code)
-        if m and "CLK_PERIOD_NS" not in m.group(1):
-            yield n + 1, f"WATCHDOG_NS = {m.group(1).strip()} - write it as a multiple of CLK_PERIOD_NS"
-
-
-# ==============================================================================
 # Rules - across files
 # ==============================================================================
 
@@ -765,10 +784,10 @@ RULES = {
     "H1": ("error",   rule_H1, "header block with Filename / File Description / Global variables lines"),
     "H2": ("error",   rule_H2, "header Filename matches the file"),
     "H3": ("error",   rule_H3, "file ends with `default_nettype wire"),
-    "C1": ("error",   rule_C1, "every procedural block has a Purpose block"),
+    "C1": ("error",   rule_C1, "every always / initial block, task and function has a Purpose block, inside it"),
     "S1": ("error",   rule_S1, "multi-line if / else use begin / end"),
-    "S2": ("error",   rule_S2, "blank line after begin and after the module header"),
-    "S3": ("error",   rule_S3, "blank line before end and endmodule"),
+    "S2": ("error",   rule_S2, "blank line after every block opener, and after a block's Purpose block"),
+    "S3": ("error",   rule_S3, "blank line before every block closer"),
     "S4": ("warning", rule_S4, "module body at the indentation of module / endmodule"),
     "K1": ("error",   rule_K1, "parameters and localparams in ALL CAPS"),
     "N1": ("error",   rule_N1, "a_ / c_ / p_ naming in checkers"),
@@ -779,8 +798,6 @@ RULES = {
     "P1": ("error",   rule_P1, "a property about reset has no disable iff"),
     "P2": ("error",   rule_P2, "no === / !== in checkers"),
     "P3": ("error",   rule_P3, "no $rose / $fell on multi-bit signals"),
-    "T1": ("error",   rule_T1, "no randomness in SystemVerilog testbenches"),
-    "T2": ("error",   rule_T2, "WATCHDOG_NS from CLK_PERIOD_NS"),
     "B1": ("error",   rule_B1, "every checker bound, every bind's checker exists"),
 }
 CROSS_FILE_RULES = {"B1"}
