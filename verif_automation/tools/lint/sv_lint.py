@@ -883,7 +883,7 @@ RULES = {
     "K1": ("error",   rule_K1, "parameters and localparams in ALL CAPS"),
     "N1": ("error",   rule_N1, "a_ / c_ / p_ naming in checkers"),
     "N2": ("error",   rule_N2, "every property used; a_X asserts p_X"),
-    "N3": ("error",   rule_N3, "every assertion has a cover (same stem, or named as shared)"),
+    "N3": ("error",   rule_N3, "every PAC group with an assertion has a cover, or says why not"),
     "N4": ("error",   rule_N4, "assertions report through note_failure() with a label-first message"),
     "N5": ("error",   rule_N5, "no $error / $fatal in checkers, no $fatal in testbenches"),
     "P1": ("error",   rule_P1, "a property about reset has no disable iff"),
