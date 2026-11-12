@@ -741,6 +741,40 @@ def rule_P3(src):
                 yield n + 1, f"${m.group(1)}({m.group(2)}) on a multi-bit signal tests bit 0 only - use $changed"
 
 
+def _reset_helpers(src):
+
+    """
+    Purpose: The out-of-reset helpers a file declares: checker-local signals
+             named for reset (out_of_reset, clocks_after_reset_release),
+             which hold a property off until the first edges after reset.
+    """
+    text = "\n".join(src.code)
+    names = set(re.findall(r"\b(?:logic|bit|int|reg)\b[^;]*?\b(\w*reset\w*)\s*[;,=\[]", text))
+    return {n for n in names if n not in ("rst_n",)}
+
+
+def rule_P4(src):
+
+    """
+    Purpose: A property that reaches back one edge ($past, $stable, $changed,
+             |=>) is guarded against a mid-cycle reset: it reads $past(rst_n)
+             or an out-of-reset helper. A property about reset itself (its
+             antecedent tests !rst_n) needs no guard.
+    """
+    if not src.is_checker:
+        return
+    helpers = _reset_helpers(src)
+    for name, n, body in _properties(src):
+        if not re.search(r"\$past\s*\(|\$stable\s*\(|\$changed\s*\(|\|=>", body):
+            continue
+        head = re.split(r"\|->|\|=>", body, maxsplit=1)[0]
+        if re.search(r"(!|~)\s*rst_n\b", re.sub(r"disable\s+iff\s*\([^)]*\)", "", head)):
+            continue
+        if re.search(r"\$past\s*\(\s*rst_n\b", body) or any(re.search(rf"\b{h}\b", body) for h in helpers):
+            continue
+        yield n + 1, f"{name} reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper"
+
+
 # ==============================================================================
 # Rules - across files
 # ==============================================================================
@@ -798,6 +832,7 @@ RULES = {
     "P1": ("error",   rule_P1, "a property about reset has no disable iff"),
     "P2": ("error",   rule_P2, "no === / !== in checkers"),
     "P3": ("error",   rule_P3, "no $rose / $fell on multi-bit signals"),
+    "P4": ("error",   rule_P4, "a property reaching back one edge is guarded by $past(rst_n) or an out-of-reset helper"),
     "B1": ("error",   rule_B1, "every checker bound, every bind's checker exists"),
 }
 CROSS_FILE_RULES = {"B1"}

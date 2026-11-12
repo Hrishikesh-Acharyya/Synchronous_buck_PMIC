@@ -40,6 +40,7 @@ the reason. A line without a reason stops the run.
 | P1 | error | A property about reset (its antecedent tests `!rst_n`) has no `disable iff`. | rulebook §4 |
 | P2 | error | No `===` / `!==` in a checker; `==` in properties. | rulebook §4 |
 | P3 | error | No `$rose` / `$fell` on a multi-bit signal (judged where the argument is declared in the same file). | rulebook §4 |
+| P4 | error | A checker property that reaches back one edge (`$past`, `$stable`, `$changed`, `\|=>`) is guarded against a reset between the edges: it reads `$past(rst_n)` or an out-of-reset helper (a checker-local signal named for reset, such as `out_of_reset`). A property about reset itself (its antecedent tests `!rst_n`) needs none. | rulebook §4 |
 | B1 | error | Every checker module is bound in `sva/bind_sva.sv`, and every bind names a checker that exists. | rulebook §1, §6 |
 
 ## Decided against
