@@ -1,0 +1,6 @@
+# sv_lint exemptions - every accepted exception to a rule, with its reason.
+# One per line: RULE, then a path glob, then the reason, separated by tabs or
+# two or more spaces. A line without a reason stops the linter. Keep this file
+# short: an exemption is a decision, reviewed like code.
+#
+# RULE  path glob                       reason
