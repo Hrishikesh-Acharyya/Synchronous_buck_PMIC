@@ -794,6 +794,45 @@ def rule_B2(src):
 
 
 # ==============================================================================
+# Rules - testbenches
+# ==============================================================================
+
+def _is_assignment(code):
+    """Purpose: the statement drives a signal (a blocking or non-blocking assignment)."""
+    return re.match(r"\s*[A-Za-z_][\w.]*\s*(\[[^\]]*\])*\s*(=(?!=)|<=)", code) is not None
+
+
+def rule_T1(src):
+
+    """
+    Purpose: In a SystemVerilog / Verilog testbench, stimulus driven after a
+             clock edge is offset by #(DRIVE_OFFSET_NS), so it lands clearly
+             after the edge and not in a race with it. Flags an assignment
+             that follows @(posedge clk) - on the same line or as the next
+             statement - with no delay between.
+    """
+    if src.kind != "tb":
+        return
+    edge = r"@\s*\(\s*posedge\s+\w*clk\w*\s*\)"
+    for n, code in enumerate(src.code):
+        m = re.search(edge + r"\s*(.*)$", code)
+        if not m:
+            continue
+        rest = m.group(1).strip()
+        if rest and rest != ";":
+            if _is_assignment(rest):
+                yield n + 1, "stimulus on the clock edge - offset it with #(DRIVE_OFFSET_NS)"
+            continue
+        if rest != ";":
+            continue                        # an event control on its own line: an always block's
+        k = n + 1
+        while k < len(src.code) and not src.code[k].strip():
+            k += 1
+        if k < len(src.code) and _is_assignment(src.code[k]):
+            yield k + 1, "stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)"
+
+
+# ==============================================================================
 # Rules - across files
 # ==============================================================================
 
@@ -852,6 +891,7 @@ RULES = {
     "P3": ("error",   rule_P3, "no $rose / $fell on multi-bit signals"),
     "P4": ("error",   rule_P4, "a property reaching back one edge is guarded by $past(rst_n) or an out-of-reset helper"),
     "B2": ("error",   rule_B2, "checkers reach DUT internals through dut_ ports, not hierarchical names"),
+    "T1": ("error",   rule_T1, "testbench stimulus after a clock edge is offset by #(DRIVE_OFFSET_NS)"),
     "B1": ("error",   rule_B1, "every checker bound, every bind's checker exists"),
 }
 CROSS_FILE_RULES = {"B1"}

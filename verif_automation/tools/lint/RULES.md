@@ -43,6 +43,7 @@ the reason. A line without a reason stops the run.
 | P4 | error | A checker property that reaches back one edge (`$past`, `$stable`, `$changed`, `\|=>`) is guarded against a reset between the edges: it reads `$past(rst_n)` or an out-of-reset helper (a checker-local signal named for reset, such as `out_of_reset`). A property about reset itself (its antecedent tests `!rst_n`) needs none. | rulebook §4 |
 | B1 | error | Every checker module is bound in `sva/bind_sva.sv`, and every bind names a checker that exists. | rulebook §1, §6 |
 | B2 | error | A checker reaches DUT internals only through its `dut_` ports, wired by the bind; no hierarchical name (`u_core.state`). A field or method of the checker's own signal (`state.name()`) is not a path. | rulebook §1, §6 |
+| T1 | error | In a SystemVerilog / Verilog testbench, an assignment that follows `@(posedge clk)` - on the same line or as the next statement - is offset by `#(DRIVE_OFFSET_NS)` first, so stimulus never races the edge. | rulebook §1 |
 
 ## Decided against
 
