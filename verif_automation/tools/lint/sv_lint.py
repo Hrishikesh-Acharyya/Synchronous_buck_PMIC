@@ -7,8 +7,8 @@
 #                   testbenches. It checks the mechanical rules of
 #                   docs/VERIFICATION_RULES.md and the project's coding
 #                   standard - the ones a script can judge without opinion.
-#                   Rules that need judgement (is a property complete, is it
-#                   subsumed) are not here; RULES.md lists them.
+#                   It checks form, not assertion quality: whether a property
+#                   is complete or subsumed is out of scope.
 #
 #                   It only reports. Nothing is rewritten, and RTL findings
 #                   are for the designer to act on.

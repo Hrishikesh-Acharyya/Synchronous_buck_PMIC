@@ -54,8 +54,8 @@ the reason. A line without a reason stops the run.
 | `&counter` in a property flagged | Dropped by JK. |
 | No block comment starting with "verilator" | Dropped by JK. The pragma itself (`/* verilator lint_off */`) is legitimate. |
 | p / a / c must share a stem | Dropped: a group's covers are named for what they show, and some groups are cover-only. N3 checks the group instead. |
-| No randomness in SystemVerilog testbenches (was T1) | Dropped by JK: a working rule while learning cocotb, not a project rule. |
-| `WATCHDOG_NS` written from `CLK_PERIOD_NS` (was T2) | Dropped by JK: too restrictive. |
+| No randomness in SystemVerilog testbenches | Dropped by JK: a working rule while learning cocotb, not a project rule. |
+| `WATCHDOG_NS` written from `CLK_PERIOD_NS` | Dropped by JK: too restrictive. |
 
 ## The block layout
 
@@ -89,18 +89,9 @@ Checked against the code before the rule was fixed: modules, `always` /
 out: they are not `begin` / `end` blocks, and in the current code 13 of 18
 `case` statements and every `fork` start straight into their items.
 
-## Not yet checked
+## Out of scope
 
-These need a SystemVerilog parser (pyslang) or judgement, and are not in the
-linter yet:
-
-- A property spanning two edges (`$past`, `$stable`, `$changed`, `|=>`) is
-  guarded against a mid-cycle reset (`$past(rst_n)`, or an out-of-reset
-  helper).
-- DUT internals reach a checker through `dut_` ports, not hierarchical names.
-- Testbench stimulus after `@(posedge clk)` is offset by `#(DRIVE_OFFSET_NS)`.
-- A guard the RTL acts on at one edge is not read a clock late in the
-  consequent (the pgood_gen_sva bug of Nov 2026).
-- Judgement: a property that says how a signal moves enumerates every way it
-  can move (reset, saturation, clear); a property is not subsumed by another;
-  timing claims come in lower / upper-bound pairs.
+The linter checks form: layout, naming, comments, and the mechanical
+rulebook rules above. Whether an assertion is complete, subsumed by another,
+or reads its guard on the right edge is a matter of judgement about
+assertion quality, and is not the linter's job.
