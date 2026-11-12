@@ -1,14 +1,21 @@
 # verif_automation/ai
 
-AI-assisted verification: an AI coding agent (a large language model run
-from the command line) writes verification code and looks for gaps, and the
-simulator decides whether its work holds. This folder holds what the agent is
+AI-assisted verification: an AI agent writes verification code and looks for
+gaps, and the simulator decides whether its work holds. This folder holds what the agent is
 asked to do and the scripts that run it. Everything it produces, accepted or
 not, is recorded in `verif_automation/evidence/ai_runs/`.
 
-The agent runs on the designer's own machine, started by the scripts here.
+## The agent
+
+The agent is **Claude Code**, Anthropic's command-line coding agent. It runs
+on the designer's own machine under the designer's existing subscription, with
+no API key or per-token billing. The scripts here start it in its
+non-interactive mode (`claude -p`), with a settings file that sets which
+paths it may read and write.
+
 Help with writing these scripts and tools is ordinary tooling work and is not
-counted as an AI run; only runs of the agent through `verif_automation/ai/` are.
+counted as an AI run. Only runs of the agent through `verif_automation/ai/`
+count.
 
 ## Ground rules
 
@@ -36,8 +43,8 @@ verif_automation/ai/scripts/run_task.sh <task>
   1. records the date, commit and task in a new run folder
   2. runs the deterministic tool the task needs (mutation runner, contract
      extractor, coverage report) to produce the agent's input
-  3. starts the agent non-interactively with the task's instructions and its
-     allowed paths
+  3. starts Claude Code non-interactively (claude -p) with the task's
+     instructions and its allowed paths
   4. runs the acceptance gate (make targets named by the task)
   5. writes the run summary to verif_automation/evidence/ai_runs/
 ```
@@ -51,7 +58,7 @@ accepted work is committed outside `verif_automation/evidence/`.
 |---|---|---|
 | `tasks/<task>/TASK.md` | the instructions: goal, inputs given, paths it may write, acceptance gate | planned |
 | `scripts/run_task.sh` | the runner described above | planned |
-| `scripts/permissions.json` | the read/write allow and deny lists the runner passes to the agent | planned |
+| `scripts/settings.json` | the Claude Code settings the runner passes with `--settings`: the read / write allow and deny lists | planned |
 
 Planned tasks, in order:
 
