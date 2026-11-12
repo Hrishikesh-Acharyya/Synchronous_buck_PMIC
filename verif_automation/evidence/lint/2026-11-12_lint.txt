@@ -1,0 +1,1622 @@
+sv_lint report - 2026-11-12 - commit fe2e574
+scope: rtl-systemverilog sva tb
+
+rtl-systemverilog/clk_rst/reset_sync.sv:26: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/clk_rst/reset_sync.sv:35: error C1: 'always_ff @(posedge clk or negedge rst_n_enter) be': the Purpose block is above the block; it goes inside, after the declaration line
+rtl-systemverilog/clk_rst/reset_sync.sv:35: error S2: no blank line after begin
+rtl-systemverilog/clk_rst/reset_sync.sv:36: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/clk_rst/reset_sync.sv:38: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/clk_rst/reset_sync.sv:40: error S3: no blank line before end
+rtl-systemverilog/clk_rst/reset_sync.sv:49: error C1: 'always_ff @(posedge clk or negedge rst_n_enter) be': the Purpose block is above the block; it goes inside, after the declaration line
+rtl-systemverilog/clk_rst/reset_sync.sv:49: error S2: no blank line after begin
+rtl-systemverilog/clk_rst/reset_sync.sv:50: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/clk_rst/reset_sync.sv:52: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/clk_rst/reset_sync.sv:54: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:64: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:64: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/inputs/input_debounce.sv:66: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:68: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:70: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:87: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:103: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:117: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:119: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:121: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:122: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/inputs/input_debounce.sv:124: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:126: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:128: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:133: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:148: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:150: error S3: no blank line before end
+rtl-systemverilog/inputs/input_debounce.sv:152: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_debounce.sv:154: error S3: no blank line before end
+rtl-systemverilog/inputs/input_sync.sv:33: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/inputs/input_sync.sv:35: error C1: 'always_ff @(posedge clk or negedge rst_n) begin' has no Purpose block after its declaration line
+rtl-systemverilog/inputs/input_sync.sv:35: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_sync.sv:36: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_sync.sv:39: error S3: no blank line before end
+rtl-systemverilog/inputs/input_sync.sv:40: error S2: no blank line after begin
+rtl-systemverilog/inputs/input_sync.sv:43: error S3: no blank line before end
+rtl-systemverilog/inputs/input_sync.sv:44: error S3: no blank line before end
+rtl-systemverilog/pkg/pmic_types_pkg.sv:45: error C1: 'function automatic int duty_to_counts(input int du' has no Purpose block after its declaration line
+rtl-systemverilog/pkg/pmic_types_pkg.sv:45: error S2: no blank line after the function declaration
+rtl-systemverilog/pkg/pmic_types_pkg.sv:47: error S3: no blank line before endfunction
+rtl-systemverilog/pkg/pmic_types_pkg.sv:59: error C1: 'function automatic int ns_to_clks(input int ns);' has no Purpose block after its declaration line
+rtl-systemverilog/pkg/pmic_types_pkg.sv:59: error S2: no blank line after the function declaration
+rtl-systemverilog/pkg/pmic_types_pkg.sv:61: error S3: no blank line before endfunction
+rtl-systemverilog/pkg/pmic_types_pkg.sv:64: error C1: 'function automatic int ms_to_clks(input int ms);' has no Purpose block after its declaration line
+rtl-systemverilog/pkg/pmic_types_pkg.sv:64: error S2: no blank line after the function declaration
+rtl-systemverilog/pkg/pmic_types_pkg.sv:66: error S3: no blank line before endfunction
+rtl-systemverilog/pkg/pmic_types_pkg.sv:69: error C1: 'function automatic int ms_to_sw_cycles(input int m' has no Purpose block after its declaration line
+rtl-systemverilog/pkg/pmic_types_pkg.sv:69: error S2: no blank line after the function declaration
+rtl-systemverilog/pkg/pmic_types_pkg.sv:71: error S3: no blank line before endfunction
+rtl-systemverilog/pmic_top.sv:79: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/pmic_top.sv:111: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:115: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:155: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:164: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:221: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:222: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:227: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:229: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:231: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/pmic_top.sv:245: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:335: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:428: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:429: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:446: error S3: no blank line before end
+rtl-systemverilog/pmic_top.sv:464: error S2: no blank line after begin
+rtl-systemverilog/pmic_top.sv:470: error S3: no blank line before end
+rtl-systemverilog/protect/fault_arbiter.sv:60: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/protect/fault_arbiter.sv:82: error S2: no blank line after begin
+rtl-systemverilog/protect/fault_arbiter.sv:96: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/protect/fault_arbiter.sv:103: error S2: no blank line after begin
+rtl-systemverilog/protect/fault_arbiter.sv:126: error S2: no blank line after begin
+rtl-systemverilog/protect/fault_arbiter.sv:159: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:35: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/protect/hiccup_timer.sv:41: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:60: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:80: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:83: error S3: no blank line before end
+rtl-systemverilog/protect/hiccup_timer.sv:85: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:91: error S2: no blank line after begin
+rtl-systemverilog/protect/hiccup_timer.sv:94: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:36: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/protect/pwm_mask.sv:41: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:63: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:66: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:70: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:71: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:74: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:75: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:78: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:79: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:81: error S2: no blank line after begin
+rtl-systemverilog/protect/pwm_mask.sv:84: error S3: no blank line before end
+rtl-systemverilog/protect/pwm_mask.sv:87: error S3: no blank line before end
+rtl-systemverilog/protect/soft_start.sv:44: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/protect/soft_start.sv:53: error S2: no blank line after begin
+rtl-systemverilog/protect/soft_start.sv:76: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:43: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/protect/strike_counter.sv:54: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:62: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:67: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:72: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:75: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:90: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:93: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:118: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:121: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:123: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:127: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:129: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:131: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:137: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:151: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:153: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:160: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:162: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:164: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/protect/strike_counter.sv:166: error S2: no blank line after begin
+rtl-systemverilog/protect/strike_counter.sv:168: error S3: no blank line before end
+rtl-systemverilog/protect/strike_counter.sv:169: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/protect/strike_counter.sv:171: error S3: no blank line before end
+rtl-systemverilog/status/fault_LED.sv:80: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/status/fault_LED.sv:87: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:115: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:136: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:151: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:164: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:195: error S2: no blank line after begin
+rtl-systemverilog/status/fault_LED.sv:209: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:42: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/status/pgood_gen.sv:54: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:63: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:65: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:67: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/status/pgood_gen.sv:69: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:72: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:82: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:85: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:104: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:106: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:112: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:114: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:118: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/status/pgood_gen.sv:121: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/status/pgood_gen.sv:123: error S3: no blank line before end
+rtl-systemverilog/status/pgood_gen.sv:128: error S2: no blank line after begin
+rtl-systemverilog/status/pgood_gen.sv:148: error S3: no blank line before end
+rtl-systemverilog/status/timestamp.sv:69: error S2: no blank line after the Purpose block
+rtl-systemverilog/supervisor.sv:79: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:87: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:90: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:97: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:99: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:100: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:102: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:103: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:106: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:127: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:128: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:130: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/supervisor.sv:132: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:134: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:135: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:137: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:139: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:141: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/supervisor.sv:143: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:145: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:146: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:148: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:150: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/supervisor.sv:152: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:154: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:155: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:157: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/supervisor.sv:159: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/supervisor.sv:161: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:167: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:170: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:184: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:187: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:199: error S3: no blank line before end
+rtl-systemverilog/supervisor.sv:202: error S2: no blank line after begin
+rtl-systemverilog/supervisor.sv:211: error S3: no blank line before end
+rtl-systemverilog/telemetry/fault_cause.sv:79: error S2: no blank line after the module header
+rtl-systemverilog/telemetry/fault_cause.sv:122: error S2: no blank line after begin
+rtl-systemverilog/telemetry/fault_cause.sv:142: error S2: no blank line after begin
+rtl-systemverilog/telemetry/fault_cause.sv:215: error H3: file does not end with `default_nettype wire
+rtl-systemverilog/telemetry/pwm_stats.sv:75: error S2: no blank line after begin
+rtl-systemverilog/telemetry/pwm_stats.sv:83: error S2: no blank line after begin
+rtl-systemverilog/telemetry/pwm_stats.sv:85: error S3: no blank line before end
+rtl-systemverilog/telemetry/pwm_stats.sv:87: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/telemetry/reg_file.sv:107: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/telemetry/reg_file.sv:267: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:305: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:327: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:344: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:386: error C1: 'function automatic logic [TRIP_W-1:0] clamp_trip_r' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:396: error C1: 'function automatic logic [TRIP_W-1:0] clamp_trip_s' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:408: error C1: 'function automatic logic [STRIKE_W-1:0] clamp_max_' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:431: error C1: 'function automatic logic [ON_TIME_W-1:0] clamp_max' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:441: error C1: 'function automatic logic [CYC_STEP_W-1:0] clamp_cy' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:446: error S3: no blank line before endfunction
+rtl-systemverilog/telemetry/reg_file.sv:452: error C1: 'function automatic logic [HICCUP_BASE_W-1:0] clamp' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:463: error C1: 'function automatic logic [CLEAN_RUN_W-1:0] clamp_c' has no Purpose block after its declaration line
+rtl-systemverilog/telemetry/reg_file.sv:463: error S2: no blank line after the function declaration
+rtl-systemverilog/telemetry/reg_file.sv:467: error S3: no blank line before endfunction
+rtl-systemverilog/telemetry/reg_file.sv:473: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:551: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:592: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:594: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:712: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:735: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:742: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:755: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:760: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:805: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:807: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:809: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:819: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:822: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:831: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:871: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:885: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:888: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:894: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:898: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:913: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:917: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:920: error S3: no blank line before end
+rtl-systemverilog/telemetry/reg_file.sv:936: error S2: no blank line after begin
+rtl-systemverilog/telemetry/reg_file.sv:939: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:80: warning S4: module body is indented; it sits at the indentation of module / endmodule
+rtl-systemverilog/telemetry/spi_slave.sv:160: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:182: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:184: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:202: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:210: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:212: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:214: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/telemetry/spi_slave.sv:216: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:243: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:245: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:247: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:249: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:288: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:321: error S2: no blank line after the Purpose block
+rtl-systemverilog/telemetry/spi_slave.sv:354: error C1: 'always_comb rx_byte = {rx_shift, sdio_in};' has no comment above it
+rtl-systemverilog/telemetry/spi_slave.sv:356: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:380: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:388: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:398: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:400: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:402: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:405: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:409: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:412: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:415: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:416: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:419: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:423: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:425: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:427: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:432: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:437: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:456: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:458: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:459: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:461: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:462: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:465: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:473: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:496: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:524: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:527: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:534: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:537: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:540: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:543: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:546: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:549: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:551: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:570: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:596: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:643: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:656: error S3: no blank line before end
+rtl-systemverilog/telemetry/spi_slave.sv:662: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:711: error S2: no blank line after begin
+rtl-systemverilog/telemetry/spi_slave.sv:712: error S1: multi-line 'if' without begin / end
+rtl-systemverilog/telemetry/spi_slave.sv:717: error S1: multi-line 'else' without begin / end
+rtl-systemverilog/telemetry/spi_slave.sv:723: error S3: no blank line before end
+sva/bind_sva.sv:141: error H3: file does not end with `default_nettype wire
+sva/clk_rst/reset_sync_sva.sv:49: error S2: no blank line after begin
+sva/inputs/input_debounce_sva.sv:63: error S2: no blank line after begin
+sva/inputs/input_debounce_sva.sv:101: warning S4: module body is indented; it sits at the indentation of module / endmodule
+sva/inputs/input_debounce_sva.sv:119: error S3: no blank line before end
+sva/inputs/input_debounce_sva.sv:129: error P4: p_flag_out_faithful reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/inputs/input_debounce_sva.sv:194: error P4: p_flag_out_qualified reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/inputs/input_debounce_sva.sv:227: error P4: p_ASSERT_and_RELEASE_work reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/inputs/input_debounce_sva.sv:274: error S2: no blank line after the sequence declaration
+sva/inputs/input_debounce_sva.sv:276: error S3: no blank line before endsequence
+sva/inputs/input_debounce_sva.sv:278: error P4: p_window_abandoned reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/inputs/input_sync_sva.sv:29: error C1: 'always_ff @(posedge clk or negedge rst_n) begin' has no Purpose block after its declaration line
+sva/inputs/input_sync_sva.sv:67: error S3: no blank line before endproperty
+sva/protect/fault_arbiter_sva.sv:51: error S2: no blank line after begin
+sva/protect/fault_arbiter_sva.sv:61: error S3: no blank line before end
+sva/protect/fault_arbiter_sva.sv:80: error S2: no blank line after begin
+sva/protect/fault_arbiter_sva.sv:89: error S2: no blank line after begin
+sva/protect/fault_arbiter_sva.sv:93: error S3: no blank line before end
+sva/protect/fault_arbiter_sva.sv:94: error S2: no blank line after begin
+sva/protect/fault_arbiter_sva.sv:98: error S3: no blank line before end
+sva/protect/fault_arbiter_sva.sv:99: error S3: no blank line before end
+sva/protect/fault_arbiter_sva.sv:101: error S2: no blank line after begin
+sva/protect/fault_arbiter_sva.sv:112: error S3: no blank line before end
+sva/protect/hiccup_timer_sva.sv:81: error S2: no blank line after begin
+sva/protect/hiccup_timer_sva.sv:116: error S3: no blank line before end
+sva/protect/hiccup_timer_sva.sv:118: error S2: no blank line after begin
+sva/protect/hiccup_timer_sva.sv:126: error S3: no blank line before end
+sva/protect/pwm_mask_sva.sv:52: error P4: p_mask_doesnt_produce_pwm reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/protect/pwm_mask_sva.sv:82: error P4: p_pwm_out_cannot_go_back_up_once_truncated reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/protect/pwm_mask_sva.sv:135: error P4: p_counter_0_in_low_phase reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/protect/pwm_mask_sva.sv:164: error P4: p_short_pulses_pass reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/protect/soft_start_sva.sv:76: error S2: no blank line after begin
+sva/protect/soft_start_sva.sv:108: error S2: no blank line after the Purpose block
+sva/protect/strike_counter_sva.sv:94: error S2: no blank line after begin
+sva/protect/strike_counter_sva.sv:117: error S3: no blank line before end
+sva/protect/strike_counter_sva.sv:119: error S2: no blank line after begin
+sva/protect/strike_counter_sva.sv:129: error S3: no blank line before end
+sva/protect/strike_counter_sva.sv:131: error S2: no blank line after begin
+sva/protect/strike_counter_sva.sv:156: error S3: no blank line before end
+sva/status/fault_LED_sva.sv:243: error P4: p_red1_solid_on_latch reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:280: error P4: p_red1_blinks_on_strikes reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:310: error P4: p_red1_dark_when_clean reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:362: error P4: p_blink_counter_advances reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:378: error P4: p_blink_counter_wraps reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:412: error P4: p_blink_toggles_on_wrap reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/fault_LED_sva.sv:428: error P4: p_blink_stable_otherwise reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/pgood_gen_sva.sv:60: error S2: no blank line after the Purpose block
+sva/status/pgood_gen_sva.sv:159: error P4: p_qualify_counter_resets reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/pgood_gen_sva.sv:193: error P4: p_run_counter_advances_on_pwm_fall reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/pgood_gen_sva.sv:231: error P4: p_qualify_counter_saturates reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/timestamp_sva.sv:124: error P4: p_prescalar_advances_by_one reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/timestamp_sva.sv:154: error P4: p_prescalar_wraps_to_zero reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/timestamp_sva.sv:184: error P4: p_timestamp_increments_on_wrap reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/status/timestamp_sva.sv:217: error P4: p_timestamp_stable_otherwise reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/sva_pkg.sv:22: error C1: 'function automatic void note_failure(string msg);' has no Purpose block after its declaration line
+sva/sva_pkg.sv:22: error S2: no blank line after the function declaration
+sva/sva_pkg.sv:25: error S3: no blank line before endfunction
+sva/sva_pkg.sv:29: error H3: file does not end with `default_nettype wire
+sva/telemetry/fault_cause_sva.sv:66: error S2: no blank line after begin
+sva/telemetry/fault_cause_sva.sv:84: error S3: no blank line before end
+sva/telemetry/fault_cause_sva.sv:86: error S2: no blank line after begin
+sva/telemetry/fault_cause_sva.sv:100: error S3: no blank line before end
+sva/telemetry/pwm_stats_sva.sv:67: error S2: no blank line after begin
+sva/telemetry/pwm_stats_sva.sv:82: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:169: warning S4: module body is indented; it sits at the indentation of module / endmodule
+sva/telemetry/reg_file_sva.sv:179: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:195: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:206: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:221: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:224: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:229: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:250: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:255: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:258: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:262: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:264: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:269: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:272: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:276: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:316: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:320: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:330: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:334: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:364: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:369: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:372: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:374: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:376: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:380: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:383: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:386: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:388: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:393: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:396: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:400: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:402: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:412: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:415: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:419: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:421: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:426: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:429: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:433: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:435: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:439: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:442: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:446: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:448: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:452: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:455: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:459: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:502: error P4: p_disable_key_rises_only_on_key reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/reg_file_sva.sv:502: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:506: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:509: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:511: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:513: error P4: p_unlock_key_rises_only_on_key reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/reg_file_sva.sv:513: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:517: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:520: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:522: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:524: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:529: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:532: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:534: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:536: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:541: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:544: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:546: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:548: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:552: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:555: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:557: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:559: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:563: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:566: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:570: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:572: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:576: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:579: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:581: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:583: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:588: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:591: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:593: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:595: error P4: p_switch_wins reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/reg_file_sva.sv:595: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:598: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:601: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:603: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:636: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:640: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:643: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:646: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:648: error P4: p_wd_restored_rises_only_on_expiry reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/reg_file_sva.sv:648: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:651: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:654: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:656: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:658: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:662: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:665: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:667: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:669: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:672: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:675: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:679: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:702: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:705: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:708: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:710: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:712: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:717: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:720: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:722: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:724: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:727: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:730: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:732: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:734: error P4: p_snapshot_takes_live_time reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/reg_file_sva.sv:734: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:737: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:740: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:743: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:745: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:748: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:751: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:755: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:773: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:776: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:779: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:783: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:785: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:789: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:792: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:796: error S3: no blank line before end
+sva/telemetry/reg_file_sva.sv:798: error S2: no blank line after the property declaration
+sva/telemetry/reg_file_sva.sv:802: error S3: no blank line before endproperty
+sva/telemetry/reg_file_sva.sv:805: error S2: no blank line after begin
+sva/telemetry/reg_file_sva.sv:807: error S3: no blank line before end
+sva/telemetry/spi_slave_sva.sv:145: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:152: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:155: error S3: no blank line before end
+sva/telemetry/spi_slave_sva.sv:156: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:159: error S3: no blank line before end
+sva/telemetry/spi_slave_sva.sv:160: error S3: no blank line before end
+sva/telemetry/spi_slave_sva.sv:162: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:191: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:246: error S1: multi-line 'if' without begin / end
+sva/telemetry/spi_slave_sva.sv:259: error S2: no blank line after begin
+sva/telemetry/spi_slave_sva.sv:386: error P4: p_cmd_entered_only_on_cs_fall reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/spi_slave_sva.sv:418: error P4: p_idle_entered_only_on_cs_rise reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/spi_slave_sva.sv:449: error P4: p_write_entry reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/spi_slave_sva.sv:466: error P4: p_turn_entry reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/spi_slave_sva.sv:483: error P4: p_read_entry reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/telemetry/spi_slave_sva.sv:714: error P4: p_strobe_one_clock reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper
+sva/top/pmic_top_sva.sv:66: error S2: no blank line after begin
+sva/top/pmic_top_sva.sv:74: error S3: no blank line before end
+sva/top/supervisor_sva.sv:62: error S2: no blank line after begin
+sva/top/supervisor_sva.sv:73: error S3: no blank line before end
+sva/top/supervisor_sva.sv:75: error S2: no blank line after begin
+sva/top/supervisor_sva.sv:93: error S2: no blank line after begin
+sva/top/supervisor_sva.sv:344: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:94: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/clk_rst/reset_sync_tb.sv:105: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/clk_rst/reset_sync_tb.sv:105: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:108: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:123: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/clk_rst/reset_sync_tb.sv:123: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:124: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:127: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:128: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:131: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:140: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:143: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:154: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:158: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/clk_rst/reset_sync_tb.sv:158: error S2: no blank line after the task declaration
+tb/clk_rst/reset_sync_tb.sv:160: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:163: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:164: error S3: no blank line before endtask
+tb/clk_rst/reset_sync_tb.sv:169: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/clk_rst/reset_sync_tb.sv:169: error S2: no blank line after the task declaration
+tb/clk_rst/reset_sync_tb.sv:175: error S3: no blank line before endtask
+tb/clk_rst/reset_sync_tb.sv:180: error C1: 'task automatic tick(input int n = 1);' has no Purpose block after its declaration line
+tb/clk_rst/reset_sync_tb.sv:180: error S2: no blank line after the task declaration
+tb/clk_rst/reset_sync_tb.sv:183: error S3: no blank line before endtask
+tb/clk_rst/reset_sync_tb.sv:189: error C1: 'task automatic expect_immediate_assert(input strin' has no Purpose block after its declaration line
+tb/clk_rst/reset_sync_tb.sv:189: error S2: no blank line after the task declaration
+tb/clk_rst/reset_sync_tb.sv:195: error S3: no blank line before endtask
+tb/clk_rst/reset_sync_tb.sv:200: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/clk_rst/reset_sync_tb.sv:200: error S2: no blank line after the task declaration
+tb/clk_rst/reset_sync_tb.sv:212: error S1: multi-line 'if' without begin / end
+tb/clk_rst/reset_sync_tb.sv:215: error S1: multi-line 'else' without begin / end
+tb/clk_rst/reset_sync_tb.sv:225: error S3: no blank line before endtask
+tb/clk_rst/reset_sync_tb.sv:234: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/clk_rst/reset_sync_tb.sv:234: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:238: error S3: no blank line before end
+tb/clk_rst/reset_sync_tb.sv:250: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/clk_rst/reset_sync_tb.sv:250: error S2: no blank line after begin
+tb/clk_rst/reset_sync_tb.sv:317: error S3: no blank line before end
+tb/inputs/input_debounce_tb.sv:96: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/inputs/input_debounce_tb.sv:117: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/inputs/input_debounce_tb.sv:117: error S2: no blank line after begin
+tb/inputs/input_debounce_tb.sv:120: error S3: no blank line before end
+tb/inputs/input_debounce_tb.sv:140: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/inputs/input_debounce_tb.sv:140: error S2: no blank line after begin
+tb/inputs/input_debounce_tb.sv:141: error S2: no blank line after begin
+tb/inputs/input_debounce_tb.sv:144: error S3: no blank line before end
+tb/inputs/input_debounce_tb.sv:145: error S3: no blank line before end
+tb/inputs/input_debounce_tb.sv:152: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/inputs/input_debounce_tb.sv:152: error S2: no blank line after the task declaration
+tb/inputs/input_debounce_tb.sv:157: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/inputs/input_debounce_tb.sv:159: error S3: no blank line before endtask
+tb/inputs/input_debounce_tb.sv:165: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/inputs/input_debounce_tb.sv:165: error S2: no blank line after the task declaration
+tb/inputs/input_debounce_tb.sv:177: error S1: multi-line 'if' without begin / end
+tb/inputs/input_debounce_tb.sv:180: error S1: multi-line 'else' without begin / end
+tb/inputs/input_debounce_tb.sv:204: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/inputs/input_debounce_tb.sv:204: error S2: no blank line after begin
+tb/inputs/input_debounce_tb.sv:208: error S3: no blank line before end
+tb/inputs/input_debounce_tb.sv:226: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/inputs/input_debounce_tb.sv:226: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:85: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/inputs/input_sync_tb.sv:98: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:107: error S3: no blank line before end
+tb/inputs/input_sync_tb.sv:118: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:126: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:129: error S3: no blank line before end
+tb/inputs/input_sync_tb.sv:130: error S3: no blank line before end
+tb/inputs/input_sync_tb.sv:136: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/inputs/input_sync_tb.sv:136: error S2: no blank line after the task declaration
+tb/inputs/input_sync_tb.sv:138: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:141: error S3: no blank line before end
+tb/inputs/input_sync_tb.sv:142: error S3: no blank line before endtask
+tb/inputs/input_sync_tb.sv:148: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/inputs/input_sync_tb.sv:148: error S2: no blank line after the task declaration
+tb/inputs/input_sync_tb.sv:160: error S1: multi-line 'if' without begin / end
+tb/inputs/input_sync_tb.sv:163: error S1: multi-line 'else' without begin / end
+tb/inputs/input_sync_tb.sv:179: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:190: error S3: no blank line before end
+tb/inputs/input_sync_tb.sv:196: error S2: no blank line after begin
+tb/inputs/input_sync_tb.sv:215: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/inputs/input_sync_tb.sv:227: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/inputs/input_sync_tb.sv:248: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/pmic_top_tb.v:242: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/pmic_top_tb.v:305: error S2: no blank line after begin
+tb/pmic_top_tb.v:330: error S3: no blank line before end
+tb/pmic_top_tb.v:331: error S2: no blank line after begin
+tb/pmic_top_tb.v:356: error S3: no blank line before end
+tb/pmic_top_tb.v:380: error C1: 'task emit(input [8*240:1] text);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:380: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:381: error S2: no blank line after begin
+tb/pmic_top_tb.v:384: error S3: no blank line before end
+tb/pmic_top_tb.v:385: error S3: no blank line before endtask
+tb/pmic_top_tb.v:387: error C1: 'task note(input [8*120:1] text);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:387: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:388: error S2: no blank line after begin
+tb/pmic_top_tb.v:391: error S3: no blank line before end
+tb/pmic_top_tb.v:392: error S3: no blank line before endtask
+tb/pmic_top_tb.v:398: error C1: 'task check(input [8*96:1] label, input condition);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:398: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:399: error S2: no blank line after begin
+tb/pmic_top_tb.v:401: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:403: error S2: no blank line after begin
+tb/pmic_top_tb.v:406: error S3: no blank line before end
+tb/pmic_top_tb.v:408: error S3: no blank line before end
+tb/pmic_top_tb.v:409: error S3: no blank line before endtask
+tb/pmic_top_tb.v:411: error C1: 'task check_eq(input [8*96:1] label, input integer ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:411: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:412: error S2: no blank line after begin
+tb/pmic_top_tb.v:414: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:416: error S2: no blank line after begin
+tb/pmic_top_tb.v:420: error S3: no blank line before end
+tb/pmic_top_tb.v:422: error S3: no blank line before end
+tb/pmic_top_tb.v:423: error S3: no blank line before endtask
+tb/pmic_top_tb.v:425: error C1: 'task check_range(input [8*96:1] label, input real ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:425: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:426: error S2: no blank line after begin
+tb/pmic_top_tb.v:428: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:431: error S2: no blank line after begin
+tb/pmic_top_tb.v:435: error S3: no blank line before end
+tb/pmic_top_tb.v:437: error S3: no blank line before end
+tb/pmic_top_tb.v:438: error S3: no blank line before endtask
+tb/pmic_top_tb.v:485: error C1: 'function cov_applies(input integer bin);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:485: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:486: error S2: no blank line after begin
+tb/pmic_top_tb.v:492: error S3: no blank line before end
+tb/pmic_top_tb.v:493: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:496: error C1: 'function integer xbin(input integer base, input [1' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:496: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:498: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:508: error C1: 'task automatic cover_bin(input integer bin);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:508: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:509: error S2: no blank line after begin
+tb/pmic_top_tb.v:512: error S3: no blank line before end
+tb/pmic_top_tb.v:513: error S3: no blank line before endtask
+tb/pmic_top_tb.v:515: error C1: 'function [8*56:1] cov_name(input integer bin);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:515: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:516: error S2: no blank line after begin
+tb/pmic_top_tb.v:606: error S3: no blank line before end
+tb/pmic_top_tb.v:607: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:609: error C1: 'task print_coverage;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:609: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:611: error S2: no blank line after begin
+tb/pmic_top_tb.v:615: error S2: no blank line after begin
+tb/pmic_top_tb.v:616: error S2: no blank line after begin
+tb/pmic_top_tb.v:620: error S3: no blank line before end
+tb/pmic_top_tb.v:621: error S1: multi-line 'else' without begin / end
+tb/pmic_top_tb.v:624: error S3: no blank line before end
+tb/pmic_top_tb.v:625: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:627: error S1: multi-line 'else' without begin / end
+tb/pmic_top_tb.v:632: error S3: no blank line before end
+tb/pmic_top_tb.v:633: error S3: no blank line before endtask
+tb/pmic_top_tb.v:657: error C1: 'always begin : osc_model': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:657: error S2: no blank line after begin
+tb/pmic_top_tb.v:658: error S2: no blank line after begin
+tb/pmic_top_tb.v:661: error S3: no blank line before end
+tb/pmic_top_tb.v:662: error S2: no blank line after begin
+tb/pmic_top_tb.v:665: error S3: no blank line before end
+tb/pmic_top_tb.v:666: error S2: no blank line after begin
+tb/pmic_top_tb.v:671: error S3: no blank line before end
+tb/pmic_top_tb.v:672: error S2: no blank line after begin
+tb/pmic_top_tb.v:675: error S3: no blank line before end
+tb/pmic_top_tb.v:676: error S3: no blank line before end
+tb/pmic_top_tb.v:693: error C1: 'always @(posedge latch_out or posedge ovp_event or': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:693: error S2: no blank line after begin
+tb/pmic_top_tb.v:696: error S3: no blank line before end
+tb/pmic_top_tb.v:735: error C1: 'always @(posedge clk) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:735: error S2: no blank line after begin
+tb/pmic_top_tb.v:736: error S2: no blank line after begin
+tb/pmic_top_tb.v:737: error S2: no blank line after begin
+tb/pmic_top_tb.v:739: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:742: error S2: no blank line after begin
+tb/pmic_top_tb.v:747: error S3: no blank line before end
+tb/pmic_top_tb.v:748: error S3: no blank line before end
+tb/pmic_top_tb.v:749: error S2: no blank line after begin
+tb/pmic_top_tb.v:755: error S3: no blank line before end
+tb/pmic_top_tb.v:762: error S3: no blank line before end
+tb/pmic_top_tb.v:764: error S3: no blank line before end
+tb/pmic_top_tb.v:788: error C1: 'always @(posedge sdio_oe_int) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:788: error S2: no blank line after begin
+tb/pmic_top_tb.v:791: error S2: no blank line after begin
+tb/pmic_top_tb.v:797: error S3: no blank line before end
+tb/pmic_top_tb.v:798: error S3: no blank line before end
+tb/pmic_top_tb.v:815: error C1: 'always @(negedge PWM_out) begin' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:815: error S2: no blank line after begin
+tb/pmic_top_tb.v:816: error S2: no blank line after begin
+tb/pmic_top_tb.v:819: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:821: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:824: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:827: error S3: no blank line before end
+tb/pmic_top_tb.v:828: error S3: no blank line before end
+tb/pmic_top_tb.v:857: error C1: 'always @(posedge clk) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:857: error S2: no blank line after begin
+tb/pmic_top_tb.v:858: error S2: no blank line after begin
+tb/pmic_top_tb.v:859: error S2: no blank line after begin
+tb/pmic_top_tb.v:864: error S3: no blank line before end
+tb/pmic_top_tb.v:872: error S3: no blank line before end
+tb/pmic_top_tb.v:875: error S3: no blank line before end
+tb/pmic_top_tb.v:888: error C1: 'always @(PGOOD) begin' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:888: error S2: no blank line after begin
+tb/pmic_top_tb.v:889: error S2: no blank line after begin
+tb/pmic_top_tb.v:892: error S3: no blank line before end
+tb/pmic_top_tb.v:894: error S3: no blank line before end
+tb/pmic_top_tb.v:904: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:913: error C1: 'always @(posedge Red_LED1) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:913: error S2: no blank line after begin
+tb/pmic_top_tb.v:916: error S3: no blank line before end
+tb/pmic_top_tb.v:920: error C1: 'always @(posedge Red_LED1) red1_rises = red1_rises' has no comment above it
+tb/pmic_top_tb.v:953: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:955: error C1: 'always @(posedge latch_sync_int) latch_sync_rise_t' has no comment above it
+tb/pmic_top_tb.v:956: error C1: 'always @(negedge latch_sync_int)' has no comment above it
+tb/pmic_top_tb.v:957: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:960: error C1: 'always @(negedge En) en_fall_t = $realtime;' has no comment above it
+tb/pmic_top_tb.v:969: error C1: 'always @(posedge clk) begin : led_pgood_monitor': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:969: error S2: no blank line after begin
+tb/pmic_top_tb.v:970: error S2: no blank line after begin
+tb/pmic_top_tb.v:978: error S3: no blank line before end
+tb/pmic_top_tb.v:979: error S2: no blank line after begin
+tb/pmic_top_tb.v:983: error S3: no blank line before end
+tb/pmic_top_tb.v:984: error S3: no blank line before end
+tb/pmic_top_tb.v:994: error C1: 'always @(negedge PWM_out) begin' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:994: error S2: no blank line after begin
+tb/pmic_top_tb.v:996: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:998: error S3: no blank line before end
+tb/pmic_top_tb.v:1006: error C1: 'always @(posedge latch_out) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:1006: error S2: no blank line after begin
+tb/pmic_top_tb.v:1009: error S3: no blank line before end
+tb/pmic_top_tb.v:1043: error C1: 'always @(posedge clk) begin : fsm_scoreboard': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:1043: error S2: no blank line after begin
+tb/pmic_top_tb.v:1048: error S2: no blank line after begin
+tb/pmic_top_tb.v:1054: error S3: no blank line before end
+tb/pmic_top_tb.v:1055: error S2: no blank line after begin
+tb/pmic_top_tb.v:1059: error S2: no blank line after begin
+tb/pmic_top_tb.v:1061: error S2: no blank line after begin
+tb/pmic_top_tb.v:1064: error S3: no blank line before end
+tb/pmic_top_tb.v:1065: error S3: no blank line before end
+tb/pmic_top_tb.v:1066: error S2: no blank line after begin
+tb/pmic_top_tb.v:1068: error S2: no blank line after begin
+tb/pmic_top_tb.v:1071: error S3: no blank line before end
+tb/pmic_top_tb.v:1072: error S3: no blank line before end
+tb/pmic_top_tb.v:1075: error S2: no blank line after begin
+tb/pmic_top_tb.v:1077: error S2: no blank line after begin
+tb/pmic_top_tb.v:1084: error S2: no blank line after begin
+tb/pmic_top_tb.v:1087: error S3: no blank line before end
+tb/pmic_top_tb.v:1090: error S3: no blank line before end
+tb/pmic_top_tb.v:1091: error S2: no blank line after begin
+tb/pmic_top_tb.v:1094: error S3: no blank line before end
+tb/pmic_top_tb.v:1103: error S2: no blank line after begin
+tb/pmic_top_tb.v:1124: error S3: no blank line before end
+tb/pmic_top_tb.v:1125: error S3: no blank line before end
+tb/pmic_top_tb.v:1144: error S3: no blank line before end
+tb/pmic_top_tb.v:1145: error S3: no blank line before end
+tb/pmic_top_tb.v:1173: error C1: 'task shadow_reset;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1173: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1174: error S2: no blank line after begin
+tb/pmic_top_tb.v:1185: error S3: no blank line before end
+tb/pmic_top_tb.v:1186: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1189: error C1: 'function [7:0] clamp8(input [7:0] value, input int' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1189: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1190: error S2: no blank line after begin
+tb/pmic_top_tb.v:1194: error S3: no blank line before end
+tb/pmic_top_tb.v:1195: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1197: error C1: 'function [23:0] clamp24(input [23:0] value, input ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1197: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1198: error S2: no blank line after begin
+tb/pmic_top_tb.v:1202: error S3: no blank line before end
+tb/pmic_top_tb.v:1203: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1211: error C1: 'task shadow_write(input [6:0] cmd_addr, input inte' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1211: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1219: error S2: no blank line after begin
+tb/pmic_top_tb.v:1223: error S2: no blank line after begin
+tb/pmic_top_tb.v:1229: error S2: no blank line after begin
+tb/pmic_top_tb.v:1232: error S3: no blank line before end
+tb/pmic_top_tb.v:1233: error S2: no blank line after begin
+tb/pmic_top_tb.v:1236: error S3: no blank line before end
+tb/pmic_top_tb.v:1237: error S3: no blank line before end
+tb/pmic_top_tb.v:1238: error S2: no blank line after begin
+tb/pmic_top_tb.v:1240: error S2: no blank line after begin
+tb/pmic_top_tb.v:1242: error S2: no blank line after begin
+tb/pmic_top_tb.v:1245: error S3: no blank line before end
+tb/pmic_top_tb.v:1246: error S2: no blank line after begin
+tb/pmic_top_tb.v:1247: error S2: no blank line after begin
+tb/pmic_top_tb.v:1251: error S3: no blank line before end
+tb/pmic_top_tb.v:1252: error S2: no blank line after begin
+tb/pmic_top_tb.v:1256: error S3: no blank line before end
+tb/pmic_top_tb.v:1257: error S2: no blank line after begin
+tb/pmic_top_tb.v:1261: error S3: no blank line before end
+tb/pmic_top_tb.v:1262: error S2: no blank line after begin
+tb/pmic_top_tb.v:1266: error S3: no blank line before end
+tb/pmic_top_tb.v:1267: error S2: no blank line after begin
+tb/pmic_top_tb.v:1268: error S2: no blank line after begin
+tb/pmic_top_tb.v:1272: error S3: no blank line before end
+tb/pmic_top_tb.v:1274: error S3: no blank line before end
+tb/pmic_top_tb.v:1275: error S2: no blank line after begin
+tb/pmic_top_tb.v:1276: error S2: no blank line after begin
+tb/pmic_top_tb.v:1280: error S3: no blank line before end
+tb/pmic_top_tb.v:1282: error S3: no blank line before end
+tb/pmic_top_tb.v:1283: error S2: no blank line after begin
+tb/pmic_top_tb.v:1284: error S2: no blank line after begin
+tb/pmic_top_tb.v:1288: error S3: no blank line before end
+tb/pmic_top_tb.v:1290: error S3: no blank line before end
+tb/pmic_top_tb.v:1291: error S3: no blank line before end
+tb/pmic_top_tb.v:1292: error S3: no blank line before end
+tb/pmic_top_tb.v:1293: error S3: no blank line before end
+tb/pmic_top_tb.v:1294: error S3: no blank line before end
+tb/pmic_top_tb.v:1295: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1298: error C1: 'function sh_mapped(input [6:0] a);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1298: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1300: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1302: error C1: 'function [7:0] sh_byte(input [6:0] a);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1302: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1303: error S2: no blank line after begin
+tb/pmic_top_tb.v:1319: error S3: no blank line before end
+tb/pmic_top_tb.v:1320: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1330: error C1: 'always @(posedge clk) begin : regmap_scoreboard': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:1330: error S2: no blank line after begin
+tb/pmic_top_tb.v:1331: error S2: no blank line after begin
+tb/pmic_top_tb.v:1337: error S2: no blank line after begin
+tb/pmic_top_tb.v:1339: error S2: no blank line after begin
+tb/pmic_top_tb.v:1352: error S3: no blank line before end
+tb/pmic_top_tb.v:1353: error S3: no blank line before end
+tb/pmic_top_tb.v:1354: error S3: no blank line before end
+tb/pmic_top_tb.v:1356: error S3: no blank line before end
+tb/pmic_top_tb.v:1368: error C1: 'function [7:0] crc8(input [7:0] crc_in, input [7:0' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1368: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1371: error S2: no blank line after begin
+tb/pmic_top_tb.v:1376: error S3: no blank line before end
+tb/pmic_top_tb.v:1377: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1381: error C1: 'task spi_send_bits(input [7:0] data, input integer' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1381: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1383: error S2: no blank line after begin
+tb/pmic_top_tb.v:1384: error S2: no blank line after begin
+tb/pmic_top_tb.v:1388: error S3: no blank line before end
+tb/pmic_top_tb.v:1389: error S3: no blank line before end
+tb/pmic_top_tb.v:1390: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1392: error C1: 'task spi_send_byte(input [7:0] data);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1392: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1394: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1399: error C1: 'task spi_recv_byte(output [7:0] data, input check_' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1399: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1401: error S2: no blank line after begin
+tb/pmic_top_tb.v:1403: error S2: no blank line after begin
+tb/pmic_top_tb.v:1406: error S2: no blank line after begin
+tb/pmic_top_tb.v:1408: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:1410: error S3: no blank line before end
+tb/pmic_top_tb.v:1412: error S3: no blank line before end
+tb/pmic_top_tb.v:1413: error S3: no blank line before end
+tb/pmic_top_tb.v:1414: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1416: error C1: 'task spi_begin;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1416: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1417: error S2: no blank line after begin
+tb/pmic_top_tb.v:1423: error S3: no blank line before end
+tb/pmic_top_tb.v:1424: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1426: error C1: 'task spi_end;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1426: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1427: error S2: no blank line after begin
+tb/pmic_top_tb.v:1430: error S3: no blank line before end
+tb/pmic_top_tb.v:1431: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1435: error C1: 'task expect_outcome(input committed, input is_writ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1435: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1436: error S2: no blank line after begin
+tb/pmic_top_tb.v:1438: error S2: no blank line after begin
+tb/pmic_top_tb.v:1442: error S3: no blank line before end
+tb/pmic_top_tb.v:1444: error S3: no blank line before end
+tb/pmic_top_tb.v:1445: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1448: error C1: 'task spi_write(input [6:0] addr, input integer nby' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1448: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1451: error S2: no blank line after begin
+tb/pmic_top_tb.v:1463: error S2: no blank line after begin
+tb/pmic_top_tb.v:1466: error S3: no blank line before end
+tb/pmic_top_tb.v:1470: error S3: no blank line before end
+tb/pmic_top_tb.v:1471: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1475: error C1: 'task spi_write_short(input [6:0] addr);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1475: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1476: error S2: no blank line after begin
+tb/pmic_top_tb.v:1484: error S3: no blank line before end
+tb/pmic_top_tb.v:1485: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1489: error C1: 'task spi_write_misaligned(input [6:0] addr, input ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1489: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1490: error S2: no blank line after begin
+tb/pmic_top_tb.v:1499: error S3: no blank line before end
+tb/pmic_top_tb.v:1500: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1506: error C1: 'task spi_read(input [6:0] addr, input integer nbyt' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1506: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1510: error S2: no blank line after begin
+tb/pmic_top_tb.v:1521: error S2: no blank line after begin
+tb/pmic_top_tb.v:1523: error S2: no blank line after begin
+tb/pmic_top_tb.v:1525: error S2: no blank line after begin
+tb/pmic_top_tb.v:1530: error S3: no blank line before end
+tb/pmic_top_tb.v:1531: error S3: no blank line before end
+tb/pmic_top_tb.v:1532: error S3: no blank line before end
+tb/pmic_top_tb.v:1533: error S3: no blank line before end
+tb/pmic_top_tb.v:1534: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1538: error C1: 'task reg_read(input [6:0] addr);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1538: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1539: error S2: no blank line after begin
+tb/pmic_top_tb.v:1542: error S3: no blank line before end
+tb/pmic_top_tb.v:1543: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1545: error C1: 'task reg_write(input [6:0] addr, input [7:0] data)' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1545: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1546: error S2: no blank line after begin
+tb/pmic_top_tb.v:1549: error S3: no blank line before end
+tb/pmic_top_tb.v:1550: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1555: error C1: 'task write_thresholds(input [7:0] trip_run, input ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1557: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1558: error S2: no blank line after begin
+tb/pmic_top_tb.v:1566: error S3: no blank line before end
+tb/pmic_top_tb.v:1567: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1570: error C1: 'task write_run_thresholds(input [7:0] trip_run, in' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1571: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1572: error S2: no blank line after begin
+tb/pmic_top_tb.v:1577: error S3: no blank line before end
+tb/pmic_top_tb.v:1578: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1580: error C1: 'task read_thresholds;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1580: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1582: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1591: error C1: 'task wait_en(input level, input real timeout_ns);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1591: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1592: error S2: no blank line after begin
+tb/pmic_top_tb.v:1598: error S3: no blank line before end
+tb/pmic_top_tb.v:1599: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1601: error C1: 'task wait_pgood(input level, input real timeout_ns' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1601: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1602: error S2: no blank line after begin
+tb/pmic_top_tb.v:1608: error S3: no blank line before end
+tb/pmic_top_tb.v:1609: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1611: error C1: 'task wait_strike(input [1:0] level, input real tim' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1611: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1612: error S2: no blank line after begin
+tb/pmic_top_tb.v:1618: error S3: no blank line before end
+tb/pmic_top_tb.v:1619: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1623: error C1: 'task wait_state(input [1:0] state, input real time' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1623: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1625: error S2: no blank line after begin
+tb/pmic_top_tb.v:1629: error S2: no blank line after begin
+tb/pmic_top_tb.v:1633: error S3: no blank line before end
+tb/pmic_top_tb.v:1634: error S3: no blank line before end
+tb/pmic_top_tb.v:1635: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1639: error C1: 'task do_reset;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1639: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1640: error S2: no blank line after begin
+tb/pmic_top_tb.v:1650: error S3: no blank line before end
+tb/pmic_top_tb.v:1651: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1661: error C1: 'task wait_sup_state(input [1:0] state, input real ' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1661: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1662: error S2: no blank line after begin
+tb/pmic_top_tb.v:1669: error S3: no blank line before end
+tb/pmic_top_tb.v:1670: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1680: error C1: 'task spi_frame_ignored(input [6:0] addr, input int' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1680: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1683: error S2: no blank line after begin
+tb/pmic_top_tb.v:1694: error S3: no blank line before end
+tb/pmic_top_tb.v:1695: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1700: error C1: 'task spi_read_ignored(input [6:0] addr, input inte' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1700: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1703: error S2: no blank line after begin
+tb/pmic_top_tb.v:1707: error S2: no blank line after begin
+tb/pmic_top_tb.v:1711: error S3: no blank line before end
+tb/pmic_top_tb.v:1715: error S3: no blank line before end
+tb/pmic_top_tb.v:1716: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1721: error C1: 'always @(negedge En) en_falls = en_falls + 1;' has no comment above it
+tb/pmic_top_tb.v:1740: error C1: 'task measure_ramp(input real timeout_ns, input int' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1740: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1743: error S2: no blank line after begin
+tb/pmic_top_tb.v:1747: error S2: no blank line after begin
+tb/pmic_top_tb.v:1754: error S2: no blank line after begin
+tb/pmic_top_tb.v:1756: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:1762: error S3: no blank line before end
+tb/pmic_top_tb.v:1764: error S3: no blank line before end
+tb/pmic_top_tb.v:1765: error S3: no blank line before end
+tb/pmic_top_tb.v:1766: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1774: error C1: 'function [31:0] xorshift32(input [31:0] x);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1774: error S2: no blank line after the function declaration
+tb/pmic_top_tb.v:1776: error S2: no blank line after begin
+tb/pmic_top_tb.v:1781: error S3: no blank line before end
+tb/pmic_top_tb.v:1782: error S3: no blank line before endfunction
+tb/pmic_top_tb.v:1785: error C1: 'task rand_below(input integer n, output integer va' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1785: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1786: error S2: no blank line after begin
+tb/pmic_top_tb.v:1789: error S3: no blank line before end
+tb/pmic_top_tb.v:1790: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1800: error C1: 'task random_register_traffic(input integer n);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1800: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1802: error S2: no blank line after begin
+tb/pmic_top_tb.v:1803: error S2: no blank line after begin
+tb/pmic_top_tb.v:1806: error S2: no blank line after begin
+tb/pmic_top_tb.v:1809: error S2: no blank line after begin
+tb/pmic_top_tb.v:1812: error S3: no blank line before end
+tb/pmic_top_tb.v:1814: error S3: no blank line before end
+tb/pmic_top_tb.v:1815: error S2: no blank line after begin
+tb/pmic_top_tb.v:1820: error S3: no blank line before end
+tb/pmic_top_tb.v:1821: error S2: no blank line after begin
+tb/pmic_top_tb.v:1825: error S2: no blank line after begin
+tb/pmic_top_tb.v:1828: error S3: no blank line before end
+tb/pmic_top_tb.v:1830: error S3: no blank line before end
+tb/pmic_top_tb.v:1831: error S2: no blank line after begin
+tb/pmic_top_tb.v:1836: error S3: no blank line before end
+tb/pmic_top_tb.v:1837: error S2: no blank line after begin
+tb/pmic_top_tb.v:1842: error S3: no blank line before end
+tb/pmic_top_tb.v:1843: error S2: no blank line after begin
+tb/pmic_top_tb.v:1848: error S3: no blank line before end
+tb/pmic_top_tb.v:1850: error S3: no blank line before end
+tb/pmic_top_tb.v:1851: error S3: no blank line before end
+tb/pmic_top_tb.v:1852: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1859: error C1: 'task random_duty_corners(input integer n);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1859: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1862: error S2: no blank line after begin
+tb/pmic_top_tb.v:1864: error S2: no blank line after begin
+tb/pmic_top_tb.v:1870: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:1873: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:1875: error S1: multi-line 'else' without begin / end
+tb/pmic_top_tb.v:1879: error S3: no blank line before end
+tb/pmic_top_tb.v:1881: error S3: no blank line before end
+tb/pmic_top_tb.v:1882: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1889: error C1: 'task random_glitch_corners(input integer n);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1889: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1891: error S2: no blank line after begin
+tb/pmic_top_tb.v:1892: error S2: no blank line after begin
+tb/pmic_top_tb.v:1900: error S3: no blank line before end
+tb/pmic_top_tb.v:1901: error S3: no blank line before end
+tb/pmic_top_tb.v:1902: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1911: error C1: 'task random_ignored_traffic(input integer n);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1911: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1913: error S2: no blank line after begin
+tb/pmic_top_tb.v:1914: error S2: no blank line after begin
+tb/pmic_top_tb.v:1917: error S2: no blank line after begin
+tb/pmic_top_tb.v:1921: error S3: no blank line before end
+tb/pmic_top_tb.v:1922: error S2: no blank line after begin
+tb/pmic_top_tb.v:1924: error S2: no blank line after begin
+tb/pmic_top_tb.v:1927: error S3: no blank line before end
+tb/pmic_top_tb.v:1929: error S3: no blank line before end
+tb/pmic_top_tb.v:1930: error S2: no blank line after begin
+tb/pmic_top_tb.v:1934: error S3: no blank line before end
+tb/pmic_top_tb.v:1935: error S2: no blank line after begin
+tb/pmic_top_tb.v:1943: error S3: no blank line before end
+tb/pmic_top_tb.v:1945: error S3: no blank line before end
+tb/pmic_top_tb.v:1946: error S3: no blank line before end
+tb/pmic_top_tb.v:1947: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1953: error C1: 'task finish_run(input [8*48:1] reason);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:1953: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:1954: error S2: no blank line after begin
+tb/pmic_top_tb.v:1964: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:1966: error S1: multi-line 'else' without begin / end
+tb/pmic_top_tb.v:1981: error S3: no blank line before end
+tb/pmic_top_tb.v:1982: error S3: no blank line before endtask
+tb/pmic_top_tb.v:1989: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:1989: error S2: no blank line after begin
+tb/pmic_top_tb.v:1993: error S3: no blank line before end
+tb/pmic_top_tb.v:2001: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:2001: error S2: no blank line after begin
+tb/pmic_top_tb.v:2002: error S2: no blank line after begin
+tb/pmic_top_tb.v:2005: error S3: no blank line before end
+tb/pmic_top_tb.v:2006: error S3: no blank line before end
+tb/pmic_top_tb.v:2039: error C1: 'task oc_trip;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2039: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2040: error S2: no blank line after begin
+tb/pmic_top_tb.v:2044: error S3: no blank line before end
+tb/pmic_top_tb.v:2045: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2050: error C1: 'task reset_and_config;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2050: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2051: error S2: no blank line after begin
+tb/pmic_top_tb.v:2053: error S2: no blank line after begin
+tb/pmic_top_tb.v:2057: error S3: no blank line before end
+tb/pmic_top_tb.v:2059: error S3: no blank line before end
+tb/pmic_top_tb.v:2060: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2067: error C1: 'task count_to_trip(input integer limit);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2067: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2068: error S2: no blank line after begin
+tb/pmic_top_tb.v:2072: error S2: no blank line after begin
+tb/pmic_top_tb.v:2077: error S3: no blank line before end
+tb/pmic_top_tb.v:2079: error S3: no blank line before end
+tb/pmic_top_tb.v:2080: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2088: error C1: 'task phase_reset_running;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2088: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2089: error S2: no blank line after begin
+tb/pmic_top_tb.v:2095: error S2: no blank line after begin
+tb/pmic_top_tb.v:2101: error S3: no blank line before end
+tb/pmic_top_tb.v:2117: error S2: no blank line after begin
+tb/pmic_top_tb.v:2123: error S3: no blank line before end
+tb/pmic_top_tb.v:2130: error S3: no blank line before end
+tb/pmic_top_tb.v:2131: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2142: error C1: 'task phase_fault_by_state;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2142: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2144: error S2: no blank line after begin
+tb/pmic_top_tb.v:2219: error S2: no blank line after begin
+tb/pmic_top_tb.v:2238: error S3: no blank line before end
+tb/pmic_top_tb.v:2241: error S3: no blank line before end
+tb/pmic_top_tb.v:2242: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2249: error C1: 'task phase_window_boundary;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2249: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2251: error S2: no blank line after begin
+tb/pmic_top_tb.v:2259: error S2: no blank line after begin
+tb/pmic_top_tb.v:2264: error S3: no blank line before end
+tb/pmic_top_tb.v:2279: error S3: no blank line before end
+tb/pmic_top_tb.v:2280: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2289: error C1: 'task phase_escalation;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2289: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2290: error S2: no blank line after begin
+tb/pmic_top_tb.v:2310: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:2312: error S3: no blank line before end
+tb/pmic_top_tb.v:2313: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2323: error C1: 'task phase_robustness;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2323: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2324: error S2: no blank line after begin
+tb/pmic_top_tb.v:2326: error S2: no blank line after begin
+tb/pmic_top_tb.v:2330: error S3: no blank line before end
+tb/pmic_top_tb.v:2361: error S3: no blank line before end
+tb/pmic_top_tb.v:2362: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2373: error C1: 'task phase_register_effects;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2373: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2375: error S2: no blank line after begin
+tb/pmic_top_tb.v:2402: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:2423: error S3: no blank line before end
+tb/pmic_top_tb.v:2424: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2429: error C1: 'task spi_read_glitched(input [6:0] addr);' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2429: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2431: error S2: no blank line after begin
+tb/pmic_top_tb.v:2444: error S3: no blank line before end
+tb/pmic_top_tb.v:2445: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2452: error C1: 'task phase_spi_corners;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2452: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2453: error S2: no blank line after begin
+tb/pmic_top_tb.v:2467: error S3: no blank line before end
+tb/pmic_top_tb.v:2468: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2471: error C1: 'task extra_phases;' has no Purpose block after its declaration line
+tb/pmic_top_tb.v:2471: error S2: no blank line after the task declaration
+tb/pmic_top_tb.v:2472: error S2: no blank line after begin
+tb/pmic_top_tb.v:2479: error S2: no blank line after begin
+tb/pmic_top_tb.v:2482: error S3: no blank line before end
+tb/pmic_top_tb.v:2483: error S3: no blank line before end
+tb/pmic_top_tb.v:2484: error S3: no blank line before endtask
+tb/pmic_top_tb.v:2500: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:2500: error S2: no blank line after the Purpose block
+tb/pmic_top_tb.v:2500: error S2: no blank line after begin
+tb/pmic_top_tb.v:2606: error S2: no blank line after begin
+tb/pmic_top_tb.v:2609: error S3: no blank line before end
+tb/pmic_top_tb.v:2633: error S2: no blank line after begin
+tb/pmic_top_tb.v:2636: error S3: no blank line before end
+tb/pmic_top_tb.v:2791: error S2: no blank line after begin
+tb/pmic_top_tb.v:2801: error S3: no blank line before end
+tb/pmic_top_tb.v:2802: error S2: no blank line after begin
+tb/pmic_top_tb.v:2817: error S3: no blank line before end
+tb/pmic_top_tb.v:3004: error S2: no blank line after begin
+tb/pmic_top_tb.v:3012: error S3: no blank line before end
+tb/pmic_top_tb.v:3026: error S1: multi-line 'if' without begin / end
+tb/pmic_top_tb.v:3117: error S3: no blank line before end
+tb/pmic_top_tb.v:3134: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/pmic_top_tb.v:3134: error S2: no blank line after the Purpose block
+tb/pmic_top_tb.v:3134: error S2: no blank line after begin
+tb/pmic_top_tb.v:3306: error S2: no blank line after begin
+tb/pmic_top_tb.v:3320: error S3: no blank line before end
+tb/pmic_top_tb.v:3321: error S2: no blank line after begin
+tb/pmic_top_tb.v:3325: error S3: no blank line before end
+tb/pmic_top_tb.v:3438: error S2: no blank line after begin
+tb/pmic_top_tb.v:3446: error S3: no blank line before end
+tb/pmic_top_tb.v:3529: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:144: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/protect/fault_arbiter_tb.sv:169: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/fault_arbiter_tb.sv:169: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:171: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:188: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/fault_arbiter_tb.sv:188: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:189: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:192: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:193: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:230: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:230: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:232: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:235: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:236: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:243: error C1: 'task automatic tick(input int n = 1);' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:243: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:245: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:253: error C1: 'task automatic drive();' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:253: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:260: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:266: error C1: 'task automatic set_state(input bit ss, input bit r' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:266: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:270: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:277: error C1: 'task automatic set_trips(input int run_thr, input ' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:277: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:281: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:290: error C1: 'task automatic pwm_cycle(input bit faulted,' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:292: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:300: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:304: error C1: 'task automatic pwm_cycles(input int n, input bit f' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:304: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:306: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:313: error C1: 'task automatic pwm_cycle_noisy(input int k, input ' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:313: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:315: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:319: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:321: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:325: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:326: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:335: error C1: 'task automatic pwm_cycle_split(input bit first_val' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:336: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:347: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:351: error C1: 'function automatic bit prbs_next();' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:362: error C1: 'function automatic bit prbs_shaped(input int k, in' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:378: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:378: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:392: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:398: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/protect/fault_arbiter_tb.sv:398: error S2: no blank line after the task declaration
+tb/protect/fault_arbiter_tb.sv:411: error S1: multi-line 'if' without begin / end
+tb/protect/fault_arbiter_tb.sv:413: error S1: multi-line 'else' without begin / end
+tb/protect/fault_arbiter_tb.sv:416: error S1: multi-line 'if' without begin / end
+tb/protect/fault_arbiter_tb.sv:419: error S1: multi-line 'if' without begin / end
+tb/protect/fault_arbiter_tb.sv:422: error S1: multi-line 'else' without begin / end
+tb/protect/fault_arbiter_tb.sv:427: error S1: multi-line 'if' without begin / end
+tb/protect/fault_arbiter_tb.sv:430: error S1: multi-line 'else' without begin / end
+tb/protect/fault_arbiter_tb.sv:443: error S3: no blank line before endtask
+tb/protect/fault_arbiter_tb.sv:453: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/fault_arbiter_tb.sv:453: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:457: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:493: error C1: 'always @(cb) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/fault_arbiter_tb.sv:518: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:576: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/fault_arbiter_tb.sv:576: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:746: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:748: error S2: no blank line after begin
+tb/protect/fault_arbiter_tb.sv:753: error S3: no blank line before end
+tb/protect/fault_arbiter_tb.sv:757: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:109: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/protect/hiccup_timer_tb.sv:125: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/hiccup_timer_tb.sv:125: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:128: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:148: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/hiccup_timer_tb.sv:148: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:149: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:152: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:153: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:158: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:158: error S2: no blank line after the task declaration
+tb/protect/hiccup_timer_tb.sv:160: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:163: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:164: error S3: no blank line before endtask
+tb/protect/hiccup_timer_tb.sv:170: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:170: error S2: no blank line after the task declaration
+tb/protect/hiccup_timer_tb.sv:175: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/protect/hiccup_timer_tb.sv:177: error S3: no blank line before endtask
+tb/protect/hiccup_timer_tb.sv:183: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:183: error S2: no blank line after the task declaration
+tb/protect/hiccup_timer_tb.sv:195: error S1: multi-line 'if' without begin / end
+tb/protect/hiccup_timer_tb.sv:198: error S1: multi-line 'else' without begin / end
+tb/protect/hiccup_timer_tb.sv:210: error S3: no blank line before endtask
+tb/protect/hiccup_timer_tb.sv:217: error C1: 'task automatic enter_hiccup(input logic [STRIKE_W-' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:228: error C1: 'task automatic leave_hiccup();' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:239: error C1: 'task automatic clear_strikes();' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:249: error C1: 'task automatic set_bases(input logic [HICCUP_BASE_' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:263: error C1: 'task automatic wait_done(input int max_clocks, out' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:266: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:284: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/hiccup_timer_tb.sv:284: error S2: no blank line after begin
+tb/protect/hiccup_timer_tb.sv:288: error S3: no blank line before end
+tb/protect/hiccup_timer_tb.sv:295: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/protect/hiccup_timer_tb.sv:295: error S2: no blank line after begin
+tb/protect/pwm_mask_tb.sv:3: error H2: header says Filename: pwm_mask.sv, the file is pwm_mask_tb.sv
+tb/protect/pwm_mask_tb.sv:86: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/protect/pwm_mask_tb.sv:94: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/pwm_mask_tb.sv:94: error S2: no blank line after begin
+tb/protect/pwm_mask_tb.sv:97: error S3: no blank line before end
+tb/protect/pwm_mask_tb.sv:117: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/pwm_mask_tb.sv:119: error S2: no blank line after begin
+tb/protect/pwm_mask_tb.sv:122: error S3: no blank line before end
+tb/protect/pwm_mask_tb.sv:131: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/protect/pwm_mask_tb.sv:131: error S2: no blank line after the task declaration
+tb/protect/pwm_mask_tb.sv:136: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/protect/pwm_mask_tb.sv:138: error S3: no blank line before endtask
+tb/protect/pwm_mask_tb.sv:144: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/protect/pwm_mask_tb.sv:144: error S2: no blank line after the task declaration
+tb/protect/pwm_mask_tb.sv:156: error S1: multi-line 'if' without begin / end
+tb/protect/pwm_mask_tb.sv:159: error S1: multi-line 'else' without begin / end
+tb/protect/pwm_mask_tb.sv:176: error C1: 'task automatic drive_pulse(input int high_clks, in' has no Purpose block after its declaration line
+tb/protect/pwm_mask_tb.sv:176: error S2: no blank line after the task declaration
+tb/protect/pwm_mask_tb.sv:181: error S3: no blank line before endtask
+tb/protect/pwm_mask_tb.sv:191: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/pwm_mask_tb.sv:191: error S2: no blank line after begin
+tb/protect/pwm_mask_tb.sv:195: error S3: no blank line before end
+tb/protect/pwm_mask_tb.sv:209: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/soft_start_tb.sv:123: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/protect/soft_start_tb.sv:141: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/soft_start_tb.sv:141: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:144: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:164: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/soft_start_tb.sv:164: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:165: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:168: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:169: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:174: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:174: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:176: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:179: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:180: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:186: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:186: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:191: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/protect/soft_start_tb.sv:193: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:199: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:199: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:211: error S1: multi-line 'if' without begin / end
+tb/protect/soft_start_tb.sv:214: error S1: multi-line 'else' without begin / end
+tb/protect/soft_start_tb.sv:226: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:233: error C1: 'task automatic drive_cycle();' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:233: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:238: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:242: error C1: 'task automatic set_state(input bit ss, input bit r' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:242: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:248: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:251: error C1: 'task automatic go_idle();' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:251: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:254: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:258: error C1: 'task automatic configure(input logic [CYC_STEP_W-1' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:259: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:265: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:268: error C1: 'task automatic set_limit(input logic [W_TB-1:0] li' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:268: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:271: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:275: error C1: 'task automatic ramp_to_done(input int max_cycles, ' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:275: error S2: no blank line after the task declaration
+tb/protect/soft_start_tb.sv:277: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:280: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:281: error S3: no blank line before endtask
+tb/protect/soft_start_tb.sv:291: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/soft_start_tb.sv:291: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:295: error S3: no blank line before end
+tb/protect/soft_start_tb.sv:302: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/protect/soft_start_tb.sv:302: error S2: no blank line after begin
+tb/protect/soft_start_tb.sv:514: error S3: no blank line before end
+tb/protect/strike_counter_tb.sv:114: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/protect/strike_counter_tb.sv:134: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/strike_counter_tb.sv:134: error S2: no blank line after begin
+tb/protect/strike_counter_tb.sv:137: error S3: no blank line before end
+tb/protect/strike_counter_tb.sv:157: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/strike_counter_tb.sv:157: error S2: no blank line after begin
+tb/protect/strike_counter_tb.sv:158: error S2: no blank line after begin
+tb/protect/strike_counter_tb.sv:161: error S3: no blank line before end
+tb/protect/strike_counter_tb.sv:162: error S3: no blank line before end
+tb/protect/strike_counter_tb.sv:168: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:168: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:173: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/protect/strike_counter_tb.sv:175: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:181: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:181: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:193: error S1: multi-line 'if' without begin / end
+tb/protect/strike_counter_tb.sv:196: error S1: multi-line 'else' without begin / end
+tb/protect/strike_counter_tb.sv:208: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:213: error C1: 'task automatic set_state(input bit hiccup, input b' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:213: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:218: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:222: error C1: 'task automatic hiccup();' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:222: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:227: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:231: error C1: 'task automatic drive_cycle();' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:231: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:236: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:239: error C1: 'task automatic run_cycles(input int n);' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:239: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:242: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:245: error C1: 'task automatic set_max(input logic [STRIKE_W-1:0] ' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:245: error S2: no blank line after the task declaration
+tb/protect/strike_counter_tb.sv:248: error S3: no blank line before endtask
+tb/protect/strike_counter_tb.sv:258: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/protect/strike_counter_tb.sv:258: error S2: no blank line after begin
+tb/protect/strike_counter_tb.sv:262: error S3: no blank line before end
+tb/protect/strike_counter_tb.sv:269: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/protect/strike_counter_tb.sv:269: error S2: no blank line after begin
+tb/protect/strike_counter_tb.sv:462: error S3: no blank line before end
+tb/status/fault_LED_tb.sv:100: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/status/fault_LED_tb.sv:126: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/fault_LED_tb.sv:126: error S2: no blank line after begin
+tb/status/fault_LED_tb.sv:129: error S3: no blank line before end
+tb/status/fault_LED_tb.sv:146: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/fault_LED_tb.sv:146: error S2: no blank line after begin
+tb/status/fault_LED_tb.sv:147: error S2: no blank line after begin
+tb/status/fault_LED_tb.sv:150: error S3: no blank line before end
+tb/status/fault_LED_tb.sv:151: error S3: no blank line before end
+tb/status/fault_LED_tb.sv:157: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/status/fault_LED_tb.sv:157: error S2: no blank line after the task declaration
+tb/status/fault_LED_tb.sv:162: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/status/fault_LED_tb.sv:164: error S3: no blank line before endtask
+tb/status/fault_LED_tb.sv:170: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/status/fault_LED_tb.sv:170: error S2: no blank line after the task declaration
+tb/status/fault_LED_tb.sv:182: error S1: multi-line 'if' without begin / end
+tb/status/fault_LED_tb.sv:185: error S1: multi-line 'else' without begin / end
+tb/status/fault_LED_tb.sv:197: error S3: no blank line before endtask
+tb/status/fault_LED_tb.sv:207: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/fault_LED_tb.sv:207: error S2: no blank line after begin
+tb/status/fault_LED_tb.sv:211: error S3: no blank line before end
+tb/status/fault_LED_tb.sv:223: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/pgood_gen_tb.sv:111: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/status/pgood_gen_tb.sv:121: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/pgood_gen_tb.sv:121: error S2: no blank line after begin
+tb/status/pgood_gen_tb.sv:124: error S3: no blank line before end
+tb/status/pgood_gen_tb.sv:144: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/pgood_gen_tb.sv:144: error S2: no blank line after begin
+tb/status/pgood_gen_tb.sv:145: error S2: no blank line after begin
+tb/status/pgood_gen_tb.sv:148: error S3: no blank line before end
+tb/status/pgood_gen_tb.sv:149: error S3: no blank line before end
+tb/status/pgood_gen_tb.sv:156: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/status/pgood_gen_tb.sv:156: error S2: no blank line after the task declaration
+tb/status/pgood_gen_tb.sv:161: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/status/pgood_gen_tb.sv:163: error S3: no blank line before endtask
+tb/status/pgood_gen_tb.sv:169: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/status/pgood_gen_tb.sv:169: error S2: no blank line after the task declaration
+tb/status/pgood_gen_tb.sv:181: error S1: multi-line 'if' without begin / end
+tb/status/pgood_gen_tb.sv:184: error S1: multi-line 'else' without begin / end
+tb/status/pgood_gen_tb.sv:196: error S3: no blank line before endtask
+tb/status/pgood_gen_tb.sv:201: error C1: 'task automatic drive_cycle();' has no Purpose block after its declaration line
+tb/status/pgood_gen_tb.sv:201: error S2: no blank line after the task declaration
+tb/status/pgood_gen_tb.sv:206: error S3: no blank line before endtask
+tb/status/pgood_gen_tb.sv:216: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/pgood_gen_tb.sv:216: error S2: no blank line after begin
+tb/status/pgood_gen_tb.sv:220: error S3: no blank line before end
+tb/status/pgood_gen_tb.sv:227: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/status/pgood_gen_tb.sv:227: error S2: no blank line after begin
+tb/status/pgood_gen_tb.sv:341: error S3: no blank line before end
+tb/status/timestamp_tb.sv:92: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/status/timestamp_tb.sv:107: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/timestamp_tb.sv:107: error S2: no blank line after begin
+tb/status/timestamp_tb.sv:110: error S3: no blank line before end
+tb/status/timestamp_tb.sv:128: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/timestamp_tb.sv:128: error S2: no blank line after begin
+tb/status/timestamp_tb.sv:129: error S2: no blank line after begin
+tb/status/timestamp_tb.sv:132: error S3: no blank line before end
+tb/status/timestamp_tb.sv:133: error S3: no blank line before end
+tb/status/timestamp_tb.sv:139: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/status/timestamp_tb.sv:139: error S2: no blank line after the task declaration
+tb/status/timestamp_tb.sv:144: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/status/timestamp_tb.sv:146: error S3: no blank line before endtask
+tb/status/timestamp_tb.sv:152: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/status/timestamp_tb.sv:152: error S2: no blank line after the task declaration
+tb/status/timestamp_tb.sv:164: error S1: multi-line 'if' without begin / end
+tb/status/timestamp_tb.sv:167: error S1: multi-line 'else' without begin / end
+tb/status/timestamp_tb.sv:190: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/status/timestamp_tb.sv:190: error S2: no blank line after begin
+tb/status/timestamp_tb.sv:194: error S3: no blank line before end
+tb/status/timestamp_tb.sv:207: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/fault_cause_tb.sv:95: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/telemetry/fault_cause_tb.sv:110: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/fault_cause_tb.sv:110: error S2: no blank line after begin
+tb/telemetry/fault_cause_tb.sv:113: error S3: no blank line before end
+tb/telemetry/fault_cause_tb.sv:133: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/fault_cause_tb.sv:133: error S2: no blank line after begin
+tb/telemetry/fault_cause_tb.sv:134: error S2: no blank line after begin
+tb/telemetry/fault_cause_tb.sv:137: error S3: no blank line before end
+tb/telemetry/fault_cause_tb.sv:138: error S3: no blank line before end
+tb/telemetry/fault_cause_tb.sv:144: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:144: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:149: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/telemetry/fault_cause_tb.sv:151: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:157: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:157: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:169: error S1: multi-line 'if' without begin / end
+tb/telemetry/fault_cause_tb.sv:172: error S1: multi-line 'else' without begin / end
+tb/telemetry/fault_cause_tb.sv:184: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:189: error C1: 'task automatic set_state(input bit ss, input bit r' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:189: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:194: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:198: error C1: 'task automatic set_time(input logic [TIMESTAMP_W-1' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:198: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:201: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:205: error C1: 'task automatic host_read();' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:205: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:210: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:214: error C1: 'task automatic pulse_cause(input string which);' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:214: error S2: no blank line after the task declaration
+tb/telemetry/fault_cause_tb.sv:235: error S3: no blank line before endtask
+tb/telemetry/fault_cause_tb.sv:245: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/fault_cause_tb.sv:245: error S2: no blank line after begin
+tb/telemetry/fault_cause_tb.sv:249: error S3: no blank line before end
+tb/telemetry/fault_cause_tb.sv:256: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/telemetry/fault_cause_tb.sv:256: error S2: no blank line after begin
+tb/telemetry/fault_cause_tb.sv:398: error S3: no blank line before end
+tb/telemetry/host_if/host_if_wrapper.sv:92: error S2: no blank line after the module header
+tb/telemetry/host_if/host_if_wrapper.sv:146: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/telemetry/pwm_stats_tb.sv:3: error H2: header says Filename: tb_template.sv, the file is pwm_stats_tb.sv
+tb/telemetry/pwm_stats_tb.sv:88: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/telemetry/pwm_stats_tb.sv:102: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/pwm_stats_tb.sv:102: error S2: no blank line after begin
+tb/telemetry/pwm_stats_tb.sv:105: error S3: no blank line before end
+tb/telemetry/pwm_stats_tb.sv:125: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/pwm_stats_tb.sv:125: error S2: no blank line after begin
+tb/telemetry/pwm_stats_tb.sv:126: error S2: no blank line after begin
+tb/telemetry/pwm_stats_tb.sv:129: error S3: no blank line before end
+tb/telemetry/pwm_stats_tb.sv:130: error S3: no blank line before end
+tb/telemetry/pwm_stats_tb.sv:136: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/telemetry/pwm_stats_tb.sv:136: error S2: no blank line after the task declaration
+tb/telemetry/pwm_stats_tb.sv:141: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/telemetry/pwm_stats_tb.sv:143: error S3: no blank line before endtask
+tb/telemetry/pwm_stats_tb.sv:149: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/telemetry/pwm_stats_tb.sv:149: error S2: no blank line after the task declaration
+tb/telemetry/pwm_stats_tb.sv:161: error S1: multi-line 'if' without begin / end
+tb/telemetry/pwm_stats_tb.sv:164: error S1: multi-line 'else' without begin / end
+tb/telemetry/pwm_stats_tb.sv:176: error S3: no blank line before endtask
+tb/telemetry/pwm_stats_tb.sv:182: error C1: 'task automatic drive_cycle(input int high_clks, in' has no Purpose block after its declaration line
+tb/telemetry/pwm_stats_tb.sv:182: error S2: no blank line after the task declaration
+tb/telemetry/pwm_stats_tb.sv:187: error S3: no blank line before endtask
+tb/telemetry/pwm_stats_tb.sv:197: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/telemetry/pwm_stats_tb.sv:197: error S2: no blank line after begin
+tb/telemetry/pwm_stats_tb.sv:201: error S3: no blank line before end
+tb/telemetry/pwm_stats_tb.sv:215: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/template_tb.sv:3: error H2: header says Filename: tb_template.sv, the file is template_tb.sv
+tb/template_tb.sv:47: error S2: no blank line after the module header
+tb/template_tb.sv:94: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/template_tb.sv:94: error S2: no blank line after begin
+tb/template_tb.sv:97: error S3: no blank line before end
+tb/template_tb.sv:117: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/template_tb.sv:117: error S2: no blank line after begin
+tb/template_tb.sv:118: error S2: no blank line after begin
+tb/template_tb.sv:121: error S3: no blank line before end
+tb/template_tb.sv:122: error S3: no blank line before end
+tb/template_tb.sv:128: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/template_tb.sv:128: error S2: no blank line after the task declaration
+tb/template_tb.sv:130: error S2: no blank line after begin
+tb/template_tb.sv:133: error S3: no blank line before end
+tb/template_tb.sv:134: error S3: no blank line before endtask
+tb/template_tb.sv:140: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/template_tb.sv:140: error S2: no blank line after the task declaration
+tb/template_tb.sv:145: error T1: stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)
+tb/template_tb.sv:147: error S3: no blank line before endtask
+tb/template_tb.sv:153: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/template_tb.sv:153: error S2: no blank line after the task declaration
+tb/template_tb.sv:165: error S1: multi-line 'if' without begin / end
+tb/template_tb.sv:168: error S1: multi-line 'else' without begin / end
+tb/template_tb.sv:180: error S3: no blank line before endtask
+tb/template_tb.sv:192: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/template_tb.sv:192: error S2: no blank line after begin
+tb/template_tb.sv:196: error S3: no blank line before end
+tb/template_tb.sv:210: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/template_tb.sv:210: error S2: no blank line after begin
+tb/template_tb.sv:218: error S3: no blank line before end
+tb/top/pmic_top/bind_top_only.sv:22: error H3: file does not end with `default_nettype wire
+tb/top/pmic_top/pmic_top_harness.sv:92: error S2: no blank line after the Purpose block
+tb/top/pmic_top/pmic_top_harness.sv:112: error C1: 'always @(posedge clk) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/pmic_top/pmic_top_harness.sv:112: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:113: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:116: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:118: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:120: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/top/pmic_top/pmic_top_harness.sv:120: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:123: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:125: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:140: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:148: error C1: 'always @(posedge clk) begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/pmic_top/pmic_top_harness.sv:148: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:151: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:153: error C1: 'initial scr = 1'b0;' has no comment above it
+tb/top/pmic_top/pmic_top_harness.sv:155: error C1: 'always_comb latch_stat = scr;' has no comment above it
+tb/top/pmic_top/pmic_top_harness.sv:158: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/top/pmic_top/pmic_top_harness.sv:199: error C1: 'initial begin' has no Purpose block after its declaration line
+tb/top/pmic_top/pmic_top_harness.sv:199: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:202: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:204: error C1: 'always @(posedge clk) begin' has no Purpose block after its declaration line
+tb/top/pmic_top/pmic_top_harness.sv:204: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:205: error S2: no blank line after begin
+tb/top/pmic_top/pmic_top_harness.sv:208: error S3: no blank line before end
+tb/top/pmic_top/pmic_top_harness.sv:209: error S3: no blank line before end
+tb/top/supervisor_tb.sv:136: warning S4: module body is indented; it sits at the indentation of module / endmodule
+tb/top/supervisor_tb.sv:162: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/supervisor_tb.sv:183: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/supervisor_tb.sv:185: error S2: no blank line after begin
+tb/top/supervisor_tb.sv:224: error C1: 'task automatic check(input bit condition, input st' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:241: error C1: 'task automatic tick(input int n = 1);' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:253: error C1: 'task automatic set_inputs(input logic [9:0] stim);' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:274: error C1: 'task automatic apply_cause(input int cause);' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:285: error C1: 'task automatic goto_state(input state_t target);' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:304: error C1: 'task automatic do_reset();' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:320: error C1: 'task automatic finish_run(input string reason);' has no Purpose block after its declaration line
+tb/top/supervisor_tb.sv:333: error S1: multi-line 'if' without begin / end
+tb/top/supervisor_tb.sv:336: error S1: multi-line 'else' without begin / end
+tb/top/supervisor_tb.sv:359: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/supervisor_tb.sv:384: error C1: 'initial begin': the Purpose block is above the block; it goes inside, after the declaration line
+tb/top/supervisor_tb.sv:514: error S2: no blank line after begin
+tb/top/supervisor_tb.sv:515: error S2: no blank line after begin
+tb/top/supervisor_tb.sv:519: error S3: no blank line before end
+tb/top/supervisor_tb.sv:520: error S3: no blank line before end
+tb/top/supervisor_tb.sv:619: error S2: no blank line after begin
+tb/top/supervisor_tb.sv:620: error S2: no blank line after begin
+tb/top/supervisor_tb.sv:625: error S3: no blank line before end
+tb/top/supervisor_tb.sv:626: error S3: no blank line before end
+
+sv_lint: 57 files - 1563 errors, 32 warnings, 0 exempted
+  rule level     found  description
+  H1   error         0  header block with Filename / File Description / Global variables lines
+  H2   error         3  header Filename matches the file
+  H3   error         4  file ends with `default_nettype wire
+  C1   error       238  every always / initial block, task and function has a Purpose block, inside it
+  S1   error        88  multi-line if / else use begin / end
+  S2   error       622  blank line after every block opener, and after a block's Purpose block
+  S3   error       561  blank line before every block closer
+  S4   warning      32  module body at the indentation of module / endmodule
+  K1   error         0  parameters and localparams in ALL CAPS
+  N1   error         0  a_ / c_ / p_ naming in checkers
+  N2   error         0  every property used; a_X asserts p_X
+  N3   error         0  every PAC group with an assertion has a cover, or says why not
+  N4   error         0  assertions report through note_failure() with a label-first message
+  N5   error         0  no $error / $fatal in checkers, no $fatal in testbenches
+  P1   error         0  a property about reset has no disable iff
+  P2   error         0  no === / !== in checkers
+  P3   error         0  no $rose / $fell on multi-bit signals
+  P4   error        33  a property reaching back one edge is guarded by $past(rst_n) or an out-of-reset helper
+  B2   error         0  checkers reach DUT internals through dut_ ports, not hierarchical names
+  T1   error        14  testbench stimulus after a clock edge is offset by #(DRIVE_OFFSET_NS)
+  B1   error         0  every checker bound, every bind's checker exists
