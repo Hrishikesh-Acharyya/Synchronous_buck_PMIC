@@ -539,6 +539,10 @@ Synchronous_buck_PMIC/
 ├── tb/                                  # unit testbenches (*_tb.sv), template, pmic_top_tb.v
 ├── sva/                                 # bound assertion checkers for the unit testbenches
 │
+├── verif_tools/                         # deterministic verification tools (lint; more planned)
+├── verif_ai/                            # AI-assisted verification: agent tasks and run scripts
+├── verif_evidence/                      # dated results, AI run ledger, RTL change requests
+│
 ├── sim/
 │   ├── Makefile                         # TESTBENCHES list; make help lists every target
 │   ├── mk/                              # the Makefile by topic

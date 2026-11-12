@@ -123,6 +123,9 @@ The suite's own random-test targets - `soak`, `cov_all`, `replay` - are run from
 | `make lint_notel` | the same for the SPI-less build |
 | `make lint_all` | both |
 | `make check_scripts` | `bash -n` + shellcheck (if installed) on `sim/scripts/*.sh`, syntax check of every Python script |
+| `make lint_sv` | house-style and rulebook lint of the RTL, checkers and testbenches (`verif_tools/lint`); fails on any error. `RULES=H1,C1` for a subset, `FILES=` for files or folders |
+| `make lint_sv_report` | the same report, always exit 0 |
+| `make lint_sv_evidence` | save the full report as `verif_evidence/lint/<date>_lint.txt` |
 
 ## Conversion and synthesis
 
@@ -220,4 +223,7 @@ sim/Makefile         TESTBENCHES list + includes
 sim/mk/              the Makefile, by topic (config, sources, tb, top, lint, syn, verilog, util)
 sim/scripts/         the scripts behind the targets
 Build/               pmic_full.v and synthesis records (committed); generated trees and zips (ignored)
+verif_tools/         deterministic verification tools (lint now; contract, mutation, traceability planned)
+verif_ai/            AI-assisted verification: agent tasks and the scripts that run them
+verif_evidence/      dated results of both, the AI run ledger and RTL change requests
 ```

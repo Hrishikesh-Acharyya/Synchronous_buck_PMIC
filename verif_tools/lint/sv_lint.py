@@ -31,6 +31,7 @@
 # Global variables: DEFAULT_ROOTS, EXEMPTIONS_FILE, RULES - see below
 
 import argparse
+import datetime
 import fnmatch
 import pathlib
 import re
@@ -834,6 +835,15 @@ def main():
     repo = pathlib.Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True,
                                        text=True).stdout.strip() or ".")
     wanted = set(args.rules.split(",")) if args.rules else set(RULES)
+
+    # header: the date and commit, so a saved report stands as evidence
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=repo, capture_output=True,
+                            text=True).stdout.strip() or "unknown"
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", *(args.paths or DEFAULT_ROOTS)],
+                           cwd=repo, capture_output=True, text=True).stdout.strip()
+    print(f"sv_lint report - {datetime.date.today().isoformat()} - commit {commit}"
+          + (" (linted files have uncommitted changes)" if dirty else ""))
+    print(f"scope: {' '.join(args.paths or DEFAULT_ROOTS)}\n")
 
     sources = [load(repo / rel, rel) for rel in collect(args.paths, repo)]
     findings = []

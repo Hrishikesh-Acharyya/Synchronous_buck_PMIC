@@ -3,17 +3,17 @@
 #
 # File Description: Verilator lint of the RTL in both TELEMETRY_EN builds, the
 #                   house-style and rulebook lint of the RTL, checkers and
-#                   testbenches (verify/lint/sv_lint.py), and a static check
+#                   testbenches (verif_tools/lint/sv_lint.py), and a static check
 #                   of the repository's own shell and Python scripts.
 #
 # Global variables: SV_LINT - the house-style linter
 
 ##@ Lint
 
-.PHONY: lint lint_notel lint_all check_scripts lint_sv lint_sv_report
+.PHONY: lint lint_notel lint_all check_scripts lint_sv lint_sv_report lint_sv_evidence
 
-# SV_LINT: the house-style and rulebook linter (rules in verify/lint/RULES.md)
-SV_LINT := ../verify/lint/sv_lint.py
+# SV_LINT: the house-style and rulebook linter (rules in verif_tools/lint/RULES.md)
+SV_LINT := ../verif_tools/lint/sv_lint.py
 
 # if/else rather than `command -v ... && ... || echo`: in that form a lint
 # failure falls through to the fallback and make exits 0.
@@ -52,6 +52,13 @@ lint_sv:  ## house-style and rulebook lint of RTL, checkers and testbenches (RUL
 lint_sv_report:  ## the same, report only (exit 0)
 	@$(PYTHON) $(SV_LINT) --report-only $(if $(RULES),--rules $(RULES)) $(FILES)
 
+# lint_sv_evidence: the full report saved as dated evidence in
+#                   verif_evidence/lint/<date>_lint.txt; its first line names
+#                   the commit it was run on
+lint_sv_evidence:  ## save the full lint report to verif_evidence/lint/<date>_lint.txt
+	@out=../verif_evidence/lint/$$(date +%F)_lint.txt; \
+	$(PYTHON) $(SV_LINT) --report-only > $$out && $(call ok,lint report saved to $$out)
+
 # check_scripts: bash -n and shellcheck on every shell script, a compile of
 #                every Python script. shellcheck is optional locally (it is
 #                preinstalled on the GitHub runners); without it the syntax
@@ -64,7 +71,7 @@ check_scripts:  ## syntax-check the repo's shell and Python scripts (+ shellchec
 	else \
 	  $(call warn,shellcheck not installed - bash -n only); \
 	fi; \
-	for f in $(SCRIPTS)/*.py ../.github/scripts/*.py ../verify/*/*.py; do \
+	for f in $(SCRIPTS)/*.py ../.github/scripts/*.py ../verif_tools/*/*.py; do \
 	  $(PYTHON) -c 'import ast, sys; ast.parse(open(sys.argv[1]).read(), sys.argv[1])' "$$f" || rc=1; \
 	done; \
 	if [ $$rc = 0 ]; then $(call ok,scripts check clean); else $(call err,script check failed); exit 1; fi
