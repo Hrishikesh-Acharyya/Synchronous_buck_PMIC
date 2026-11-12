@@ -1,21 +1,21 @@
-# verif_ai
+# verif_automation/ai
 
 AI-assisted verification: an AI coding agent (a large language model run
 from the command line) writes verification code and looks for gaps, and the
 simulator decides whether its work holds. This folder holds what the agent is
 asked to do and the scripts that run it. Everything it produces, accepted or
-not, is recorded in `verif_evidence/ai_runs/`.
+not, is recorded in `verif_automation/evidence/ai_runs/`.
 
 The agent runs on the designer's own machine, started by the scripts here.
 Help with writing these scripts and tools is ordinary tooling work and is not
-counted as an AI run; only runs of the agent through `verif_ai/` are.
+counted as an AI run; only runs of the agent through `verif_automation/ai/` are.
 
 ## Ground rules
 
 1. **The agent never edits RTL.** `rtl-systemverilog/` and `rtl-verilog/`
    are read-only to it, enforced by the run script's permission settings, not
    by asking. If it thinks the RTL is wrong, it writes a change request to
-   `verif_evidence/rtl_change_requests.md`, and the designer decides.
+   `verif_automation/evidence/rtl_change_requests.md`, and the designer decides.
 2. **It writes only where its task allows.** Each task lists the paths it may
    write; every other path is denied.
 3. **The simulator is the judge.** Nothing the agent writes is accepted on
@@ -32,18 +32,18 @@ counted as an AI run; only runs of the agent through `verif_ai/` are.
 ## How a run works
 
 ```
-verif_ai/scripts/run_task.sh <task>
+verif_automation/ai/scripts/run_task.sh <task>
   1. records the date, commit and task in a new run folder
   2. runs the deterministic tool the task needs (mutation runner, contract
      extractor, coverage report) to produce the agent's input
   3. starts the agent non-interactively with the task's instructions and its
      allowed paths
   4. runs the acceptance gate (make targets named by the task)
-  5. writes the run summary to verif_evidence/ai_runs/
+  5. writes the run summary to verif_automation/evidence/ai_runs/
 ```
 
 The designer reviews the summary and the diff, then accepts or rejects. Only
-accepted work is committed outside `verif_evidence/`.
+accepted work is committed outside `verif_automation/evidence/`.
 
 ## Layout
 
@@ -61,4 +61,4 @@ Planned tasks, in order:
 | `expand_checkers` | compare each module's checker against its extracted contract and add what is missing | new properties pass on the RTL and are covered |
 | `shadow_model` | write an independent model of a module from its contract alone, for differential testing | differences are explained, and each one is a model error or a design bug |
 | `close_coverage` | read the coverage holes and write tests or constraints to reach them | the bins are hit, and no existing test breaks |
-| `mine_traces` | judge candidate invariants from `verif_tools/trace_mining` | accepted ones become properties that pass |
+| `mine_traces` | judge candidate invariants from `verif_automation/tools/trace_mining` | accepted ones become properties that pass |

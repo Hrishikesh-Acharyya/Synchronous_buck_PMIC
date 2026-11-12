@@ -1,6 +1,6 @@
-# verif_evidence
+# verif_automation/evidence
 
-The results of `verif_tools/` and `verif_ai/`, kept as a dated record. Soak
+The results of `verif_automation/tools/` and `verif_automation/ai/`, kept as a dated record. Soak
 evidence for the handwritten suites stays beside each suite (for example
 `tb/top/pmic_top/soak/`).
 

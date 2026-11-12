@@ -1,8 +1,8 @@
-# verif_tools
+# verif_automation/tools
 
 Deterministic verification tools. No AI is involved here: each tool is a
 script with fixed rules, run from `make` or CI, and gives the same answer on
-the same input every time. Their reports go to `verif_evidence/`.
+the same input every time. Their reports go to `verif_automation/evidence/`.
 
 The handwritten verification (testbenches in `tb/`, bound checkers in
 `sva/`) stays where it is. These tools check that work, or produce inputs for
@@ -29,7 +29,7 @@ All commands are run from `sim/`.
 |---|---|
 | `make lint_sv` | lint; fails on any error. `RULES=H1,C1` runs a subset; `FILES=` names files or folders |
 | `make lint_sv_report` | the same report, always exit 0 (for reading the backlog) |
-| `make lint_sv_evidence` | save the full report as `verif_evidence/lint/<date>_lint.txt` |
+| `make lint_sv_evidence` | save the full report as `verif_automation/evidence/lint/<date>_lint.txt` |
 | `make check_scripts` | syntax check of every script, these tools included |
 
 ## Language

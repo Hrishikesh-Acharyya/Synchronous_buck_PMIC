@@ -1,7 +1,7 @@
 # Lint reports
 
 Each report is the full output of `make lint_sv_evidence` (`sv_lint.py`; the
-rules are in `verif_tools/lint/RULES.md`). The newest summary is at the top.
+rules are in `verif_automation/tools/lint/RULES.md`). The newest summary is at the top.
 
 ## 2026-11-12_lint.txt: first baseline (commit 5630fce)
 
