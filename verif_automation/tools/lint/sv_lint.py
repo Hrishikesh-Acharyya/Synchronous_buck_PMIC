@@ -775,6 +775,24 @@ def rule_P4(src):
         yield n + 1, f"{name} reaches back one edge but is not guarded by $past(rst_n) or an out-of-reset helper"
 
 
+def rule_B2(src):
+
+    """
+    Purpose: A checker reaches DUT internals only through its dut_ ports,
+             wired by the bind - never by a hierarchical name such as
+             u_core.state, which ties the checker to one instance tree.
+    """
+    if not src.is_checker:
+        return
+    text = "\n".join(src.code)
+    declared = set(re.findall(r"\b(?:input|output|inout|logic|wire|reg|bit|int)\b[^;()]*?\b(\w+)\s*(?:\[[^\]]*\]\s*)*[;,)=]", text))
+    for n, code in enumerate(src.code):
+        for m in re.finditer(r"(?<![\w.$'])([A-Za-z_]\w*)\s*\.\s*([A-Za-z_]\w*)", code):
+            if m.group(1) in declared:
+                continue                    # a field or method of a local signal (state.name()), not a path
+            yield n + 1, f"hierarchical name {m.group(1)}.{m.group(2)} - bring it in through a dut_ port"
+
+
 # ==============================================================================
 # Rules - across files
 # ==============================================================================
@@ -833,6 +851,7 @@ RULES = {
     "P2": ("error",   rule_P2, "no === / !== in checkers"),
     "P3": ("error",   rule_P3, "no $rose / $fell on multi-bit signals"),
     "P4": ("error",   rule_P4, "a property reaching back one edge is guarded by $past(rst_n) or an out-of-reset helper"),
+    "B2": ("error",   rule_B2, "checkers reach DUT internals through dut_ ports, not hierarchical names"),
     "B1": ("error",   rule_B1, "every checker bound, every bind's checker exists"),
 }
 CROSS_FILE_RULES = {"B1"}
