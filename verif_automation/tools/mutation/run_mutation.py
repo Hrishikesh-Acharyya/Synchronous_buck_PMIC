@@ -11,9 +11,10 @@
 #
 #                   Each mutant ends as one of:
 #                     killed     the testbench or a checker failed
-#                     lint       Verilator -Wall refused it (the build runs
-#                                with -Wall, as make lint does): caught
-#                                before simulation
+#                     lint       Verilator -Wall refused it - make lint on the
+#                                whole design, run first on every mutant, or
+#                                the testbench build, which also uses -Wall:
+#                                caught before simulation
 #                     timeout    the run did not finish in time (a hang the
 #                                watchdog did not end)
 #                     survived   everything passed - a gap in the
@@ -25,6 +26,8 @@
 #                                left out of the score
 #                   Score = (killed + lint + timeout) / (all - stillborn).
 #
+#                   Every mutant is first screened with make lint (a fraction
+#                   of a second); only the ones it accepts are simulated.
 #                   Every target is first run on the unmutated RTL; a target
 #                   that does not pass there stops the run.
 #
@@ -32,6 +35,9 @@
 #                                          [--sample N] [--seed S] [--jobs J]
 #                                          [--ids ID,ID] [--list] [--evidence]
 #                     --list      list the mutants and stop (no simulation)
+#                     --check     screen every mutant with make lint and stop:
+#                                 how many are legal, how many lint catches -
+#                                 a health check of the mutant generator
 #                     --evidence  also save the report and results under
 #                                 evidence/mutation/<date>_mutation.{txt,json}
 #                   Output: verif_automation/build/mutation/<run>/report.txt
@@ -81,10 +87,32 @@ def all_mutants():
     """Purpose: every mutant of every tracked RTL file, in file order."""
     files = subprocess.run(["git", "ls-files", "--", "rtl-systemverilog"], cwd=REPO, capture_output=True,
                            text=True).stdout.split()
+    info = M.design_info(REPO / "rtl-systemverilog")
     out = []
     for rel in sorted(f for f in files if f.endswith(".sv")):
-        out += M.find(str(REPO / rel), rel)
+        out += M.find(str(REPO / rel), rel, info)
     return out
+
+
+def screen(sv_dir):
+
+    """
+    Purpose: Run make lint on the RTL tree in sv_dir. Returns (status,
+             detail): clean, lint (warnings, named), or stillborn (a hard
+             error - not a legal design).
+    """
+    p = subprocess.run(["make", "-s", "-C", str(REPO / "sim"), "lint", f"SV_DIR={sv_dir}", "COLOR=0"],
+                       capture_output=True, text=True, env={**os.environ, "MAKEFLAGS": ""})
+    text = p.stdout + p.stderr
+    errors = [l for l in text.splitlines() if l.startswith("%Error") and "Exiting due to" not in l]
+    warnings = sorted({m.group(1) for m in re.finditer(r"%Warning-(\w+)", text)})
+    if errors:
+        return "stillborn", re.sub(r"/\S*/rtl-systemverilog/", "", errors[0])[:120]
+    if warnings:
+        return "lint", "make lint: " + ", ".join(warnings)
+    if p.returncode != 0:
+        return "stillborn", "make lint failed: " + text.strip()[-100:]
+    return "clean", ""
 
 
 def run_target(target, top, sv_dir, build, timeout):
@@ -122,10 +150,12 @@ def run_target(target, top, sv_dir, build, timeout):
     return "survived", secs, ""
 
 
-def run_one(m, work, timeout, keep):
+def run_one(m, work, timeout, keep, simulate=True):
 
     """
-    Purpose: Make one mutant in a scratch copy of the RTL and test it.
+    Purpose: Make one mutant in a scratch copy of the RTL, screen it with
+             make lint, and - if lint accepts it and simulate is set - test
+             it.
     """
     root = work / m.id
     shutil.rmtree(root, ignore_errors=True)
@@ -136,8 +166,12 @@ def run_one(m, work, timeout, keep):
     text = m.apply(raw.replace("\r", ""))
     (tree / pathlib.Path(m.file).relative_to("rtl-systemverilog")).write_bytes(
         (text.replace("\n", "\r\n") if "\r\n" in raw else text).encode())
-    target, top = target_of(m.unit)
-    status, secs, detail = run_target(target, top, tree, root / "build", timeout)
+    start = time.time()
+    status, detail = screen(tree)
+    secs = time.time() - start
+    if status == "clean" and simulate:
+        target, top = target_of(m.unit)
+        status, secs, detail = run_target(target, top, tree, root / "build", timeout)
     if not keep:
         shutil.rmtree(root, ignore_errors=True)
     return status, secs, detail
@@ -157,6 +191,8 @@ def report(results, header):
     """
     out = header + [""]
     cols = ["killed", "lint", "timeout", "survived", "stillborn"]
+    if any(r["status"] == "clean" for r in results):
+        cols = ["clean", "lint", "stillborn"]          # a --check run: nothing simulated
 
     def table(key, title):
         rows = {}
@@ -174,8 +210,9 @@ def report(results, header):
     table("unit", "module")
     table("operator", "operator")
     surv = [r for r in results if r["status"] == "survived"]
-    out.append(f"SURVIVORS ({len(surv)})")
-    out.append("")
+    if "survived" in cols:
+        out.append(f"SURVIVORS ({len(surv)})")
+        out.append("")
     for r in surv:
         out.append(f"  {r['id']}  {r['file']}:{r['line']}  {r['operator']}  {r['description']}"
                    + (f"  [{r['detail']}]" if r["detail"] else ""))
@@ -192,7 +229,10 @@ def _row(name, row, cols):
     """Purpose: one table row with the score."""
     n = sum(row.values())
     live = n - row["stillborn"]
-    score = f"{100 * (row['killed'] + row['lint'] + row['timeout']) / live:.1f}%" if live else "-"
+    if "clean" in cols:
+        score = "-"
+    else:
+        score = f"{100 * (row['killed'] + row['lint'] + row['timeout']) / live:.1f}%" if live else "-"
     return f"{name:<16}{n:>8}" + "".join(f"{row[c]:>11}" for c in cols) + f"{score:>8}"
 
 
@@ -211,6 +251,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--timeout-factor", type=float, default=10.0)
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--check", action="store_true")
     ap.add_argument("--keep", action="store_true", help="keep each mutant's scratch folder")
     ap.add_argument("--evidence", action="store_true")
     args = ap.parse_args()
@@ -243,9 +284,12 @@ def main():
     work = out / "work"
     work.mkdir(parents=True, exist_ok=True)
 
-    # baseline: every target used must pass on the unmutated RTL
+    # baseline: make lint, and every target used, must pass on the unmutated RTL
+    status, detail = screen(REPO / "rtl-systemverilog")
+    if status != "clean":
+        sys.exit(f"baseline: make lint does not pass on the unmutated RTL ({detail}) - fix that first")
     baseline = {}
-    for target, top in sorted({target_of(m.unit) for m in ms}):
+    for target, top in sorted({target_of(m.unit) for m in ms} if not args.check else []):
         print(f"baseline  {target} ...", flush=True)
         status, secs, detail = run_target(target, top, REPO / "rtl-systemverilog", out / "baseline" / target, 3600)
         if status != "survived" or detail:
@@ -256,7 +300,8 @@ def main():
     results, done = [], 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         futures = {pool.submit(run_one, m, work,
-                               max(120.0, args.timeout_factor * baseline[target_of(m.unit)[0]]), args.keep): m
+                               max(120.0, args.timeout_factor * baseline.get(target_of(m.unit)[0], 0)),
+                               args.keep, not args.check): m
                    for m in ms}
         for fut in concurrent.futures.as_completed(futures):
             m = futures[fut]
@@ -266,7 +311,9 @@ def main():
                             "description": m.description, "status": status, "detail": detail,
                             "seconds": round(secs, 1), "before": before, "after": after})
             done += 1
-            print(f"[{done}/{len(ms)}] {status:9s} {m.id}  {m.description}", flush=True)
+            if not args.check or status != "clean":
+                print(f"[{done}/{len(ms)}] {status:9s} {m.id}  {m.description}"
+                      + (f"  [{detail}]" if detail and status in ("lint", "stillborn") else ""), flush=True)
     results.sort(key=lambda r: (r["file"], r["line"], r["id"]))
     if not args.keep:
         shutil.rmtree(work, ignore_errors=True)
@@ -278,15 +325,19 @@ def main():
               f"scope: {scope}; modules: {args.modules or 'all'}; operators: {args.operators or 'all'}",
               "tests: each module's own testbench with its bound checker (reg_file and spi_slave: the host_if "
               "cocotb suite; pmic_top: the integration testbench)",
-              "baseline: " + ", ".join(f"{t} passes ({s:.0f} s)" for t, s in sorted(baseline.items())),
+              "baseline: make lint passes" + "".join(f", {t} passes ({s:.0f} s)" for t, s in sorted(baseline.items())),
               "score = (killed + lint + timeout) / (mutants - stillborn); a survivor is a gap or an "
               "equivalent mutant - not judged here"]
+    if args.check:
+        header[2:] = ["check only: every mutant screened with make lint, none simulated",
+                      "clean = legal and accepted by lint (would be simulated); lint = caught by make lint; "
+                      "stillborn = not legal code (a fault in the mutant generator if it is not 0)"]
     text = report(results, header)
     (out / "report.txt").write_text(text)
     (out / "results.json").write_text(json.dumps({"header": header, "results": results}, indent=1) + "\n")
     print(text)
     print(f"report: {out / 'report.txt'}")
-    if args.evidence:
+    if args.evidence and not args.check:
         ev = REPO / "verif_automation" / "evidence" / "mutation"
         ev.mkdir(parents=True, exist_ok=True)
         stem = f"{datetime.date.today().isoformat()}_mutation"

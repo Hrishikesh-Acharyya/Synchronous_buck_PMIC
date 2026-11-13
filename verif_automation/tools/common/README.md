@@ -11,8 +11,8 @@ What it gives for each file:
   unchanged - an edit found on the blanked text applies to the real text as is;
 - tokens, each with its text, kind, line and offsets;
 - for each module and package: the header fields, the parameters and ports
-  with their descriptions, and every procedural block, continuous assign and
-  function;
+  with their descriptions, every procedural block, continuous assign and
+  function, and every module instance with its named connections;
 - for each block, a statement tree: `begin` / `end`, `if` / `else`, `case` items,
   loops, and assignments split into target, operator and value.
 

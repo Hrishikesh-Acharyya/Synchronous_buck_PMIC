@@ -15,7 +15,8 @@
 #                     - for each module / package: the header block fields
 #                       (Filename, File Description, Global variables), the
 #                       parameters and ports with the comments that describe
-#                       them, and its procedural blocks and continuous assigns
+#                       them, its procedural blocks and continuous assigns,
+#                       and its module instances with their connections
 #                     - for each procedural block: a statement tree - begin /
 #                       end, if / else, case items, loops, and assignments
 #                       split into target, operator and value
@@ -438,6 +439,24 @@ class Unit:
     blocks: list
     first: int
     last: int
+    instances: list = field(default_factory=list)
+
+
+@dataclass
+class Instance:
+
+    """
+    Purpose: One module instantiation: the module instantiated, the instance
+             name, and its named connections, each (port name, first token,
+             last token of the connected expression). Unconnected ports
+             (.p()) and wildcards are left out.
+    """
+
+    module: str
+    name: str
+    first: int
+    last: int
+    connections: list
 
 
 @dataclass
@@ -536,7 +555,7 @@ def _read_unit(toks, i, comments, raw_lines, code):
     end_kw = "endmodule" if kind == "module" else "endpackage"
     last = next(k for k in range(i, len(toks)) if toks[k].text == end_kw)
     p = Parser(toks)
-    params, ports, blocks = [], [], []
+    params, ports, blocks, instances = [], [], [], []
     j = i + 2
     # a package import between the name and the lists
     while toks[j].text == "import":
@@ -613,8 +632,49 @@ def _read_unit(toks, i, comments, raw_lines, code):
                                 _span_text(code, toks[j], toks[k - 1]) if k > j else ""))
             j = m + 1
             continue
+        inst = _read_instance(toks, j, p) if kind == "module" else None
+        if inst is not None:
+            instances.append(inst)
+            j = inst.last + 1
+            continue
         j += 1
-    return Unit(kind, name, header_fields(comments), params, ports, blocks, i, last)
+    return Unit(kind, name, header_fields(comments), params, ports, blocks, i, last, instances)
+
+
+def _read_instance(toks, j, p):
+
+    """
+    Purpose: If a module instantiation starts at token j - a module name, an
+             optional #( ) parameter list, an instance name, then a
+             parenthesised connection list - return it; otherwise None. Only
+             tried where a module item can start, so a call inside an
+             expression is never taken for one.
+    """
+    if toks[j].kind != "id" or toks[j].text in TYPE_WORDS:
+        return None
+    prev = toks[j - 1].text
+    after_label = toks[j - 1].kind == "id" and toks[j - 2].text == ":"
+    if prev not in (";", "end", "begin", "generate", "endgenerate", "endfunction", "endtask") and not after_label:
+        return None
+    k = j + 1
+    if toks[k].text == "#":
+        if toks[k + 1].text != "(":
+            return None
+        k = p.close(k + 1) + 1
+    if not (toks[k].kind == "id" and toks[k + 1].text == "(" and toks[k + 2].text in (".", ")")):
+        return None
+    c = p.close(k + 1)
+    conns, m = [], k + 2
+    while m < c:
+        if toks[m].text == "." and toks[m + 1].kind == "id" and toks[m + 2].text == "(":
+            e = p.close(m + 2)
+            if e - 1 >= m + 3:
+                conns.append((toks[m + 1].text, m + 3, e - 1))
+            m = e + 1
+        else:
+            m += 1
+    last = c + 1 if toks[c + 1].text == ";" else c
+    return Instance(toks[j].text, toks[k].text, j, last, conns)
 
 
 def _read_decls(toks, first, last, comments, raw_lines, code, what):

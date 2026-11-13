@@ -14,14 +14,16 @@ nothing.
 
 ## How a run works
 
-1. Every mutant of the selected modules is listed (1,197 across 17 modules
-   at the time of writing).
+1. Every mutant of the selected modules is listed (1,296 across 17 modules
+   at the time of writing, from 13 operators).
 2. Each `sim/` target the run will use is run once on the unmutated RTL. A
    target that does not pass stops the run: mutation results on a failing
    baseline mean nothing.
 3. For each mutant, in parallel:
    - the RTL tree is copied to `build/mutation/<run>/work/<id>/` and the one
      edit made there - the real `rtl-systemverilog/` is never written;
+   - `make lint` screens the copy, in a fraction of a second; a mutant it
+     rejects is caught already and is not simulated (about one in ten);
    - the module's own testbench runs against the copy, through the existing
      `sim/` target with `SV_DIR=` pointing at it and its own build folder;
    - the outcome is read from the run's `result.tsv` and logs.
@@ -45,6 +47,7 @@ From `verif_automation/`:
 
 ```
 make mutants MODULE=input_debounce              # list, no simulation
+make mutants_check                              # lint-screen all, no simulation - a minute
 make mutate MODULE=input_debounce               # one module, a minute or two
 make mutate SAMPLE=50                           # a random 50 of all mutants
 make mutation_evidence                          # everything, saved as evidence - hours

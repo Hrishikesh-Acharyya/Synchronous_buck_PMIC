@@ -39,7 +39,7 @@ MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operator
                 $(if $(SAMPLE),--sample $(SAMPLE) --seed $(SEED)) $(if $(JOBS),--jobs $(JOBS))
 
 .DEFAULT_GOAL := help
-.PHONY: help lint lint_report lint_evidence contract mutants mutate mutation_evidence check_scripts
+.PHONY: help lint lint_report lint_evidence contract mutants mutants_check mutate mutation_evidence check_scripts
 
 help:  ## list the commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-19s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -68,6 +68,12 @@ contract:  ## extract every module's contract to build/contract/
 # mutants: the mutation sites, listed without running anything
 mutants:  ## list the mutants (MODULE=, OPERATORS=, SAMPLE=, SEED=)
 	@$(PYTHON) $(MUTATION) --list $(MUTATION_ARGS)
+
+# mutants_check: every mutant screened with make lint, none simulated - how
+#                many are legal code, how many lint already catches. About a
+#                minute for all of them; stillborn should read 0.
+mutants_check:  ## health check of the mutant generator: lint-screen every mutant, no simulation
+	@$(PYTHON) $(MUTATION) --check $(MUTATION_ARGS)
 
 # mutate: mutation testing - each mutant in a scratch copy of the RTL against
 #         its module's own testbench. All 17 modules take hours: run it on

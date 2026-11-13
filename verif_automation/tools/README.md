@@ -13,7 +13,7 @@ it. They never replace it.
 | Folder | Tool | Status |
 |---|---|---|
 | `lint/` | `sv_lint.py`: house-style linter for the RTL, checkers and testbenches. Rules are in `lint/RULES.md`, accepted exceptions in `lint/exemptions.txt` | in use |
-| `common/` | `svparse.py`: the SystemVerilog reader the other tools share - tokens, headers, parameters and ports with their comments, and a statement tree of every procedural block | in use |
+| `common/` | `svparse.py`: the SystemVerilog reader the other tools share - tokens, headers, parameters and ports with their comments, a statement tree of every procedural block, and every module instance with its connections | in use |
 | `contract/` | `extract_contract.py`: each module's contract - header, parameters, ports, never its body - as JSON and Markdown in `build/contract/`, with the gaps (anything undescribed) | in use |
 | `mutation/` | `mutants.py` finds the mutation sites (operators in `mutation/OPERATORS.md`); `run_mutation.py` makes each mutant in a scratch copy of the RTL (never the real files), runs the module's own testbench and checker on it, and reports what survived | in use |
 | `traceability/` | traceability matrix: contract clause, then the property or cover that checks it, then the test that exercises it | planned |
@@ -35,6 +35,7 @@ From `verif_automation/`, which has its own Makefile, separate from
 | `make lint_evidence` | save the full report as `evidence/lint/<date>_lint.txt` |
 | `make contract` | extract every module's contract to `build/contract/` |
 | `make mutants` | list the mutants without running them (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`) |
+| `make mutants_check` | health check of the mutant generator: every mutant lint-screened, none simulated |
 | `make mutate` | mutation testing; all modules take hours (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`, `JOBS=`) |
 | `make mutation_evidence` | the same, with the report saved to `evidence/mutation/<date>_mutation.txt` and `.json` |
 | `make check_scripts` | syntax check of every script under `tools/` and `ai/` |
