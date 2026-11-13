@@ -29,19 +29,34 @@ module input_sync #(
     output logic sync_out
 );
 
-    // meta_ff: First stage, absorbs metastability from async_in.
-    logic meta_ff;
+// meta_ff: First stage, absorbs metastability from async_in.
+logic meta_ff;
 
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            meta_ff  <= RESET_VALUE;
-            sync_out <= RESET_VALUE;
-        end
-        else begin
-            meta_ff  <= async_in;
-            sync_out <= meta_ff;
-        end
+always_ff @(posedge clk or negedge rst_n) begin
+
+    /*
+    Purpose:
+    ---
+    The two synchroniser flops. meta_ff absorbs any metastability from
+    async_in; sync_out is the clean copy one clock later. Both reset
+    asynchronously to RESET_VALUE, so they hold a defined level before the
+    first clock edge arrives.
+    */
+
+    if (!rst_n) begin
+
+        meta_ff  <= RESET_VALUE;
+        sync_out <= RESET_VALUE;
+
     end
+    else begin
+
+        meta_ff  <= async_in;
+        sync_out <= meta_ff;
+
+    end
+
+end
 
 endmodule
 

@@ -74,6 +74,7 @@ logic [pmic_types_pkg::CYC_STEP_W-1:0] falls_in_window;
 logic window_done;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -81,6 +82,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   asynchronously, so a reset pulse that falls entirely between two edges still
   disarms the two-edge claims at the second of them.
   */
+
   if (!rst_n) begin
 
     out_of_reset <= 1'b0;
@@ -105,6 +107,7 @@ always_comb begin
   A switching cycle ends on the falling edge of pwm_sync, which is where the
   header says the ceiling may change - while the pulse is over.
   */
+
   fall        = pwm_sync_q && !pwm_sync;
   window_done = fall && (falls_in_window == cycles_per_step - 1'b1);
 

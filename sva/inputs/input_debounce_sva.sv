@@ -64,6 +64,7 @@ logic [CNT_W-1:0] hold_count;
 logic flag_out_q;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -84,6 +85,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   flag_in already disagrees with the new level the count restarts at one -
   the count never carries over from one transition into the next.
   */
+
   if (!rst_n) begin
 
     hold_count <= '0;
@@ -104,30 +106,31 @@ always_ff @(posedge clk or negedge rst_n) begin
 end
 
 // clks_since_release:    edges since rst_n was released, saturating at 1.
-    //                     $changed(flag_out) at the first edge after release
-    //                     compares against an edge inside reset, where the
-    //                     value was driven by the async clear rather than by a
-    //                     qualified transition. disable iff does not cover that
-    //                     edge, since rst_n is already high there.
-    logic clks_since_release;
+//                     $changed(flag_out) at the first edge after release
+//                     compares against an edge inside reset, where the
+//                     value was driven by the async clear rather than by a
+//                     qualified transition. disable iff does not cover that
+//                     edge, since rst_n is already high there.
+logic clks_since_release;
 
-    always_ff @(posedge clk or negedge rst_n) begin
+always_ff @(posedge clk or negedge rst_n) begin
 
-      /*
-      Purpose:
-      ---
-      Blanks the single edge after reset release. Properties using $changed or
-      $stable reach one edge back, and at the first edge after release that
-      reaches into reset, where flag_out was driven by the async clear rather
-      than by a qualified transition - so the antecedent can fire with no
-      window behind it. disable iff does not cover that edge, because rst_n is
-      already high there. One bit is enough: the gate is needed once per
-      release, not for a span of edges.
-      */
+    /*
+    Purpose:
+    ---
+    Blanks the single edge after reset release. Properties using $changed or
+    $stable reach one edge back, and at the first edge after release that
+    reaches into reset, where flag_out was driven by the async clear rather
+    than by a qualified transition - so the antecedent can fire with no
+    window behind it. disable iff does not cover that edge, because rst_n is
+    already high there. One bit is enough: the gate is needed once per
+    release, not for a span of edges.
+    */
 
-        if (!rst_n)  clks_since_release <= 1'b0;
-        else         clks_since_release <= 1'b1;
-    end
+    if (!rst_n)  clks_since_release <= 1'b0;
+    else         clks_since_release <= 1'b1;
+
+end
 
 
 
@@ -291,7 +294,9 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 */
 
 sequence s_window_abandoned;
+
     (flag_in != flag_out) && (hold_count > 1) ##1 (flag_in == flag_out);
+
 endsequence
 
 property p_window_abandoned;

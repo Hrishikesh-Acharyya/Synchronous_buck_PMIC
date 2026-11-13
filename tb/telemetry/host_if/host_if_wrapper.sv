@@ -90,6 +90,7 @@ import pmic_types_pkg::*;
     //                 is exposed as a port and the test fails on non-zero.
     output int unsigned sva_fail_count
 );
+
 // ---- host access port between spi_slave and reg_file (internal) ----
 // spi_addr / spi_wr_en / spi_wdata: one write strobe per data byte, with its address
 logic [6:0] spi_addr;
@@ -164,7 +165,7 @@ keep the sdio_ prefix of the original 3-wire bus.
 
 assign MISO = sdio_oe & sdio_out;
 
- spi_slave #(
+spi_slave #(
        .SCK_IDLE_TIMEOUT_CLKS(SCK_IDLE_TIMEOUT_CLKS)
    )  u_spi_slave          (.clk(clk),
                             .rst_n(rst_n),

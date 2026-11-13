@@ -19,3 +19,5 @@
 bind pmic_top pmic_top_sva #(
     .TELEMETRY_EN(TELEMETRY_EN)
 ) u_sva (.*);
+
+`default_nettype wire

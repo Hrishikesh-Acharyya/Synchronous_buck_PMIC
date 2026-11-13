@@ -66,6 +66,7 @@ always_ff @ (posedge clk or negedge rst_n) begin
   ---
   Divide the system clock down to a 1 ms tick. 
   */
+
   if(!rst_n) begin
 
     prescalar <= '0;

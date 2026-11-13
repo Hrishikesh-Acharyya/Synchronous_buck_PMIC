@@ -41,33 +41,61 @@ package pmic_types_pkg;
     // Each is evaluated by the tool during elaboration and replaced by a
     // constant, so none of these produce hardware.
 
-    // duty_to_counts: duty cycle in percent -> on-time in clk counts
     function automatic int duty_to_counts(input int duty_pct);
+
+        /*
+        Purpose:
+        ---
+        duty_to_counts: duty cycle in percent -> on-time in clk counts
+        */
+
         return (CLKS_PER_SW * duty_pct) / 100;
+
     endfunction
 
-    // ns_to_clks: nanoseconds -> clk counts. Split into two steps because
-    //             clocks-per-nanosecond is less than one and would truncate
-    //             to zero in integer arithmetic.
-    //             Rounds UP. Every caller asks for a MINIMUM time, and a
-    //             floored count delivers less than was asked for: at 10 MHz
-    //             240 ns is 2.4 clocks, and the floor of 2 commands 200 ns,
-    //             leaving 72 ns at the gate after the LM5106 shrinkage
-    //             instead of the 112 ns MIN_GATE_ON_NS requires. The +999
-    //             is a ceiling for the /1000 and changes nothing when the
-    //             division is exact, as it is at 50 MHz (12000 / 1000).
     function automatic int ns_to_clks(input int ns);
+
+        /*
+        Purpose:
+        ---
+        ns_to_clks: nanoseconds -> clk counts. Split into two steps because
+        clocks-per-nanosecond is less than one and would truncate
+        to zero in integer arithmetic.
+        Rounds UP. Every caller asks for a MINIMUM time, and a
+        floored count delivers less than was asked for: at 10 MHz
+        240 ns is 2.4 clocks, and the floor of 2 commands 200 ns,
+        leaving 72 ns at the gate after the LM5106 shrinkage
+        instead of the 112 ns MIN_GATE_ON_NS requires. The +999
+        is a ceiling for the /1000 and changes nothing when the
+        division is exact, as it is at 50 MHz (12000 / 1000).
+        */
+
         return (((CLK_HZ / 1_000_000) * ns) + 999) / 1000;
+
     endfunction
 
-    // ms_to_clks: milliseconds -> clk counts
     function automatic int ms_to_clks(input int ms);
+
+        /*
+        Purpose:
+        ---
+        ms_to_clks: milliseconds -> clk counts
+        */
+
         return (CLK_HZ / 1000) * ms;
+
     endfunction
 
-    // ms_to_sw_cycles: milliseconds -> switching cycles.
     function automatic int ms_to_sw_cycles(input int ms);
+
+        /*
+        Purpose:
+        ---
+        ms_to_sw_cycles: milliseconds -> switching cycles.
+        */
+
         return (CONVERTOR_HZ / 1000) * ms;
+
     endfunction
 
     // ============================================================

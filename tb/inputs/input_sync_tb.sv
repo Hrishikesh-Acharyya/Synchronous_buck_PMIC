@@ -96,14 +96,17 @@ input_sync #(.RESET_VALUE(1'b1)) u_dut_hi (
 
 
 initial begin
+
     /*
     Purpose:
     ---
     Free-running clock. Drives clk and nothing else - a second initial
     block assigning any signal this one touches is a race.
     */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 
@@ -116,6 +119,7 @@ already has in mind.
 initial $timeformat(-9, 0, " ns", 10);
 
 initial begin
+
     /*
     Purpose:
     ---
@@ -123,29 +127,48 @@ initial begin
     on a testbench this short. Enabled by +WAVES, which the Makefile
     passes for WAVES=1.
     */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, input_sync_tb);
+
     end
+
 end
 
 
-// check: procedural comparison, for claims no clocked property can see -
-//        here, the asynchronous clear taking effect between clock edges.
 
 task automatic check(input bit condition, input string label);
+
+    /*
+    Purpose:
+    ---
+    check: procedural comparison, for claims no clocked property can see -
+    here, the asynchronous clear taking effect between clock edges.
+    */
+
     checks_run++;
     if (!condition) begin
+
         checks_failed++;
         $display("[%0t] CHECK FAIL: %s", $time, label);
+
     end
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -157,11 +180,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -177,6 +206,7 @@ endtask
 
 
 initial begin
+
     /*
     Purpose:
     ---
@@ -184,9 +214,11 @@ initial begin
     simulator. Absolute delay, so it fires even if the clock stops. Counts
     as a failure so the verdict and the exit status both report it.
     */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
@@ -194,6 +226,7 @@ end
 // Stimulus
 // ===========================================================
 initial begin
+
     /*
     Purpose:
     ---
@@ -202,6 +235,7 @@ initial begin
     edge regardless, and these groups exist to make its antecedents occur.
     Only group 4 checks procedurally.
     */
+
     $display("\n==== %s ====\n", TB_NAME);
 
 

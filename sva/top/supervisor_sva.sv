@@ -60,6 +60,7 @@ logic out_of_reset;
 logic [5:0] fault_cause;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
 /*
 Purpose:
 ---
@@ -68,11 +69,14 @@ falls entirely between two edges - asserted and released inside one clock
 period - still disarms the transition claims at the second of them. rst_n
 sampled at either edge would miss it.
 */
+
   if (!rst_n) out_of_reset <= 1'b0;
   else        out_of_reset <= 1'b1;
+
 end
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -81,6 +85,7 @@ Purpose:
   cause ALONE: a DUT that ignored OTP would otherwise pass every OTP cover on
   edges where UVLO happened to be high as well.
 */
+
   fault_cause = {!en_SW, !spi_enable, OTP, UVLO, latch_state, latch_assert};
 
 end
@@ -91,6 +96,7 @@ end
 logic hard_fault;
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -99,6 +105,7 @@ every property that needs it. The RTL spells this list out separately in each
 state's branch and again in the en expression; a term dropped from any one of
 those copies shows up as a disagreement with this single signal.
 */
+
   hard_fault = |fault_cause;
 
 end
@@ -341,6 +348,7 @@ a_hard_fault_to_off: assert property (p_hard_fault_to_off)
     sva_pkg::note_failure($sformatf(
       "a_hard_fault_to_off: hard fault in state %0d did not lead to S_OFF, got %s (0 OFF, 1 SS, 2 RUN, 3 HICCUP)",
       $past(state_out), state_out.name()));
+
   end
 
 c_fault_before_exit_hiccup: cover property (@(posedge clk) disable iff (!rst_n)

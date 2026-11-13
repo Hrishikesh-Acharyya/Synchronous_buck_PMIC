@@ -57,6 +57,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 1:
          through the output expression rather than through a reset branch of
          its own.
 */
+
 property p_rst_n_mean_pgood_low;
 
   @(posedge clk)

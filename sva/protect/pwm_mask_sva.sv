@@ -65,7 +65,7 @@ a_mask_doesnt_produce_pwm: assert property (p_mask_doesnt_produce_pwm)
 
   end
 
-  c_mask_doesnt_produce_pwm: cover property (@(posedge clk) disable iff (!rst_n) pwm_out);
+c_mask_doesnt_produce_pwm: cover property (@(posedge clk) disable iff (!rst_n) pwm_out);
 
 
 

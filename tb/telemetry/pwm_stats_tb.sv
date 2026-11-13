@@ -1,23 +1,23 @@
 /*
 
-# Filename:         tb_template.sv
+# Filename:         pwm_stats_tb.sv
 
-# File Description: Skeleton for a directed Verilator testbench. Copy to
-#                   tb/<group>/<module>_tb.sv, rename the module, set TB_NAME,
-#                   fill the DUT section and the stimulus segments. Carries the
-#                   clock, reset, watchdog, verdict and VCD plumbing that every
-#                   testbench needs and none of them should re-derive.
+# File Description: Directed testbench for pwm_stats. Carries stimulus only -
+#                   every claim lives as a property in pwm_stats_sva.sv, bound
+#                   to the DUT. No sub-cycle claims and no reference model, so
+#                   there are no procedural checks and checks_run is
+#                   legitimately zero.
 #
-#                   Checking is split: invariants and temporal claims live in
-#                   the bound checker under sva/, and check() below is for the
-#                   claims SVA cannot see - sub-cycle behaviour and anything
-#                   needing a reference model. The verdict reads both tallies.
-#
-#                   Every <ANGLE_BRACKET> marker is a place to edit.
+#                   CNT_W is overridden down to six bits, so an input stuck
+#                   high reaches the counter's all-ones in a few tens of
+#                   clocks. The stimulus drives whole switching cycles of
+#                   chosen high and low lengths: steady periods, duty changes
+#                   at a fixed period, period changes at a fixed duty, a
+#                   one-clock high phase, an input stuck high, and a reset
+#                   part-way through a cycle.
 
-# Global variables: checks_run, checks_failed - mutated by check() from every
-#                   stimulus segment, so they are shared mutable state within
-#                   the file.
+# Global variables: checks_run, checks_failed - the verdict's tallies; nothing
+#                   in this file calls check(), so both stay zero.
 
 */
 
@@ -93,15 +93,18 @@ pwm_stats #(.CNT_W(CNT_W_TB)) u_dut (
 );
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -115,25 +118,36 @@ initial $timeformat(-9, 1, " ns", 10);
 
 
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, pwm_stats_tb);
+
     end
+
 end
 
 
-// do_reset: asserts and releases reset with a genuine falling edge, so the
-//           DUT's async clear fires before any clock arrives. rst_n is
-//           driven high first for that reason even when already high.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts and releases reset with a genuine falling edge, so the
+    DUT's async clear fires before any clock arrives. rst_n is
+    driven high first for that reason even when already high.
+    */
+
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
@@ -141,13 +155,20 @@ task automatic do_reset();
     #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -159,11 +180,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -174,46 +201,58 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-// drive_cycle: one switching cycle of the given shape, in clocks. The module
-//              measures whatever it is given, so the widths here are the test
-//              rather than a property of the design.
 task automatic drive_cycle(input int high_clks, input int low_clks);
+
+    /*
+    Purpose:
+    ---
+    drive_cycle: one switching cycle of the given shape, in clocks. The module
+    measures whatever it is given, so the widths here are the test
+    rather than a property of the design.
+    */
+
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b1;
     repeat (high_clks) @(posedge clk);
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b0;
     repeat (low_clks) @(posedge clk);
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
 // ============================================================
 // Stimulus
 // ============================================================
-/*
-Purpose:
----
-Drives the directed segments in order. Most segments carry no checks: the
-bound checker evaluates on every edge regardless, and the segments exist
-to make its antecedents occur. Add check() only where the claim is
-sub-cycle or needs a reference model.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Drives the directed segments in order. Most segments carry no checks: the
+    bound checker evaluates on every edge regardless, and the segments exist
+    to make its antecedents occur. Add check() only where the claim is
+    sub-cycle or needs a reference model.
+    */
 
     $display("\n==== %s ====\n", TB_NAME);
     /*

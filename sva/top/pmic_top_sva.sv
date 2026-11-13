@@ -17,7 +17,7 @@
 #                     - PGOOD: only while regulating; switch_supply is PGOOD
 #                     - MISO: silent in a build without telemetry
 #
-#                   Claim tags (docs/VERIFICATION_RULES.md): every claim here
+#                   Claim tags: every claim here
 #                   is I - it holds on every edge and the bound checker is the
 #                   whole check. The M claims - which state, which LEDs and
 #                   which strike level a given sequence of board events leads
@@ -64,13 +64,16 @@ module pmic_top_sva #(
 logic out_of_reset;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
   Post-reset gate for the one claim that reads $past.
   */
+
   if (!rst_n) out_of_reset <= 1'b0;
   else        out_of_reset <= 1'b1;
+
 end
 
 /*

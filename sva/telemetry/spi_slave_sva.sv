@@ -143,23 +143,31 @@ assign chk_cs_rise   = cs_n && !cs_n_q;
 assign chk_byte_done = chk_sck_rise && (chk_bit_count == 3'd7);
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
   Delayed copies of sck and cs_n for edge detection. Reset values match an
   idle Mode 0 bus: SCK low, CS high.
   */
+
   if (!rst_n) begin
+
     sck_q  <= 1'b0;
     cs_n_q <= 1'b1;
+
   end
   else begin
+
     sck_q  <= sck;
     cs_n_q <= cs_n;
+
   end
+
 end
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -172,6 +180,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   write", and a truncated first transaction after reset would satisfy the
   after-write history cover with no write ever sent.
   */
+
   if (!rst_n) begin
 
     chk_last_was_read <= 1'b0;
@@ -189,6 +198,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 end
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -201,6 +211,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   carries between transactions. chk_shift_byte is not cleared - it only ever
   holds the most recent eight bits, like the DUT's receive register.
   */
+
   if (!rst_n) begin
 
     chk_bit_count     <= 3'd0;
@@ -243,8 +254,11 @@ always_ff @(posedge clk or negedge rst_n) begin
       // byte that completes after a timeout (S_DEAD) was never accepted and
       // is judged a truncated command (txn_abort)
       if ((chk_byte_count == 8'd0) && (dut_spi_state == S_CMD)) chk_cmd_valid <= 1'b1;
-      if (chk_cmd_valid && !chk_is_read && (chk_write_bytes != '1))
+      if (chk_cmd_valid && !chk_is_read && (chk_write_bytes != '1)) begin
+
         chk_write_bytes <= chk_write_bytes + 8'd1;
+
+      end
 
     end
 
@@ -257,6 +271,7 @@ end
 
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---

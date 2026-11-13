@@ -101,28 +101,43 @@ logic       cycle_faulted;
 // scr: the SCR protection latch
 logic       scr;
 
-/*
-Purpose:
----
-The modulator: a free-running counter over one switching period. Not reset by
-the CPLD's reset - on the board the modulator is analog and runs regardless -
-so it starts from an initial value; plain always, not always_ff, because the
-initial block is a second writer.
-*/
 always @(posedge clk) begin
+
+  /*
+  Purpose:
+  ---
+  The modulator: a free-running counter over one switching period. Not reset by
+  the CPLD's reset - on the board the modulator is analog and runs regardless -
+  so it starts from an initial value; plain always, not always_ff, because the
+  initial block is a second writer.
+  */
+
   if (osc_count >= 8'(OSC_PERIOD_CLKS - 1)) begin
+
     osc_count <= 8'd0;
     osc_cycle <= osc_cycle + 4'd1;
+
   end
   else osc_count <= osc_count + 8'd1;
+
 end
 
 initial begin
+
+  /*
+  Purpose:
+  ---
+  Start the modulator counters from zero. The CPLD's reset does not reach
+  the modulator, so this is its only initialisation.
+  */
+
   osc_count = 8'd0;
   osc_cycle = 4'd0;
+
 end
 
 always_comb begin
+
   /*
   Purpose:
   ---
@@ -134,24 +149,31 @@ always_comb begin
   low-side FET then conducts from the cut onward. The pattern index changes
   at the period boundary, so a whole low phase belongs to one cycle.
   */
+
   Osc_in        = (osc_count < osc_on_clks);
   cycle_faulted = overcurrent || ({1'b0, osc_cycle} < oc_per16);
   CP_trig       = cycle_faulted && En && !PWM_out;
+
 end
 
-/*
-Purpose:
----
-The SCR latch: set by either trip source, held until the reset button drains
-it. It powers up clear (initial block, hence plain always).
-*/
 always @(posedge clk) begin
+
+  /*
+  Purpose:
+  ---
+  The SCR latch: set by either trip source, held until the reset button drains
+  it. It powers up clear (initial block, hence plain always).
+  */
+
   if (reset_button)              scr <= 1'b0;
   else if (latch_out || ovp_trip) scr <= 1'b1;
+
 end
 
+// the SCR powers up clear
 initial scr = 1'b0;
 
+// latch_stat: the SCR's state, which the CPLD reads back
 always_comb latch_stat = scr;
 
 pmic_top #(.TELEMETRY_EN(TELEMETRY_EN)) u_dut (
@@ -197,15 +219,34 @@ localparam int POWER_ON_CLKS = 4;
 logic [2:0] power_on_count;
 
 initial begin
+
+  /*
+  Purpose:
+  ---
+  Assertions off from time zero, until the reset button has been held
+  across POWER_ON_CLKS edges (see the Purpose block above POWER_ON_CLKS).
+  */
+
   power_on_count = 3'd0;
   $assertoff;
+
 end
 
 always @(posedge clk) begin
+
+  /*
+  Purpose:
+  ---
+  Count the power-up edges, and turn the assertions on at the last one.
+  */
+
   if (power_on_count < 3'(POWER_ON_CLKS)) begin
+
     power_on_count <= power_on_count + 3'd1;
     if (power_on_count == 3'(POWER_ON_CLKS - 1)) $asserton;
+
   end
+
 end
 
 // Expose the shared SVA failure tally for the cocotb verdict.

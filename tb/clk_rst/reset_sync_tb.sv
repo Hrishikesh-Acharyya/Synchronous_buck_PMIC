@@ -97,14 +97,17 @@ reset_sync u_dut (
 );
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -114,21 +117,27 @@ Print $time in nanoseconds.
 */
 initial $timeformat(-9, 1, " ns", 10);
 
-/*
-Purpose:
----
-Record a VCD only when asked. Enabled by +WAVES, which the Makefile passes
-for WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked. Enabled by +WAVES, which the Makefile passes
+    for WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, reset_sync_tb);
+
     end
+
 end
 
 
 always @(posedge clk) begin
+
     /*
     Purpose:
     ---
@@ -136,11 +145,14 @@ always @(posedge clk) begin
     region, so it is already updated when the DUT's NBA update for the same
     edge wakes the release monitor below.
     */
+
     last_posedge_ns = $realtime;
+
 end
 
 
 always @(posedge rst_n_exit) begin
+
     /*
     Purpose:
     ---
@@ -149,55 +161,93 @@ always @(posedge rst_n_exit) begin
     rst_n_enter combinationally would rise at the release instant instead,
     which every segment places away from an edge.
     */
+
     check($realtime == last_posedge_ns,
           $sformatf("rst_n_exit rose at %0t, on a clock edge", $realtime));
+
 end
 
 
-// check: procedural comparison, for claims no clocked property can see
 task automatic check(input bit condition, input string label);
+
+    /*
+    Purpose:
+    ---
+    check: procedural comparison, for claims no clocked property can see
+    */
+
     checks_run++;
     if (!condition) begin
+
         checks_failed++;
         $display("[%0t] CHECK FAIL: %s", $time, label);
+
     end
+
 endtask
 
 
-// do_reset: asserts reset with a genuine falling edge and holds it across
-//           RESET_CLKS edges. Does NOT release - see the file header.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts reset with a genuine falling edge and holds it across
+    RESET_CLKS edges. Does NOT release - see the file header.
+    */
+
     rst_n_enter = 1'b1;
     #1;
     rst_n_enter = 1'b0;
     repeat (RESET_CLKS) @(posedge clk);
     #(DRIVE_OFFSET_NS);
+
 endtask
 
 
-// tick: advance n edges, then DRIVE_OFFSET_NS, so the next stimulus is
-//       unambiguously after the edge rather than at it
 task automatic tick(input int n = 1);
+
+    /*
+    Purpose:
+    ---
+    tick: advance n edges, then DRIVE_OFFSET_NS, so the next stimulus is
+    unambiguously after the edge rather than at it
+    */
+
     repeat (n) @(posedge clk);
     #(DRIVE_OFFSET_NS);
+
 endtask
 
 
-// expect_immediate_assert: the zero-latency claim. Called just after
-//                          rst_n_enter falls mid-cycle; rst_n_exit must
-//                          already be low, with no clock edge since.
 task automatic expect_immediate_assert(input string label);
+
+    /*
+    Purpose:
+    ---
+    expect_immediate_assert: the zero-latency claim. Called just after
+    rst_n_enter falls mid-cycle; rst_n_exit must
+    already be low, with no clock edge since.
+    */
+
     realtime edge_before;
     edge_before = last_posedge_ns;
     #(SETTLE_NS);
     check(rst_n_exit === 1'b0, {label, ": rst_n_exit low at once"});
     check(last_posedge_ns == edge_before, {label, ": no clock edge in between"});
+
 endtask
 
 
-// finish_run: single exit point for the normal end and the watchdog.
-//             $stop on failure so the exit status is non-zero; never $fatal.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for the normal end and the watchdog.
+    $stop on failure so the exit status is non-zero; never $fatal.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -209,11 +259,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -222,32 +278,38 @@ task automatic finish_run(input string reason);
              checks_run, checks_failed, sva_pkg::sva_failures, reason);
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging. Absolute
-delay, so it fires even if the clock stops.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging. Absolute
+    delay, so it fires even if the clock stops.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
 // ============================================================
 // Stimulus
 // ============================================================
-/*
-Purpose:
----
-Drives the directed segments in order. Each puts the DUT in the state it
-needs at its own top.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Drives the directed segments in order. Each puts the DUT in the state it
+    needs at its own top.
+    */
+
     $display("\n==== %s ====\n", TB_NAME);
 
     // ---- Segment 1: power-on reset, before any clock edge ----
@@ -314,6 +376,7 @@ initial begin
     tick(4);
 
     finish_run("normal end");
+
 end
 
 /* verilator lint_on BLKSEQ */

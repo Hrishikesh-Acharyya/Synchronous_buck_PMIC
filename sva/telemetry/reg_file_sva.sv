@@ -177,12 +177,14 @@ assign chk_wd_expired = !spi_enable
                       && ((timestamp_ms - dut_wd_mark) >= TIMESTAMP_W'(WD_TIMEOUT_MS));
 
 always_comb begin
+
   /*
   Purpose:
   ---
   Decode whether addr names a mapped register, from the map in reg_file's
   header. 0x17 and every gap between banks are deliberately absent.
   */
+
   case (addr)
     7'h00, 7'h01, 7'h02, 7'h03,
     7'h10, 7'h11, 7'h12, 7'h13, 7'h14, 7'h15, 7'h16,
@@ -192,6 +194,7 @@ always_comb begin
     7'h58, 7'h59, 7'h5A          : chk_addr_mapped = 1'b1;
     default                      : chk_addr_mapped = 1'b0;
   endcase
+
 end
 
 
@@ -204,6 +207,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 1 (contract A1):
 */
 
 property p_reset_values;
+
   @(posedge clk)
     (!rst_n) |-> ((trip_run         == TRIP_W'(TRIP_RUN_DEFAULT))
                && (trip_ss          == TRIP_W'(TRIP_SS_DEFAULT))
@@ -218,14 +222,17 @@ property p_reset_values;
                && !dut_write_rejected && !dut_wd_restored
                && (dut_bus_err_count == 16'h0000)
                && (dut_temp_dirty == '0) && !dut_en_pending && !dut_scratch_pending);
+
 endproperty
 
 a_reset_values: assert property (p_reset_values)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_reset_values: trip_run=%0d trip_ss=%0d strikes=%0d max_on=%0d en=%0b scratch=%0h armed=%0b/%0b rej=%0b err=%0d dirty=%0h",
       trip_run, trip_ss, max_strikes, max_on_limit, spi_enable, dut_scratch_r,
       dut_disable_armed, dut_unlock_armed, dut_write_rejected, dut_bus_err_count, dut_temp_dirty));
+
   end
 
 c_in_reset: cover property (@(posedge clk) (!rst_n));
@@ -248,31 +255,39 @@ Purpose: PAC(Property, Assertion, Cover) Group 2 (contract B1, B3):
 */
 
 property p_live_regs_move_only_on_commit;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !integrity_OK)
         |=> $stable({trip_run, trip_ss, max_strikes, max_on_limit,
                      hiccup_base, cycles_per_step, clean_run_target, dut_scratch_r});
+
 endproperty
 
 a_live_regs_move_only_on_commit: assert property (p_live_regs_move_only_on_commit)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_live_regs_move_only_on_commit: a live register changed with no integrity_OK (trip_run %0d->%0d, scratch %0h->%0h)",
       $past(trip_run), trip_run, $past(dut_scratch_r), dut_scratch_r));
+
   end
 
 property p_no_state_survives_transaction;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && (integrity_OK || txn_abort))
         |=> ((dut_temp_dirty == '0) && !dut_en_pending && !dut_en_pending_val
              && !dut_scratch_pending && !dut_disable_armed && !dut_unlock_armed);
+
 endproperty
 
 a_no_state_survives_transaction: assert property (p_no_state_survives_transaction)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_no_state_survives_transaction: after the end pulse dirty=%0h en_pending=%0b scratch_pending=%0b armed=%0b/%0b",
       dut_temp_dirty, dut_en_pending, dut_scratch_pending, dut_disable_armed, dut_unlock_armed));
+
   end
 
 c_commit:                cover property (@(posedge clk) disable iff (!rst_n) integrity_OK);
@@ -314,9 +329,11 @@ endproperty
 
 a_thresholds_in_safe_range: assert property (p_thresholds_in_safe_range)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_thresholds_in_safe_range: trip_run=%0d trip_ss=%0d strikes=%0d max_on=%0d cyc=%0d hiccup=%0d clean=%0d",
       trip_run, trip_ss, max_strikes, max_on_limit, cycles_per_step, hiccup_base, clean_run_target));
+
   end
 
 // g_strike_ceiling: max_strikes' upper bound, elaborated only while the
@@ -328,9 +345,11 @@ generate if (((2 ** STRIKE_W) - 1) > MAX_STRIKES_DEFAULT) begin : g_strike_ceili
     @(posedge clk) disable iff (!rst_n)
       max_strikes <= STRIKE_W'(MAX_STRIKES_DEFAULT))
     else begin
+
       sva_pkg::note_failure($sformatf(
         "a_max_strikes_ceiling: max_strikes=%0d above the default %0d",
         max_strikes, MAX_STRIKES_DEFAULT));
+
     end
 
 end endgenerate
@@ -362,44 +381,57 @@ Purpose: PAC(Property, Assertion, Cover) Group 4 (contract C2-C4, C6, C7):
 */
 
 property p_no_key_no_change;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK && !dut_unlock_armed)
         |=> $stable({trip_run, trip_ss, max_strikes, max_on_limit,
                      hiccup_base, cycles_per_step, clean_run_target});
+
 endproperty
 
 a_no_key_no_change: assert property (p_no_key_no_change)
   else begin
+
     sva_pkg::note_failure("a_no_key_no_change: a threshold changed at a commit without the write key");
+
   end
 
 property p_off_only_registers;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK && !chk_off_ok)
         |=> $stable({hiccup_base, cycles_per_step, clean_run_target});
+
 endproperty
 
 a_off_only_registers: assert property (p_off_only_registers)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_off_only_registers: an S_OFF-only threshold changed in state %0d", $past(sup_state)));
+
   end
 
 property p_multibyte_whole_or_nothing;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK)
         |=> (($past(chk_hiccup_all) || $stable(hiccup_base))
           && ($past(chk_clean_all)  || $stable(clean_run_target)));
+
 endproperty
 
 a_multibyte_whole_or_nothing: assert property (p_multibyte_whole_or_nothing)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_multibyte_whole_or_nothing: a multi-byte threshold changed from a partial write (dirty=%0h)",
       $past(dut_temp_dirty)));
+
   end
 
 property p_only_written_thresholds_change;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK)
         |=> (($past(dut_temp_dirty[0]) || $stable(trip_run))
@@ -409,53 +441,68 @@ property p_only_written_thresholds_change;
           && ($past(dut_temp_dirty[7]) || $stable(cycles_per_step))
           && ($past(chk_hiccup_any)    || $stable(hiccup_base))
           && ($past(chk_clean_any)     || $stable(clean_run_target)));
+
 endproperty
 
 a_only_written_thresholds_change: assert property (p_only_written_thresholds_change)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_only_written_thresholds_change: an unwritten threshold changed at a commit (dirty=%0h)",
       $past(dut_temp_dirty)));
+
   end
 
 property p_rejected_commit_changes_nothing;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK && (|dut_temp_dirty) && chk_reject)
         |=> $stable({trip_run, trip_ss, max_strikes, max_on_limit,
                      hiccup_base, cycles_per_step, clean_run_target});
+
 endproperty
 
 a_rejected_commit_changes_nothing: assert property (p_rejected_commit_changes_nothing)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_rejected_commit_changes_nothing: a rejected commit changed a threshold (dirty=%0h key=%0b state=%0d)",
       $past(dut_temp_dirty), $past(dut_unlock_armed), $past(sup_state)));
+
   end
 
 property p_write_rejected_only_at_threshold_commit;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !(integrity_OK && (|dut_temp_dirty)))
         |=> $stable(dut_write_rejected);
+
 endproperty
 
 a_write_rejected_only_at_threshold_commit: assert property (p_write_rejected_only_at_threshold_commit)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_write_rejected_only_at_threshold_commit: write_rejected went %0b -> %0b outside a threshold commit",
       $past(dut_write_rejected), dut_write_rejected));
+
   end
 
 property p_write_rejected_matches_decision;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && integrity_OK && (|dut_temp_dirty))
         |=> (dut_write_rejected == $past(chk_reject));
+
 endproperty
 
 a_write_rejected_matches_decision: assert property (p_write_rejected_matches_decision)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_write_rejected_matches_decision: write_rejected=%0b, contract says %0b (dirty=%0h key=%0b state=%0d)",
       dut_write_rejected, $past(chk_reject), $past(dut_temp_dirty), $past(dut_unlock_armed), $past(sup_state)));
+
   end
 
 c_threshold_accepted:   cover property (@(posedge clk) disable iff (!rst_n)
@@ -500,106 +547,142 @@ Purpose: PAC(Property, Assertion, Cover) Group 5 (contract D1-D4, B2):
 */
 
 property p_disable_key_rises_only_on_key;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $rose(dut_disable_armed))
         |-> $past(wr_en && (addr == ADDR_DISABLE_KEY) && (wdata == DISABLE_KEY_ID));
+
 endproperty
 
 a_disable_key_rises_only_on_key: assert property (p_disable_key_rises_only_on_key)
   else begin
+
     sva_pkg::note_failure("a_disable_key_rises_only_on_key: disable_armed set without the disable key");
+
   end
 
 property p_unlock_key_rises_only_on_key;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $rose(dut_unlock_armed))
         |-> $past(wr_en && (addr == ADDR_WRITE_KEY) && (wdata == WRITE_ACCESS_KEY_ID));
+
 endproperty
 
 a_unlock_key_rises_only_on_key: assert property (p_unlock_key_rises_only_on_key)
   else begin
+
     sva_pkg::note_failure("a_unlock_key_rises_only_on_key: unlock_armed set without the write key");
+
   end
 
 property p_disable_key_falls_known_ways;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $fell(dut_disable_armed))
         |-> $past(integrity_OK || txn_abort || (&dut_arm_timer)
                   || (wr_en && ((addr == ADDR_CONTROL) || (addr == ADDR_DISABLE_KEY))));
+
 endproperty
 
 a_disable_key_falls_known_ways: assert property (p_disable_key_falls_known_ways)
   else begin
+
     sva_pkg::note_failure("a_disable_key_falls_known_ways: disable_armed cleared by something outside the contract");
+
   end
 
 property p_unlock_key_falls_known_ways;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $fell(dut_unlock_armed))
         |-> $past(integrity_OK || txn_abort || (&dut_arm_timer)
                   || (wr_en && (addr == ADDR_WRITE_KEY)));
+
 endproperty
 
 a_unlock_key_falls_known_ways: assert property (p_unlock_key_falls_known_ways)
   else begin
+
     sva_pkg::note_failure("a_unlock_key_falls_known_ways: unlock_armed cleared by something outside the contract");
+
   end
 
 property p_arm_timer_lapses_keys;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && (dut_disable_armed || dut_unlock_armed) && (&dut_arm_timer) && !wr_en)
         |=> (!dut_disable_armed && !dut_unlock_armed);
+
 endproperty
 
 a_arm_timer_lapses_keys: assert property (p_arm_timer_lapses_keys)
   else begin
+
     sva_pkg::note_failure("a_arm_timer_lapses_keys: a key stayed armed past the arm timeout");
+
   end
 
 property p_enable_moves_known_ways;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !(integrity_OK && dut_en_pending) && !chk_wd_expired && !en_switch_rise)
         |=> $stable(spi_enable);
+
 endproperty
 
 a_enable_moves_known_ways: assert property (p_enable_moves_known_ways)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_enable_moves_known_ways: spi_enable went %0b -> %0b with no commit, watchdog or switch",
       $past(spi_enable), spi_enable));
+
   end
 
 property p_enable_falls_only_on_keyed_disable;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $fell(spi_enable))
         |-> $past(integrity_OK && dut_en_pending && !dut_en_pending_val);
+
 endproperty
 
 a_enable_falls_only_on_keyed_disable: assert property (p_enable_falls_only_on_keyed_disable)
   else begin
+
     sva_pkg::note_failure("a_enable_falls_only_on_keyed_disable: spi_enable fell without a committed disable");
+
   end
 
 property p_pending_disable_needs_key;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && dut_en_pending && !dut_en_pending_val
                   && !$past(dut_en_pending && !dut_en_pending_val))
         |-> $past(wr_en && (addr == ADDR_CONTROL) && !wdata[0] && dut_disable_armed);
+
 endproperty
 
 a_pending_disable_needs_key: assert property (p_pending_disable_needs_key)
   else begin
+
     sva_pkg::note_failure("a_pending_disable_needs_key: a disable was recorded without disable_armed");
+
   end
 
 property p_switch_wins;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && en_switch_rise) |=> spi_enable;
+
 endproperty
 
 a_switch_wins: assert property (p_switch_wins)
   else begin
+
     sva_pkg::note_failure("a_switch_wins: spi_enable low on the clock after en_switch_rise");
+
   end
 
 c_disable_armed:        cover property (@(posedge clk) disable iff (!rst_n) $rose(dut_disable_armed));
@@ -634,48 +717,64 @@ Purpose: PAC(Property, Assertion, Cover) Group 6 (contract E2-E4):
 */
 
 property p_watchdog_restores;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && chk_wd_expired && !integrity_OK)
         |=> (spi_enable && dut_wd_restored);
+
 endproperty
 
 a_watchdog_restores: assert property (p_watchdog_restores)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_watchdog_restores: veto expired but en=%0b restored=%0b", spi_enable, dut_wd_restored));
+
   end
 
 property p_wd_restored_rises_only_on_expiry;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $rose(dut_wd_restored)) |-> $past(chk_wd_expired);
+
 endproperty
 
 a_wd_restored_rises_only_on_expiry: assert property (p_wd_restored_rises_only_on_expiry)
   else begin
+
     sva_pkg::note_failure("a_wd_restored_rises_only_on_expiry: wd_restored set without the watchdog expiring");
+
   end
 
 property p_wd_restored_falls_only_on_host_disable;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && $fell(dut_wd_restored))
         |-> $past(integrity_OK && dut_en_pending && !dut_en_pending_val);
+
 endproperty
 
 a_wd_restored_falls_only_on_host_disable: assert property (p_wd_restored_falls_only_on_host_disable)
   else begin
+
     sva_pkg::note_failure("a_wd_restored_falls_only_on_host_disable: wd_restored cleared without a host disable");
+
   end
 
 property p_veto_mark_moves_only_on_write;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !spi_enable && !integrity_OK) |=> $stable(dut_wd_mark);
+
 endproperty
 
 a_veto_mark_moves_only_on_write: assert property (p_veto_mark_moves_only_on_write)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_veto_mark_moves_only_on_write: wd_mark moved %0d -> %0d while the veto was held, with no write",
       $past(dut_wd_mark), dut_wd_mark));
+
   end
 
 c_wd_expired:          cover property (@(posedge clk) disable iff (!rst_n) chk_wd_expired);
@@ -700,58 +799,78 @@ Purpose: PAC(Property, Assertion, Cover) Group 7 (contract F1, F2, F4, F6):
 */
 
 property p_unmapped_reads_zero;
+
   @(posedge clk) disable iff (!rst_n)
     !chk_addr_mapped |-> (rdata == 8'h00);
+
 endproperty
 
 a_unmapped_reads_zero: assert property (p_unmapped_reads_zero)
   else begin
+
     sva_pkg::note_failure($sformatf("a_unmapped_reads_zero: addr %0h read %0h", addr, rdata));
+
   end
 
 property p_identity_bytes;
+
   @(posedge clk) disable iff (!rst_n)
     ((addr != ADDR_PMIC_ID)    || (rdata == PMIC_ID))
  && ((addr != ADDR_VERSION)    || (rdata == VERSION_ID))
  && ((addr != ADDR_CAPABILITY) || (rdata == CAPABILITY_VAL));
+
 endproperty
 
 a_identity_bytes: assert property (p_identity_bytes)
   else begin
+
     sva_pkg::note_failure($sformatf("a_identity_bytes: addr %0h read %0h", addr, rdata));
+
   end
 
 property p_snapshot_moves_only_on_rd_first;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !rd_first) |=> $stable(dut_timestamp_snap);
+
 endproperty
 
 a_snapshot_moves_only_on_rd_first: assert property (p_snapshot_moves_only_on_rd_first)
   else begin
+
     sva_pkg::note_failure("a_snapshot_moves_only_on_rd_first: timestamp_snap changed without rd_first");
+
   end
 
 property p_snapshot_takes_live_time;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && rd_first) |=> (dut_timestamp_snap == $past(timestamp_ms));
+
 endproperty
 
 a_snapshot_takes_live_time: assert property (p_snapshot_takes_live_time)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_snapshot_takes_live_time: snapshot %0d, counter was %0d", dut_timestamp_snap, $past(timestamp_ms)));
+
   end
 
 property p_fault_clear_exact;
+
   @(posedge clk) disable iff (!rst_n)
     (fault_reg_read_done == (rd_byte_done && (addr == ADDR_FTIME_2)));
+
 endproperty
 
 a_fault_clear_exact: assert property (p_fault_clear_exact)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_fault_clear_exact: fault_reg_read_done=%0b with rd_byte_done=%0b addr=%0h",
       fault_reg_read_done, rd_byte_done, addr));
+
   end
 
 c_unmapped_read:   cover property (@(posedge clk) disable iff (!rst_n) rd_byte_done && !chk_addr_mapped);
@@ -771,39 +890,51 @@ Purpose: PAC(Property, Assertion, Cover) Group 8 (contract G1):
 */
 
 property p_bus_err_moves_only_on_abort;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && !txn_abort) |=> $stable(dut_bus_err_count);
+
 endproperty
 
 a_bus_err_moves_only_on_abort: assert property (p_bus_err_moves_only_on_abort)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_bus_err_moves_only_on_abort: count went %0d -> %0d with no txn_abort",
       $past(dut_bus_err_count), dut_bus_err_count));
+
   end
 
 property p_bus_err_counts_one;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && txn_abort && (dut_bus_err_count != 16'hFFFF))
         |=> (dut_bus_err_count == ($past(dut_bus_err_count) + 16'd1));
+
 endproperty
 
 a_bus_err_counts_one: assert property (p_bus_err_counts_one)
   else begin
+
     sva_pkg::note_failure($sformatf(
       "a_bus_err_counts_one: count went %0d -> %0d on one txn_abort",
       $past(dut_bus_err_count), dut_bus_err_count));
+
   end
 
 property p_bus_err_saturates;
+
   @(posedge clk) disable iff (!rst_n)
     ($past(rst_n) && txn_abort && (dut_bus_err_count == 16'hFFFF))
         |=> (dut_bus_err_count == 16'hFFFF);
+
 endproperty
 
 a_bus_err_saturates: assert property (p_bus_err_saturates)
   else begin
+
     sva_pkg::note_failure($sformatf("a_bus_err_saturates: count wrapped to %0d", dut_bus_err_count));
+
   end
 
 c_bus_err_counted:   cover property (@(posedge clk) disable iff (!rst_n) txn_abort);

@@ -153,13 +153,14 @@ supervisor dut (
 );
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
 
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
 
@@ -173,16 +174,18 @@ already has in mind.
 */
 initial $timeformat(-9, 1, " ns", 10);
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
 
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, supervisor_tb);
 
@@ -218,10 +221,15 @@ endclocking
 /* verilator lint_on UNUSEDSIGNAL */
 
 
-// check: procedural comparison, for claims no clocked property can see -
-//        sub-cycle behaviour, and facts about the testbench itself.
-//        Invariants and temporal claims belong in the bound checker.
 task automatic check(input bit condition, input string label);
+
+    /*
+    Purpose:
+    ---
+    check: procedural comparison, for claims no clocked property can see -
+    sub-cycle behaviour, and facts about the testbench itself.
+    Invariants and temporal claims belong in the bound checker.
+    */
 
     checks_run++;
     if (!condition) begin
@@ -234,23 +242,33 @@ task automatic check(input bit condition, input string label);
 endtask
 
 
-// tick: advance n edges of the clocking block. Returns AT the nth edge, so a
-//       set_inputs() issued next lands DRIVE_OFFSET_NS after it. Written as
-//       repeat (n) @(cb) rather than ##(n): a cycle delay by a variable count
-//       crashes Verilator 5.020 with an internal fault.
 task automatic tick(input int n = 1);
+
+    /*
+    Purpose:
+    ---
+    tick: advance n edges of the clocking block. Returns AT the nth edge, so a
+    set_inputs() issued next lands DRIVE_OFFSET_NS after it. Written as
+    repeat (n) @(cb) rather than ##(n): a cycle delay by a variable count
+    crashes Verilator 5.020 with an internal fault.
+    */
 
     repeat (n) @(cb);
 
 endtask
 
 
-// set_inputs: drives all ten DUT inputs from one vector, through the
-//             clocking block, so each lands DRIVE_OFFSET_NS after the edge.
-//             Does not advance time - the caller decides how many clocks.
-//             Every helper drives through here, so each input gets exactly
-//             one drive per clock and none is ever left untouched.
 task automatic set_inputs(input logic [9:0] stim);
+
+    /*
+    Purpose:
+    ---
+    set_inputs: drives all ten DUT inputs from one vector, through the
+    clocking block, so each lands DRIVE_OFFSET_NS after the edge.
+    Does not advance time - the caller decides how many clocks.
+    Every helper drives through here, so each input gets exactly
+    one drive per clock and none is ever left untouched.
+    */
 
     cb.en_SW          <= stim[9];
     cb.spi_enable     <= stim[8];
@@ -266,23 +284,33 @@ task automatic set_inputs(input logic [9:0] stim);
 endtask
 
 
-// apply_cause: IDLE with exactly one hard-fault cause present. cause uses the
-//              checker's fault_cause numbering: 5 en_SW lost, 4 spi_enable
-//              lost, 3 OTP, 2 UVLO, 1 latch_state, 0 latch_assert. XOR flips
-//              the one bit away from IDLE - an enable goes 1 -> 0, a fault
-//              goes 0 -> 1 - so one expression serves both polarities.
 task automatic apply_cause(input int cause);
+
+    /*
+    Purpose:
+    ---
+    apply_cause: IDLE with exactly one hard-fault cause present. cause uses the
+    checker's fault_cause numbering: 5 en_SW lost, 4 spi_enable
+    lost, 3 OTP, 2 UVLO, 1 latch_state, 0 latch_assert. XOR flips
+    the one bit away from IDLE - an enable goes 1 -> 0, a fault
+    goes 0 -> 1 - so one expression serves both polarities.
+    */
 
     set_inputs(IDLE ^ (10'b1 << (cause + 4)));
 
 endtask
 
 
-// goto_state: steers the FSM to target from any state, without a reset, using
-//             only arrows the checker verifies. Returns AT the edge where
-//             state_out has just become target, so the caller's next
-//             set_inputs() is sampled with the FSM in target.
 task automatic goto_state(input state_t target);
+
+    /*
+    Purpose:
+    ---
+    goto_state: steers the FSM to target from any state, without a reset, using
+    only arrows the checker verifies. Returns AT the edge where
+    state_out has just become target, so the caller's next
+    set_inputs() is sampled with the FSM in target.
+    */
 
     set_inputs(SWITCH_OFF);                      // any state -> S_OFF
     tick(1);
@@ -297,11 +325,16 @@ task automatic goto_state(input state_t target);
 endtask
 
 
-// do_reset: inputs to "switch off, everything else quiet", then a reset pulse
-//           with a genuine falling edge, so the DUT's async clear fires before
-//           any clock arrives. Leaves the FSM in S_OFF held there by one
-//           deliberate cause, the switch - not by several faults at once.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: inputs to "switch off, everything else quiet", then a reset pulse
+    with a genuine falling edge, so the DUT's async clear fires before
+    any clock arrives. Leaves the FSM in S_OFF held there by one
+    deliberate cause, the switch - not by several faults at once.
+    */
 
     set_inputs(SWITCH_OFF);
     rst_n = 1'b1;
@@ -314,10 +347,15 @@ task automatic do_reset();
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
 
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
@@ -330,11 +368,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -349,14 +393,15 @@ task automatic finish_run(input string reason);
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
 
     #(WATCHDOG_NS);
     checks_failed++;
@@ -369,19 +414,20 @@ end
 // Stimulus
 // ============================================================
 
-/*
-Purpose:
----
-Drives the directed groups in order. The groups carry no checks of their own:
-the bound checker evaluates every edge, and each group exists to make its
-antecedents and covers occur, named in the group's comment. Timing rule for
-every group: set_inputs() lands DRIVE_OFFSET_NS after the edge it is issued
-on, and the FSM samples it at the NEXT edge - so tick(1) after a
-transition-causing vector means one edge sees it, and tick(n) on a hold means
-n edges see it and the FSM must not move.
-*/
 
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Drives the directed groups in order. The groups carry no checks of their own:
+    the bound checker evaluates every edge, and each group exists to make its
+    antecedents and covers occur, named in the group's comment. Timing rule for
+    every group: set_inputs() lands DRIVE_OFFSET_NS after the edge it is issued
+    on, and the FSM samples it at the NEXT edge - so tick(1) after a
+    transition-causing vector means one edge sees it, and tick(n) on a hold means
+    n edges see it and the FSM must not move.
+    */
 
     $display("\n==== %s ====\n", TB_NAME);
 
@@ -512,11 +558,15 @@ initial begin
     */
 
     foreach (exit_states[s]) begin
+
         for (int cause = 0; cause < 6; cause++) begin
+
             goto_state(exit_states[s]);
             apply_cause(cause);
             tick(1);
+
         end
+
     end
 
     /*
@@ -617,12 +667,16 @@ initial begin
     */
 
     foreach (sweep_states[s]) begin
+
         for (int v = 0; v < 1024; v++) begin
+
             goto_state(sweep_states[s]);
             set_inputs(10'(v));
             tick(1);
             vectors_applied++;
+
         end
+
     end
     set_inputs(SWITCH_OFF);
     tick(2);

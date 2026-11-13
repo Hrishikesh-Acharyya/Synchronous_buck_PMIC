@@ -73,6 +73,7 @@ logic [CNT_W-1:0] period_counter;
 
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
     Purpose:
     ---
@@ -81,11 +82,16 @@ always_ff @(posedge clk or negedge rst_n) begin
   */
 
   if(!rst_n) begin
+
     pwm_sync_d <= 0;
+
   end
 
-  else
+  else begin
+
     pwm_sync_d <= pwm_sync;
+
+  end
 
 end
 

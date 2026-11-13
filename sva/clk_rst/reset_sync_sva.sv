@@ -47,6 +47,7 @@ module reset_sync_sva (
 logic [1:0] edges_since_release;
 
 always_ff @(posedge clk or negedge rst_n_enter) begin
+
   /*
   Purpose:
   ---
@@ -56,6 +57,7 @@ always_ff @(posedge clk or negedge rst_n_enter) begin
   value explicitly rather than with &edges_since_release, so the saturation
   point is stated, not implied by the width.
   */
+
   if (!rst_n_enter) begin
 
     edges_since_release <= 2'd0;

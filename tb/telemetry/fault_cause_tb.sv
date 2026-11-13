@@ -101,15 +101,18 @@ fault_cause dut (
     .fault_time(fault_time), .fault_reg(fault_reg));
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -123,25 +126,36 @@ initial $timeformat(-9, 1, " ns", 10);
 
 
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, fault_cause_tb);
+
     end
+
 end
 
 
-// do_reset: asserts and releases reset with a genuine falling edge, so the
-//           DUT's async clear fires before any clock arrives. rst_n is
-//           driven high first for that reason even when already high.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts and releases reset with a genuine falling edge, so the
+    DUT's async clear fires before any clock arrives. rst_n is
+    driven high first for that reason even when already high.
+    */
+
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
@@ -149,13 +163,20 @@ task automatic do_reset();
     #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -167,11 +188,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -182,37 +209,65 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-// set_state: the supervisor's two flags, as one state change. Never both high
-//            (an input contract the checker asserts).
 task automatic set_state(input bit ss, input bit run);
+
+    /*
+    Purpose:
+    ---
+    set_state: the supervisor's two flags, as one state change. Never both high
+    (an input contract the checker asserts).
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS);
     ss_active  = ss;
     run_active = run;
+
 endtask
 
-// set_time: the free-running millisecond counter, set to a value that marks
-//           this point in the run
 task automatic set_time(input logic [TIMESTAMP_W-1:0] ms);
+
+    /*
+    Purpose:
+    ---
+    set_time: the free-running millisecond counter, set to a value that marks
+    this point in the run
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS) timestamp_ms = ms;
+
 endtask
 
-// host_read: the one-clock pulse reg_file raises on a completed read of the
-//            fault record
 task automatic host_read();
+
+    /*
+    Purpose:
+    ---
+    host_read: the one-clock pulse reg_file raises on a completed read of the
+    fault record
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS) fault_reg_read_done = 1'b1;
     @(posedge clk);
     #(DRIVE_OFFSET_NS) fault_reg_read_done = 1'b0;
+
 endtask
 
-// pulse_cause: one cause high for two clocks. Which signal is chosen by name
-//              so each group reads as the fault it builds.
 task automatic pulse_cause(input string which);
+
+    /*
+    Purpose:
+    ---
+    pulse_cause: one cause high for two clocks. Which signal is chosen by name
+    so each group reads as the fault it builds.
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS);
     case (which)
@@ -233,20 +288,24 @@ task automatic pulse_cause(input string which);
     latch_assert   = 1'b0;
     latch_state    = 1'b0;
     @(posedge clk);
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
@@ -255,6 +314,14 @@ end
 // ============================================================
 
 initial begin
+
+    /*
+    Purpose:
+    ---
+    The test sequence: the directed groups below in order, then the verdict.
+    Each group's comment names the claims it exercises.
+    */
+
     $display("\n==== %s ====\n", TB_NAME);
 
     /*
@@ -396,6 +463,7 @@ initial begin
     repeat (2) @(posedge clk);
 
     finish_run("normal end");
+
 end
 
 endmodule

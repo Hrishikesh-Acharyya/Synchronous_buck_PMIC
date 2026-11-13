@@ -125,15 +125,18 @@ strike_counter dut_pkg (
     .strike_level(strike_level_pkg), .latch_assert(latch_assert_pkg));
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -147,25 +150,36 @@ initial $timeformat(-9, 1, " ns", 10);
 
 
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, strike_counter_tb);
+
     end
+
 end
 
 
-// do_reset: asserts and releases reset with a genuine falling edge, so the
-//           DUT's async clear fires before any clock arrives. rst_n is
-//           driven high first for that reason even when already high.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts and releases reset with a genuine falling edge, so the
+    DUT's async clear fires before any clock arrives. rst_n is
+    driven high first for that reason even when already high.
+    */
+
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
@@ -173,13 +187,20 @@ task automatic do_reset();
     #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -191,11 +212,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -206,60 +233,99 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-// set_state: the supervisor's two flags, as one state change. Never both high
-//            (an input contract the checker asserts).
 task automatic set_state(input bit hiccup, input bit run);
+
+    /*
+    Purpose:
+    ---
+    set_state: the supervisor's two flags, as one state change. Never both high
+    (an input contract the checker asserts).
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS);
     hiccup_active = hiccup;
     run_active    = run;
+
 endtask
 
-// hiccup: one strike - into S_HICCUP for three clocks, then out. Only the
-//         entry counts; the time spent there is arbitrary.
 task automatic hiccup();
+
+    /*
+    Purpose:
+    ---
+    hiccup: one strike - into S_HICCUP for three clocks, then out. Only the
+    entry counts; the time spent there is arbitrary.
+    */
+
     set_state(1'b1, 1'b0);
     repeat (3) @(posedge clk);
     set_state(1'b0, 1'b0);
     @(posedge clk);
+
 endtask
 
-// drive_cycle: one pwm_sync switching cycle. The clean run counts falling
-//              edges, so the high and low widths are arbitrary.
 task automatic drive_cycle();
+
+    /*
+    Purpose:
+    ---
+    drive_cycle: one pwm_sync switching cycle. The clean run counts falling
+    edges, so the high and low widths are arbitrary.
+    */
+
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b1;
     @(posedge clk);
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b0;
     @(posedge clk);
+
 endtask
 
-// run_cycles: into S_RUN and n switching cycles there
 task automatic run_cycles(input int n);
+
+    /*
+    Purpose:
+    ---
+    run_cycles: into S_RUN and n switching cycles there
+    */
+
     set_state(1'b0, 1'b1);
     repeat (n) drive_cycle();
+
 endtask
 
-// set_max: a live MAX_STRIKES write, legal in any state
 task automatic set_max(input logic [STRIKE_W-1:0] value);
+
+    /*
+    Purpose:
+    ---
+    set_max: a live MAX_STRIKES write, legal in any state
+    */
+
     @(posedge clk);
     #(DRIVE_OFFSET_NS) max_strikes = value;
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
@@ -268,6 +334,14 @@ end
 // ============================================================
 
 initial begin
+
+    /*
+    Purpose:
+    ---
+    The test sequence: the directed groups below in order, then the verdict.
+    Each group's comment names the claims it exercises.
+    */
+
     $display("\n==== %s ====\n", TB_NAME);
 
     /*
@@ -460,6 +534,7 @@ initial begin
     repeat (2) @(posedge clk);
 
     finish_run("normal end");
+
 end
 
 endmodule

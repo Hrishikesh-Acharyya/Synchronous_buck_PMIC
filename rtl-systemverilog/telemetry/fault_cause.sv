@@ -77,6 +77,7 @@ module fault_cause
     //            [00001] - OVERCURRENT -> WINDOW_TRIP/WINDOW_SS FIRED
     output logic [FAULT_CAUSE_W-1:0] fault_reg
 );
+
 // Bit positions in fault_reg. MSB-first is priority order.
 localparam int BIT_OVP   = 4;
 localparam int BIT_LATCH = 3;
@@ -120,6 +121,7 @@ this combination.
 end
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -140,6 +142,7 @@ must be added to the other.
 end
 
 always_ff @ (posedge clk or negedge rst_n) begin
+
 /*
 Purpose:
 ---
@@ -210,5 +213,6 @@ asserted it is captured again immediately.
 end
 
 endmodule
-`default_nettype  wire
+
+`default_nettype wire
 

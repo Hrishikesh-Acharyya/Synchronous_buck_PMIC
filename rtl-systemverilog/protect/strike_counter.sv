@@ -39,136 +39,162 @@ module strike_counter #(
     output logic                        latch_assert      // MAX_STRIKES reached, trip the latch
 );
 
-    // hiccup_active_d: hiccup_active delayed one clk, to count entries not duration
-    logic hiccup_active_d;
-    // hiccup_entry: one-clk pulse on each entry into the hiccup state
-    logic hiccup_entry;
-    // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
-    logic pwm_sync_d;
-    // pwm_fall: one-clk pulse marking the end of a switching cycle
-    logic pwm_fall;
-    // clean_counter: consecutive fault-free switching cycles in S_RUN
-    logic [CLEAN_RUN_W-1:0] clean_counter;
+// hiccup_active_d: hiccup_active delayed one clk, to count entries not duration
+logic hiccup_active_d;
+// hiccup_entry: one-clk pulse on each entry into the hiccup state
+logic hiccup_entry;
+// pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
+logic pwm_sync_d;
+// pwm_fall: one-clk pulse marking the end of a switching cycle
+logic pwm_fall;
+// clean_counter: consecutive fault-free switching cycles in S_RUN
+logic [CLEAN_RUN_W-1:0] clean_counter;
 
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Delayed copies of hiccup_active and pwm_sync, so the edges below can be
-    detected combinationally.
-    */
+always_ff @(posedge clk or negedge rst_n) begin
 
-    if(!rst_n) begin
-      hiccup_active_d <= 0;
-      pwm_sync_d <= 0;
+/*
+Purpose:
+---
+Delayed copies of hiccup_active and pwm_sync, so the edges below can be
+detected combinationally.
+*/
 
-    end
-    else begin
-      hiccup_active_d <= hiccup_active;
-      pwm_sync_d <= pwm_sync;
+if(!rst_n) begin
 
-    end
-    end
+  hiccup_active_d <= 0;
+  pwm_sync_d <= 0;
 
+end
+else begin
 
-    always_comb begin
-    /*
-    Purpose:
-    ---
-    Convert two levels into one-clk enable pulses. hiccup_active is held for
-    the whole cool-down, so counting it directly would add a strike every
-    clock; the rising edge gives exactly one strike per hiccup. pwm_fall
-    marks the switching-cycle boundary for the clean-run counter.
+  hiccup_active_d <= hiccup_active;
+  pwm_sync_d <= pwm_sync;
 
-    Both are used as enables on the clk domain, never as clocks.
-    */
+end
+
+end
 
 
-      hiccup_entry = hiccup_active & ~hiccup_active_d;
-      pwm_fall = pwm_sync_d & ~pwm_sync;
-    end
+always_comb begin
+
+/*
+Purpose:
+---
+Convert two levels into one-clk enable pulses. hiccup_active is held for
+the whole cool-down, so counting it directly would add a strike every
+clock; the rising edge gives exactly one strike per hiccup. pwm_fall
+marks the switching-cycle boundary for the clean-run counter.
+
+Both are used as enables on the clk domain, never as clocks.
+*/
 
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Accumulate strikes and assert the latch once MAX_STRIKES is reached.
-    The comparison is against MAX_STRIKES-1 because strike_level still holds
-    the pre-increment value on this edge, so testing the value about to land
-    fires the latch on the correct hiccup rather than one later.
+  hiccup_entry = hiccup_active & ~hiccup_active_d;
+  pwm_fall = pwm_sync_d & ~pwm_sync;
 
-    The test is >= rather than ==. max_strikes is host-writable at any time,
-    so it can drop below a count already reached; with == alone the next
-    entry missed, the count wrapped round its 2-bit range and the latch
-    tripped up to four hiccups late. With >= the first hiccup at or past the
-    limit trips it.
-
-    latch_assert is set-only and cleared by rst_n alone: it trips a physical
-    SCR, which cannot be un-tripped in logic. strike_level is deliberately
-    not zeroed on latching, so the accumulated count remains readable for
-    telemetry.
-
-    The clean-run clear is a sibling of hiccup_entry, not nested inside it,
-    so a fault-free run clears the strikes during normal operation rather
-    than only at the moment another hiccup begins.
-    */
-
-    if (!rst_n) begin
-      latch_assert <= 1'b0;
-      strike_level <= '0;
-    end
-
-    else if (hiccup_entry) begin
-      strike_level <= strike_level + 1;
-
-    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;
-    end
-
-    else if (clean_counter == clean_run_target) begin
-      strike_level <= '0;
-    end
-
-    end
+end
 
 
+always_ff @(posedge clk or negedge rst_n) begin
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Count consecutive fault-free switching cycles in S_RUN, saturating at the
-    terminal value rather than wrapping.
+/*
+Purpose:
+---
+Accumulate strikes and assert the latch once MAX_STRIKES is reached.
+The comparison is against MAX_STRIKES-1 because strike_level still holds
+the pre-increment value on this edge, so testing the value about to land
+fires the latch on the correct hiccup rather than one later.
 
-    The streak is broken by leaving S_RUN as well as by window_trip. Time
-    spent in S_HICCUP or S_SS is not running, and a counter that survived a
-    hiccup would clear the very strike that hiccup earned - defeating the
-    distinction between one isolated fault and a converter failing
-    repeatedly.
-    */
+The test is >= rather than ==. max_strikes is host-writable at any time,
+so it can drop below a count already reached; with == alone the next
+entry missed, the count wrapped round its 2-bit range and the latch
+tripped up to four hiccups late. With >= the first hiccup at or past the
+limit trips it.
 
-    if(!rst_n) begin
-      clean_counter <= 0;
-    end
+latch_assert is set-only and cleared by rst_n alone: it trips a physical
+SCR, which cannot be un-tripped in logic. strike_level is deliberately
+not zeroed on latching, so the accumulated count remains readable for
+telemetry.
 
-    // Synchronous clear, kept separate from the asynchronous rst_n branch:
-    // only rst_n is in the sensitivity list, so run_active and pgood_comp
-    // cannot share that branch without making synthesis infer them as
-    // asynchronous resets too.
+The clean-run clear is a sibling of hiccup_entry, not nested inside it,
+so a fault-free run clears the strikes during normal operation rather
+than only at the moment another hiccup begins.
+*/
 
-    else if (!run_active || window_trip) begin  
-      clean_counter <= 0;
-    end
+if (!rst_n) begin
 
-    else if(pwm_fall)
+  latch_assert <= 1'b0;
+  strike_level <= '0;
 
-      if(clean_counter == clean_run_target) begin
-        clean_counter <= clean_counter;
-      end
-      else
-      clean_counter <= clean_counter + 1;
-    end
+end
+
+else if (hiccup_entry) begin
+
+  strike_level <= strike_level + 1;
+
+if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;
+
+end
+
+else if (clean_counter == clean_run_target) begin
+
+  strike_level <= '0;
+
+end
+
+end
+
+
+
+always_ff @(posedge clk or negedge rst_n) begin
+
+/*
+Purpose:
+---
+Count consecutive fault-free switching cycles in S_RUN, saturating at the
+terminal value rather than wrapping.
+
+The streak is broken by leaving S_RUN as well as by window_trip. Time
+spent in S_HICCUP or S_SS is not running, and a counter that survived a
+hiccup would clear the very strike that hiccup earned - defeating the
+distinction between one isolated fault and a converter failing
+repeatedly.
+*/
+
+if(!rst_n) begin
+
+  clean_counter <= 0;
+
+end
+
+// Synchronous clear, kept separate from the asynchronous rst_n branch:
+// only rst_n is in the sensitivity list, so run_active and pgood_comp
+// cannot share that branch without making synthesis infer them as
+// asynchronous resets too.
+
+else if (!run_active || window_trip) begin  
+
+  clean_counter <= 0;
+
+end
+
+else if(pwm_fall) begin
+
+  if(clean_counter == clean_run_target) begin
+
+    clean_counter <= clean_counter;
+
+  end
+  else begin
+
+  clean_counter <= clean_counter + 1;
+
+  end
+
+end
+
+end
 
 endmodule
 

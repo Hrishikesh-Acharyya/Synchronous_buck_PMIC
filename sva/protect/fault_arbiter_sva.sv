@@ -49,6 +49,7 @@ module fault_arbiter_sva
 logic out_of_reset;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
 /*
 Purpose:
 ---
@@ -56,8 +57,10 @@ The checker's own reset tracker. Cleared asynchronously, so a reset pulse that
 falls entirely between two edges still disarms the two-edge claims at the
 second of them. rst_n sampled at either edge would miss it.
 */
+
   if (!rst_n) out_of_reset <= 1'b0;
   else        out_of_reset <= 1'b1;
+
 end
 
 // pwm_sync_q: pwm_sync as sampled one edge earlier - the checker's own copy,
@@ -78,6 +81,7 @@ logic run_sample_q;
 logic ss_sample_q;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
 /*
 Purpose:
 ---
@@ -86,19 +90,26 @@ sampled at edge k-1, so pwm_sync && !pwm_sync_q at edge k is the same rising
 edge the DUT's sample pulse sees at edge k. The sample events are delayed the
 same way, for the covers of groups 5 and 6.
 */
+
   if (!rst_n) begin
+
     pwm_sync_q   <= 1'b0;
     run_sample_q <= 1'b0;
     ss_sample_q  <= 1'b0;
+
   end
   else begin
+
     pwm_sync_q   <= pwm_sync;
     run_sample_q <= run_sample;
     ss_sample_q  <= ss_sample;
+
   end
+
 end
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -107,8 +118,10 @@ header defines it - a sample at the rising edge of pwm_sync, into the window
 of the state that is active - so this matches the DUT by necessity; the
 independence lies in what groups 5 and 6 then claim about the counts.
 */
+
   run_sample = pwm_sync && !pwm_sync_q && run_active;
   ss_sample  = pwm_sync && !pwm_sync_q && ss_active;
+
 end
 
 /*

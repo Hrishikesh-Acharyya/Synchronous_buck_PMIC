@@ -129,12 +129,4 @@ bind reg_file reg_file_sva #(
     .*
 );
 
-
-
-
-
-
-
-
-
-
+`default_nettype wire

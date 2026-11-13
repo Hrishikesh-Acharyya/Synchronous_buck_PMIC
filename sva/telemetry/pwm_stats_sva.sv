@@ -65,6 +65,7 @@ module pwm_stats_sva #(
 logic same_run;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -76,9 +77,11 @@ always_ff @(posedge clk or negedge rst_n) begin
   Cleared by reset as well, so the first comparison after release waits for a
   genuine rise rather than trusting whatever the outputs held.
   */
+
   if (!rst_n)                              same_run <= 1'b0;
   else if (pwm_sync && !$past(pwm_sync))   same_run <= 1'b1;
   else if (!pwm_sync && $past(pwm_sync))   same_run <= 1'b0;
+
 end
 
 

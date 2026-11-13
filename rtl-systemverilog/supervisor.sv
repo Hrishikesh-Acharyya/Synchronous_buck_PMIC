@@ -77,33 +77,44 @@ logic   en_from_state;
 
 
 always_comb begin
+
 /*
 Purpose:
 ---
 Combine the two enables. The physical switch and the host must both allow the
 converter to run; either one alone turns it off.
 */
+
   g_en = spi_enable & en_SW;
+
 end
 
 
 always_ff @(posedge clk or negedge rst_n) begin
+
 /*
 Purpose:
 ---
 State register. Reset puts the converter in S_OFF, so it never powers up
 switching.
 */
+
   if (!rst_n) begin
+
     state <= S_OFF;
+
   end
   else begin
+
     state <= next_state;
+
   end
+
 end
 
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -120,60 +131,108 @@ SS_done, otherwise the state would last a single clock and the ramp would never
 be awaited; S_HICCUP holds until hiccup_done, so the cool-down actually elapses
 before a retry. An illegal encoding turns the converter off.
 */
+
   next_state = state;
 
   unique case (state)
 
     S_OFF: begin
-      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert)
+
+      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin
+
         next_state = S_SS;
-      else
+
+      end
+      else begin
+
         next_state = S_OFF;
+
+      end
+
     end
 
     S_SS: begin
-      if (~g_en | OTP | latch_state | UVLO | latch_assert)
+
+      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin
+
         next_state = S_OFF;
-      else if (window_trip_SS)
+
+      end
+      else if (window_trip_SS) begin
+
         next_state = S_HICCUP;
-      else if (SS_done)
+
+      end
+      else if (SS_done) begin
+
         next_state = S_RUN;
-      else
+
+      end
+      else begin
+
         next_state = S_SS;
+
+      end
+
     end
 
     S_RUN: begin
-      if (~g_en | latch_state | OTP | UVLO | latch_assert)
+
+      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin
+
         next_state = S_OFF;
-      else if (window_trip)
+
+      end
+      else if (window_trip) begin
+
         next_state = S_HICCUP;
-      else
+
+      end
+      else begin
+
         next_state = S_RUN;
+
+      end
+
     end
 
     S_HICCUP: begin
-      if (~g_en | latch_state | OTP | latch_assert | UVLO)
+
+      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin
+
         next_state = S_OFF;
-      else if (hiccup_done)
+
+      end
+      else if (hiccup_done) begin
+
         next_state = S_SS;
-      else
+
+      end
+      else begin
+
         next_state = S_HICCUP;
+
+      end
+
     end
 
     // an illegal state encoding turns the converter off
     default: next_state = S_OFF;
 
   endcase
+
 end
 
 
 always_comb begin
+
 /*
 Purpose:
 ---
 The states in which the power stage may switch: soft start and regulation.
 Off and the hiccup cool-down hold the gate drive low.
 */
+
   unique case (state)
     S_OFF:    en_from_state = 1'b0;
     S_SS:     en_from_state = 1'b1;
@@ -181,10 +240,12 @@ Off and the hiccup cool-down hold the gate drive low.
     S_HICCUP: en_from_state = 1'b0;
     default:  en_from_state = 1'b0;
   endcase
+
 end
 
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -192,14 +253,17 @@ Decode the present state for the blocks that act in one state only - soft
 start, the PWM statistics, the hiccup timer and strike counter, the fault log
 and power-good - and expose it for telemetry.
 */
+
   ss_active     = (state == S_SS);
   run_active    = (state == S_RUN);
   hiccup_active = (state == S_HICCUP);
   state_out     = state;
+
 end
 
 
 always_comb begin
+
 /*
 Purpose:
 ---
@@ -207,7 +271,9 @@ Drive the LM5106 enable. Gated by the fault inputs directly as well as by the
 state, so a trip pulls the gate drive low combinationally, on the same clock,
 instead of a clock later when the FSM has registered S_OFF.
 */
+
   en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;
+
 end
 
 

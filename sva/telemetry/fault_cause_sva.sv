@@ -64,12 +64,14 @@ logic running;
 logic [FAULT_CAUSE_W-1:0] causes;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
   The checker's own reset tracker. Cleared asynchronously, so a reset pulse
   between two edges still disarms the two-edge claims at the second of them.
   */
+
   if (!rst_n) begin
 
     out_of_reset <= 1'b0;
@@ -81,9 +83,11 @@ always_ff @(posedge clk or negedge rst_n) begin
     out_of_reset <= 1'b1;
 
   end
+
 end
 
 always_comb begin
+
   /*
   Purpose:
   ---
@@ -91,12 +95,14 @@ always_comb begin
   rule is the header's: the latch reading back set with latch_assert low can
   only be the analog comparator's trip.
   */
+
   running = ss_active || run_active;
   causes  = {latch_state && !latch_assert,
              latch_assert,
              otp_state,
              uvlo_state,
              window_trip || window_trip_SS};
+
 end
 
 

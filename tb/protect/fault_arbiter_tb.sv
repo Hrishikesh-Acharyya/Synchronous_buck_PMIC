@@ -160,14 +160,17 @@ fault_arbiter #(
 );
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -178,18 +181,23 @@ already has in mind.
 */
 initial $timeformat(-9, 1, " ns", 10);
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, fault_arbiter_tb);
+
     end
+
 end
 
 
@@ -224,72 +232,115 @@ endclocking
 /* verilator lint_on UNDRIVEN */
 /* verilator lint_on UNUSEDSIGNAL */
 
-// check: procedural comparison, for claims no clocked property can see -
-//        the counts' exact values, computed by the reference model - and
-//        facts about the testbench itself.
 task automatic check(input bit condition, input string label);
+
+    /*
+    Purpose:
+    ---
+    check: procedural comparison, for claims no clocked property can see -
+    the counts' exact values, computed by the reference model - and
+    facts about the testbench itself.
+    */
+
     checks_run++;
     if (!condition) begin
+
         checks_failed++;
         $display("[%0t] CHECK FAIL: %s", $time, label);
+
     end
+
 endtask
 
 
-// tick: advance n edges of the clocking block. Returns AT the nth edge, so a
-//       drive issued next lands DRIVE_OFFSET_NS after it. Written as
-//       repeat (n) @(cb) rather than ##(n): a cycle delay by a variable
-//       count crashes Verilator 5.020 with an internal fault.
 task automatic tick(input int n = 1);
+
+    /*
+    Purpose:
+    ---
+    tick: advance n edges of the clocking block. Returns AT the nth edge, so a
+    drive issued next lands DRIVE_OFFSET_NS after it. Written as
+    repeat (n) @(cb) rather than ##(n): a cycle delay by a variable
+    count crashes Verilator 5.020 with an internal fault.
+    */
+
     repeat (n) @(cb);
+
 endtask
 
 
-// drive: puts all six drv_* values onto the DUT inputs through the clocking
-//        block, landing DRIVE_OFFSET_NS after the current edge. Every helper
-//        drives through here, never through a single cb.* assignment: under
-//        some simulator versions (seen in Verilator 5.020) driving one output
-//        of a clocking block disturbs the others.
 task automatic drive();
+
+    /*
+    Purpose:
+    ---
+    drive: puts all six drv_* values onto the DUT inputs through the clocking
+    block, landing DRIVE_OFFSET_NS after the current edge. Every helper
+    drives through here, never through a single cb.* assignment: under
+    some simulator versions (seen in Verilator 5.020) driving one output
+    of a clocking block disturbs the others.
+    */
+
     cb.pwm_sync   <= drv_pwm;
     cb.cp_sync    <= drv_cp;
     cb.ss_active  <= drv_ss;
     cb.run_active <= drv_run;
     cb.trip_run   <= drv_trip_run;
     cb.trip_ss    <= drv_trip_ss;
+
 endtask
 
 
-// set_state: the two state flags the supervisor would drive - at most one of
-//            them high, by the checker's input contract. Neither high is
-//            S_OFF / S_HICCUP, which clears both windows.
 task automatic set_state(input bit ss, input bit run);
+
+    /*
+    Purpose:
+    ---
+    set_state: the two state flags the supervisor would drive - at most one of
+    them high, by the checker's input contract. Neither high is
+    S_OFF / S_HICCUP, which clears both windows.
+    */
+
     drv_ss  = ss;
     drv_run = run;
     drive();
+
 endtask
 
 
-// set_trips: drives both thresholds. Keep them within [1, window size] - the
-//            checker's reg_file contract. int arguments so callers pass plain
-//            numbers; only the low TRIP_W bits are driven, hence the waiver.
 /* verilator lint_off UNUSEDSIGNAL */
 task automatic set_trips(input int run_thr, input int ss_thr);
+
+    /*
+    Purpose:
+    ---
+    set_trips: drives both thresholds. Keep them within [1, window size] - the
+    checker's reg_file contract. int arguments so callers pass plain
+    numbers; only the low TRIP_W bits are driven, hence the waiver.
+    */
+
     drv_trip_run = TRIP_W'(run_thr);
     drv_trip_ss  = TRIP_W'(ss_thr);
     drive();
+
 endtask
 /* verilator lint_on UNUSEDSIGNAL */
 
 
-// pwm_cycle: one switching cycle, low phase first: pwm_sync low for low_clks,
-//            then high for high_clks, with cp_sync held at faulted from the
-//            start. The rise between the two phases is the cycle's one
-//            sample; with low_clks >= BLANK_CLKS_TB the lookback reads
-//            faulted. Returns at the last edge of the high phase.
 task automatic pwm_cycle(input bit faulted,
                          input int low_clks  = PWM_LOW_CLKS,
                          input int high_clks = PWM_HIGH_CLKS);
+
+    /*
+    Purpose:
+    ---
+    pwm_cycle: one switching cycle, low phase first: pwm_sync low for low_clks,
+    then high for high_clks, with cp_sync held at faulted from the
+    start. The rise between the two phases is the cycle's one
+    sample; with low_clks >= BLANK_CLKS_TB the lookback reads
+    faulted. Returns at the last edge of the high phase.
+    */
+
     drv_cp  = faulted;
     drv_pwm = 1'b0;
     drive();
@@ -297,43 +348,68 @@ task automatic pwm_cycle(input bit faulted,
     drv_pwm = 1'b1;
     drive();
     tick(high_clks);
+
 endtask
 
 
-// pwm_cycles: n identical switching cycles
 task automatic pwm_cycles(input int n, input bit faulted);
+
+    /*
+    Purpose:
+    ---
+    pwm_cycles: n identical switching cycles
+    */
+
     repeat (n) pwm_cycle(faulted);
+
 endtask
 
-// pwm_cycle_noisy: one switching cycle with cp_sync redrawn from the PRBS on
-//                  EVERY clock, at the chosen density. The verdict at the rise
-//                  then depends on exactly which clock the lookback reads, so a
-//                  lookback of the wrong depth produces wrong verdicts that only
-//                  a model replaying the comparator history can predict.
 task automatic pwm_cycle_noisy(input int k, input bit use_or);
+
+    /*
+    Purpose:
+    ---
+    pwm_cycle_noisy: one switching cycle with cp_sync redrawn from the PRBS on
+    EVERY clock, at the chosen density. The verdict at the rise
+    then depends on exactly which clock the lookback reads, so a
+    lookback of the wrong depth produces wrong verdicts that only
+    a model replaying the comparator history can predict.
+    */
+
     drv_pwm = 1'b0;
     repeat (PWM_LOW_CLKS) begin
+
         drv_cp = prbs_shaped(k, use_or);
         drive();
         tick(1);
+
     end
     drv_pwm = 1'b1;
     repeat (PWM_HIGH_CLKS) begin
+
         drv_cp = prbs_shaped(k, use_or);
         drive();
         tick(1);
+
     end
+
 endtask
 
-// pwm_cycle_split: one switching cycle whose cp_sync changes during the low
-//                  phase: first_value for the opening clocks, then
-//                  second_value for the last second_clks clocks before the
-//                  rise. The lookback reads second_value only if second_clks
-//                  >= BLANK_CLKS_TB; a change any later falls inside the
-//                  blanking and is ignored. Returns at the last edge of the
-//                  high phase.
 task automatic pwm_cycle_split(input bit first_value, input bit second_value,
                                input int second_clks);
+
+    /*
+    Purpose:
+    ---
+    pwm_cycle_split: one switching cycle whose cp_sync changes during the low
+    phase: first_value for the opening clocks, then
+    second_value for the last second_clks clocks before the
+    rise. The lookback reads second_value only if second_clks
+    >= BLANK_CLKS_TB; a change any later falls inside the
+    blanking and is ignored. Returns at the last edge of the
+    high phase.
+    */
+
     drv_cp  = first_value;
     drv_pwm = 1'b0;
     drive();
@@ -344,11 +420,17 @@ task automatic pwm_cycle_split(input bit first_value, input bit second_value,
     drv_pwm = 1'b1;
     drive();
     tick(PWM_HIGH_CLKS);
+
 endtask
 
 
-// prbs_next: advance the generator one step and return the new bit
 function automatic bit prbs_next();
+
+    /*
+    Purpose:
+    ---
+    prbs_next: advance the generator one step and return the new bit
+    */
 
     prbs15 = {prbs15[13:0], prbs15[14] ^ prbs15[13]};
     return prbs15[0];
@@ -356,10 +438,15 @@ function automatic bit prbs_next();
 endfunction
 
 
-// prbs_shaped: one fault bit at a chosen density, from k PRBS bits combined -
-//              AND of k gives 1/2^k (k=2: 25%, k=3: 12.5%), OR of k gives
-//              1 - 1/2^k (k=2: 75%, k=3: 87.5%, k=4: 93.75%); k=1 is 50%
 function automatic bit prbs_shaped(input int k, input bit use_or);
+
+    /*
+    Purpose:
+    ---
+    prbs_shaped: one fault bit at a chosen density, from k PRBS bits combined -
+    AND of k gives 1/2^k (k=2: 25%, k=3: 12.5%), OR of k gives
+    1 - 1/2^k (k=2: 75%, k=3: 87.5%, k=4: 93.75%); k=1 is 50%
+    */
 
     bit result;
     result = prbs_next();
@@ -371,11 +458,17 @@ endfunction
 
 
 
-// do_reset: everything inactive, then a reset pulse with a genuine falling
-//           edge, so the DUT's async clear fires before any clock arrives.
-//           Leaves both windows empty, neither state active, PWM low,
-//           thresholds at the window sizes.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: everything inactive, then a reset pulse with a genuine falling
+    edge, so the DUT's async clear fires before any clock arrives.
+    Leaves both windows empty, neither state active, PWM low,
+    thresholds at the window sizes.
+    */
+
     drv_pwm      = 1'b0;
     drv_cp       = 1'b0;
     drv_ss       = 1'b0;
@@ -389,13 +482,20 @@ task automatic do_reset();
     tick(RESET_CLKS);
     rst_n = 1'b1;
     tick(RESET_CLKS);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("");
@@ -408,27 +508,48 @@ task automatic finish_run(input string reason);
              ANSI_CYAN, ANSI_RESET);
     // Every tally is stated as an outcome rather than a bare number, so a
     // clean run reads as what it proved instead of a column of zeros.
-    if (sva_pkg::sva_failures == 0)
+    if (sva_pkg::sva_failures == 0) begin
+
         $display(" assertions  %s✔ none failed%s", ANSI_GREEN, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display(" assertions  %s✘ %0d failed%s  %s(SVA FAIL lines above)%s",
                  ANSI_RED, sva_pkg::sva_failures, ANSI_RESET, ANSI_DIM, ANSI_RESET);
-    if (checks_failed != 0)
+
+    end
+    if (checks_failed != 0) begin
+
         $display(" checks      %s✘ %0d failed%s  %s(%0d run)%s",
                  ANSI_RED, checks_failed, ANSI_RESET, ANSI_DIM, checks_run, ANSI_RESET);
-    else if (checks_run == 0)
+
+    end
+    else if (checks_run == 0) begin
+
         $display(" checks      %s- none run: every claim is in the bound checker%s",
                  ANSI_DIM, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display(" checks      %s✔ %0d of %0d passed%s",
                  ANSI_GREEN, checks_run, checks_run, ANSI_RESET);
+
+    end
     $display("%s--------------------------------------------------%s",
              ANSI_CYAN, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display(" %s PASS %s  %sprovisional until every cover hits%s",
                  ANSI_PASS_BADGE, ANSI_RESET, ANSI_DIM, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display(" %s FAIL %s", ANSI_FAIL_BADGE, ANSI_RESET);
+
+    end
     $display("%s==================================================%s",
              ANSI_CYAN, ANSI_RESET);
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
@@ -440,20 +561,24 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
@@ -477,20 +602,21 @@ int expected_run;
 int expected_ss;
 
 
-/*
-Purpose:
----
-The reference model: an independent copy of the DUT's three memories - the
-comparator lookback, and the S_RUN and S_SS windows - kept as lists and
-counted from scratch every edge, a different method from the DUT's shift
-registers and running counts. On every edge it first COMPARES the counts the
-DUT shows going into the edge with its own prediction from the previous edge,
-then UPDATES itself from the inputs as they stand at this edge and predicts
-the next counts. Inputs are read from the pins, the counts through cb; it
-never reads a DUT internal.
-*/
 
 always @(cb) begin
+
+    /*
+    Purpose:
+    ---
+    The reference model: an independent copy of the DUT's three memories - the
+    comparator lookback, and the S_RUN and S_SS windows - kept as lists and
+    counted from scratch every edge, a different method from the DUT's shift
+    registers and running counts. On every edge it first COMPARES the counts the
+    DUT shows going into the edge with its own prediction from the previous edge,
+    then UPDATES itself from the inputs as they stand at this edge and predicts
+    the next counts. Inputs are read from the pins, the counts through cb; it
+    never reads a DUT internal.
+    */
   
     // Compare the model's expected count against the DUT's counts
     if(rst_n) begin
@@ -516,6 +642,7 @@ always @(cb) begin
     end
 
     else begin
+
         // a rising PWM edge takes one verdict into the active state's window
         if ((pwm_sync && !model_pwm_prev) && run_active) begin
 
@@ -566,14 +693,16 @@ end
 // Stimulus
 // ============================================================
 
-/*
-Purpose:
----
-Drives the directed groups in order. The bound checker and the reference model
-judge every edge; each group exists to make their antecedents and covers
-occur, named in the group's comment.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Drives the directed groups in order. The bound checker and the reference model
+    judge every edge; each group exists to make their antecedents and covers
+    occur, named in the group's comment.
+    */
+
     $display("\n==== %s ====\n", TB_NAME);
 
     /*
@@ -744,16 +873,20 @@ initial begin
 
     set_trips(TRIP_RUN_DEFAULT, TRIP_SS_DEFAULT);
     for (int pass = 0; pass < 2; pass++) begin
+
         set_state(pass == 1, pass == 0);              // pass 0: S_RUN, pass 1: S_SS
         repeat (4) begin
+
             repeat (60) pwm_cycle_noisy(3, 1'b0);     // quiet: 12.5%
             repeat (40) pwm_cycle_noisy(3, 1'b1);     // burst: 87.5%
             repeat (60) pwm_cycle_noisy(3, 1'b0);     // quiet
             repeat (40) pwm_cycle_noisy(4, 1'b1);     // burst: 93.75%
+
         end
         repeat (200) pwm_cycle_noisy(2, 1'b1);        // long 75% stretch
         set_state(1'b0, 1'b0);
         tick(2);
+
     end
 
     finish_run("normal end");

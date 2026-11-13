@@ -16,13 +16,21 @@ package sva_pkg;
 
     int unsigned sva_failures = 0;
 
-    // note_failure: called from an assertion's else clause. Uses $display, not
-    //               $error, because Verilator's runtime error limit defaults to
-    //               1 and would end the run on the first failure.
     function automatic void note_failure(string msg);
+
+        /*
+        Purpose:
+        ---
+        note_failure: called from an assertion's else clause. Uses $display, not
+        $error, because Verilator's runtime error limit defaults to
+        1 and would end the run on the first failure.
+        */
+
         sva_failures++;
         $display("[%0t] SVA FAIL: %s", $time, msg);
+
     endfunction
 
 endpackage
 
+`default_nettype wire

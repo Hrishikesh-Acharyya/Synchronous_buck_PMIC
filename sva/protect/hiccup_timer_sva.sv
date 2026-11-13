@@ -79,6 +79,7 @@ logic [31:0] clocks_in_hiccup;
 logic [31:0] interval_clks;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -88,6 +89,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   asynchronously, so a reset pulse between two edges still disarms the
   two-edge claims at the second of them.
   */
+
   if (!rst_n) begin
 
     out_of_reset     <= 1'b0;
@@ -113,16 +115,20 @@ always_ff @(posedge clk or negedge rst_n) begin
     // else: saturated - hold
 
   end
+
 end
 
 always_comb begin
+
   /*
   Purpose:
   ---
   The promised interval, recomputed from the inputs rather than read from
   the DUT.
   */
+
   interval_clks = 32'(base_clks) << strike_level;
+
 end
 
 

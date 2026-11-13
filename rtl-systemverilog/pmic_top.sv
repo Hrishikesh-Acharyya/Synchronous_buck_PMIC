@@ -76,444 +76,463 @@ module pmic_top #(
     output logic Red_LED3    // input undervoltage
 );
 
-    import pmic_types_pkg::*;
-
-    
-    // ---- reset synchronization----
-    logic rst_n;
-    reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));
-
-    // ---- synchronised copies of the asynchronous inputs ----
-    logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
-    //SPI SIGNALS
-    logic sck_sync,  cs_n_sync,  mosi_sync;
+import pmic_types_pkg::*;
 
 
-    // ============================================================
-    // Input synchronisers
-    // ============================================================
+// ---- reset synchronization----
+logic rst_n;
+reset_sync rst_sync (.clk(clk), .rst_n_enter(rst_n_pin), .rst_n_exit(rst_n));
 
-    input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));
-    input_sync #(.RESET_VALUE(1'b1)) u_cp_sync (.clk(clk), .rst_n(rst_n), .async_in(CP_trig), .sync_out(CP_sync));
-    input_sync #(.RESET_VALUE(1'b1)) u_otp_sync (.clk(clk), .rst_n(rst_n), .async_in(OTP_trig), .sync_out(OTP_sync));
-    input_sync #(.RESET_VALUE(1'b1)) u_uvlo_sync (.clk(clk), .rst_n(rst_n), .async_in(UVLO_trig), .sync_out(UVLO_sync));
-    input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync (.clk(clk), .rst_n(rst_n), .async_in(latch_stat), .sync_out(latch_stat_sync));
-    input_sync u_pgood_comp_sync(.clk(clk), .rst_n(rst_n), .async_in(PGOOD_comp), .sync_out(PGOOD_comp_sync));
-    input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
-    
-    // ============================================================
-    // SPI bus conditioning
-    // ============================================================
-    // Reset values are each line's IDLE level: CS idles high, Mode 0 SCK idles low,
-    // MOSI idles low. Resetting to the wrong level manufactures an edge on the first
-    // clock after reset.
-    
-    if (TELEMETRY_EN) begin : g_spi_sync
-        input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
-        input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
-        input_sync                      u_mosi_sync (.clk(clk), .rst_n(rst_n), .async_in(MOSI), .sync_out(mosi_sync));
-    end
+// ---- synchronised copies of the asynchronous inputs ----
+logic  en_from_switch_sync, Osc_sync, CP_sync, OTP_sync, UVLO_sync, latch_stat_sync, PGOOD_comp_sync;
+//SPI SIGNALS
+logic sck_sync,  cs_n_sync,  mosi_sync;
 
 
-    //-- debounced and filtered inputs--//
-     logic en_from_switch_sync_db;
-     logic OTP_sync_db;
-     logic UVLO_sync_db;
-     logic latch_stat_sync_db;
-     //spi signals
-     logic sck_filt,  cs_n_filt,  mosi_filt;
+// ============================================================
+// Input synchronisers
+// ============================================================
 
-    // ============================================================
-    // Input debouncers
-    // ============================================================
+input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));
+input_sync #(.RESET_VALUE(1'b1)) u_cp_sync (.clk(clk), .rst_n(rst_n), .async_in(CP_trig), .sync_out(CP_sync));
+input_sync #(.RESET_VALUE(1'b1)) u_otp_sync (.clk(clk), .rst_n(rst_n), .async_in(OTP_trig), .sync_out(OTP_sync));
+input_sync #(.RESET_VALUE(1'b1)) u_uvlo_sync (.clk(clk), .rst_n(rst_n), .async_in(UVLO_trig), .sync_out(UVLO_sync));
+input_sync #(.RESET_VALUE(1'b1)) u_latch_stat_sync (.clk(clk), .rst_n(rst_n), .async_in(latch_stat), .sync_out(latch_stat_sync));
+input_sync u_pgood_comp_sync(.clk(clk), .rst_n(rst_n), .async_in(PGOOD_comp), .sync_out(PGOOD_comp_sync));
+input_sync u_en_from_switch_sync  (.clk(clk), .rst_n(rst_n), .async_in(en_from_switch), .sync_out(en_from_switch_sync));
 
-    input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),
-                     .RELEASE_CLKS(ms_to_clks(20)),
-                     .RESET_VALUE (1'b0))
-    u_en_from_switch_db (.clk(clk), .rst_n(rst_n),
-                             .flag_in(en_from_switch_sync),
-                             .flag_out(en_from_switch_sync_db));
-    input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));
-    input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));
-    input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));
+// ============================================================
+// SPI bus conditioning
+// ============================================================
+// Reset values are each line's IDLE level: CS idles high, Mode 0 SCK idles low,
+// MOSI idles low. Resetting to the wrong level manufactures an edge on the first
+// clock after reset.
 
+if (TELEMETRY_EN) begin : g_spi_sync
 
-    // SPI bus conditioning
-    
-    // input_debounce instanced SYMMETRIC and SHORT, which is a different regime from
-    // the fault flags it was written for. The symmetry is the critical part: spi_slave
-    // samples MOSI on an edge derived from SCK, so unequal delay between the two
-    // shifts the data relative to the clock it is sampled against. All three
-    // instances must therefore carry IDENTICAL parameters - any future retune of the
-    // fault-flag instances must not be copied here.
-    //
-    // 8 clocks is 160 ns at 50 MHz: far longer than the tens of ns a switch-node edge
-    // couples in, far shorter than the 500 ns SCK half-period at 1 MHz. Noise lasting
-    // longer than the window is not a glitch and is not this layer's job - CRC-8 in
-    // spi_slave catches it and the transaction is discarded.    
+    input_sync                      u_sck_sync  (.clk(clk), .rst_n(rst_n), .async_in(SCK),  .sync_out(sck_sync));
+    input_sync #(.RESET_VALUE(1'b1)) u_cs_sync  (.clk(clk), .rst_n(rst_n), .async_in(CS_n), .sync_out(cs_n_sync));
+    input_sync                      u_mosi_sync (.clk(clk), .rst_n(rst_n), .async_in(MOSI), .sync_out(mosi_sync));
 
-    if (TELEMETRY_EN) begin : g_spi_filt
-        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-            u_sck_filt  (.clk(clk), .rst_n(rst_n), .flag_in(sck_sync),  .flag_out(sck_filt));
-
-        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
-            u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
-
-        input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
-            u_mosi_filt (.clk(clk), .rst_n(rst_n), .flag_in(mosi_sync), .flag_out(mosi_filt));
-    end
-
-   
-    // ---- inter-module signals ----
-
-    logic ss_active, run_active, hiccup_active, hiccup_done, SS_done;
-    logic window_trip, window_trip_SS;
-    logic [STRIKE_W-1:0]strike_level;
-    logic [ON_TIME_W-1:0] max_on_counts;
-    logic [CNT_W-1:0] duty_count;
-    logic [CNT_W-1:0] prev_period;
-    //timestamp_ms: The current time to ms precision since start of convertor
-    logic [TIMESTAMP_W-1:0] timestamp_ms;
-    //fault_time: The timestamp from the start of an episode's fault,episodes is one mcu host read long
-    logic [TIMESTAMP_W-1:0]   fault_time;
+end
 
 
-    
-    // Driven here, consumed by reg_file. 
-    state_t sup_state;
-    logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
-    logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss;
-    logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
-    // fault_reg: one-hot accumulated fault causes, consumed by reg_file
-    logic [FAULT_CAUSE_W-1:0] fault_reg;
-    // fault_reg_read_done: one-clk pulse from reg_file when the host reads 0x20
-    logic fault_reg_read_done;
+//-- debounced and filtered inputs--//
+logic en_from_switch_sync_db;
+logic OTP_sync_db;
+logic UVLO_sync_db;
+logic latch_stat_sync_db;
+//spi signals
+logic sck_filt,  cs_n_filt,  mosi_filt;
+
+// ============================================================
+// Input debouncers
+// ============================================================
+
+input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),
+                 .RELEASE_CLKS(ms_to_clks(20)),
+                 .RESET_VALUE (1'b0))
+u_en_from_switch_db (.clk(clk), .rst_n(rst_n),
+                         .flag_in(en_from_switch_sync),
+                         .flag_out(en_from_switch_sync_db));
+input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));
+input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));
+input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));
+
+
+// SPI bus conditioning
+
+// input_debounce instanced SYMMETRIC and SHORT, which is a different regime from
+// the fault flags it was written for. The symmetry is the critical part: spi_slave
+// samples MOSI on an edge derived from SCK, so unequal delay between the two
+// shifts the data relative to the clock it is sampled against. All three
+// instances must therefore carry IDENTICAL parameters - any future retune of the
+// fault-flag instances must not be copied here.
+//
+// 8 clocks is 160 ns at 50 MHz: far longer than the tens of ns a switch-node edge
+// couples in, far shorter than the 500 ns SCK half-period at 1 MHz. Noise lasting
+// longer than the window is not a glitch and is not this layer's job - CRC-8 in
+// spi_slave catches it and the transaction is discarded.    
+
+if (TELEMETRY_EN) begin : g_spi_filt
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_sck_filt  (.clk(clk), .rst_n(rst_n), .flag_in(sck_sync),  .flag_out(sck_filt));
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))
+        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));
+
+    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))
+        u_mosi_filt (.clk(clk), .rst_n(rst_n), .flag_in(mosi_sync), .flag_out(mosi_filt));
+
+end
 
    
+// ---- inter-module signals ----
 
-    // ---- host access port between spi_slave and reg_file ----
-    logic [6:0] spi_addr;
-    logic       spi_wr_en;
-    logic [7:0] spi_wdata;
-    logic [7:0] spi_rdata;
-    logic       spi_rd_first;
-    logic       spi_rd_byte_done;   // a read data byte has been clocked out
-    logic       spi_integrity_ok;
-    logic       spi_abort;
-    logic       sdio_out, sdio_oe;   // MISO data, and high only while it is read data
-
-
-    // ---- reg_file control outputs ----
-    logic                     spi_enable;
-    logic [TRIP_W-1:0]        trip_run;
-    logic [TRIP_W-1:0]        trip_ss;
-    logic [STRIKE_W-1:0]      max_strikes;
-    logic [ON_TIME_W-1:0]     max_on_limit;
-    logic [HICCUP_BASE_W-1:0] hiccup_base;
-    logic [CYC_STEP_W-1:0]    cycles_per_step;
-    logic [CLEAN_RUN_W-1:0]   clean_run_target;
-
-    
-    logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
-
-    // Edge detect on the debounced switch. Its only consumer is reg_file, which
-    // re-asserts spi_enable on a fresh switch press, so it goes with telemetry.
-    if (TELEMETRY_EN) begin : g_en_switch_edge
-        always_ff @(posedge clk or negedge rst_n) begin
-            /*
-            Purpose: Stores delayed copy of en_from_switch_sync_db for edge detection
-        
-            */
-            if(!rst_n)begin
-                en_from_switch_sync_db_d <= 0;
-            end
-
-            else
-                en_from_switch_sync_db_d <= en_from_switch_sync_db;
-
-        end
-
-        always_comb begin
-
-            /*
-            Purpose: Edge detection on the physical enable switch signal synced and debounced
-            */
-
-            en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
-
-        end
-    end
-    // ============================================================
-    // Supervisor FSM
-    // ============================================================
-
-    supervisor u_supervisor ( .clk(clk),
-                            .SS_done(SS_done),
-                            .rst_n(rst_n),
-                            .en_SW(en_from_switch_sync_db),
-                            .spi_enable(spi_enable),
-                            .latch_state(latch_stat_sync_db),
-                            .OTP(OTP_sync_db),
-                            .window_trip_SS(window_trip_SS),
-                            .window_trip(window_trip),
-                            .latch_assert(latch_out),
-                            .UVLO(UVLO_sync_db),
-                            .hiccup_done(hiccup_done),
-                            .en(En),
-                            .ss_active(ss_active),
-                            .run_active(run_active),
-                            .hiccup_active(hiccup_active),
-                            .state_out(sup_state)
-                            );
+logic ss_active, run_active, hiccup_active, hiccup_done, SS_done;
+logic window_trip, window_trip_SS;
+logic [STRIKE_W-1:0]strike_level;
+logic [ON_TIME_W-1:0] max_on_counts;
+logic [CNT_W-1:0] duty_count;
+logic [CNT_W-1:0] prev_period;
+//timestamp_ms: The current time to ms precision since start of convertor
+logic [TIMESTAMP_W-1:0] timestamp_ms;
+//fault_time: The timestamp from the start of an episode's fault,episodes is one mcu host read long
+logic [TIMESTAMP_W-1:0]   fault_time;
 
 
-    // ============================================================
-    // Protection
-    // ============================================================
-    // 
-    fault_arbiter u_fault_arbiter ( .clk(clk),
-                                    .rst_n(rst_n),
-                                    .trip_run(trip_run),
-                                    .trip_ss(trip_ss),
-                                    .fault_count_run_out(fault_count_run),
-                                    .fault_count_ss_out(fault_count_ss),
-                                    .pwm_sync(Osc_sync),
-                                    .cp_sync(CP_sync),
-                                    .ss_active(ss_active),
-                                    .run_active(run_active),
-                                    .window_trip(window_trip),
-                                    .window_trip_SS(window_trip_SS)
-                                    );
-    hiccup_timer u_hiccup_timer ( .clk(clk),
-                                    .rst_n(rst_n),
-                                    .base_clks(hiccup_base),
-                                    .hiccup_active(hiccup_active),
-                                    .strike_level(strike_level),
-                                    .hiccup_done(hiccup_done)
-                                    );
-    
-    strike_counter u_strike_counter ( .clk(clk),
-                                    .rst_n(rst_n),
-                                    .max_strikes(max_strikes),
-                                    .clean_run_target(clean_run_target),
-                                    .pwm_sync(Osc_sync),
-                                    .hiccup_active(hiccup_active),
-                                    .run_active(run_active),
-                                    .window_trip(window_trip),
-                                    .strike_level(strike_level),
-                                    .latch_assert(latch_out)
-                                    );
-    soft_start u_soft_start ( .clk(clk),
-                                    .rst_n(rst_n),
-                                    .pwm_sync(Osc_sync),
-                                    .ss_active(ss_active),
-                                    .run_active(run_active),
-                                    .max_on_counts(max_on_counts),
-                                    .max_on_limit(max_on_limit),
-                                    .cycles_per_step(cycles_per_step),
-                                    .SS_done(SS_done)
-                                    );
 
-    pwm_mask u_pwm_mask ( .clk(clk),
-                            .rst_n(rst_n),
-                            .pwm_sync(Osc_sync),
-                            .max_on_counts(max_on_counts),
-                            .pwm_out(PWM_out)
-                            );
+// Driven here, consumed by reg_file. 
+state_t sup_state;
+logic [$clog2(WINDOW_RUN+1)-1:0] fault_count_run;
+logic [$clog2(WINDOW_SS+1)-1:0]  fault_count_ss;
+logic en_switch_rise;  //en_from_switch_sync_db edge detction pulse
+// fault_reg: one-hot accumulated fault causes, consumed by reg_file
+logic [FAULT_CAUSE_W-1:0] fault_reg;
+// fault_reg_read_done: one-clk pulse from reg_file when the host reads 0x20
+logic fault_reg_read_done;
 
-    // ============================================================
-    // Host interface
-    // ============================================================
-    /*
-    MISO is driven here and nowhere else. spi_slave's sdio_out carries the read
-    data and sdio_oe is high exactly while spi_slave is in S_READ, so MISO shows read
-    data during the read data phase and is held low at every other time - a plain
-    output, with no tri-state anywhere in the design. Both terms are flops that
-    change on different SCK edges, so MISO does not glitch. The spi_slave port names
-    keep the sdio_ prefix of the original 3-wire bus.
-    */
-    if (TELEMETRY_EN) begin : g_telemetry
-        assign MISO = sdio_oe & sdio_out;
+   
 
-        spi_slave u_spi_slave ( .clk(clk),
-                                .rst_n(rst_n),
-                                .sck(sck_filt),
-                                .cs_n(cs_n_filt),
-                                .sdio_in(mosi_filt),
-                                .sdio_out(sdio_out),
-                                .sdio_oe(sdio_oe),
-                                .addr(spi_addr),
-                                .wr_en(spi_wr_en),
-                                .wdata(spi_wdata),
-                                .rdata(spi_rdata),
-                                .rd_first(spi_rd_first),
-                                .rd_byte_done(spi_rd_byte_done),
-                                .integrity_ok(spi_integrity_ok),
-                                .txn_abort(spi_abort)
-                                );
+// ---- host access port between spi_slave and reg_file ----
+logic [6:0] spi_addr;
+logic       spi_wr_en;
+logic [7:0] spi_wdata;
+logic [7:0] spi_rdata;
+logic       spi_rd_first;
+logic       spi_rd_byte_done;   // a read data byte has been clocked out
+logic       spi_integrity_ok;
+logic       spi_abort;
+logic       sdio_out, sdio_oe;   // MISO data, and high only while it is read data
 
-        reg_file u_reg_file ( .clk(clk),
-                              .rst_n(rst_n),
 
-                              // host access port
-                              .addr(spi_addr),
-                              .wr_en(spi_wr_en),
-                              .wdata(spi_wdata),
-                              .rdata(spi_rdata),
-                              .rd_first(spi_rd_first),
-                              .rd_byte_done(spi_rd_byte_done),
-                              .integrity_OK(spi_integrity_ok),
-                              .txn_abort(spi_abort),
+// ---- reg_file control outputs ----
+logic                     spi_enable;
+logic [TRIP_W-1:0]        trip_run;
+logic [TRIP_W-1:0]        trip_ss;
+logic [STRIKE_W-1:0]      max_strikes;
+logic [ON_TIME_W-1:0]     max_on_limit;
+logic [HICCUP_BASE_W-1:0] hiccup_base;
+logic [CYC_STEP_W-1:0]    cycles_per_step;
+logic [CLEAN_RUN_W-1:0]   clean_run_target;
 
-                              // status in - debounced copies, so telemetry matches what
-                              // the supervisor is actually acting on
-                              .sup_state(sup_state),
-                              .pgood(PGOOD),
-                              .latch_state(latch_stat_sync_db),
-                              .en_switch(en_from_switch_sync_db),
-                              .en_switch_rise(en_switch_rise),
-                              .cp_state(CP_sync),
-                              .otp_state(OTP_sync_db),
-                              .uvlo_state(UVLO_sync_db),
-                              .strike_level(strike_level),
-                              .duty_count(duty_count),          
-                              .prev_period(prev_period),         
-                              .fault_count_run(fault_count_run),
-                              .fault_count_ss(fault_count_ss),
-                              .fault_reg(fault_reg),
-                              .timestamp_ms(timestamp_ms),
-                              .fault_time(fault_time),
-                              .fault_reg_read_done(fault_reg_read_done),
-                          
-                              // control out
-                              .spi_enable(spi_enable),
-                              .trip_run(trip_run),
-                              .trip_ss(trip_ss),
-                              .max_strikes(max_strikes),
-                              .max_on_limit(max_on_limit),
-                              .hiccup_base(hiccup_base),
-                              .cycles_per_step(cycles_per_step),
-                              .clean_run_target(clean_run_target)
-                              );
+
+logic en_from_switch_sync_db_d; //delayed en_from_switch_sync_db
+
+// Edge detect on the debounced switch. Its only consumer is reg_file, which
+// re-asserts spi_enable on a fresh switch press, so it goes with telemetry.
+if (TELEMETRY_EN) begin : g_en_switch_edge
+
+    always_ff @(posedge clk or negedge rst_n) begin
 
         /*
-        Telemetry only. pwm_stats drives no control path and takes no part in any
-        protection timing, so it runs unconditionally from the synchronised PWM rather
-        than being gated on any supervisor state - duty and period are as interesting
-        during a fault as during normal running.
+        Purpose: Stores delayed copy of en_from_switch_sync_db for edge detection
+    
         */
-        pwm_stats u_pwm_stats ( .clk(clk),
+
+        if(!rst_n)begin
+
+            en_from_switch_sync_db_d <= 0;
+
+        end
+
+        else begin
+
+            en_from_switch_sync_db_d <= en_from_switch_sync_db;
+
+        end
+
+    end
+
+    always_comb begin
+
+        /*
+        Purpose: Edge detection on the physical enable switch signal synced and debounced
+        */
+
+        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;
+
+    end
+
+end
+// ============================================================
+// Supervisor FSM
+// ============================================================
+
+supervisor u_supervisor ( .clk(clk),
+                        .SS_done(SS_done),
+                        .rst_n(rst_n),
+                        .en_SW(en_from_switch_sync_db),
+                        .spi_enable(spi_enable),
+                        .latch_state(latch_stat_sync_db),
+                        .OTP(OTP_sync_db),
+                        .window_trip_SS(window_trip_SS),
+                        .window_trip(window_trip),
+                        .latch_assert(latch_out),
+                        .UVLO(UVLO_sync_db),
+                        .hiccup_done(hiccup_done),
+                        .en(En),
+                        .ss_active(ss_active),
+                        .run_active(run_active),
+                        .hiccup_active(hiccup_active),
+                        .state_out(sup_state)
+                        );
+
+
+// ============================================================
+// Protection
+// ============================================================
+// 
+fault_arbiter u_fault_arbiter ( .clk(clk),
+                                .rst_n(rst_n),
+                                .trip_run(trip_run),
+                                .trip_ss(trip_ss),
+                                .fault_count_run_out(fault_count_run),
+                                .fault_count_ss_out(fault_count_ss),
+                                .pwm_sync(Osc_sync),
+                                .cp_sync(CP_sync),
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .window_trip(window_trip),
+                                .window_trip_SS(window_trip_SS)
+                                );
+hiccup_timer u_hiccup_timer ( .clk(clk),
+                                .rst_n(rst_n),
+                                .base_clks(hiccup_base),
+                                .hiccup_active(hiccup_active),
+                                .strike_level(strike_level),
+                                .hiccup_done(hiccup_done)
+                                );
+
+strike_counter u_strike_counter ( .clk(clk),
+                                .rst_n(rst_n),
+                                .max_strikes(max_strikes),
+                                .clean_run_target(clean_run_target),
+                                .pwm_sync(Osc_sync),
+                                .hiccup_active(hiccup_active),
+                                .run_active(run_active),
+                                .window_trip(window_trip),
+                                .strike_level(strike_level),
+                                .latch_assert(latch_out)
+                                );
+soft_start u_soft_start ( .clk(clk),
                                 .rst_n(rst_n),
                                 .pwm_sync(Osc_sync),
-                                .duty_count(duty_count),
-                                .prev_period(prev_period)
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .max_on_counts(max_on_counts),
+                                .max_on_limit(max_on_limit),
+                                .cycles_per_step(cycles_per_step),
+                                .SS_done(SS_done)
                                 );
 
-         fault_cause u_fault_cause (
-                                    .clk(clk),
-                                    .rst_n(rst_n),
-                                    .otp_state(OTP_sync_db),
-                                    .uvlo_state(UVLO_sync_db),
-                                    .latch_state(latch_stat_sync_db),
-                                    .latch_assert(latch_out),
-                                    .window_trip(window_trip),
-                                    .window_trip_SS(window_trip_SS),
-                                    .ss_active(ss_active),
-                                    .run_active(run_active),
-                                    .fault_reg_read_done(fault_reg_read_done),
-                                    .timestamp_ms(timestamp_ms),
-                                    .fault_time(fault_time),
-                                    .fault_reg(fault_reg)
-                                );
-    end
-    else begin : g_no_telemetry
-        /*
-        No host interface. MISO is held low and MOSI is unused, and every value
-        reg_file would have held is tied to the package constant reg_file resets
-        to. spi_enable is tied
-        high so the enable switch alone gates the converter - the same as an
-        enabled build whose host has never written CONTROL.
-        */
-        assign MISO             = 1'b0;
-        assign spi_enable       = 1'b1;
-        assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
-        assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
-        assign max_strikes      = STRIKE_W'(MAX_STRIKES_DEFAULT);
-        assign max_on_limit     = ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
-        assign hiccup_base      = HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
-        assign cycles_per_step  = CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
-        assign clean_run_target = CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
-    end
+pwm_mask u_pwm_mask ( .clk(clk),
+                        .rst_n(rst_n),
+                        .pwm_sync(Osc_sync),
+                        .max_on_counts(max_on_counts),
+                        .pwm_out(PWM_out)
+                        );
 
-    // ============================================================
-    // Status
-    // ============================================================
+// ============================================================
+// Host interface
+// ============================================================
+/*
+MISO is driven here and nowhere else. spi_slave's sdio_out carries the read
+data and sdio_oe is high exactly while spi_slave is in S_READ, so MISO shows read
+data during the read data phase and is held low at every other time - a plain
+output, with no tri-state anywhere in the design. Both terms are flops that
+change on different SCK edges, so MISO does not glitch. The spi_slave port names
+keep the sdio_ prefix of the original 3-wire bus.
+*/
+if (TELEMETRY_EN) begin : g_telemetry
 
-    pgood_gen u_pgood_gen ( .clk(clk),
+    assign MISO = sdio_oe & sdio_out;
+
+    spi_slave u_spi_slave ( .clk(clk),
                             .rst_n(rst_n),
-                            .pwm_sync(Osc_sync),
-                            .pgood_comp(PGOOD_comp_sync),
-                            .run_active(run_active),
-                            .PGOOD(PGOOD)
+                            .sck(sck_filt),
+                            .cs_n(cs_n_filt),
+                            .sdio_in(mosi_filt),
+                            .sdio_out(sdio_out),
+                            .sdio_oe(sdio_oe),
+                            .addr(spi_addr),
+                            .wr_en(spi_wr_en),
+                            .wdata(spi_wdata),
+                            .rdata(spi_rdata),
+                            .rd_first(spi_rd_first),
+                            .rd_byte_done(spi_rd_byte_done),
+                            .integrity_ok(spi_integrity_ok),
+                            .txn_abort(spi_abort)
                             );
 
-    
+    reg_file u_reg_file ( .clk(clk),
+                          .rst_n(rst_n),
 
-   
-    // Time base for the fault log only, so it goes with telemetry.
-    if (TELEMETRY_EN) begin : g_timestamp
-        timestamp u_timestamp       (
-                                        .clk(clk),
-                                        .rst_n(rst_n),
-                                        .timestamp_ms(timestamp_ms)
-                                    );
-    end
+                          // host access port
+                          .addr(spi_addr),
+                          .wr_en(spi_wr_en),
+                          .wdata(spi_wdata),
+                          .rdata(spi_rdata),
+                          .rd_first(spi_rd_first),
+                          .rd_byte_done(spi_rd_byte_done),
+                          .integrity_OK(spi_integrity_ok),
+                          .txn_abort(spi_abort),
 
-    fault_LED u_fault_LED       (   .clk(clk),
-                                    .rst_n(rst_n),
-                                    .otp_state(OTP_sync_db),
-                                    .uvlo_state(UVLO_sync_db),
-                                    .latch_state(latch_stat_sync_db),
-                                    .latch_assert(latch_out),
-                                    .strike_level(strike_level),
-                                    .ss_active(ss_active),
-                                    .run_active(run_active),
-                                    .pgood(PGOOD),
-                                    .Green_LED(Green_LED),
-                                    .pgood_LED(pgood_LED),
-                                    .Red_LED1(Red_LED1),
-                                    .Red_LED2(Red_LED2),
-                                    .Red_LED3(Red_LED3)
-                                );
-
-     /*
-    switch_supply carries the same value as PGOOD but is a separate pin
-    because the two have different electrical jobs. PGOOD is telemetry,
-    driven into a high-impedance input. switch_supply sources base current
-    into the NPN that pulls the P-FET gate down, so it carries real
-    current and is the pin whose drive strength and series resistor
-    matter. Keeping them separate also keeps the changeover's switching
-    noise off the telemetry net.
-
-    The deassert is immediate, inherited from pgood_gen. No delay is added
-    here because the supervisor cannot observe how far the rail has
-    actually sagged - PGOOD_comp is a window comparator and reports only
-    in or out, so a droop and a collapse are indistinguishable. Handing
-    back at the first sign is the only assumption that is safe in both
-    cases, and it hands back while the buck output is still above the HV
-    LDO setpoint, so the node is carried by the body diode until the
-    Schottky picks up rather than waiting on the LDO loop.
-    */
-    assign switch_supply = PGOOD;
-
+                          // status in - debounced copies, so telemetry matches what
+                          // the supervisor is actually acting on
+                          .sup_state(sup_state),
+                          .pgood(PGOOD),
+                          .latch_state(latch_stat_sync_db),
+                          .en_switch(en_from_switch_sync_db),
+                          .en_switch_rise(en_switch_rise),
+                          .cp_state(CP_sync),
+                          .otp_state(OTP_sync_db),
+                          .uvlo_state(UVLO_sync_db),
+                          .strike_level(strike_level),
+                          .duty_count(duty_count),          
+                          .prev_period(prev_period),         
+                          .fault_count_run(fault_count_run),
+                          .fault_count_ss(fault_count_ss),
+                          .fault_reg(fault_reg),
+                          .timestamp_ms(timestamp_ms),
+                          .fault_time(fault_time),
+                          .fault_reg_read_done(fault_reg_read_done),
+                      
+                          // control out
+                          .spi_enable(spi_enable),
+                          .trip_run(trip_run),
+                          .trip_ss(trip_ss),
+                          .max_strikes(max_strikes),
+                          .max_on_limit(max_on_limit),
+                          .hiccup_base(hiccup_base),
+                          .cycles_per_step(cycles_per_step),
+                          .clean_run_target(clean_run_target)
+                          );
 
     /*
-    PWM_out is not gated by En in logic. En drives the LM5106 enable pin,
-    which holds both gate outputs low regardless of what the PWM input is
-    doing, so a second gate here would be a second shutdown path to keep
-    consistent. latch_out is driven straight from strike_counter's
-    latch_assert and is also read back by the supervisor.
+    Telemetry only. pwm_stats drives no control path and takes no part in any
+    protection timing, so it runs unconditionally from the synchronised PWM rather
+    than being gated on any supervisor state - duty and period are as interesting
+    during a fault as during normal running.
     */
+    pwm_stats u_pwm_stats ( .clk(clk),
+                            .rst_n(rst_n),
+                            .pwm_sync(Osc_sync),
+                            .duty_count(duty_count),
+                            .prev_period(prev_period)
+                            );
+
+     fault_cause u_fault_cause (
+                                .clk(clk),
+                                .rst_n(rst_n),
+                                .otp_state(OTP_sync_db),
+                                .uvlo_state(UVLO_sync_db),
+                                .latch_state(latch_stat_sync_db),
+                                .latch_assert(latch_out),
+                                .window_trip(window_trip),
+                                .window_trip_SS(window_trip_SS),
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .fault_reg_read_done(fault_reg_read_done),
+                                .timestamp_ms(timestamp_ms),
+                                .fault_time(fault_time),
+                                .fault_reg(fault_reg)
+                            );
+
+end
+else begin : g_no_telemetry
+
+    /*
+    No host interface. MISO is held low and MOSI is unused, and every value
+    reg_file would have held is tied to the package constant reg_file resets
+    to. spi_enable is tied
+    high so the enable switch alone gates the converter - the same as an
+    enabled build whose host has never written CONTROL.
+    */
+    assign MISO             = 1'b0;
+    assign spi_enable       = 1'b1;
+    assign trip_run         = TRIP_W'(TRIP_RUN_DEFAULT);
+    assign trip_ss          = TRIP_W'(TRIP_SS_DEFAULT);
+    assign max_strikes      = STRIKE_W'(MAX_STRIKES_DEFAULT);
+    assign max_on_limit     = ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
+    assign hiccup_base      = HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
+    assign cycles_per_step  = CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
+    assign clean_run_target = CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
+
+end
+
+// ============================================================
+// Status
+// ============================================================
+
+pgood_gen u_pgood_gen ( .clk(clk),
+                        .rst_n(rst_n),
+                        .pwm_sync(Osc_sync),
+                        .pgood_comp(PGOOD_comp_sync),
+                        .run_active(run_active),
+                        .PGOOD(PGOOD)
+                        );
+
+
+
+   
+// Time base for the fault log only, so it goes with telemetry.
+if (TELEMETRY_EN) begin : g_timestamp
+
+    timestamp u_timestamp       (
+                                    .clk(clk),
+                                    .rst_n(rst_n),
+                                    .timestamp_ms(timestamp_ms)
+                                );
+
+end
+
+fault_LED u_fault_LED       (   .clk(clk),
+                                .rst_n(rst_n),
+                                .otp_state(OTP_sync_db),
+                                .uvlo_state(UVLO_sync_db),
+                                .latch_state(latch_stat_sync_db),
+                                .latch_assert(latch_out),
+                                .strike_level(strike_level),
+                                .ss_active(ss_active),
+                                .run_active(run_active),
+                                .pgood(PGOOD),
+                                .Green_LED(Green_LED),
+                                .pgood_LED(pgood_LED),
+                                .Red_LED1(Red_LED1),
+                                .Red_LED2(Red_LED2),
+                                .Red_LED3(Red_LED3)
+                            );
+
+ /*
+switch_supply carries the same value as PGOOD but is a separate pin
+because the two have different electrical jobs. PGOOD is telemetry,
+driven into a high-impedance input. switch_supply sources base current
+into the NPN that pulls the P-FET gate down, so it carries real
+current and is the pin whose drive strength and series resistor
+matter. Keeping them separate also keeps the changeover's switching
+noise off the telemetry net.
+
+The deassert is immediate, inherited from pgood_gen. No delay is added
+here because the supervisor cannot observe how far the rail has
+actually sagged - PGOOD_comp is a window comparator and reports only
+in or out, so a droop and a collapse are indistinguishable. Handing
+back at the first sign is the only assumption that is safe in both
+cases, and it hands back while the buck output is still above the HV
+LDO setpoint, so the node is carried by the body diode until the
+Schottky picks up rather than waiting on the LDO loop.
+*/
+assign switch_supply = PGOOD;
+
+
+/*
+PWM_out is not gated by En in logic. En drives the LM5106 enable pin,
+which holds both gate outputs low regardless of what the PWM input is
+doing, so a second gate here would be a second shutdown path to keep
+consistent. latch_out is driven straight from strike_counter's
+latch_assert and is also read back by the supervisor.
+*/
 
 
 endmodule

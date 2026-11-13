@@ -92,6 +92,7 @@ logic [CLEAN_RUN_W-1:0] clean_cycles;
 logic clean_run_due;
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -99,6 +100,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   asynchronously, so a reset pulse between two edges still disarms the
   two-edge claims at the second of them.
   */
+
   if (!rst_n) begin
 
     out_of_reset    <= 1'b0;
@@ -114,21 +116,26 @@ always_ff @(posedge clk or negedge rst_n) begin
     pwm_sync_q      <= pwm_sync;
 
   end
+
 end
 
 always_comb begin
+
   /*
   Purpose:
   ---
   One strike per hiccup, not per clock of it; one clean cycle per switching
   cycle, not per clock.
   */
+
   entry         = hiccup_active && !hiccup_active_q;
   fall          = pwm_sync_q && !pwm_sync;
   clean_run_due = (clean_cycles == clean_run_target);
+
 end
 
 always_ff @(posedge clk or negedge rst_n) begin
+
   /*
   Purpose:
   ---
@@ -136,6 +143,7 @@ always_ff @(posedge clk or negedge rst_n) begin
   with no window_trip, back to zero on either break, held once the target is
   reached.
   */
+
   if (!rst_n) begin
 
     clean_cycles <= '0;
@@ -153,6 +161,7 @@ always_ff @(posedge clk or negedge rst_n) begin
     clean_cycles <= clean_cycles + 1'b1;
 
   end
+
 end
 
 

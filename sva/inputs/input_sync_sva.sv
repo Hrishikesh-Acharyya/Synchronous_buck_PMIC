@@ -28,6 +28,15 @@ logic [1:0] clocks_after_reset_release;
 
 always_ff @(posedge clk or negedge rst_n) begin
 
+    /*
+    Purpose:
+    ---
+    Counts the clock edges since reset was released, saturating at 3.
+    sync_out holds RESET_VALUE for the first edge and carries a real sample
+    of async_in only from the second, so the latency claim waits for two
+    edges and the reset-value claim looks at the first.
+    */
+
     if(!rst_n) begin
 
         clocks_after_reset_release <= 2'b00;
@@ -64,6 +73,7 @@ property p_sync_out_reads_RESET;
 
     @(posedge clk)
         !rst_n |-> (sync_out == RESET_VALUE);
+
 endproperty
 
 a_sync_out_reads_RESET: assert property (p_sync_out_reads_RESET)

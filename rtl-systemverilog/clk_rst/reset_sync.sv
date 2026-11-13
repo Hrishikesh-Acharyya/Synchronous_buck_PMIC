@@ -20,10 +20,12 @@ module reset_sync (
     output logic rst_n_exit
 );
 
-    // meta_ff: First stage of the synchronizer. Named for what it absorbs -
-    //          any metastability from rst_n_enter's asynchronous release -
-    //          rather than for its position in the chain.
-    logic meta_ff;
+// meta_ff: First stage of the synchronizer. Named for what it absorbs -
+//          any metastability from rst_n_enter's asynchronous release -
+//          rather than for its position in the chain.
+logic meta_ff;
+
+always_ff @(posedge clk or negedge rst_n_enter) begin
 
     /*
     Purpose:
@@ -32,12 +34,21 @@ module reset_sync (
     assertion has zero clock latency; sets high on the first clock after
     release.
     */
-    always_ff @(posedge clk or negedge rst_n_enter) begin
-        if (!rst_n_enter)
-            meta_ff <= 1'b0;
-        else
-            meta_ff <= 1'b1;
+
+    if (!rst_n_enter) begin
+
+        meta_ff <= 1'b0;
+
     end
+    else begin
+
+        meta_ff <= 1'b1;
+
+    end
+
+end
+
+always_ff @(posedge clk or negedge rst_n_enter) begin
 
     /*
     Purpose:
@@ -46,12 +57,19 @@ module reset_sync (
     as the first stage, so both flops release on the same tested edge rather
     than one depending on the other's clear path settling first.
     */
-    always_ff @(posedge clk or negedge rst_n_enter) begin
-        if (!rst_n_enter)
-            rst_n_exit <= 1'b0;
-        else
-            rst_n_exit <= meta_ff;
+
+    if (!rst_n_enter) begin
+
+        rst_n_exit <= 1'b0;
+
     end
+    else begin
+
+        rst_n_exit <= meta_ff;
+
+    end
+
+end
 
 endmodule
 

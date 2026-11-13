@@ -57,106 +57,129 @@ module input_debounce #(
 );
 
    
-    // Parameter legality. ASSERT_CLKS or RELEASE_CLKS of zero would make
-    // target_clks - 1 underflow to all-ones on an unsigned counter, so the
-    // transition could never qualify and the flag would be stuck at
-    // RESET_VALUE forever - a silent failure, not a visible one.
-    if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
-        $error("input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
-    end
+// Parameter legality. ASSERT_CLKS or RELEASE_CLKS of zero would make
+// target_clks - 1 underflow to all-ones on an unsigned counter, so the
+// transition could never qualify and the flag would be stuck at
+// RESET_VALUE forever - a silent failure, not a visible one.
+if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
 
-    if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
-        $error("input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
-    end
+    $error("input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
 
-    // CNT_MAX: the longer of the two qualification times, which sizes the
-    //          counter. ASSERT_CLKS is expected to be the larger, but the
-    //          counter is sized for either so a call-site override cannot
-    //          silently truncate.
-    localparam int CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS) ? ASSERT_CLKS
-                                                          : RELEASE_CLKS;
+end
 
-    // CNT_W: width of the counter and the target compare
-    localparam int CNT_W = $clog2(CNT_MAX+1);
-    // disagree_counter: clocks for which flag_in has disagreed with flag_out
-    logic [CNT_W-1:0] disagree_counter;
-    // target_clks: qualification time for the pending transition, chosen by
-    //              the direction flag_in is trying to move flag_out
-    logic [CNT_W-1:0] target_clks;
+if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
 
-    always_comb begin
-    /*
-    Purpose:
-    ---
-    Select the qualification time for whichever transition is pending. The
-    direction is implied by flag_in differing from flag_out: if flag_in is
-    high while flag_out is low, an assert is pending and ASSERT_CLKS
-    applies. Picking the target combinationally keeps a single counter and
-    a single compare rather than duplicating the counter per direction.
-    */
+    $error("input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
 
-    target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
-    
-    end
+end
 
+// CNT_MAX: the longer of the two qualification times, which sizes the
+//          counter. ASSERT_CLKS is expected to be the larger, but the
+//          counter is sized for either so a call-site override cannot
+//          silently truncate.
+localparam int CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS) ? ASSERT_CLKS
+                                                      : RELEASE_CLKS;
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Count the clocks for which flag_in has disagreed with the believed
-    state, and clear the count the moment they agree again. Only a
-    continuously stable input therefore qualifies: a glitch part-way
-    through an attempted transition restarts the count from zero.
+// CNT_W: width of the counter and the target compare
+localparam int CNT_W = $clog2(CNT_MAX+1);
+// disagree_counter: clocks for which flag_in has disagreed with flag_out
+logic [CNT_W-1:0] disagree_counter;
+// target_clks: qualification time for the pending transition, chosen by
+//              the direction flag_in is trying to move flag_out
+logic [CNT_W-1:0] target_clks;
 
-    The count clears on the edge it reaches its target, which is the edge
-    flag_out flips on. The next window therefore starts from zero even when
-    it begins on the very next clock - flag_in reversing straight after the
-    flip - and has to earn its full qualification time.
-    */
+always_comb begin
 
-    if(!rst_n) begin
-      disagree_counter <= 0;
-    end
+/*
+Purpose:
+---
+Select the qualification time for whichever transition is pending. The
+direction is implied by flag_in differing from flag_out: if flag_in is
+high while flag_out is low, an assert is pending and ASSERT_CLKS
+applies. Picking the target combinationally keeps a single counter and
+a single compare rather than duplicating the counter per direction.
+*/
 
-    else if (flag_in != flag_out) begin
-      if (disagree_counter < target_clks - 1'b1)
-        disagree_counter <= disagree_counter + 1;
-      else
-        disagree_counter <= 0;
-    end
+target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
 
-    else begin
-      disagree_counter <= 0;
-    end
-
-    end
+end
 
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Flip the believed state once the disagreement has persisted for the
-    selected qualification time. flag_out is registered rather than driven
-    combinationally from the compare so that the supervisor sees a clean
-    single-clock transition with no decode glitch.
+always_ff @(posedge clk or negedge rst_n) begin
 
-    RESET_VALUE is fail-safe high for the protection flags, matching the
-    input_sync instances feeding them, so the supervisor sees a fault
-    asserted until the real comparator level has qualified rather than
-    treating an unknown rail as healthy.
-    */
+/*
+Purpose:
+---
+Count the clocks for which flag_in has disagreed with the believed
+state, and clear the count the moment they agree again. Only a
+continuously stable input therefore qualifies: a glitch part-way
+through an attempted transition restarts the count from zero.
 
-    if(!rst_n) begin
-      flag_out <= RESET_VALUE;
-    end
+The count clears on the edge it reaches its target, which is the edge
+flag_out flips on. The next window therefore starts from zero even when
+it begins on the very next clock - flag_in reversing straight after the
+flip - and has to earn its full qualification time.
+*/
 
-    else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin
-      flag_out <= flag_in;
-    end
+if(!rst_n) begin
 
-    end
+  disagree_counter <= 0;
+
+end
+
+else if (flag_in != flag_out) begin
+
+  if (disagree_counter < target_clks - 1'b1) begin
+
+    disagree_counter <= disagree_counter + 1;
+
+  end
+  else begin
+
+    disagree_counter <= 0;
+
+  end
+
+end
+
+else begin
+
+  disagree_counter <= 0;
+
+end
+
+end
+
+
+always_ff @(posedge clk or negedge rst_n) begin
+
+/*
+Purpose:
+---
+Flip the believed state once the disagreement has persisted for the
+selected qualification time. flag_out is registered rather than driven
+combinationally from the compare so that the supervisor sees a clean
+single-clock transition with no decode glitch.
+
+RESET_VALUE is fail-safe high for the protection flags, matching the
+input_sync instances feeding them, so the supervisor sees a fault
+asserted until the real comparator level has qualified rather than
+treating an unknown rail as healthy.
+*/
+
+if(!rst_n) begin
+
+  flag_out <= RESET_VALUE;
+
+end
+
+else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin
+
+  flag_out <= flag_in;
+
+end
+
+end
 
 
 endmodule

@@ -38,114 +38,137 @@ module pgood_gen #(
     output logic PGOOD              // power good, to the supply changeover and telemetry
 );
 
-    // pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
-    logic pwm_sync_d;
-    // pwm_fall: one-clk pulse marking the end of a switching cycle
-    logic pwm_fall;
-    // qualify_counter: switching cycles the rail has been good while regulating
-    logic [PGOOD_DELAY_W-1:0] qualify_counter;
-    // TARGET: qualifying count the counter stops at and PGOOD qualifies against.
-    //         Sized to the counter rather than left as int, so the assignment
-    //         below is not a truncation. Taken from the parameter, not from the
-    //         package, so a call-site override reaches both comparisons.
-    localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);
+// pwm_sync_d: pwm_sync delayed one clk, used to detect the cycle boundary
+logic pwm_sync_d;
+// pwm_fall: one-clk pulse marking the end of a switching cycle
+logic pwm_fall;
+// qualify_counter: switching cycles the rail has been good while regulating
+logic [PGOOD_DELAY_W-1:0] qualify_counter;
+// TARGET: qualifying count the counter stops at and PGOOD qualifies against.
+//         Sized to the counter rather than left as int, so the assignment
+//         below is not a truncation. Taken from the parameter, not from the
+//         package, so a call-site override reaches both comparisons.
+localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);
 
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Create a one-clock delayed copy of the synchronised PWM so that the end
-    of a switching cycle can be detected combinationally below.
-    */
+always_ff @(posedge clk or negedge rst_n) begin
+
+/*
+Purpose:
+---
+Create a one-clock delayed copy of the synchronised PWM so that the end
+of a switching cycle can be detected combinationally below.
+*/
 
 
-    if(!rst_n) begin
-      pwm_sync_d<=0;
+if(!rst_n) begin
+
+  pwm_sync_d<=0;
+
+end
+
+else begin
+
+  pwm_sync_d <= pwm_sync; 
+
+end
+
+end
+
+
+always_comb begin
+
+/*
+Purpose:
+---
+One-clk enable pulse marking the switching-cycle boundary, so the
+qualifying counter below advances once per cycle rather than once per
+clock.
+*/
+
+pwm_fall = pwm_sync_d & ~pwm_sync;
+
+end
+
+
+always_ff @(posedge clk or negedge rst_n) begin
+
+/*
+Purpose:
+---
+Count switching cycles for which the rail has been continuously good
+while the supervisor is regulating, saturating at the terminal value
+rather than wrapping.
+
+Both run_active and pgood_comp appear in the clear condition, so the
+qualifying period measures *consecutive* good cycles: any dip below the
+comparator threshold, or any departure from S_RUN, restarts it from zero
+rather than resuming where it left off.
+
+pgood_comp arrives through an input_sync instance, so it changes only on
+clock edges. That matters here as well as for metastability: a transition
+the combinational output below reacts to cannot be shorter than one clock,
+so this counter can never miss a dip that PGOOD has already responded to.
+*/
+
+if(!rst_n) begin
+
+  qualify_counter <= 0;
+
+end
+
+// Synchronous clear, kept separate from the asynchronous rst_n branch:
+// only rst_n is in the sensitivity list, so run_active and pgood_comp
+// cannot share that branch without making synthesis infer them as
+// asynchronous resets too.
+else if (!run_active ||  !pgood_comp) begin  
+
+  qualify_counter <= 0;
+
+end
+
+else if(pwm_fall) begin
+
+    if(qualify_counter == TARGET) begin
+
+      qualify_counter <= TARGET;
+
+    end
+    
+    else begin
+
+     qualify_counter <= qualify_counter + 1;
+
     end
 
-    else
-      pwm_sync_d <= pwm_sync; 
-    end
+  end
+
+end
 
 
-    always_comb begin
-    /*
-    Purpose:
-    ---
-    One-clk enable pulse marking the switching-cycle boundary, so the
-    qualifying counter below advances once per cycle rather than once per
-    clock.
-    */
+always_comb begin
 
-    pwm_fall = pwm_sync_d & ~pwm_sync;
-    end
+  /*
+Purpose:
+---
+PGOOD is the saturated counter ANDed with the two live conditions, not a
+registered flag. The asymmetry is deliberate and is the whole point of
+the module: assertion is slow because qualify_counter must climb the full
+delay, while deassertion is immediate because pgood_comp and run_active
+appear directly in this expression and bypass the counter entirely.
 
+PGOOD drives the changeover that moves the secondary analog circuitry off
+the input LDO and onto the converter's own output. That load must be
+handed back to the LDO before the rail collapses, so a registered output -
+which would cost an extra clock and could disagree with the counter
+driving it - is the wrong choice here, unlike the gate-drive paths in
+pwm_mask and the supervisor where a combinational glitch would be a
+shoot-through hazard.
+*/
 
-    always_ff @(posedge clk or negedge rst_n) begin
-    /*
-    Purpose:
-    ---
-    Count switching cycles for which the rail has been continuously good
-    while the supervisor is regulating, saturating at the terminal value
-    rather than wrapping.
+PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);
 
-    Both run_active and pgood_comp appear in the clear condition, so the
-    qualifying period measures *consecutive* good cycles: any dip below the
-    comparator threshold, or any departure from S_RUN, restarts it from zero
-    rather than resuming where it left off.
-
-    pgood_comp arrives through an input_sync instance, so it changes only on
-    clock edges. That matters here as well as for metastability: a transition
-    the combinational output below reacts to cannot be shorter than one clock,
-    so this counter can never miss a dip that PGOOD has already responded to.
-    */
-
-    if(!rst_n) begin
-      qualify_counter <= 0;
-    end
-
-    // Synchronous clear, kept separate from the asynchronous rst_n branch:
-    // only rst_n is in the sensitivity list, so run_active and pgood_comp
-    // cannot share that branch without making synthesis infer them as
-    // asynchronous resets too.
-    else if (!run_active ||  !pgood_comp) begin  
-      qualify_counter <= 0;
-    end
-
-    else if(pwm_fall) begin
-
-        if(qualify_counter == TARGET)
-          qualify_counter <= TARGET;
-        
-        else
-         qualify_counter <= qualify_counter + 1;
-      end
-
-    end
-
-
-    always_comb begin
-      /*
-    Purpose:
-    ---
-    PGOOD is the saturated counter ANDed with the two live conditions, not a
-    registered flag. The asymmetry is deliberate and is the whole point of
-    the module: assertion is slow because qualify_counter must climb the full
-    delay, while deassertion is immediate because pgood_comp and run_active
-    appear directly in this expression and bypass the counter entirely.
-
-    PGOOD drives the changeover that moves the secondary analog circuitry off
-    the input LDO and onto the converter's own output. That load must be
-    handed back to the LDO before the rail collapses, so a registered output -
-    which would cost an extra clock and could disagree with the counter
-    driving it - is the wrong choice here, unlike the gate-drive paths in
-    pwm_mask and the supervisor where a combinational glitch would be a
-    shoot-through hazard.
-    */
-
-    PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);
-    end
+end
 
 endmodule
 

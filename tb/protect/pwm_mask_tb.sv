@@ -1,6 +1,6 @@
 /*
 
-# Filename:         pwm_mask.sv
+# Filename:         pwm_mask_tb.sv
 #
 # File Description: Directed testbench for pwm_mask. Carries stimulus only -
 #                   every claim lives as a property in pwm_mask_sva.sv, bound
@@ -85,15 +85,18 @@ int unsigned checks_failed = 0;
 pwm_mask dut (.clk(clk), .rst_n (rst_n), .pwm_sync(pwm_sync),
  .max_on_counts(max_on_counts), .pwm_out(pwm_out));
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -107,28 +110,37 @@ initial $timeformat(-9, 1, " ns", 10);
 
 
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
 
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, pwm_mask_tb);
+
     end
 
 end
 
 
 
-// do_reset: asserts and releases reset with a genuine falling edge, so the
-//           DUT's async clear fires before any clock arrives. rst_n is
-//           driven high first for that reason even when already high.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts and releases reset with a genuine falling edge, so the
+    DUT's async clear fires before any clock arrives. rst_n is
+    driven high first for that reason even when already high.
+    */
+
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
@@ -136,13 +148,20 @@ task automatic do_reset();
     #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -154,11 +173,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -172,33 +197,45 @@ task automatic finish_run(input string reason);
     
 endtask
 
-// drive_pulse: one pwm_sync pulse of the given width in clocks, followed by
-//              low_clks of low phase so the mask re-arms before the next one.
 task automatic drive_pulse(input int high_clks, input int low_clks);
+
+    /*
+    Purpose:
+    ---
+    drive_pulse: one pwm_sync pulse of the given width in clocks, followed by
+    low_clks of low phase so the mask re-arms before the next one.
+    */
+
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b1;
     repeat (high_clks) @(posedge clk);
     #(DRIVE_OFFSET_NS) pwm_sync = 1'b0;
     repeat (low_clks) @(posedge clk);
+
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
 // ============================================================
 // Stimulus
 // ============================================================
+initial begin
+
 /*
 Purpose:
 ---
@@ -207,7 +244,6 @@ bound checker evaluates on every edge regardless, and the segments exist
 to make its antecedents occur. Add check() only where the claim is
 sub-cycle or needs a reference model.
 */
-initial begin
 
 $display("\n==== %s ====\n", TB_NAME);
 

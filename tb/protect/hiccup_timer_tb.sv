@@ -116,15 +116,18 @@ hiccup_timer dut_pkg (
     .hiccup_done(hiccup_done_pkg));
 
 
-/*
-Purpose:
----
-Free-running clock. Generates the clock and nothing else - a second
-initial block assigning any signal this one touches is a race.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Free-running clock. Generates the clock and nothing else - a second
+    initial block assigning any signal this one touches is a race.
+    */
+
     clk = 1'b0;
     forever #(CLK_PERIOD_NS/2.0) clk = ~clk;
+
 end
 
 /*
@@ -138,36 +141,56 @@ initial $timeformat(-9, 1, " ns", 10);
 
 
 
-/*
-Purpose:
----
-Record a VCD only when asked, since the trace costs more than the run on
-a short testbench. Enabled by +WAVES, which the Makefile passes for
-WAVES=1.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Record a VCD only when asked, since the trace costs more than the run on
+    a short testbench. Enabled by +WAVES, which the Makefile passes for
+    WAVES=1.
+    */
+
     if ($test$plusargs("WAVES")) begin
+
         $dumpfile({TB_NAME, ".vcd"});
         $dumpvars(0, hiccup_timer_tb);
+
     end
+
 end
 
 
-// check: procedural comparison, for claims no clocked property can see -
-//        here, the release delay measured from the testbench's side.
 task automatic check(input bit condition, input string label);
+
+    /*
+    Purpose:
+    ---
+    check: procedural comparison, for claims no clocked property can see -
+    here, the release delay measured from the testbench's side.
+    */
+
     checks_run++;
     if (!condition) begin
+
         checks_failed++;
         $display("[%0t] CHECK FAIL: %s", $time, label);
+
     end
+
 endtask
 
 
-// do_reset: asserts and releases reset with a genuine falling edge, so the
-//           DUT's async clear fires before any clock arrives. rst_n is
-//           driven high first for that reason even when already high.
 task automatic do_reset();
+
+    /*
+    Purpose:
+    ---
+    do_reset: asserts and releases reset with a genuine falling edge, so the
+    DUT's async clear fires before any clock arrives. rst_n is
+    driven high first for that reason even when already high.
+    */
+
     rst_n = 1'b1;
     #1;
     rst_n = 1'b0;
@@ -175,13 +198,20 @@ task automatic do_reset();
     #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
+
 endtask
 
 
-// finish_run: single exit point for both the normal end and the watchdog,
-//             so a timeout reports a verdict instead of dying silently.
-//             Never $fatal - it exits before the tallies are printed.
 task automatic finish_run(input string reason);
+
+    /*
+    Purpose:
+    ---
+    finish_run: single exit point for both the normal end and the watchdog,
+    so a timeout reports a verdict instead of dying silently.
+    Never $fatal - it exits before the tallies are printed.
+    */
+
     bit passed;
     passed = (sva_pkg::sva_failures == 0) && (checks_failed == 0);
     $display("--------------------------------------------------");
@@ -193,11 +223,17 @@ task automatic finish_run(input string reason);
     $display("checks failed   : %s%0d%s",
              (checks_failed == 0) ? ANSI_GREEN : ANSI_RED,
              checks_failed, ANSI_RESET);
-    if (passed)
+    if (passed) begin
+
         $display("%s%s: PASS%s  (check cover hits before trusting this)",
                  ANSI_GREEN, TB_NAME, ANSI_RESET);
-    else
+
+    end
+    else begin
+
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
+
+    end
     $display("--------------------------------------------------");
     // tally: one plain key=value line for the run scripts (run_tb.sh reads
     //        it for the summary card; the terminal filter hides it). Keep it
@@ -208,14 +244,20 @@ task automatic finish_run(input string reason);
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
     else        $stop;
+
 endtask
 
 
-// enter_hiccup: raises hiccup_active, then lands the strike for this hiccup
-//               one clock later, as strike_counter does. Returns at the edge
-//               after the strike landed, so the caller has used two clocks of
-//               the cool-down.
 task automatic enter_hiccup(input logic [STRIKE_W-1:0] level);
+
+    /*
+    Purpose:
+    ---
+    enter_hiccup: raises hiccup_active, then lands the strike for this hiccup
+    one clock later, as strike_counter does. Returns at the edge
+    after the strike landed, so the caller has used two clocks of
+    the cool-down.
+    */
 
     @(posedge clk);
     #(DRIVE_OFFSET_NS) hiccup_active = 1'b1;
@@ -225,8 +267,13 @@ task automatic enter_hiccup(input logic [STRIKE_W-1:0] level);
 
 endtask
 
-// leave_hiccup: the supervisor leaves S_HICCUP (to S_SS, or to S_OFF on a fault)
 task automatic leave_hiccup();
+
+    /*
+    Purpose:
+    ---
+    leave_hiccup: the supervisor leaves S_HICCUP (to S_SS, or to S_OFF on a fault)
+    */
 
     @(posedge clk);
     #(DRIVE_OFFSET_NS) hiccup_active = 1'b0;
@@ -234,10 +281,15 @@ task automatic leave_hiccup();
 
 endtask
 
-// clear_strikes: strike_level back to 0 while not in S_HICCUP, as
-//                strike_counter's clean-run clear does - the only way the level
-//                goes down
 task automatic clear_strikes();
+
+    /*
+    Purpose:
+    ---
+    clear_strikes: strike_level back to 0 while not in S_HICCUP, as
+    strike_counter's clean-run clear does - the only way the level
+    goes down
+    */
 
     @(posedge clk);
     #(DRIVE_OFFSET_NS) strike_level = '0;
@@ -245,10 +297,15 @@ task automatic clear_strikes();
 
 endtask
 
-// set_bases: new base intervals, applied only while hiccup_active is low -
-//            reg_file accepts base_clks in S_OFF only
 task automatic set_bases(input logic [HICCUP_BASE_W-1:0] small_base,
                          input logic [HICCUP_BASE_W-1:0] pkg_base);
+
+    /*
+    Purpose:
+    ---
+    set_bases: new base intervals, applied only while hiccup_active is low -
+    reg_file accepts base_clks in S_OFF only
+    */
 
     @(posedge clk);
     #(DRIVE_OFFSET_NS);
@@ -258,13 +315,19 @@ task automatic set_bases(input logic [HICCUP_BASE_W-1:0] small_base,
 
 endtask
 
-// wait_done: clocks until the small instance's hiccup_done, up to max_clocks.
-//            Called after enter_hiccup, which has already used two clocks, so
-//            a release at interval + 1 clocks returns interval - 1.
 task automatic wait_done(input int max_clocks, output int clocks);
+
+    /*
+    Purpose:
+    ---
+    wait_done: clocks until the small instance's hiccup_done, up to max_clocks.
+    Called after enter_hiccup, which has already used two clocks, so
+    a release at interval + 1 clocks returns interval - 1.
+    */
 
     clocks = 0;
     while (!hiccup_done && (clocks < max_clocks)) begin
+
         @(posedge clk);
         // read after the edge's updates, not in the same instant as them
         #(SETTLE_NS);
@@ -275,17 +338,20 @@ task automatic wait_done(input int max_clocks, output int clocks);
 endtask
 
 
-/*
-Purpose:
----
-Bounds the run so a stalled testbench fails rather than hanging the
-simulator. Absolute delay, so it fires even if the clock stops. Counts as
-a failure so the verdict and the exit status both report it.
-*/
 initial begin
+
+    /*
+    Purpose:
+    ---
+    Bounds the run so a stalled testbench fails rather than hanging the
+    simulator. Absolute delay, so it fires even if the clock stops. Counts as
+    a failure so the verdict and the exit status both report it.
+    */
+
     #(WATCHDOG_NS);
     checks_failed++;
     finish_run("WATCHDOG - did not complete");
+
 end
 
 
@@ -294,6 +360,14 @@ end
 // ============================================================
 
 initial begin
+
+    /*
+    Purpose:
+    ---
+    The test sequence: the directed groups below in order, then the verdict.
+    Each group's comment names the claims it exercises.
+    */
+
     int clocks;
 
     $display("\n==== %s ====\n", TB_NAME);

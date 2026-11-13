@@ -70,10 +70,10 @@ module input_debounce (
 	output reg flag_out;
 	generate
 		if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
-			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
+			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:66:5 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
 		end
 		if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
-			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
+			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:72:5 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
 		end
 	endgenerate
 	localparam signed [31:0] CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS ? ASSERT_CLKS : RELEASE_CLKS);
