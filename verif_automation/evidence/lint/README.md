@@ -5,6 +5,47 @@ the rules are in `tools/lint/RULES.md`). A change to the linter makes earlier
 reports stale, so they are cleared and a new one is taken. The newest summary
 is at the top.
 
+## Totals: 1,681 findings caught and fixed
+
+`2026-11-13_lint_original_code.txt` is the current linter (all 23 rules) run
+on the code as it stood before the clean-up (commit 7ea100f), so every finding
+is counted once, under the rules that now hold - the first rules' findings and
+the later additions (S5, S6, H4) together. `2026-11-13_lint.txt` is the same
+linter on the tree now: 0.
+
+| Rule | What | RTL | sva | tb | Total |
+|---|---|---:|---:|---:|---:|
+| H2 | header names another file | 0 | 0 | 3 | 3 |
+| H3 | file does not end with `` `default_nettype wire `` | 1 | 2 | 1 | 4 |
+| H4 | template text left in a header (`pwm_stats_tb`) | 0 | 0 | 3 | 3 |
+| C1 | block without a Purpose block inside it | 15 | 2 | 219 | 236 |
+| S1 | multi-line if / else without begin / end | 28 | 1 | 59 | 88 |
+| S2 | no blank line after a block opener | 136 | 94 | 390 | 620 |
+| S3 | no blank line before a block closer | 98 | 88 | 375 | 561 |
+| S5 | multi-line always / loop body without begin / end | 0 | 0 | 9 | 9 |
+| S6 | block body not deeper than its opening line | 69 | 0 | 27 | 96 |
+| P4 | two-edge property not guarded against reset | 0 | 31 | 0 | 31 |
+| T1 | stimulus racing the clock edge | 0 | 0 | 14 | 14 |
+| **Errors** | | **347** | **218** | **1,100** | **1,665** |
+| S4 (warning) | module body indented | 13 | 2 | 1 | 16 |
+| **All findings** | | **360** | **220** | **1,101** | **1,681** |
+
+The other 12 rules (H1, K1, N1-N5, P1-P3, B1, B2) found nothing. 8 more
+findings are exempted on purpose: the two templates' own `<PLACEHOLDER>`
+markers (H4).
+
+On top of the lint findings, the clean-up caught:
+
+- **1 design bug** - `input_debounce` (R1 in `../rtl_change_requests.md`),
+  with the **checker flaw** that hid it. See *Findings about the design*.
+- **8 bugs in the linter itself.** See *Findings about the linter*.
+
+For the record, the very first baseline (2026-11-12, 20 rules, before the
+rules were settled with the designer) reported 948 errors and 32 warnings. Its
+findings are inside the 1,681 above, except the 8 from the two rules dropped
+since (no randomness in testbenches, `WATCHDOG_NS` form) and the S4 warnings
+that were false positives.
+
 ## 2026-11-13_lint.txt: clean (tree at commit 27b5413)
 
 57 files, 0 errors, 0 warnings. 8 findings exempted, all H4 on the two
