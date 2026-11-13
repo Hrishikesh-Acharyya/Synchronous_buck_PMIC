@@ -4,3 +4,5 @@
 # short: an exemption is a decision, reviewed like code.
 #
 # RULE  path glob                       reason
+H4	tb/template_tb.sv	the template itself: its <MARKERS> are the places a copy is edited
+H4	sva/template_sva.sv	the template itself: its <MARKERS> are the places a copy is edited

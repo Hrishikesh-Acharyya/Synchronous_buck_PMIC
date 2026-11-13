@@ -27,7 +27,8 @@
 #                   before a rule looks at code, so a keyword inside a comment
 #                   or a message never counts.
 #
-# Global variables: DEFAULT_ROOTS, EXEMPTIONS_FILE, RULES - see below
+# Global variables: DEFAULT_ROOTS, EXEMPTIONS_FILE, RULES, and the keyword
+#                   patterns *_OPENERS - see below
 
 import argparse
 import datetime
@@ -231,6 +232,26 @@ def rule_H3(src):
     tail = [l.strip() for l in src.raw if l.strip()]
     if not tail or tail[-1] != "`default_nettype wire":
         yield len(src.raw), "file does not end with `default_nettype wire"
+
+
+def rule_H4(src):
+
+    """
+    Purpose: The header describes this file, not the template it was copied
+             from: no <PLACEHOLDER> markers and no "Skeleton" description left
+             in the header block. The templates themselves are exempt (see
+             exemptions.txt).
+    """
+    first = next((n for n, l in enumerate(src.raw) if l.strip()), None)
+    if first is None or not src.raw[first].lstrip().startswith("/*"):
+        return
+    last = first
+    while last < len(src.raw) and "*/" not in src.raw[last]:
+        last += 1
+    for n in range(first, last + 1):
+        m = re.search(r"<[A-Za-z_][A-Za-z_ ]*>|\bSkeleton for\b", src.raw[n])
+        if m:
+            yield n + 1, f"template text left in the header: '{m.group(0)}'"
 
 
 def _block_opener(src, n):
@@ -502,6 +523,141 @@ def rule_S4(src):
         if at_top and src.code[n][:1] in (" ", "\t") and start not in seen:
             seen.add(start)
             yield n + 1, "module body is indented; it sits at the indentation of module / endmodule"
+
+
+# STATEMENT_OPENERS: the procedural headers whose body S5 judges
+STATEMENT_OPENERS = rf"{PROCEDURAL_OPENERS}|for|foreach|while|repeat|forever"
+
+
+def _header_end(text, i, keyword):
+
+    """
+    Purpose: Given an offset just after a statement keyword, skip the header
+             that belongs to it and return the offset where the body starts.
+             A loop's header is its parenthesised condition only - an @(...)
+             after it is the body, a wait. An always block's header is its
+             event and delay controls, @(...) / @x / @* / #n / #(...).
+             initial, final and forever have none.
+    """
+    def skip_ws(j):
+        while j < len(text) and text[j] in " \t\n":
+            j += 1
+        return j
+
+    def skip_parens(j):
+        depth = 0
+        while j < len(text):
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    return j + 1
+            j += 1
+        return j
+
+    j = skip_ws(i)
+    if keyword in ("for", "foreach", "while", "repeat"):
+        return skip_ws(skip_parens(j)) if j < len(text) and text[j] == "(" else j
+    if not keyword.startswith("always"):
+        return j
+    while j < len(text):
+        if text[j] == "@":
+            j = skip_ws(j + 1)
+            if j < len(text) and text[j] == "(":
+                j = skip_ws(skip_parens(j))
+            else:
+                m = re.match(r"\*|[\w.]+", text[j:])
+                j = skip_ws(j + (m.end() if m else 0))
+        elif text[j] == "#":
+            j = skip_ws(j + 1)
+            if j < len(text) and text[j] == "(":
+                j = skip_ws(skip_parens(j))
+            else:
+                m = re.match(r"[\w.]+", text[j:])
+                j = skip_ws(j + (m.end() if m else 0))
+        else:
+            return j
+    return j
+
+
+def rule_S5(src):
+
+    """
+    Purpose: An always / initial / final block or a loop (for, foreach,
+             while, repeat, forever) whose body does not finish on the line
+             its header ends on uses begin / end. A one-line block or loop
+             (always_comb x = y;) needs none. Together with S1 this gives
+             every multi-line body a begin / end - and so a place for its
+             Purpose block.
+    """
+    text = "\n".join(src.code)
+    starts = [0]
+    for line in src.code:
+        starts.append(starts[-1] + len(line) + 1)
+
+    def line_of(off):
+        lo, hi = 0, len(starts) - 1
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if starts[mid] <= off:
+                lo = mid
+            else:
+                hi = mid - 1
+        return lo
+
+    for n, code in enumerate(src.code):
+        m = re.match(rf"\s*(?:\w+\s*:\s*)?({STATEMENT_OPENERS})\b", code)
+        if not m:
+            continue
+        if m.group(1) == "while" and n > 0 and re.search(r"\bend\s*$", src.code[n - 1]):
+            continue                    # the tail of a do ... while
+        body = _header_end(text, starts[n] + m.end(), m.group(1))
+        if text.startswith("begin", body) or text.startswith("fork", body):
+            continue
+        k = body - 1                    # the header's last character
+        while k > starts[n] and text[k] in " \t\n":
+            k -= 1
+        header_line = line_of(k)
+        semi = text.find(";", body)
+        if semi >= 0 and line_of(semi) == line_of(body) and line_of(body) == header_line:
+            continue                    # the whole body sits on the header's line
+        yield n + 1, f"multi-line '{m.group(1)}' body without begin / end"
+
+
+def rule_S6(src):
+
+    """
+    Purpose: Every line inside a block sits deeper than the line that opens
+             it: the body of a begin / end, a case, a fork, a task or a
+             function. Comment-only lines and continuation lines are not
+             judged; the closing keyword itself is not part of the body.
+    """
+    stack = []                          # (indent of the opening line, closer regex)
+    for n, code in enumerate(src.code):
+        s = code.strip()
+        if not s:
+            continue
+        indent = len(src.raw[n]) - len(src.raw[n].lstrip(" \t"))
+        closes = re.match(r"(end|endcase|endtask|endfunction|join|join_any|join_none)\b", s)
+        if closes and stack:
+            stack.pop()
+        elif stack and indent <= stack[-1]:
+            yield n + 1, "line is not indented inside its block"
+        opened = 0
+        if re.search(r"\bbegin(\s*:\s*\w+)?\s*$", code) and not _is_one_line_block(code):
+            opened = 1
+        elif re.match(r"\s*(?:(?:unique|priority|unique0)\s+)?case[xz]?\s*\(", code):
+            opened = 1
+        elif re.match(r"\s*fork\b", code):
+            opened = 1
+        elif re.match(rf"\s*({SUBROUTINE_OPENERS})\b", code) and \
+                not re.search(r"\bend(task|function)\b", code):
+            opened = 1
+        if opened:
+            if closes:                  # 'end else begin': reopen at the same level
+                pass
+            stack.append(indent)
 
 
 # ==============================================================================
@@ -911,11 +1067,14 @@ RULES = {
     "H1": ("error",   rule_H1, "header block with Filename / File Description / Global variables lines"),
     "H2": ("error",   rule_H2, "header Filename matches the file"),
     "H3": ("error",   rule_H3, "file ends with `default_nettype wire"),
+    "H4": ("error",   rule_H4, "no template text left in the header"),
     "C1": ("error",   rule_C1, "every always / initial block, task and function has a Purpose block, inside it"),
     "S1": ("error",   rule_S1, "multi-line if / else use begin / end"),
     "S2": ("error",   rule_S2, "blank line after every block opener, and after a block's Purpose block"),
     "S3": ("error",   rule_S3, "blank line before every block closer"),
     "S4": ("warning", rule_S4, "module body at the indentation of module / endmodule"),
+    "S5": ("error",   rule_S5, "multi-line always / initial / loop bodies use begin / end"),
+    "S6": ("error",   rule_S6, "every line inside a block sits deeper than its opening line"),
     "K1": ("error",   rule_K1, "parameters and localparams in ALL CAPS"),
     "N1": ("error",   rule_N1, "a_ / c_ / p_ naming in checkers"),
     "N2": ("error",   rule_N2, "every property used; a_X asserts p_X"),

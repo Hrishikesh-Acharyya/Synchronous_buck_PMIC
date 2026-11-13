@@ -26,11 +26,14 @@ the reason. A line without a reason stops the run.
 | H1 | error | The file opens with a header block containing `# Filename:`, `# File Description:` and `# Global variables:` lines. Presence only; what Global variables lists is not checked. |
 | H2 | error | The header's Filename names this file. |
 | H3 | error | The file ends with `` `default_nettype wire ``. |
+| H4 | error | The header describes this file, not the template it was copied from: no `<PLACEHOLDER>` markers and no "Skeleton for" description left in the header block. The templates themselves are exempt in `exemptions.txt`. |
 | C1 | error | Every `always_*` / `always` / `initial` / `final` block and every task and function has a Purpose block. A block that spans lines carries it inside, as the first thing after its declaration line; above the block no longer counts. A single-statement `always` / `initial` with no `begin` carries a Purpose block or a `//` comment above it; a run of them, with the declarations of the signals they drive (`logic`, `reg`, `integer`, `real`, ...), may share one comment. |
 | S1 | error | An `if` or `else` whose statement is on its own line uses `begin` / `end`. A one-line `if` / `else` (statement on the same line) needs none. |
 | S2 | error | A blank line after every line that opens a block: a multi-line `begin`, the module header, a `task` / `function` / `property` / `sequence` declaration. When the block starts with its Purpose block, a blank line follows that too; a comment after the module header belongs to the item below it, not to the header. A comment line does not count as blank. |
 | S3 | error | A blank line before every line that closes a block: `end`, `endmodule`, `endtask`, `endfunction`, `endproperty`, `endsequence`. A comment line does not count as blank. |
 | S4 | warning | Every item directly inside a module (not inside one of its blocks) starts at the indentation of `module` / `endmodule`. Continuation lines - a wrapped expression, port connections, enum members - are not items, and the inside of a `clocking` block is not module level. Reported once per module. |
+| S5 | error | An `always` / `initial` / `final` block or a loop (`for`, `foreach`, `while`, `repeat`, `forever`) whose body does not finish on the line its header ends on uses `begin` / `end`. A one-line block or loop (`always_comb x = y;`, `repeat (3) @(posedge clk);`) needs none. An `@(...)` after a loop's condition is the loop's body, not its header. |
+| S6 | error | Every line inside a block sits deeper than the line that opens it: the body of a `begin` / `end`, a `case`, a `fork`, a task or a function. Comment-only and continuation lines are not judged, and the closing keyword is not part of the body. |
 | K1 | error | Parameters and localparams are ALL CAPS. |
 | N1 | error | In checkers, assertions are labelled `a_`, covers `c_`, named properties `p_`; no unlabelled assertion or cover. |
 | N2 | error | Every named property is asserted or covered, and `a_X` asserts `p_X`. |
@@ -59,7 +62,7 @@ the reason. A line without a reason stops the run.
 
 ## The block layout
 
-C1, S2 and S3 together give every block the same shape:
+C1, S1, S2, S3, S5 and S6 together give every block the same shape:
 
 ```
 always_ff @(posedge clk) begin      task automatic tick(input int n);
@@ -79,9 +82,11 @@ always_ff @(posedge clk) begin      task automatic tick(input int n);
 end
 ```
 
-That is a blank line after every block opener and before every block closer,
-with the Purpose block first inside. One line (`if (a) b <= 1'b0;`,
-`begin x; end`) needs none of it.
+That is `begin` / `end` on every body that spans lines (S1, S5), the body one
+level deeper than its opening line (S6), a blank line after every block
+opener and before every block closer (S2, S3), and the Purpose block first
+inside (C1). One line (`if (a) b <= 1'b0;`, `begin x; end`) needs none of
+it.
 
 Checked against the code before the rule was fixed: modules, `always` /
 `initial`, `begin` / `end`, tasks, functions and properties all fit it.
