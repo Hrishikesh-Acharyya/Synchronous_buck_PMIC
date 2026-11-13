@@ -280,6 +280,32 @@ repeat (4) @(posedge clk);          // one short of ASSERT_CLKS = 5
 repeat (12) @(posedge clk);
 
 
+/*
+Group 4: flag_in reverses on the clock after a flip.
+---
+flag_in falls and is held until the asymmetric DUT's flag_out follows it,
+then rises again straight after that edge, so no edge between the flip and
+the reversal agrees. The window that produced the flip is spent: the
+re-assert must earn the full ASSERT_CLKS of 5 from zero, not inherit the
+release count. Then the other way round - an assert followed at once by a
+release, which must take the full RELEASE_CLKS of 3. The symmetric DUT
+follows the same flag_in on its own count and sees the reversals
+mid-window. Exercises a_flag_out_qualified and a_ASSERT_and_RELEASE_work
+across back-to-back windows.
+*/
+
+#(DRIVE_OFFSET_NS) flag_in = 1'b0;
+@(negedge flag_out_asym);           // release flipped on this edge
+#(DRIVE_OFFSET_NS) flag_in = 1'b1;  // reverse before the next edge
+repeat (12) @(posedge clk);
+#(DRIVE_OFFSET_NS) flag_in = 1'b0;
+repeat (12) @(posedge clk);
+#(DRIVE_OFFSET_NS) flag_in = 1'b1;
+@(posedge flag_out_asym);           // assert flipped on this edge
+#(DRIVE_OFFSET_NS) flag_in = 1'b0;  // reverse before the next edge
+repeat (12) @(posedge clk);
+
+
 finish_run("normal end");
 
 

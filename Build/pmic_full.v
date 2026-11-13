@@ -95,6 +95,8 @@ module input_debounce (
 		else if (flag_in != flag_out) begin
 			if (disagree_counter < (target_clks - 1'b1))
 				disagree_counter <= disagree_counter + 1;
+			else
+				disagree_counter <= 0;
 		end
 		else
 			disagree_counter <= 0;

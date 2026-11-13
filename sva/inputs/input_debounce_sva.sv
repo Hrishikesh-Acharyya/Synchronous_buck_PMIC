@@ -57,8 +57,11 @@ localparam int CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS) ? ASSERT_CLKS : RELEASE_CL
 localparam int CNT_W   = $clog2(CNT_MAX + 1);
 
 // hold_count: edges flag_in has continuously disagreed with flag_out,
-//             restarting on agreement
+//             restarting on agreement and after every flip
 logic [CNT_W-1:0] hold_count;
+// flag_out_q: flag_out at the previous edge, so the edge after a flip is
+//             seen as the first edge of a new window
+logic flag_out_q;
 
 always_ff @(posedge clk or negedge rst_n) begin
   /*
@@ -75,16 +78,24 @@ always_ff @(posedge clk or negedge rst_n) begin
   Entering edge k of a window this reads k-1, because the write lands after
   the edge while the properties sample before it. Every property adds one
   before comparing against a target.
+
+  A flip spends the window that earned it. An edge that sees flag_out
+  changed since the edge before is the first edge of a new window, so if
+  flag_in already disagrees with the new level the count restarts at one -
+  the count never carries over from one transition into the next.
   */
   if (!rst_n) begin
 
     hold_count <= '0;
+    flag_out_q <= RESET_VALUE;
 
   end
 
   else begin
 
+    flag_out_q <= flag_out;
     if (flag_in == flag_out)                hold_count <= '0;
+    else if (flag_out != flag_out_q)        hold_count <= CNT_W'(1);
     else if (hold_count != CNT_W'(CNT_MAX)) hold_count <= hold_count + 1'b1;
     // else: saturated and still disagreeing - hold
 
@@ -186,15 +197,23 @@ Purpose: PAC(Property, Assertion, Cover) Group 3:
          qualified transition.
 */
 
-// qual_target: qualification time for whichever transition just completed,
-//              selected from flag_in because flag_out has taken its value
+// qual_target: qualification time of the window in progress. While flag_in
+//              disagrees with flag_out, flag_in names the transition being
+//              earned. Not for a flip that has just happened: flag_in may
+//              already have reversed, so p_flag_out_qualified uses
+//              flip_target instead.
 logic [CNT_W-1:0] qual_target;
 assign qual_target = flag_in ? CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
+// flip_target: qualification time of the flip that has just happened,
+//              selected from the level flag_out has taken
+logic [CNT_W-1:0] flip_target;
+assign flip_target = flag_out ? CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
 
 property p_flag_out_qualified;
 
   @(posedge clk) disable iff (!rst_n)
-    (clks_since_release && $changed(flag_out)) |-> ((hold_count + 1'b1) >= qual_target);
+    (clks_since_release && $changed(flag_out))
+      |-> ((hold_count + 1'b1) >= flip_target);
 
 endproperty
 
@@ -203,7 +222,7 @@ a_flag_out_qualified: assert property (p_flag_out_qualified)
     
     sva_pkg::note_failure($sformatf(
       "a_flag_out_qualified: flag_out changed to %b with hold_count=%0d, target=%0d",
-       flag_out, hold_count + 1'b1, qual_target));
+       flag_out, hold_count + 1'b1, flip_target));
 
   end
 

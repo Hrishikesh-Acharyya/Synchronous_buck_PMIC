@@ -109,9 +109,10 @@ module input_debounce #(
     continuously stable input therefore qualifies: a glitch part-way
     through an attempted transition restarts the count from zero.
 
-    The counter saturates at its target rather than wrapping, so a flag
-    that stays disagreeing cannot roll the count back under the threshold
-    and un-qualify a transition that has already been earned.
+    The count clears on the edge it reaches its target, which is the edge
+    flag_out flips on. The next window therefore starts from zero even when
+    it begins on the very next clock - flag_in reversing straight after the
+    flip - and has to earn its full qualification time.
     */
 
     if(!rst_n) begin
@@ -121,6 +122,8 @@ module input_debounce #(
     else if (flag_in != flag_out) begin
       if (disagree_counter < target_clks - 1'b1)
         disagree_counter <= disagree_counter + 1;
+      else
+        disagree_counter <= 0;
     end
 
     else begin
