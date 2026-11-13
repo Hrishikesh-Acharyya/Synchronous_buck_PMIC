@@ -887,7 +887,7 @@ always @(posedge clk) begin
             if (sdio_oe_int && ((spi_state_int == SPI_CMD) || (spi_state_int == SPI_TURN) ||
                                 (spi_state_int == SPI_WRITE))) begin
 
-                oe_in_master_phase = oe_in_master_phase + 1;
+                                    oe_in_master_phase = oe_in_master_phase + 1;
 
             end
             if (oe_misaligned <= 5) begin
@@ -991,13 +991,13 @@ always @(negedge PWM_out) begin
         if (run_active_int && osc_sync_int &&
             (pwm_width_ns > (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0)) begin
 
-            cover_bin(C_BACKSTOP);
+                cover_bin(C_BACKSTOP);
 
         end
         if (run_active_int && !osc_sync_int &&
             (pwm_width_ns < MAX_ON_COUNTS * CLK_PERIOD_NS - 1.0)) begin
 
-            cover_bin(C_PASS);
+                cover_bin(C_PASS);
 
         end
 
@@ -1084,19 +1084,24 @@ always @(PGOOD) begin
 
 end
 
-/*
-Purpose:
----
-A synchronised OTP pulse that came and went without the debounced flag ever
-rising is a glitch the debouncer rejected.
-*/
+// otp_sync_rise_t: when the synchronised OTP flag last rose
 always @(posedge otp_sync_int) otp_sync_rise_t = $realtime;
-always @(negedge otp_sync_int)
+always @(negedge otp_sync_int) begin
+
+    /*
+    Purpose:
+    ---
+    A synchronised OTP pulse that came and went without the debounced flag ever
+    rising is a glitch the debouncer rejected.
+    */
+
     if ((dut_rst_n === 1'b1) && !otp_db_int && ($realtime - otp_sync_rise_t > 50.0 * US)) begin
 
         cover_bin(C_GLITCH);
 
     end
+
+end
 
 always @(posedge Red_LED1) begin
 
@@ -1690,23 +1695,23 @@ always @(posedge clk) begin : regmap_scoreboard
             (rf_cyc_step !== sh_cyc_step) || (rf_clean !== sh_clean) ||
             (rf_spi_enable !== sh_spi_enable) || (rf_write_rej !== sh_write_rej)) begin
 
-            rm_mismatch = rm_mismatch + 1;
-            if (rm_mismatch <= 5) begin
+                rm_mismatch = rm_mismatch + 1;
+                if (rm_mismatch <= 5) begin
 
-                $display("[%0t] REGMAP SCOREBOARD: DUT scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
-                         $time, rf_scratch, rf_trip_run, rf_trip_ss, rf_max_strikes, rf_max_on,
-                         rf_hiccup, rf_cyc_step, rf_clean, rf_spi_enable, rf_write_rej);
-                if (log_fd != 0) $fdisplay(log_fd, "[%0t] REGMAP SCOREBOARD: DUT scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
-                         $time, rf_scratch, rf_trip_run, rf_trip_ss, rf_max_strikes, rf_max_on,
-                         rf_hiccup, rf_cyc_step, rf_clean, rf_spi_enable, rf_write_rej);
-                $display("[%0t] REGMAP SCOREBOARD: model scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
-                         $time, sh_scratch, sh_trip_run, sh_trip_ss, sh_max_strikes, sh_max_on,
-                         sh_hiccup, sh_cyc_step, sh_clean, sh_spi_enable, sh_write_rej);
-                if (log_fd != 0) $fdisplay(log_fd, "[%0t] REGMAP SCOREBOARD: model scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
-                         $time, sh_scratch, sh_trip_run, sh_trip_ss, sh_max_strikes, sh_max_on,
-                         sh_hiccup, sh_cyc_step, sh_clean, sh_spi_enable, sh_write_rej);
+                    $display("[%0t] REGMAP SCOREBOARD: DUT scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
+                             $time, rf_scratch, rf_trip_run, rf_trip_ss, rf_max_strikes, rf_max_on,
+                             rf_hiccup, rf_cyc_step, rf_clean, rf_spi_enable, rf_write_rej);
+                    if (log_fd != 0) $fdisplay(log_fd, "[%0t] REGMAP SCOREBOARD: DUT scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
+                             $time, rf_scratch, rf_trip_run, rf_trip_ss, rf_max_strikes, rf_max_on,
+                             rf_hiccup, rf_cyc_step, rf_clean, rf_spi_enable, rf_write_rej);
+                    $display("[%0t] REGMAP SCOREBOARD: model scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
+                             $time, sh_scratch, sh_trip_run, sh_trip_ss, sh_max_strikes, sh_max_on,
+                             sh_hiccup, sh_cyc_step, sh_clean, sh_spi_enable, sh_write_rej);
+                    if (log_fd != 0) $fdisplay(log_fd, "[%0t] REGMAP SCOREBOARD: model scr %h trun %0d tss %0d strk %0d maxon %0d hic %0d cyc %0d clean %0d en %b rej %b",
+                             $time, sh_scratch, sh_trip_run, sh_trip_ss, sh_max_strikes, sh_max_on,
+                             sh_hiccup, sh_cyc_step, sh_clean, sh_spi_enable, sh_write_rej);
 
-            end
+                end
 
         end
 
@@ -1737,8 +1742,11 @@ function [7:0] crc8(input [7:0] crc_in, input [7:0] data);
     begin
 
         crc_acc = crc_in;
-        for (bit_idx = 7; bit_idx >= 0; bit_idx = bit_idx - 1)
+        for (bit_idx = 7; bit_idx >= 0; bit_idx = bit_idx - 1) begin
+
             crc_acc = (crc_acc[7] ^ data[bit_idx]) ? ((crc_acc << 1) ^ 8'h07) : (crc_acc << 1);
+
+        end
         crc8 = crc_acc;
 
     end
@@ -2312,8 +2320,11 @@ task spi_read_ignored(input [6:0] addr, input integer nbytes);
         for (idx = 0; idx <= nbytes; idx = idx + 1) begin
 
             spi_recv_byte(rx, 1'b0);
-            for (b = 0; b < 8; b = b + 1)
+            for (b = 0; b < 8; b = b + 1) begin
+
                 if (rx[b] !== 1'b0) miso_high_bits = miso_high_bits + 1;
+
+            end
 
         end
         #(SPI_HALF_NS) CS_n = 1'b1;
@@ -2372,7 +2383,7 @@ task measure_ramp(input real timeout_ns, input integer cyc_step, input integer m
                 if ((prev_level > ramp_first_level) &&
                     ((plateau < cyc_step - 2) || (plateau > cyc_step + 2))) begin
 
-                    ramp_bad_plateau = ramp_bad_plateau + 1;
+                        ramp_bad_plateau = ramp_bad_plateau + 1;
 
                 end
                 ramp_levels = ramp_levels + 1;
@@ -3051,7 +3062,8 @@ task phase_window_boundary;
         repeat (16) @(posedge Osc_in);
         #(8.0 * CLK_PERIOD_NS);
         fmax = 0;
-        for (blk = 0; blk < 4; blk = blk + 1)
+        for (blk = 0; blk < 4; blk = blk + 1) begin
+
             for (i = 0; i < 16; i = i + 1) begin
 
                 CP_trig = (i < TRIP_RUN_DEF - 1);   // taken at the next rise
@@ -3060,6 +3072,8 @@ task phase_window_boundary;
                 if (fcount_run_int > fmax) fmax = fcount_run_int;
 
             end
+
+        end
         CP_trig = 1'b0;
         check_eq("11 faulted cycles in every 16: the run window peaks at 11", fmax, TRIP_RUN_DEF - 1);
         check("11 faulted cycles in every 16: no trip, still running",
@@ -3346,1068 +3360,1074 @@ endtask
 generate
 if (TELEMETRY_EN) begin : g_seq_tel
 
-initial begin
+    initial begin
 
-    /*
-    Purpose:
-    ---
-    The SPI sequence, for the full build (TELEMETRY_EN = 1): the directed phases,
-    in order. Most checks are inline; the monitors, scoreboards and coverage run
-    underneath for the whole run.
-    */
+        /*
+        Purpose:
+        ---
+        The SPI sequence, for the full build (TELEMETRY_EN = 1): the directed phases,
+        in order. Most checks are inline; the monitors, scoreboards and coverage run
+        underneath for the whole run.
+        */
 
-    log_fd = $fopen("pmic_top_tb.log", "w");
-    shadow_reset;
-    $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 1 ====",
-             CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
-    emit(msg);
+        log_fd = $fopen("pmic_top_tb.log", "w");
+        shadow_reset;
+        $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 1 ====",
+                 CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
+        emit(msg);
 
-    // ---------------------------------------------------------------
-    // Phase 1: reset, fail-safe outputs, identity, defaults
-    // ---------------------------------------------------------------
-    note("Phase 1: power-on reset and defaults");
-    #1;
-    rst_n_pin = 1'b0;
-    #(10.0 * CLK_PERIOD_NS);
-    check("in reset: En low",                 En === 1'b0);
-    check("in reset: PGOOD low",              PGOOD === 1'b0);
-    check("in reset: latch_out low",          latch_out === 1'b0);
-    check("in reset: MISO low",               MISO === 1'b0);
-    rst_n_pin = 1'b1;
-    #(10.0 * CLK_PERIOD_NS);
-    spi_busy = 1'b0;
-    #(20.0 * US);
-    // The fault debouncers reset to FAULT and need the 200 us release time of a
-    // healthy comparator before they clear.
-    check("after reset: Red_LED2 (OTP) fail-safe lit",  Red_LED2 === 1'b1);
-    check("after reset: Red_LED3 (UVLO) fail-safe lit", Red_LED3 === 1'b1);
-    #(250.0 * US);
-    check("Red_LED2 cleared after 200 us release", Red_LED2 === 1'b0);
-    check("Red_LED3 cleared after 200 us release", Red_LED3 === 1'b0);
-    check("switch off: En stays low", En === 1'b0);
-    // In S_OFF pwm_mask holds the floor, so PWM_out shows the minimum on-time
-    // even with the modulator commanding 90%: the MIN_ON_COUNTS rounding fix.
-    check_range("PWM_out pulse in S_OFF (ns) = (MIN_ON_COUNTS+1) clocks", pwm_width_ns,
-                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    check("minimum gate pulse >= 240 ns commanded (LM5106 128 ns + 112 ns)", pwm_width_ns >= 240.0);
-    reg_read(A_ID);         check_eq("PMIC_ID", rd_val, 8'hB5);
-    reg_read(A_VERSION);    check_eq("VERSION", rd_val, 8'h01);
-    reg_read(A_CAPABILITY); check_eq("CAPABILITY", rd_val, 8'h3D);
-    reg_read(A_STATUS);
-    check_eq("STATUS state = S_OFF", rd_val[1:0], ST_OFF);
-    check("STATUS spi_enable = 1 out of reset", rd_val[5] === 1'b1);
-    check("STATUS en_switch = 0", rd_val[4] === 1'b0);
-    read_thresholds;
-    check_eq("TRIP_RUN default", spi_rx[0], TRIP_RUN_DEF);
-    check_eq("TRIP_SS default", spi_rx[1], TRIP_SS_DEF);
-    check_eq("MAX_STRIKES default", spi_rx[2], MAX_STRIKES_DEF);
-    check_eq("MAX_ON default = duty_to_counts(75)", spi_rx[3], MAX_ON_COUNTS);
-    check_eq("HICCUP_BASE default = 5 ms of clocks", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_DEF);
-    check_eq("CYCLES_PER_STEP default", spi_rx[7], CYC_STEP_DEF);
-    check_eq("CLEAN_RUN default = 1 s of cycles", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_DEF);
+        // ---------------------------------------------------------------
+        // Phase 1: reset, fail-safe outputs, identity, defaults
+        // ---------------------------------------------------------------
+        note("Phase 1: power-on reset and defaults");
+        #1;
+        rst_n_pin = 1'b0;
+        #(10.0 * CLK_PERIOD_NS);
+        check("in reset: En low",                 En === 1'b0);
+        check("in reset: PGOOD low",              PGOOD === 1'b0);
+        check("in reset: latch_out low",          latch_out === 1'b0);
+        check("in reset: MISO low",               MISO === 1'b0);
+        rst_n_pin = 1'b1;
+        #(10.0 * CLK_PERIOD_NS);
+        spi_busy = 1'b0;
+        #(20.0 * US);
+        // The fault debouncers reset to FAULT and need the 200 us release time of a
+        // healthy comparator before they clear.
+        check("after reset: Red_LED2 (OTP) fail-safe lit",  Red_LED2 === 1'b1);
+        check("after reset: Red_LED3 (UVLO) fail-safe lit", Red_LED3 === 1'b1);
+        #(250.0 * US);
+        check("Red_LED2 cleared after 200 us release", Red_LED2 === 1'b0);
+        check("Red_LED3 cleared after 200 us release", Red_LED3 === 1'b0);
+        check("switch off: En stays low", En === 1'b0);
+        // In S_OFF pwm_mask holds the floor, so PWM_out shows the minimum on-time
+        // even with the modulator commanding 90%: the MIN_ON_COUNTS rounding fix.
+        check_range("PWM_out pulse in S_OFF (ns) = (MIN_ON_COUNTS+1) clocks", pwm_width_ns,
+                    (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        check("minimum gate pulse >= 240 ns commanded (LM5106 128 ns + 112 ns)", pwm_width_ns >= 240.0);
+        reg_read(A_ID);         check_eq("PMIC_ID", rd_val, 8'hB5);
+        reg_read(A_VERSION);    check_eq("VERSION", rd_val, 8'h01);
+        reg_read(A_CAPABILITY); check_eq("CAPABILITY", rd_val, 8'h3D);
+        reg_read(A_STATUS);
+        check_eq("STATUS state = S_OFF", rd_val[1:0], ST_OFF);
+        check("STATUS spi_enable = 1 out of reset", rd_val[5] === 1'b1);
+        check("STATUS en_switch = 0", rd_val[4] === 1'b0);
+        read_thresholds;
+        check_eq("TRIP_RUN default", spi_rx[0], TRIP_RUN_DEF);
+        check_eq("TRIP_SS default", spi_rx[1], TRIP_SS_DEF);
+        check_eq("MAX_STRIKES default", spi_rx[2], MAX_STRIKES_DEF);
+        check_eq("MAX_ON default = duty_to_counts(75)", spi_rx[3], MAX_ON_COUNTS);
+        check_eq("HICCUP_BASE default = 5 ms of clocks", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_DEF);
+        check_eq("CYCLES_PER_STEP default", spi_rx[7], CYC_STEP_DEF);
+        check_eq("CLEAN_RUN default = 1 s of cycles", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_DEF);
 
-    // ---------------------------------------------------------------
-    // Phase 2: SPI protocol and register map
-    // ---------------------------------------------------------------
-    note("Phase 2: SPI protocol and register map");
-    reg_write(A_SCRATCH, 8'h5A);
-    reg_read(A_SCRATCH);        check_eq("single write/read SCRATCH 0x03", rd_val, 8'h5A);
-    reg_read(A_SCRATCH + 7'd1); check_eq("neighbour 0x04 untouched (unimplemented, reads 0)", rd_val, 8'h00);
-    // a single register at mid-map: the key and one data byte, TRIP_RUN at 0x50
-    spi_tx[0] = WRITE_KEY; spi_tx[1] = 8'd9;
-    spi_write(A_WRKEY, 2, 1'b0);
-    reg_read(A_TRIP_RUN);  check_eq("single keyed write/read TRIP_RUN 0x50", rd_val, 9);
-    reg_read(A_TRIP_SS);   check_eq("neighbour TRIP_SS 0x51 untouched", rd_val, TRIP_SS_DEF);
-    reg_read(A_STATUS);    check("STATUS write_rejected = 0 after keyed write", rd_val[7] === 1'b0);
-    // a 3-byte value in a burst write, read back as a 3-byte burst
-    value24 = 24'h012345 + HICCUP_MIN;
-    write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
-                     value24, CYC_STEP_DEF, CLEAN_DEF);
-    spi_read(A_HICCUP0, 3);
-    check_eq("3-byte burst write/read HICCUP_BASE 0x54..0x56", {spi_rx[2], spi_rx[1], spi_rx[0]}, value24);
-    // a bad CRC: nothing commits, the error counter moves
-    reg_read(A_BUSERR_L);  bus_err_before = rd_val;
-    spi_tx[0] = WRITE_KEY; spi_tx[1] = 8'd5;
-    spi_write(A_WRKEY, 2, 1'b1);
-    reg_write(A_SCRATCH, 8'hC3);
-    reg_read(A_TRIP_RUN);  check_eq("bad-CRC write did not commit TRIP_RUN", rd_val, TRIP_RUN_DEF);
-    reg_read(A_SCRATCH);   check_eq("good write after a bad one commits", rd_val, 8'hC3);
-    reg_read(A_BUSERR_L);  check_eq("BUS_ERR counted the bad CRC", rd_val, bus_err_before + 1);
-    // length and alignment: a 2-byte frame and a frame cut mid-byte both abort
-    spi_write_short(A_SCRATCH);
-    spi_write_misaligned(A_SCRATCH, 8'h77);
-    reg_read(A_SCRATCH);   check_eq("short and misaligned frames left SCRATCH alone", rd_val, 8'hC3);
-    reg_read(A_BUSERR_L);  check_eq("BUS_ERR counted both", rd_val, bus_err_before + 3);
-    // the threshold bank without the key: rejected and flagged
-    spi_tx[0] = 8'd7;
-    spi_write(A_TRIP_RUN, 1, 1'b0);
-    reg_read(A_TRIP_RUN);  check_eq("unkeyed threshold write ignored", rd_val, TRIP_RUN_DEF);
-    reg_read(A_STATUS);    check("STATUS write_rejected = 1 after unkeyed write", rd_val[7] === 1'b1);
-    // out-of-range writes saturate; readback shows the clamp
-    write_thresholds(8'd200, 8'd0, 8'd9, 8'd250, 24'd1, 8'd0, 24'd5);
-    read_thresholds;
-    check_eq("TRIP_RUN 200 clamps to WINDOW_RUN", spi_rx[0], WINDOW_RUN);
-    check_eq("TRIP_SS 0 clamps to 1", spi_rx[1], 1);
-    check_eq("MAX_STRIKES 9 clamps down to default", spi_rx[2], MAX_STRIKES_DEF);
-    check_eq("MAX_ON 250 clamps down to default", spi_rx[3], MAX_ON_COUNTS);
-    check_eq("HICCUP_BASE 1 clamps up to 1 ms", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
-    check_eq("CYCLES_PER_STEP 0 clamps to 1", spi_rx[7], 1);
-    check_eq("CLEAN_RUN 5 clamps up to 100 ms", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
+        // ---------------------------------------------------------------
+        // Phase 2: SPI protocol and register map
+        // ---------------------------------------------------------------
+        note("Phase 2: SPI protocol and register map");
+        reg_write(A_SCRATCH, 8'h5A);
+        reg_read(A_SCRATCH);        check_eq("single write/read SCRATCH 0x03", rd_val, 8'h5A);
+        reg_read(A_SCRATCH + 7'd1); check_eq("neighbour 0x04 untouched (unimplemented, reads 0)", rd_val, 8'h00);
+        // a single register at mid-map: the key and one data byte, TRIP_RUN at 0x50
+        spi_tx[0] = WRITE_KEY; spi_tx[1] = 8'd9;
+        spi_write(A_WRKEY, 2, 1'b0);
+        reg_read(A_TRIP_RUN);  check_eq("single keyed write/read TRIP_RUN 0x50", rd_val, 9);
+        reg_read(A_TRIP_SS);   check_eq("neighbour TRIP_SS 0x51 untouched", rd_val, TRIP_SS_DEF);
+        reg_read(A_STATUS);    check("STATUS write_rejected = 0 after keyed write", rd_val[7] === 1'b0);
+        // a 3-byte value in a burst write, read back as a 3-byte burst
+        value24 = 24'h012345 + HICCUP_MIN;
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
+                         value24, CYC_STEP_DEF, CLEAN_DEF);
+        spi_read(A_HICCUP0, 3);
+        check_eq("3-byte burst write/read HICCUP_BASE 0x54..0x56", {spi_rx[2], spi_rx[1], spi_rx[0]}, value24);
+        // a bad CRC: nothing commits, the error counter moves
+        reg_read(A_BUSERR_L);  bus_err_before = rd_val;
+        spi_tx[0] = WRITE_KEY; spi_tx[1] = 8'd5;
+        spi_write(A_WRKEY, 2, 1'b1);
+        reg_write(A_SCRATCH, 8'hC3);
+        reg_read(A_TRIP_RUN);  check_eq("bad-CRC write did not commit TRIP_RUN", rd_val, TRIP_RUN_DEF);
+        reg_read(A_SCRATCH);   check_eq("good write after a bad one commits", rd_val, 8'hC3);
+        reg_read(A_BUSERR_L);  check_eq("BUS_ERR counted the bad CRC", rd_val, bus_err_before + 1);
+        // length and alignment: a 2-byte frame and a frame cut mid-byte both abort
+        spi_write_short(A_SCRATCH);
+        spi_write_misaligned(A_SCRATCH, 8'h77);
+        reg_read(A_SCRATCH);   check_eq("short and misaligned frames left SCRATCH alone", rd_val, 8'hC3);
+        reg_read(A_BUSERR_L);  check_eq("BUS_ERR counted both", rd_val, bus_err_before + 3);
+        // the threshold bank without the key: rejected and flagged
+        spi_tx[0] = 8'd7;
+        spi_write(A_TRIP_RUN, 1, 1'b0);
+        reg_read(A_TRIP_RUN);  check_eq("unkeyed threshold write ignored", rd_val, TRIP_RUN_DEF);
+        reg_read(A_STATUS);    check("STATUS write_rejected = 1 after unkeyed write", rd_val[7] === 1'b1);
+        // out-of-range writes saturate; readback shows the clamp
+        write_thresholds(8'd200, 8'd0, 8'd9, 8'd250, 24'd1, 8'd0, 24'd5);
+        read_thresholds;
+        check_eq("TRIP_RUN 200 clamps to WINDOW_RUN", spi_rx[0], WINDOW_RUN);
+        check_eq("TRIP_SS 0 clamps to 1", spi_rx[1], 1);
+        check_eq("MAX_STRIKES 9 clamps down to default", spi_rx[2], MAX_STRIKES_DEF);
+        check_eq("MAX_ON 250 clamps down to default", spi_rx[3], MAX_ON_COUNTS);
+        check_eq("HICCUP_BASE 1 clamps up to 1 ms", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
+        check_eq("CYCLES_PER_STEP 0 clamps to 1", spi_rx[7], 1);
+        check_eq("CLEAN_RUN 5 clamps up to 100 ms", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
 
-    // CS deasserted in the middle of a read byte
-    CS_n = 1'b0;
-    #(SPI_HALF_NS);
-    spi_send_byte({1'b1, A_ID});
-    spi_recv_byte(rd_val, 1'b0);
-    MOSI = 1'b0;
-    reads_issued = reads_issued + 1;
-    for (idx = 0; idx < 3; idx = idx + 1) begin
+        // CS deasserted in the middle of a read byte
+        CS_n = 1'b0;
+        #(SPI_HALF_NS);
+        spi_send_byte({1'b1, A_ID});
+        spi_recv_byte(rd_val, 1'b0);
+        MOSI = 1'b0;
+        reads_issued = reads_issued + 1;
+        for (idx = 0; idx < 3; idx = idx + 1) begin
 
-        #(SPI_HALF_NS) SCK = 1'b1;
-        #(SPI_HALF_NS) SCK = 1'b0;
-
-    end
-    check("mid-read: slave sending read data before CS rises", sdio_oe_int === 1'b1);
-    CS_n = 1'b1;
-    t_event = $realtime;
-    // Timed from edge-stamped monitors: polling on the edge where the DUT
-    // updates sdio_oe would read the pre-edge value and overstate the latency.
-    @(posedge cs_filt_int);
-    t_cs_filt = $realtime;
-    #(10.0 * CLK_PERIOD_NS);
-    check("CS up mid-byte: sdio_oe released", sdio_oe_int === 1'b0);
-    check_range("CS up mid-byte: sdio_oe low within 2 clocks of filtered CS (clocks)",
-                (oe_fall_t - t_cs_filt) / CLK_PERIOD_NS, 0.0, 2.01);
-    check_range("CS up mid-byte: release after the CS pin (clocks, sync + filter + 2)",
-                (oe_fall_t - t_event) / CLK_PERIOD_NS, 0.0, 14.0);
-    if ((sdio_oe_int === 1'b0) && (oe_fall_t > t_event)) cover_bin(C_CS_MIDRD);
-    #(SPI_GAP_NS);
-
-    // a read abandoned without CS rising: the 2 ms SCK idle timeout
-    CS_n = 1'b0;
-    #(SPI_HALF_NS);
-    spi_send_byte({1'b1, A_ID});
-    spi_recv_byte(rd_val, 1'b0);
-    MOSI = 1'b0;
-    reads_issued = reads_issued + 1;
-    for (idx = 0; idx < 2; idx = idx + 1) begin
-
-        #(SPI_HALF_NS) SCK = 1'b1;
-        #(SPI_HALF_NS) SCK = 1'b0;
-
-    end
-    #(2.2 * MS);
-    check_eq("abandoned read: spi_state after SCK timeout = S_DEAD", spi_state_int, SPI_DEAD);
-    check("abandoned read: sdio_oe low after timeout", sdio_oe_int === 1'b0);
-    if ((spi_state_int == SPI_DEAD) && (sdio_oe_int === 1'b0)) cover_bin(C_SCK_TMO);
-    CS_n = 1'b1;
-    #(SPI_GAP_NS);
-    check_eq("abandoned read: CS high returns to S_IDLE", spi_state_int, SPI_IDLE);
-    reg_read(A_ID);        check_eq("first read after the timeout recovers", rd_val, 8'hB5);
-
-    // An illegal spi_slave state. The encoding has six states in three bits,
-    // so 3'b110 is unreachable by any stimulus; force it for one clock. The
-    // FSM's default arm must send it to S_DEAD, with MISO held low, and the
-    // next transaction must recover through cs_fall.
-    @(posedge clk);
-    #(1.0);
-    force u_dut.g_telemetry.u_spi_slave.spi_state = 3'b110;
-    @(posedge clk);
-    #(1.0);
-    release u_dut.g_telemetry.u_spi_slave.spi_state;
-    @(posedge clk);
-    @(posedge clk);
-    #(1.0);
-    check_eq("illegal spi_state 6 falls to S_DEAD", spi_state_int, SPI_DEAD);
-    check("illegal spi_state: MISO stays low", (sdio_oe_int === 1'b0) && (MISO === 1'b0));
-    reg_read(A_ID);        check_eq("illegal spi_state: next transaction recovers", rd_val, 8'hB5);
-    if (rd_val == 8'hB5) cover_bin(C_SPI_ILLEG);
-
-    // ---------------------------------------------------------------
-    // Phase 3: host configuration for the protection phases
-    // ---------------------------------------------------------------
-    note("Phase 3: configure short timers over SPI (as built, no RTL change)");
-    // 1 ms hiccup base and 100 ms clean-run window, both the register map's
-    // minimum; default ramp. Accepted only in S_OFF, which is where it is.
-    write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
-                     HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
-    read_thresholds;
-    check_eq("configured HICCUP_BASE = 1 ms", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
-    check_eq("configured CLEAN_RUN = 100 ms", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
-    check_eq("configured CYCLES_PER_STEP", spi_rx[7], CYC_STEP_DEF);
-    check_eq("configured TRIP_RUN", spi_rx[0], TRIP_RUN_DEF);
-    check_eq("configured TRIP_SS", spi_rx[1], TRIP_SS_DEF);
-
-    // ---------------------------------------------------------------
-    // Phase 4: start-up
-    // ---------------------------------------------------------------
-    note("Phase 4: enable switch, soft start, duty backstop, PWM stats");
-    // The 20 ms enable debounce is a pmic_top constant, not a register, so it
-    // is the one start-up wait that cannot be shortened. Paid here and after
-    // each reset.
-    en_from_switch = 1'b1;
-    t_event = $realtime;
-    #(19.8 * MS);
-    check("En still low 19.8 ms after the switch (20 ms debounce)", En === 1'b0);
-    wait_en(1'b1, 1.0 * MS);
-    t_en_rise = $realtime;
-    check_range("En rise after switch (ms)", (t_en_rise - t_event) / MS, 19.99, 20.05);
-    #(2.0 * CLK_PERIOD_NS);
-    check("Green_LED lit in soft start", Green_LED === 1'b1);
-    measure_ramp(20.0 * MS, CYC_STEP_DEF, MAX_ON_COUNTS);
-    check_eq("ramp starts at MIN_ON_COUNTS+1 clocks", ramp_first_level, MIN_ON_COUNTS + 1);
-    check_eq("ramp levels MIN..MAX (one clock per step)", ramp_levels, MAX_ON_COUNTS - MIN_ON_COUNTS + 1);
-    check_eq("ramp plateaus of CYCLES_PER_STEP cycles (bad count)", ramp_bad_plateau, 0);
-    check_eq("ramp never steps backwards", ramp_backwards, 0);
-    check_range("ramp duration En->ceiling (switching cycles)",
-                (ramp_t_ceiling - t_en_rise) / SW_PERIOD_NS,
-                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF - 2.0,
-                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF + 2.0);
-    check("Green_LED lit while switching", Green_LED === 1'b1);
-    wait_state(ST_RUN, 1.0 * MS);
-    check_eq("S_RUN reached after the ramp", last_state, ST_RUN);
-    // 90% commanded in S_RUN: the backstop truncates every pulse
-    #(50.0 * US);
-    check_range("90% commanded in S_RUN: PWM_out truncated (ns)", pwm_width_ns,
-                (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    // 50% commanded: passes through, quantised to whole clocks
-    osc_high_ns = SW_PERIOD_NS / 2.0;
-    #(50.0 * US);
-    check_range("50% commanded: PWM_out passes through (ns)", pwm_width_ns,
-                osc_high_ns - CLK_PERIOD_NS - 1.0, osc_high_ns + CLK_PERIOD_NS + 1.0);
-    spi_read(A_DUTY, 2);
-    check_range("PWM stats: PREV_PERIOD (clocks)", spi_rx[1],
-                SW_PERIOD_NS / CLK_PERIOD_NS - 2.0, SW_PERIOD_NS / CLK_PERIOD_NS + 1.0);
-    check_range("PWM stats: DUTY_COUNT (clocks)", spi_rx[0],
-                osc_high_ns / CLK_PERIOD_NS - 2.0, osc_high_ns / CLK_PERIOD_NS + 1.0);
-    if ((spi_rx[1] >= SW_PERIOD_NS / CLK_PERIOD_NS - 2.0) && (spi_rx[0] > 0)) cover_bin(C_STATS);
-
-    // ---------------------------------------------------------------
-    // Phase 5: PGOOD
-    // ---------------------------------------------------------------
-    note("Phase 5: PGOOD qualification");
-    PGOOD_comp = 1'b1;
-    t_event = $realtime;
-    #(8.8 * MS);
-    check("PGOOD still low 8.8 ms after the rail is good", PGOOD === 1'b0);
-    wait_pgood(1'b1, 1.0 * MS);
-    check_range("PGOOD qualify delay (switching cycles)", ($realtime - t_event) / SW_PERIOD_NS,
-                PGOOD_CYCLES - 2.0, PGOOD_CYCLES + 2.0);
-    #(2.0 * CLK_PERIOD_NS);
-    check("pgood_LED follows PGOOD", pgood_LED === 1'b1);
-    check("switch_supply follows PGOOD", switch_supply === 1'b1);
-    reg_read(A_STATUS);    check("STATUS pgood = 1", rd_val[2] === 1'b1);
-    PGOOD_comp = 1'b0;
-    t_event = $realtime;
-    wait_pgood(1'b0, 1.0 * US);
-    check_range("PGOOD deassert after the comparator drops (clocks)",
-                ($realtime - t_event) / CLK_PERIOD_NS, 0.0, 3.5);
-    #(2.0 * US);
-    PGOOD_comp = 1'b1;
-    #(5.0 * MS);
-    check("PGOOD requalifies from zero, not from where it left off", PGOOD === 1'b0);
-
-    // ---------------------------------------------------------------
-    // Phase 6: overcurrent in S_RUN -> hiccup -> retry
-    // ---------------------------------------------------------------
-    note("Phase 6: overcurrent in S_RUN, hiccup, retry");
-    CP_trig = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 100.0 * US);
-    check_range("En drops after TRIP_RUN faulted cycles (switching cycles)",
-                ($realtime - t_event) / SW_PERIOD_NS, TRIP_RUN_DEF - 2.0, TRIP_RUN_DEF + 2.0);
-    check("PGOOD dropped with S_RUN", PGOOD === 1'b0);
-    CP_trig = 1'b0;
-    t_event = $realtime;
-    // strike 1: the cool-down is the base shifted by the strike level, 2 ms
-    #(1.9 * MS);
-    check("still cooling down 1.9 ms into the first hiccup", En === 1'b0);
-    wait_en(1'b1, 0.5 * MS);
-    check_range("first hiccup duration (ms) = 2 x base", ($realtime - t_event) / MS, 1.99, 2.05);
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    check_range("retry re-ramps from MIN (ns)", pwm_width_ns,
-                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    wait_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
-    check_eq("retry reaches S_RUN", last_state, ST_RUN);
-    reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL after one hiccup", rd_val, 1);
-    reg_read(A_FCAUSE);    check_eq("fault log: partial read shows OC", rd_val, 8'h01);
-    spi_read(A_FCAUSE, 4);
-    check_eq("fault log: cause after a 4-byte sweep is OC", spi_rx[0], 8'h01);
-    check("fault log: episode timestamp is non-zero", {spi_rx[3], spi_rx[2], spi_rx[1]} != 24'd0);
-    reg_read(A_FCAUSE);    check_eq("fault log cleared by the full sweep", rd_val, 8'h00);
-
-    // ---------------------------------------------------------------
-    // Phase 7: clean-run window, run concurrently with random corners
-    // ---------------------------------------------------------------
-    note("Phase 7: clean-run window || random register traffic, duty and glitch corners");
-    // The clean-run window cannot be shorter than 100 ms (CLEAN_RUN_MIN_CYCLES)
-    // and the blink half-period is a 125 ms fault_LED parameter. Neither is
-    // waited out: the window thread below only watches, while the corner
-    // thread fills the same 100 ms with directed-random work that must not
-    // disturb it. The strike is outstanding from the retry in phase 6 until the
-    // window closes, which spans the first blink edge at 125 ms after reset.
-    fork
-        begin : window_thread
-
-            if ($realtime < 130.0 * MS) #(130.0 * MS - $realtime);
-            check("Red_LED1 blinking while a strike is outstanding (lit at 130 ms)", Red_LED1 === 1'b1);
-            check("Green_LED also lit: running with a strike outstanding", Green_LED === 1'b1);
-            wait_strike(2'd0, t_last_run_entry + CLEAN_SHORT * SW_PERIOD_NS + 5.0 * MS - $realtime);
-            check("strike cleared by the clean-run window", timed_out === 1'b0);
-            check_range("clean-run window from S_RUN entry (ms)", ($realtime - t_last_run_entry) / MS,
-                        CLEAN_SHORT * SW_PERIOD_NS / MS - 0.5, CLEAN_SHORT * SW_PERIOD_NS / MS + 0.5);
-            #(2.0 * CLK_PERIOD_NS);
-            check("Red_LED1 dark once the strike clears (blink phase still high)", Red_LED1 === 1'b0);
+            #(SPI_HALF_NS) SCK = 1'b1;
+            #(SPI_HALF_NS) SCK = 1'b0;
 
         end
-        begin : corner_thread
+        check("mid-read: slave sending read data before CS rises", sdio_oe_int === 1'b1);
+        CS_n = 1'b1;
+        t_event = $realtime;
+        // Timed from edge-stamped monitors: polling on the edge where the DUT
+        // updates sdio_oe would read the pre-edge value and overstate the latency.
+        @(posedge cs_filt_int);
+        t_cs_filt = $realtime;
+        #(10.0 * CLK_PERIOD_NS);
+        check("CS up mid-byte: sdio_oe released", sdio_oe_int === 1'b0);
+        check_range("CS up mid-byte: sdio_oe low within 2 clocks of filtered CS (clocks)",
+                    (oe_fall_t - t_cs_filt) / CLK_PERIOD_NS, 0.0, 2.01);
+        check_range("CS up mid-byte: release after the CS pin (clocks, sync + filter + 2)",
+                    (oe_fall_t - t_event) / CLK_PERIOD_NS, 0.0, 14.0);
+        if ((sdio_oe_int === 1'b0) && (oe_fall_t > t_event)) cover_bin(C_CS_MIDRD);
+        #(SPI_GAP_NS);
 
-            // directed first: a keyed write that reaches CYCLES_PER_STEP and
-            // HICCUP_BASE while running must be refused for those registers
-            spi_tx[0] = WRITE_KEY;
-            spi_tx[1] = sh_trip_run;      spi_tx[2] = sh_trip_ss;
-            spi_tx[3] = sh_max_strikes;   spi_tx[4] = sh_max_on;
-            spi_tx[5] = HICCUP_MIN[7:0];  spi_tx[6] = HICCUP_MIN[15:8]; spi_tx[7] = HICCUP_MIN[23:16];
-            spi_tx[8] = 8'd32;
-            spi_write(A_WRKEY, 9, 1'b0);
-            reg_read(A_STATUS);   check("S_OFF-only write while running: STATUS write_rejected", rd_val[7] === 1'b1);
-            reg_read(A_CYC_STEP); check_eq("S_OFF-only write while running: CYCLES_PER_STEP unchanged", rd_val, CYC_STEP_DEF);
-            random_register_traffic(32);
-            write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS);
-            random_duty_corners(16);
-            random_glitch_corners(6);
+        // a read abandoned without CS rising: the 2 ms SCK idle timeout
+        CS_n = 1'b0;
+        #(SPI_HALF_NS);
+        spi_send_byte({1'b1, A_ID});
+        spi_recv_byte(rd_val, 1'b0);
+        MOSI = 1'b0;
+        reads_issued = reads_issued + 1;
+        for (idx = 0; idx < 2; idx = idx + 1) begin
+
+            #(SPI_HALF_NS) SCK = 1'b1;
+            #(SPI_HALF_NS) SCK = 1'b0;
 
         end
-    join
-    reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL reads 0 after the window", rd_val, 0);
-    read_thresholds;
-    check_eq("run-time thresholds restored after the traffic", spi_rx[0], TRIP_RUN_DEF);
-    check_eq("S_OFF-only CLEAN_RUN untouched by traffic in S_RUN", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
-    check_eq("S_OFF-only HICCUP_BASE untouched by traffic in S_RUN", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
+        #(2.2 * MS);
+        check_eq("abandoned read: spi_state after SCK timeout = S_DEAD", spi_state_int, SPI_DEAD);
+        check("abandoned read: sdio_oe low after timeout", sdio_oe_int === 1'b0);
+        if ((spi_state_int == SPI_DEAD) && (sdio_oe_int === 1'b0)) cover_bin(C_SCK_TMO);
+        CS_n = 1'b1;
+        #(SPI_GAP_NS);
+        check_eq("abandoned read: CS high returns to S_IDLE", spi_state_int, SPI_IDLE);
+        reg_read(A_ID);        check_eq("first read after the timeout recovers", rd_val, 8'hB5);
 
-    // ---------------------------------------------------------------
-    // Phase 8: OTP and UVLO shutdown and recovery
-    // ---------------------------------------------------------------
-    note("Phase 8: OTP and UVLO shutdown and recovery, UVLO in soft start");
-    OTP_trig = 1'b1;
-    t_event = $realtime;
-    #(0.9 * MS);
-    check("OTP: En still high at 0.9 ms (1 ms debounce)", En === 1'b1);
-    wait_en(1'b0, 0.5 * MS);
-    check_range("OTP: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    #(1.0 * US);
-    check("OTP: Red_LED2 lit", Red_LED2 === 1'b1);
-    check("OTP: Green_LED dark", Green_LED === 1'b0);
-    reg_read(A_FLAGS);     check("FAULT_FLAGS otp bit", rd_val[1] === 1'b1);
-    // The record clears only when a host READ completes the byte at 0x20. A
-    // write to the read-only 0x20 must leave it intact.
-    reg_write(A_FTIME2, 8'h00);
-    reg_read(A_FCAUSE);    check_eq("write to read-only 0x20 leaves the fault record", rd_val, 8'h04);
-    spi_read(A_FCAUSE, 4); check_eq("fault log: OTP", spi_rx[0], 8'h04);
-    OTP_trig = 1'b0;
-    t_event = $realtime;
-    #(150.0 * US);
-    check("OTP cleared: still off at 150 us (200 us release)", En === 1'b0);
-    wait_en(1'b1, 0.5 * MS);
-    check_range("OTP cleared: automatic restart after (us)", ($realtime - t_event) / US, 199.0, 205.0);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after OTP", last_state, ST_RUN);
+        // An illegal spi_slave state. The encoding has six states in three bits,
+        // so 3'b110 is unreachable by any stimulus; force it for one clock. The
+        // FSM's default arm must send it to S_DEAD, with MISO held low, and the
+        // next transaction must recover through cs_fall.
+        @(posedge clk);
+        #(1.0);
+        force u_dut.g_telemetry.u_spi_slave.spi_state = 3'b110;
+        @(posedge clk);
+        #(1.0);
+        release u_dut.g_telemetry.u_spi_slave.spi_state;
+        @(posedge clk);
+        @(posedge clk);
+        #(1.0);
+        check_eq("illegal spi_state 6 falls to S_DEAD", spi_state_int, SPI_DEAD);
+        check("illegal spi_state: MISO stays low", (sdio_oe_int === 1'b0) && (MISO === 1'b0));
+        reg_read(A_ID);        check_eq("illegal spi_state: next transaction recovers", rd_val, 8'hB5);
+        if (rd_val == 8'hB5) cover_bin(C_SPI_ILLEG);
 
-    UVLO_trig = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 2.0 * MS);
-    check_range("UVLO: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    #(1.0 * US);
-    check("UVLO: Red_LED3 lit", Red_LED3 === 1'b1);
-    reg_read(A_FLAGS);     check("FAULT_FLAGS uvlo bit", rd_val[0] === 1'b1);
-    spi_read(A_FCAUSE, 4); check_eq("fault log: UVLO", spi_rx[0], 8'h02);
-    UVLO_trig = 1'b0;
-    wait_en(1'b1, 0.5 * MS);
-    check("UVLO cleared: restart", En === 1'b1);
-    check("UVLO cleared: Red_LED3 dark", Red_LED3 === 1'b0);
-    // Undervoltage again while the ramp is still running: S_SS -> S_OFF.
-    #(100.0 * US);
-    check("soft start still in progress", ss_active_int === 1'b1);
-    UVLO_trig = 1'b1;
-    wait_en(1'b0, 2.0 * MS);
-    check("UVLO during soft start: off before the ramp completes", run_active_int === 1'b0);
-    UVLO_trig = 1'b0;
-    wait_en(1'b1, 0.5 * MS);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after UVLO in soft start", last_state, ST_RUN);
+        // ---------------------------------------------------------------
+        // Phase 3: host configuration for the protection phases
+        // ---------------------------------------------------------------
+        note("Phase 3: configure short timers over SPI (as built, no RTL change)");
+        // 1 ms hiccup base and 100 ms clean-run window, both the register map's
+        // minimum; default ramp. Accepted only in S_OFF, which is where it is.
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
+                         HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
+        read_thresholds;
+        check_eq("configured HICCUP_BASE = 1 ms", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
+        check_eq("configured CLEAN_RUN = 100 ms", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
+        check_eq("configured CYCLES_PER_STEP", spi_rx[7], CYC_STEP_DEF);
+        check_eq("configured TRIP_RUN", spi_rx[0], TRIP_RUN_DEF);
+        check_eq("configured TRIP_SS", spi_rx[1], TRIP_SS_DEF);
 
-    // ---------------------------------------------------------------
-    // Phase 9: host disable, enable, watchdog, OTP during a hiccup
-    // ---------------------------------------------------------------
-    note("Phase 9: host disable and enable, host-silence watchdog, OTP in a hiccup");
-    reg_write(A_CONTROL, 8'h00);
-    #(10.0 * US);
-    check("CONTROL disable without the key is ignored", En === 1'b1);
-    spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
-    spi_write(A_DISKEY, 2, 1'b0);
-    #(1.0 * US);
-    check("keyed disable: En low", En === 1'b0);
-    reg_read(A_STATUS);
-    check("keyed disable: STATUS spi_enable = 0", rd_val[5] === 1'b0);
-    check_eq("keyed disable: S_OFF", rd_val[1:0], ST_OFF);
-    reg_write(A_CONTROL, 8'h01);
-    wait_en(1'b1, 10.0 * US);
-    check("CONTROL enable: En high again", En === 1'b1);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after host enable", last_state, ST_RUN);
+        // ---------------------------------------------------------------
+        // Phase 4: start-up
+        // ---------------------------------------------------------------
+        note("Phase 4: enable switch, soft start, duty backstop, PWM stats");
+        // The 20 ms enable debounce is a pmic_top constant, not a register, so it
+        // is the one start-up wait that cannot be shortened. Paid here and after
+        // each reset.
+        en_from_switch = 1'b1;
+        t_event = $realtime;
+        #(19.8 * MS);
+        check("En still low 19.8 ms after the switch (20 ms debounce)", En === 1'b0);
+        wait_en(1'b1, 1.0 * MS);
+        t_en_rise = $realtime;
+        check_range("En rise after switch (ms)", (t_en_rise - t_event) / MS, 19.99, 20.05);
+        #(2.0 * CLK_PERIOD_NS);
+        check("Green_LED lit in soft start", Green_LED === 1'b1);
+        measure_ramp(20.0 * MS, CYC_STEP_DEF, MAX_ON_COUNTS);
+        check_eq("ramp starts at MIN_ON_COUNTS+1 clocks", ramp_first_level, MIN_ON_COUNTS + 1);
+        check_eq("ramp levels MIN..MAX (one clock per step)", ramp_levels, MAX_ON_COUNTS - MIN_ON_COUNTS + 1);
+        check_eq("ramp plateaus of CYCLES_PER_STEP cycles (bad count)", ramp_bad_plateau, 0);
+        check_eq("ramp never steps backwards", ramp_backwards, 0);
+        check_range("ramp duration En->ceiling (switching cycles)",
+                    (ramp_t_ceiling - t_en_rise) / SW_PERIOD_NS,
+                    (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF - 2.0,
+                    (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF + 2.0);
+        check("Green_LED lit while switching", Green_LED === 1'b1);
+        wait_state(ST_RUN, 1.0 * MS);
+        check_eq("S_RUN reached after the ramp", last_state, ST_RUN);
+        // 90% commanded in S_RUN: the backstop truncates every pulse
+        #(50.0 * US);
+        check_range("90% commanded in S_RUN: PWM_out truncated (ns)", pwm_width_ns,
+                    (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        // 50% commanded: passes through, quantised to whole clocks
+        osc_high_ns = SW_PERIOD_NS / 2.0;
+        #(50.0 * US);
+        check_range("50% commanded: PWM_out passes through (ns)", pwm_width_ns,
+                    osc_high_ns - CLK_PERIOD_NS - 1.0, osc_high_ns + CLK_PERIOD_NS + 1.0);
+        spi_read(A_DUTY, 2);
+        check_range("PWM stats: PREV_PERIOD (clocks)", spi_rx[1],
+                    SW_PERIOD_NS / CLK_PERIOD_NS - 2.0, SW_PERIOD_NS / CLK_PERIOD_NS + 1.0);
+        check_range("PWM stats: DUTY_COUNT (clocks)", spi_rx[0],
+                    osc_high_ns / CLK_PERIOD_NS - 2.0, osc_high_ns / CLK_PERIOD_NS + 1.0);
+        if ((spi_rx[1] >= SW_PERIOD_NS / CLK_PERIOD_NS - 2.0) && (spi_rx[0] > 0)) cover_bin(C_STATS);
 
-    // The host-silence watchdog releases a host disable after 5 s without a
-    // valid transaction - 50 million clocks at 10 MHz, out of reach here. The
-    // elapsed time is supplied by forcing the watchdog's reference, wd_mark, to
-    // 5000 ms before the present count: exactly what 5 s of silence leaves
-    // behind. wd_mark is a register the design re-marks on the next clock once
-    // the converter is enabled, so the release is clean in every simulator, and
-    // the millisecond counter itself is never touched. Everything else in the
-    // path - the elapsed-time compare, the release of the veto, wd_restored -
-    // is the design as built.
-    spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
-    spi_write(A_DISKEY, 2, 1'b0);
-    #(1.0 * US);
-    check("watchdog: host disable in force", En === 1'b0);
-    spi_busy = 1'b1;
-    ts_force = ts_live_int - 24'd5000;
-    force u_dut.g_telemetry.u_reg_file.wd_mark = ts_force;
-    wait_en(1'b1, 100.0 * US);
-    @(posedge clk);
-    #(1.0);
-    release u_dut.g_telemetry.u_reg_file.wd_mark;
-    check("watchdog: converter re-enabled after 5 s of host silence", timed_out === 1'b0);
-    #(1.0 * US);
-    sh_spi_enable = 1'b1;
-    spi_busy = 1'b0;
-    reg_read(A_CONTROL);
-    check("watchdog: CONTROL reports wd_restored", rd_val[3] === 1'b1);
-    check("watchdog: CONTROL reports enabled", rd_val[0] === 1'b1);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after the watchdog", last_state, ST_RUN);
+        // ---------------------------------------------------------------
+        // Phase 5: PGOOD
+        // ---------------------------------------------------------------
+        note("Phase 5: PGOOD qualification");
+        PGOOD_comp = 1'b1;
+        t_event = $realtime;
+        #(8.8 * MS);
+        check("PGOOD still low 8.8 ms after the rail is good", PGOOD === 1'b0);
+        wait_pgood(1'b1, 1.0 * MS);
+        check_range("PGOOD qualify delay (switching cycles)", ($realtime - t_event) / SW_PERIOD_NS,
+                    PGOOD_CYCLES - 2.0, PGOOD_CYCLES + 2.0);
+        #(2.0 * CLK_PERIOD_NS);
+        check("pgood_LED follows PGOOD", pgood_LED === 1'b1);
+        check("switch_supply follows PGOOD", switch_supply === 1'b1);
+        reg_read(A_STATUS);    check("STATUS pgood = 1", rd_val[2] === 1'b1);
+        PGOOD_comp = 1'b0;
+        t_event = $realtime;
+        wait_pgood(1'b0, 1.0 * US);
+        check_range("PGOOD deassert after the comparator drops (clocks)",
+                    ($realtime - t_event) / CLK_PERIOD_NS, 0.0, 3.5);
+        #(2.0 * US);
+        PGOOD_comp = 1'b1;
+        #(5.0 * MS);
+        check("PGOOD requalifies from zero, not from where it left off", PGOOD === 1'b0);
 
-    // Over-temperature arriving during a hiccup cool-down: S_HICCUP -> S_OFF.
-    CP_trig = 1'b1;
-    wait_en(1'b0, 100.0 * US);
-    CP_trig = 1'b0;
-    OTP_trig = 1'b1;
-    #(1.5 * MS);
-    check("OTP during the cool-down: still off", En === 1'b0);
-    reg_read(A_STATUS);    check_eq("OTP during the cool-down: S_OFF, not a retry", rd_val[1:0], ST_OFF);
-    OTP_trig = 1'b0;
-    wait_en(1'b1, 1.0 * MS);
-    check("OTP cleared after the cool-down: restart", En === 1'b1);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN", last_state, ST_RUN);
-    // Fault log since its last read (phase 8): the undervoltage in soft start
-    // and the overcurrent trip. The OTP that arrived during the cool-down is
-    // not there - fault_cause records faults that interrupt operation, and the
-    // converter was already stopped.
-    spi_read(A_FCAUSE, 4);
-    check_eq("fault log: UVLO in soft start + overcurrent, not the OTP in the cool-down", spi_rx[0], 8'h03);
+        // ---------------------------------------------------------------
+        // Phase 6: overcurrent in S_RUN -> hiccup -> retry
+        // ---------------------------------------------------------------
+        note("Phase 6: overcurrent in S_RUN, hiccup, retry");
+        CP_trig = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 100.0 * US);
+        check_range("En drops after TRIP_RUN faulted cycles (switching cycles)",
+                    ($realtime - t_event) / SW_PERIOD_NS, TRIP_RUN_DEF - 2.0, TRIP_RUN_DEF + 2.0);
+        check("PGOOD dropped with S_RUN", PGOOD === 1'b0);
+        CP_trig = 1'b0;
+        t_event = $realtime;
+        // strike 1: the cool-down is the base shifted by the strike level, 2 ms
+        #(1.9 * MS);
+        check("still cooling down 1.9 ms into the first hiccup", En === 1'b0);
+        wait_en(1'b1, 0.5 * MS);
+        check_range("first hiccup duration (ms) = 2 x base", ($realtime - t_event) / MS, 1.99, 2.05);
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        check_range("retry re-ramps from MIN (ns)", pwm_width_ns,
+                    (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        wait_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
+        check_eq("retry reaches S_RUN", last_state, ST_RUN);
+        reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL after one hiccup", rd_val, 1);
+        reg_read(A_FCAUSE);    check_eq("fault log: partial read shows OC", rd_val, 8'h01);
+        spi_read(A_FCAUSE, 4);
+        check_eq("fault log: cause after a 4-byte sweep is OC", spi_rx[0], 8'h01);
+        check("fault log: episode timestamp is non-zero", {spi_rx[3], spi_rx[2], spi_rx[1]} != 24'd0);
+        reg_read(A_FCAUSE);    check_eq("fault log cleared by the full sweep", rd_val, 8'h00);
 
-    // ---------------------------------------------------------------
-    // Phase 10: timestamp burst across the 255 -> 256 ms carry
-    // ---------------------------------------------------------------
-    note("Phase 10: timestamp burst read across a byte-0 -> byte-1 carry");
-    // A burst from 0x18 reads the low byte first. Started so the tick from
-    // 0x..FF to the next value lands after byte 0 is loaded and before byte 1
-    // is, an unsnapshotted read would stitch the old low byte to the new middle
-    // byte (0x0001FF for the 255 -> 256 carry); the snapshot must return the
-    // old value whole. The carry used is the next one at least 2 ms ahead.
-    carry_at = (((ts_live_int + 24'd2) >> 8) << 8) + 24'd255;
-    $sformat(msg, "timestamp carry used: %0d -> %0d ms", carry_at, carry_at + 1);
-    note(msg);
-    wait (ts_live_int >= carry_at);
-    // next tick in 1 ms; rd_first comes ~16 SCK periods after CS falls
-    #(1.0 * MS - 16.0 * 2.0 * SPI_HALF_NS - 10.0 * US);
-    spi_read(A_TIME0, 3);
-    check("the carry tick happened during the burst", ts_live_int >= carry_at + 24'd1);
-    check_eq("timestamp burst = one snapshot (the value before the carry)",
-             {spi_rx[2], spi_rx[1], spi_rx[0]}, carry_at);
-    check_eq("timestamp burst matches reg_file's snapshot", {spi_rx[2], spi_rx[1], spi_rx[0]}, ts_snap_int);
-    if ((ts_live_int >= carry_at + 24'd1) && ({spi_rx[2], spi_rx[1], spi_rx[0]} == carry_at)) cover_bin(C_TS_CARRY);
+        // ---------------------------------------------------------------
+        // Phase 7: clean-run window, run concurrently with random corners
+        // ---------------------------------------------------------------
+        note("Phase 7: clean-run window || random register traffic, duty and glitch corners");
+        // The clean-run window cannot be shorter than 100 ms (CLEAN_RUN_MIN_CYCLES)
+        // and the blink half-period is a 125 ms fault_LED parameter. Neither is
+        // waited out: the window thread below only watches, while the corner
+        // thread fills the same 100 ms with directed-random work that must not
+        // disturb it. The strike is outstanding from the retry in phase 6 until the
+        // window closes, which spans the first blink edge at 125 ms after reset.
+        fork
+            begin : window_thread
 
-    // ---------------------------------------------------------------
-    // Phase 11: analog OVP trips the SCR
-    // ---------------------------------------------------------------
-    note("Phase 11: analog OVP trip, reset-button recovery");
-    ovp_event = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 2.0 * MS);
-    check_range("OVP: off after latch_stat debounce (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    check("OVP: the CPLD's own latch_out stays low", latch_out === 1'b0);
-    #(1.0 * US);
-    check("OVP: Red_LED1 solid", Red_LED1 === 1'b1);
-    reg_read(A_STATUS);    check("OVP: STATUS latch = 1", rd_val[3] === 1'b1);
-    spi_read(A_FCAUSE, 4); check_eq("fault log: OVP inferred", spi_rx[0], 8'h10);
-    ovp_event = 1'b0;
-    #(2.0 * MS);
-    check("OVP: no restart while the SCR is latched", En === 1'b0);
-    do_reset;
-    #(300.0 * US);
-    check("reset button: SCR cleared", latch_stat === 1'b0);
-    check("reset button: Red_LED1 dark", Red_LED1 === 1'b0);
-    reg_read(A_SCRATCH);   check_eq("reset restored SCRATCH", rd_val, 8'h00);
-    write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
-                     HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
-    wait_en(1'b1, 21.0 * MS);
-    check("restart after reset (20 ms switch debounce again)", En === 1'b1);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("S_RUN after reset", last_state, ST_RUN);
+                if ($realtime < 130.0 * MS) #(130.0 * MS - $realtime);
+                check("Red_LED1 blinking while a strike is outstanding (lit at 130 ms)", Red_LED1 === 1'b1);
+                check("Green_LED also lit: running with a strike outstanding", Green_LED === 1'b1);
+                wait_strike(2'd0, t_last_run_entry + CLEAN_SHORT * SW_PERIOD_NS + 5.0 * MS - $realtime);
+                check("strike cleared by the clean-run window", timed_out === 1'b0);
+                check_range("clean-run window from S_RUN entry (ms)", ($realtime - t_last_run_entry) / MS,
+                            CLEAN_SHORT * SW_PERIOD_NS / MS - 0.5, CLEAN_SHORT * SW_PERIOD_NS / MS + 0.5);
+                #(2.0 * CLK_PERIOD_NS);
+                check("Red_LED1 dark once the strike clears (blink phase still high)", Red_LED1 === 1'b0);
 
-    // ---------------------------------------------------------------
-    // Phase 12: strikes accumulate to latch
-    // ---------------------------------------------------------------
-    note("Phase 12: persistent overcurrent, strikes to latch");
-    CP_trig = 1'b1;
-    strike_hiccups = 0;
-    t_event = $realtime;
-    // RUN trip -> hiccup (2 ms) -> SS trip -> hiccup (4 ms) -> SS trip -> latch
-    while ((latch_out !== 1'b1) && ($realtime - t_event < 30.0 * MS)) begin
+            end
+            begin : corner_thread
 
-        wait_en(1'b0, 30.0 * MS - ($realtime - t_event));
-        // latch_assert lands one clock after the hiccup entry that earns it,
-        // so look a few clocks later before deciding this was a retry
-        #(5.0 * CLK_PERIOD_NS);
-        if (latch_out !== 1'b1) strike_hiccups = strike_hiccups + 1;
-        while ((En !== 1'b1) && (latch_out !== 1'b1) && ($realtime - t_event < 30.0 * MS))
-            @(posedge clk);
+                // directed first: a keyed write that reaches CYCLES_PER_STEP and
+                // HICCUP_BASE while running must be refused for those registers
+                spi_tx[0] = WRITE_KEY;
+                spi_tx[1] = sh_trip_run;      spi_tx[2] = sh_trip_ss;
+                spi_tx[3] = sh_max_strikes;   spi_tx[4] = sh_max_on;
+                spi_tx[5] = HICCUP_MIN[7:0];  spi_tx[6] = HICCUP_MIN[15:8]; spi_tx[7] = HICCUP_MIN[23:16];
+                spi_tx[8] = 8'd32;
+                spi_write(A_WRKEY, 9, 1'b0);
+                reg_read(A_STATUS);   check("S_OFF-only write while running: STATUS write_rejected", rd_val[7] === 1'b1);
+                reg_read(A_CYC_STEP); check_eq("S_OFF-only write while running: CYCLES_PER_STEP unchanged", rd_val, CYC_STEP_DEF);
+                random_register_traffic(32);
+                write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS);
+                random_duty_corners(16);
+                random_glitch_corners(6);
+
+            end
+        join
+        reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL reads 0 after the window", rd_val, 0);
+        read_thresholds;
+        check_eq("run-time thresholds restored after the traffic", spi_rx[0], TRIP_RUN_DEF);
+        check_eq("S_OFF-only CLEAN_RUN untouched by traffic in S_RUN", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_SHORT);
+        check_eq("S_OFF-only HICCUP_BASE untouched by traffic in S_RUN", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_MIN);
+
+        // ---------------------------------------------------------------
+        // Phase 8: OTP and UVLO shutdown and recovery
+        // ---------------------------------------------------------------
+        note("Phase 8: OTP and UVLO shutdown and recovery, UVLO in soft start");
+        OTP_trig = 1'b1;
+        t_event = $realtime;
+        #(0.9 * MS);
+        check("OTP: En still high at 0.9 ms (1 ms debounce)", En === 1'b1);
+        wait_en(1'b0, 0.5 * MS);
+        check_range("OTP: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        #(1.0 * US);
+        check("OTP: Red_LED2 lit", Red_LED2 === 1'b1);
+        check("OTP: Green_LED dark", Green_LED === 1'b0);
+        reg_read(A_FLAGS);     check("FAULT_FLAGS otp bit", rd_val[1] === 1'b1);
+        // The record clears only when a host READ completes the byte at 0x20. A
+        // write to the read-only 0x20 must leave it intact.
+        reg_write(A_FTIME2, 8'h00);
+        reg_read(A_FCAUSE);    check_eq("write to read-only 0x20 leaves the fault record", rd_val, 8'h04);
+        spi_read(A_FCAUSE, 4); check_eq("fault log: OTP", spi_rx[0], 8'h04);
+        OTP_trig = 1'b0;
+        t_event = $realtime;
+        #(150.0 * US);
+        check("OTP cleared: still off at 150 us (200 us release)", En === 1'b0);
+        wait_en(1'b1, 0.5 * MS);
+        check_range("OTP cleared: automatic restart after (us)", ($realtime - t_event) / US, 199.0, 205.0);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after OTP", last_state, ST_RUN);
+
+        UVLO_trig = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 2.0 * MS);
+        check_range("UVLO: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        #(1.0 * US);
+        check("UVLO: Red_LED3 lit", Red_LED3 === 1'b1);
+        reg_read(A_FLAGS);     check("FAULT_FLAGS uvlo bit", rd_val[0] === 1'b1);
+        spi_read(A_FCAUSE, 4); check_eq("fault log: UVLO", spi_rx[0], 8'h02);
+        UVLO_trig = 1'b0;
+        wait_en(1'b1, 0.5 * MS);
+        check("UVLO cleared: restart", En === 1'b1);
+        check("UVLO cleared: Red_LED3 dark", Red_LED3 === 1'b0);
+        // Undervoltage again while the ramp is still running: S_SS -> S_OFF.
+        #(100.0 * US);
+        check("soft start still in progress", ss_active_int === 1'b1);
+        UVLO_trig = 1'b1;
+        wait_en(1'b0, 2.0 * MS);
+        check("UVLO during soft start: off before the ramp completes", run_active_int === 1'b0);
+        UVLO_trig = 1'b0;
+        wait_en(1'b1, 0.5 * MS);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after UVLO in soft start", last_state, ST_RUN);
+
+        // ---------------------------------------------------------------
+        // Phase 9: host disable, enable, watchdog, OTP during a hiccup
+        // ---------------------------------------------------------------
+        note("Phase 9: host disable and enable, host-silence watchdog, OTP in a hiccup");
+        reg_write(A_CONTROL, 8'h00);
+        #(10.0 * US);
+        check("CONTROL disable without the key is ignored", En === 1'b1);
+        spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
+        spi_write(A_DISKEY, 2, 1'b0);
+        #(1.0 * US);
+        check("keyed disable: En low", En === 1'b0);
+        reg_read(A_STATUS);
+        check("keyed disable: STATUS spi_enable = 0", rd_val[5] === 1'b0);
+        check_eq("keyed disable: S_OFF", rd_val[1:0], ST_OFF);
+        reg_write(A_CONTROL, 8'h01);
+        wait_en(1'b1, 10.0 * US);
+        check("CONTROL enable: En high again", En === 1'b1);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after host enable", last_state, ST_RUN);
+
+        // The host-silence watchdog releases a host disable after 5 s without a
+        // valid transaction - 50 million clocks at 10 MHz, out of reach here. The
+        // elapsed time is supplied by forcing the watchdog's reference, wd_mark, to
+        // 5000 ms before the present count: exactly what 5 s of silence leaves
+        // behind. wd_mark is a register the design re-marks on the next clock once
+        // the converter is enabled, so the release is clean in every simulator, and
+        // the millisecond counter itself is never touched. Everything else in the
+        // path - the elapsed-time compare, the release of the veto, wd_restored -
+        // is the design as built.
+        spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
+        spi_write(A_DISKEY, 2, 1'b0);
+        #(1.0 * US);
+        check("watchdog: host disable in force", En === 1'b0);
+        spi_busy = 1'b1;
+        ts_force = ts_live_int - 24'd5000;
+        force u_dut.g_telemetry.u_reg_file.wd_mark = ts_force;
+        wait_en(1'b1, 100.0 * US);
+        @(posedge clk);
+        #(1.0);
+        release u_dut.g_telemetry.u_reg_file.wd_mark;
+        check("watchdog: converter re-enabled after 5 s of host silence", timed_out === 1'b0);
+        #(1.0 * US);
+        sh_spi_enable = 1'b1;
+        spi_busy = 1'b0;
+        reg_read(A_CONTROL);
+        check("watchdog: CONTROL reports wd_restored", rd_val[3] === 1'b1);
+        check("watchdog: CONTROL reports enabled", rd_val[0] === 1'b1);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after the watchdog", last_state, ST_RUN);
+
+        // Over-temperature arriving during a hiccup cool-down: S_HICCUP -> S_OFF.
+        CP_trig = 1'b1;
+        wait_en(1'b0, 100.0 * US);
+        CP_trig = 1'b0;
+        OTP_trig = 1'b1;
+        #(1.5 * MS);
+        check("OTP during the cool-down: still off", En === 1'b0);
+        reg_read(A_STATUS);    check_eq("OTP during the cool-down: S_OFF, not a retry", rd_val[1:0], ST_OFF);
+        OTP_trig = 1'b0;
+        wait_en(1'b1, 1.0 * MS);
+        check("OTP cleared after the cool-down: restart", En === 1'b1);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN", last_state, ST_RUN);
+        // Fault log since its last read (phase 8): the undervoltage in soft start
+        // and the overcurrent trip. The OTP that arrived during the cool-down is
+        // not there - fault_cause records faults that interrupt operation, and the
+        // converter was already stopped.
+        spi_read(A_FCAUSE, 4);
+        check_eq("fault log: UVLO in soft start + overcurrent, not the OTP in the cool-down", spi_rx[0], 8'h03);
+
+        // ---------------------------------------------------------------
+        // Phase 10: timestamp burst across the 255 -> 256 ms carry
+        // ---------------------------------------------------------------
+        note("Phase 10: timestamp burst read across a byte-0 -> byte-1 carry");
+        // A burst from 0x18 reads the low byte first. Started so the tick from
+        // 0x..FF to the next value lands after byte 0 is loaded and before byte 1
+        // is, an unsnapshotted read would stitch the old low byte to the new middle
+        // byte (0x0001FF for the 255 -> 256 carry); the snapshot must return the
+        // old value whole. The carry used is the next one at least 2 ms ahead.
+        carry_at = (((ts_live_int + 24'd2) >> 8) << 8) + 24'd255;
+        $sformat(msg, "timestamp carry used: %0d -> %0d ms", carry_at, carry_at + 1);
+        note(msg);
+        wait (ts_live_int >= carry_at);
+        // next tick in 1 ms; rd_first comes ~16 SCK periods after CS falls
+        #(1.0 * MS - 16.0 * 2.0 * SPI_HALF_NS - 10.0 * US);
+        spi_read(A_TIME0, 3);
+        check("the carry tick happened during the burst", ts_live_int >= carry_at + 24'd1);
+        check_eq("timestamp burst = one snapshot (the value before the carry)",
+                 {spi_rx[2], spi_rx[1], spi_rx[0]}, carry_at);
+        check_eq("timestamp burst matches reg_file's snapshot", {spi_rx[2], spi_rx[1], spi_rx[0]}, ts_snap_int);
+        if ((ts_live_int >= carry_at + 24'd1) && ({spi_rx[2], spi_rx[1], spi_rx[0]} == carry_at)) cover_bin(C_TS_CARRY);
+
+        // ---------------------------------------------------------------
+        // Phase 11: analog OVP trips the SCR
+        // ---------------------------------------------------------------
+        note("Phase 11: analog OVP trip, reset-button recovery");
+        ovp_event = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 2.0 * MS);
+        check_range("OVP: off after latch_stat debounce (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        check("OVP: the CPLD's own latch_out stays low", latch_out === 1'b0);
+        #(1.0 * US);
+        check("OVP: Red_LED1 solid", Red_LED1 === 1'b1);
+        reg_read(A_STATUS);    check("OVP: STATUS latch = 1", rd_val[3] === 1'b1);
+        spi_read(A_FCAUSE, 4); check_eq("fault log: OVP inferred", spi_rx[0], 8'h10);
+        ovp_event = 1'b0;
+        #(2.0 * MS);
+        check("OVP: no restart while the SCR is latched", En === 1'b0);
+        do_reset;
+        #(300.0 * US);
+        check("reset button: SCR cleared", latch_stat === 1'b0);
+        check("reset button: Red_LED1 dark", Red_LED1 === 1'b0);
+        reg_read(A_SCRATCH);   check_eq("reset restored SCRATCH", rd_val, 8'h00);
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
+                         HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
+        wait_en(1'b1, 21.0 * MS);
+        check("restart after reset (20 ms switch debounce again)", En === 1'b1);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("S_RUN after reset", last_state, ST_RUN);
+
+        // ---------------------------------------------------------------
+        // Phase 12: strikes accumulate to latch
+        // ---------------------------------------------------------------
+        note("Phase 12: persistent overcurrent, strikes to latch");
+        CP_trig = 1'b1;
+        strike_hiccups = 0;
+        t_event = $realtime;
+        // RUN trip -> hiccup (2 ms) -> SS trip -> hiccup (4 ms) -> SS trip -> latch
+        while ((latch_out !== 1'b1) && ($realtime - t_event < 30.0 * MS)) begin
+
+            wait_en(1'b0, 30.0 * MS - ($realtime - t_event));
+            // latch_assert lands one clock after the hiccup entry that earns it,
+            // so look a few clocks later before deciding this was a retry
+            #(5.0 * CLK_PERIOD_NS);
+            if (latch_out !== 1'b1) strike_hiccups = strike_hiccups + 1;
+            while ((En !== 1'b1) && (latch_out !== 1'b1) && ($realtime - t_event < 30.0 * MS)) begin
+
+                @(posedge clk);
+
+            end
+
+        end
+        check("latch_out asserted by repeated overcurrent", latch_out === 1'b1);
+        check_eq("retries before the latch = MAX_STRIKES-1", strike_hiccups, MAX_STRIKES_DEF - 1);
+        check("En low once latched", En === 1'b0);
+        CP_trig = 1'b0;
+        #(10.0 * MS);
+        check("no restart 10 ms after the fault clears", En === 1'b0);
+        check("latch_out still set", latch_out === 1'b1);
+        check("SCR read back latched", latch_stat === 1'b1);
+        check("Red_LED1 solid", Red_LED1 === 1'b1);
+        reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL at latch", rd_val, MAX_STRIKES_DEF);
+        reg_read(A_STATUS);    check("STATUS latch = 1", rd_val[3] === 1'b1);
+        spi_read(A_FCAUSE, 4);
+        check("fault log: overcurrent recorded", spi_rx[0][0] === 1'b1);
+        if (spi_rx[0][3] !== 1'b1) begin
+
+            note("fault log LATCH bit not set: latch_assert only rises in S_HICCUP, outside the capture gate (reported finding)");
+
+        end
+        do_reset;
+        #(10.0 * US);
+        check("reset clears latch_out", latch_out === 1'b0);
+        #(300.0 * US);
+        check("reset clears the SCR", latch_stat === 1'b0);
+        reg_read(A_STRIKE);    check_eq("reset clears STRIKE_LEVEL", rd_val, 0);
+        read_thresholds;
+        check_eq("reset restores HICCUP_BASE default", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_DEF);
+        check_eq("reset restores CLEAN_RUN default", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_DEF);
+
+        // ---------------------------------------------------------------
+        // Phase 13: restart after a latch, enable switch, stuck modulator
+        // ---------------------------------------------------------------
+        note("Phase 13: restart after a latch, enable switch off and on, modulator stuck high");
+        wait_en(1'b1, 21.0 * MS);
+        check("latched part restarts after the reset button", En === 1'b1);
+        wait_state(ST_RUN, 15.0 * MS);
+        check_eq("S_RUN after the latch is cleared", last_state, ST_RUN);
+        // A modulator stuck high: one pulse cut at the ceiling, then nothing until
+        // the modulator falls - pwm_mask holds the envelope closed.
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        pulses_before = pwm_pulses;
+        osc_stuck_high = 1'b1;
+        #(20.0 * SW_PERIOD_NS);
+        check("stuck modulator: at most one PWM_out pulse", pwm_pulses - pulses_before <= 1);
+        check("stuck modulator: PWM_out held low", PWM_out === 1'b0);
+        check_range("stuck modulator: that pulse capped at MAX_ON+1 clocks (ns)", pwm_width_ns,
+                    0.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        if ((pwm_pulses - pulses_before <= 1) && (PWM_out === 1'b0)) cover_bin(C_STUCK);
+        osc_stuck_high = 1'b0;
+        #(5.0 * SW_PERIOD_NS);
+        // enable switch: release and press, 20 ms of debounce each way
+        en_from_switch = 1'b0;
+        t_event = $realtime;
+        #(19.8 * MS);
+        check("switch released: En still high at 19.8 ms", En === 1'b1);
+        wait_en(1'b0, 1.0 * MS);
+        check_range("switch released: off after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+        en_from_switch = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b1, 21.0 * MS);
+        check_range("switch pressed: restart after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+        #(10.0 * US);
+        check("switch pressed: back in soft start", ss_active_int === 1'b1);
+
+        // ---------------------------------------------------------------
+        // Run-long invariants, scoreboards
+        // ---------------------------------------------------------------
+        extra_phases;
+
+        note("Run-long invariants and scoreboards");
+        check_eq("clocks with sdio_oe != (spi_state == S_READ)", oe_misaligned, 0);
+        check_eq("... of which sdio_oe high while the master is sending", oe_in_master_phase, 0);
+        check_eq("MISO high while the slave is not in S_READ (clocks)", miso_idle, 0);
+        check_eq("read data starts without the first bit on MISO", oe_rise_bad, 0);
+        check_eq("read data starts = reads that reached the data phase", oe_rises, reads_issued);
+        check_eq("exits from S_READ = reads that reached the data phase", read_exits, reads_issued);
+        $sformat(msg, "              (S_READ exits: %0d to S_IDLE on CS, %0d to S_DEAD on timeout, %0d to S_CMD, %0d other)",
+                 exit_to_idle, exit_to_dead, exit_to_cmd, exit_to_other);
+        emit(msg);
+        check_eq("first read bit not driven at the first data SCK rise", first_bit_errors, 0);
+        $sformat(msg, "              (smallest sdio_oe-to-sampling-edge margin: %0.1f ns at SCK %0.0f kHz)",
+                 first_bit_margin, 1.0e6 / (2.0 * SPI_HALF_NS));
+        emit(msg);
+        check_eq("switch_supply mirrored PGOOD on every clock (mismatches)", mirror_errors, 0);
+        check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
+        check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
+        check_eq("latch_out falls without a reset", latch_drops, 0);
+        check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
+        check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
+        check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
+        $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
+        emit(msg);
+        check_eq("register-map scoreboard: per-clock mismatches", rm_mismatch, 0);
+        check_eq("register-map scoreboard: read-back mismatches", rd_mismatch, 0);
+        check_eq("register-map scoreboard: commit/abort not as predicted", outcome_mismatch, 0);
+        $sformat(msg, "              (register map compared on %0d clocks and %0d read-back bytes)",
+                 rm_compares, rd_compares);
+        emit(msg);
+        $sformat(msg, "register-map scoreboard compared read-backs (%0d bytes, at least 50)", rd_compares);
+        check(msg, rd_compares >= 50);
+        check_eq("PGOOD high outside S_RUN (clocks)", pgood_not_run, 0);
+        check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
+        check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
+        check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
+        check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
+
+        finish_run("normal end");
 
     end
-    check("latch_out asserted by repeated overcurrent", latch_out === 1'b1);
-    check_eq("retries before the latch = MAX_STRIKES-1", strike_hiccups, MAX_STRIKES_DEF - 1);
-    check("En low once latched", En === 1'b0);
-    CP_trig = 1'b0;
-    #(10.0 * MS);
-    check("no restart 10 ms after the fault clears", En === 1'b0);
-    check("latch_out still set", latch_out === 1'b1);
-    check("SCR read back latched", latch_stat === 1'b1);
-    check("Red_LED1 solid", Red_LED1 === 1'b1);
-    reg_read(A_STRIKE);    check_eq("STRIKE_LEVEL at latch", rd_val, MAX_STRIKES_DEF);
-    reg_read(A_STATUS);    check("STATUS latch = 1", rd_val[3] === 1'b1);
-    spi_read(A_FCAUSE, 4);
-    check("fault log: overcurrent recorded", spi_rx[0][0] === 1'b1);
-    if (spi_rx[0][3] !== 1'b1) begin
-
-        note("fault log LATCH bit not set: latch_assert only rises in S_HICCUP, outside the capture gate (reported finding)");
-
-    end
-    do_reset;
-    #(10.0 * US);
-    check("reset clears latch_out", latch_out === 1'b0);
-    #(300.0 * US);
-    check("reset clears the SCR", latch_stat === 1'b0);
-    reg_read(A_STRIKE);    check_eq("reset clears STRIKE_LEVEL", rd_val, 0);
-    read_thresholds;
-    check_eq("reset restores HICCUP_BASE default", {spi_rx[6], spi_rx[5], spi_rx[4]}, HICCUP_DEF);
-    check_eq("reset restores CLEAN_RUN default", {spi_rx[10], spi_rx[9], spi_rx[8]}, CLEAN_DEF);
-
-    // ---------------------------------------------------------------
-    // Phase 13: restart after a latch, enable switch, stuck modulator
-    // ---------------------------------------------------------------
-    note("Phase 13: restart after a latch, enable switch off and on, modulator stuck high");
-    wait_en(1'b1, 21.0 * MS);
-    check("latched part restarts after the reset button", En === 1'b1);
-    wait_state(ST_RUN, 15.0 * MS);
-    check_eq("S_RUN after the latch is cleared", last_state, ST_RUN);
-    // A modulator stuck high: one pulse cut at the ceiling, then nothing until
-    // the modulator falls - pwm_mask holds the envelope closed.
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    pulses_before = pwm_pulses;
-    osc_stuck_high = 1'b1;
-    #(20.0 * SW_PERIOD_NS);
-    check("stuck modulator: at most one PWM_out pulse", pwm_pulses - pulses_before <= 1);
-    check("stuck modulator: PWM_out held low", PWM_out === 1'b0);
-    check_range("stuck modulator: that pulse capped at MAX_ON+1 clocks (ns)", pwm_width_ns,
-                0.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    if ((pwm_pulses - pulses_before <= 1) && (PWM_out === 1'b0)) cover_bin(C_STUCK);
-    osc_stuck_high = 1'b0;
-    #(5.0 * SW_PERIOD_NS);
-    // enable switch: release and press, 20 ms of debounce each way
-    en_from_switch = 1'b0;
-    t_event = $realtime;
-    #(19.8 * MS);
-    check("switch released: En still high at 19.8 ms", En === 1'b1);
-    wait_en(1'b0, 1.0 * MS);
-    check_range("switch released: off after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
-    en_from_switch = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b1, 21.0 * MS);
-    check_range("switch pressed: restart after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
-    #(10.0 * US);
-    check("switch pressed: back in soft start", ss_active_int === 1'b1);
-
-    // ---------------------------------------------------------------
-    // Run-long invariants, scoreboards
-    // ---------------------------------------------------------------
-    extra_phases;
-
-    note("Run-long invariants and scoreboards");
-    check_eq("clocks with sdio_oe != (spi_state == S_READ)", oe_misaligned, 0);
-    check_eq("... of which sdio_oe high while the master is sending", oe_in_master_phase, 0);
-    check_eq("MISO high while the slave is not in S_READ (clocks)", miso_idle, 0);
-    check_eq("read data starts without the first bit on MISO", oe_rise_bad, 0);
-    check_eq("read data starts = reads that reached the data phase", oe_rises, reads_issued);
-    check_eq("exits from S_READ = reads that reached the data phase", read_exits, reads_issued);
-    $sformat(msg, "              (S_READ exits: %0d to S_IDLE on CS, %0d to S_DEAD on timeout, %0d to S_CMD, %0d other)",
-             exit_to_idle, exit_to_dead, exit_to_cmd, exit_to_other);
-    emit(msg);
-    check_eq("first read bit not driven at the first data SCK rise", first_bit_errors, 0);
-    $sformat(msg, "              (smallest sdio_oe-to-sampling-edge margin: %0.1f ns at SCK %0.0f kHz)",
-             first_bit_margin, 1.0e6 / (2.0 * SPI_HALF_NS));
-    emit(msg);
-    check_eq("switch_supply mirrored PGOOD on every clock (mismatches)", mirror_errors, 0);
-    check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
-    check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
-    check_eq("latch_out falls without a reset", latch_drops, 0);
-    check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
-    check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
-    check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
-    $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
-    emit(msg);
-    check_eq("register-map scoreboard: per-clock mismatches", rm_mismatch, 0);
-    check_eq("register-map scoreboard: read-back mismatches", rd_mismatch, 0);
-    check_eq("register-map scoreboard: commit/abort not as predicted", outcome_mismatch, 0);
-    $sformat(msg, "              (register map compared on %0d clocks and %0d read-back bytes)",
-             rm_compares, rd_compares);
-    emit(msg);
-    $sformat(msg, "register-map scoreboard compared read-backs (%0d bytes, at least 50)", rd_compares);
-    check(msg, rd_compares >= 50);
-    check_eq("PGOOD high outside S_RUN (clocks)", pgood_not_run, 0);
-    check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
-    check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
-    check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
-    check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
-
-    finish_run("normal end");
-
-end
 
 end
 else begin : g_seq_notel
 
-initial begin
+    initial begin
 
-    /*
-    Purpose:
-    ---
-    The pins-only sequence, for the reduced build (TELEMETRY_EN = 0). There is no
-    register map, so nothing is configured: every timer runs at its package
-    default - the 5 ms hiccup base, the 1 s clean-run window, 64 cycles per ramp
-    step - and the SPI pins are driven only to show they change nothing. Phases
-    keep the SPI sequence's numbers; phase 2 becomes the SPI-has-no-effect check,
-    and 3 (configuration) and 10 (timestamp) have no counterpart. The FSM
-    scoreboard, the run-long monitors and the coverage bins that exist in this
-    build run underneath, as in the SPI sequence.
-    */
+        /*
+        Purpose:
+        ---
+        The pins-only sequence, for the reduced build (TELEMETRY_EN = 0). There is no
+        register map, so nothing is configured: every timer runs at its package
+        default - the 5 ms hiccup base, the 1 s clean-run window, 64 cycles per ramp
+        step - and the SPI pins are driven only to show they change nothing. Phases
+        keep the SPI sequence's numbers; phase 2 becomes the SPI-has-no-effect check,
+        and 3 (configuration) and 10 (timestamp) have no counterpart. The FSM
+        scoreboard, the run-long monitors and the coverage bins that exist in this
+        build run underneath, as in the SPI sequence.
+        */
 
-    log_fd = $fopen("pmic_top_tb.log", "w");
-    shadow_reset;
-    $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 0 ====",
-             CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
-    emit(msg);
+        log_fd = $fopen("pmic_top_tb.log", "w");
+        shadow_reset;
+        $sformat(msg, "==== pmic_top_tb : CLK_HZ = %0d, MIN_ON = %0d, MAX_ON = %0d clocks, TELEMETRY_EN = 0 ====",
+                 CLK_HZ, MIN_ON_COUNTS, MAX_ON_COUNTS);
+        emit(msg);
 
-    // ---------------------------------------------------------------
-    // Phase 1: reset, fail-safe outputs, no host interface
-    // ---------------------------------------------------------------
-    note("Phase 1: power-on reset, fail-safe outputs, no host interface");
-    #1;
-    rst_n_pin = 1'b0;
-    #(10.0 * CLK_PERIOD_NS);
-    check("in reset: En low",                 En === 1'b0);
-    check("in reset: PGOOD low",              PGOOD === 1'b0);
-    check("in reset: latch_out low",          latch_out === 1'b0);
-    check("in reset: MISO low",               MISO === 1'b0);
-    rst_n_pin = 1'b1;
-    #(10.0 * CLK_PERIOD_NS);
-    #(20.0 * US);
-    check("after reset: Red_LED2 (OTP) fail-safe lit",  Red_LED2 === 1'b1);
-    check("after reset: Red_LED3 (UVLO) fail-safe lit", Red_LED3 === 1'b1);
-    #(250.0 * US);
-    check("Red_LED2 cleared after 200 us release", Red_LED2 === 1'b0);
-    check("Red_LED3 cleared after 200 us release", Red_LED3 === 1'b0);
-    check("switch off: En stays low", En === 1'b0);
-    check_range("PWM_out pulse in S_OFF (ns) = (MIN_ON_COUNTS+1) clocks", pwm_width_ns,
-                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    check("minimum gate pulse >= 240 ns commanded (LM5106 128 ns + 112 ns)", pwm_width_ns >= 240.0);
-    check_eq("supervisor in S_OFF (probe)", sup_state, ST_OFF);
-    check("no host interface: the supervisor's spi_enable is tied high", sup_spi_en === 1'b1);
-    spi_read_ignored(A_ID, 1);
-    check_eq("no host interface: read of PMIC_ID (0xB5 in a full build), MISO bits high",
-             miso_high_bits, 0);
+        // ---------------------------------------------------------------
+        // Phase 1: reset, fail-safe outputs, no host interface
+        // ---------------------------------------------------------------
+        note("Phase 1: power-on reset, fail-safe outputs, no host interface");
+        #1;
+        rst_n_pin = 1'b0;
+        #(10.0 * CLK_PERIOD_NS);
+        check("in reset: En low",                 En === 1'b0);
+        check("in reset: PGOOD low",              PGOOD === 1'b0);
+        check("in reset: latch_out low",          latch_out === 1'b0);
+        check("in reset: MISO low",               MISO === 1'b0);
+        rst_n_pin = 1'b1;
+        #(10.0 * CLK_PERIOD_NS);
+        #(20.0 * US);
+        check("after reset: Red_LED2 (OTP) fail-safe lit",  Red_LED2 === 1'b1);
+        check("after reset: Red_LED3 (UVLO) fail-safe lit", Red_LED3 === 1'b1);
+        #(250.0 * US);
+        check("Red_LED2 cleared after 200 us release", Red_LED2 === 1'b0);
+        check("Red_LED3 cleared after 200 us release", Red_LED3 === 1'b0);
+        check("switch off: En stays low", En === 1'b0);
+        check_range("PWM_out pulse in S_OFF (ns) = (MIN_ON_COUNTS+1) clocks", pwm_width_ns,
+                    (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        check("minimum gate pulse >= 240 ns commanded (LM5106 128 ns + 112 ns)", pwm_width_ns >= 240.0);
+        check_eq("supervisor in S_OFF (probe)", sup_state, ST_OFF);
+        check("no host interface: the supervisor's spi_enable is tied high", sup_spi_en === 1'b1);
+        spi_read_ignored(A_ID, 1);
+        check_eq("no host interface: read of PMIC_ID (0xB5 in a full build), MISO bits high",
+                 miso_high_bits, 0);
 
-    // ---------------------------------------------------------------
-    // Phase 2: SPI frames in S_OFF have no effect
-    // ---------------------------------------------------------------
-    note("Phase 2: SPI frames have no effect (no slave built)");
-    // The configuration the SPI sequence writes in its phase 3 - a 1 ms hiccup
-    // base and a 100 ms clean-run window - as the same valid keyed frame. A
-    // full build in S_OFF would commit it. Phases 6 and 7 time the default
-    // 10 ms first hiccup and 1 s window, which shows it was not.
-    spi_tx[0]  = WRITE_KEY;
-    spi_tx[1]  = TRIP_RUN_DEF[7:0];      spi_tx[2]  = TRIP_SS_DEF[7:0];
-    spi_tx[3]  = MAX_STRIKES_DEF[7:0];   spi_tx[4]  = MAX_ON_COUNTS[7:0];
-    spi_tx[5]  = HICCUP_MIN[7:0];        spi_tx[6]  = HICCUP_MIN[15:8];   spi_tx[7]  = HICCUP_MIN[23:16];
-    spi_tx[8]  = CYC_STEP_DEF[7:0];
-    spi_tx[9]  = CLEAN_SHORT[7:0];       spi_tx[10] = CLEAN_SHORT[15:8];  spi_tx[11] = CLEAN_SHORT[23:16];
-    spi_frame_ignored(A_WRKEY, 12);
-    spi_read_ignored(A_TRIP_RUN, 11);
-    check_eq("threshold read-back after the keyed write: MISO bits high", miso_high_bits, 0);
-    check_eq("SPI frames: supervisor still in S_OFF (probe)", sup_state, ST_OFF);
-    check("SPI frames: En still low", En === 1'b0);
+        // ---------------------------------------------------------------
+        // Phase 2: SPI frames in S_OFF have no effect
+        // ---------------------------------------------------------------
+        note("Phase 2: SPI frames have no effect (no slave built)");
+        // The configuration the SPI sequence writes in its phase 3 - a 1 ms hiccup
+        // base and a 100 ms clean-run window - as the same valid keyed frame. A
+        // full build in S_OFF would commit it. Phases 6 and 7 time the default
+        // 10 ms first hiccup and 1 s window, which shows it was not.
+        spi_tx[0]  = WRITE_KEY;
+        spi_tx[1]  = TRIP_RUN_DEF[7:0];      spi_tx[2]  = TRIP_SS_DEF[7:0];
+        spi_tx[3]  = MAX_STRIKES_DEF[7:0];   spi_tx[4]  = MAX_ON_COUNTS[7:0];
+        spi_tx[5]  = HICCUP_MIN[7:0];        spi_tx[6]  = HICCUP_MIN[15:8];   spi_tx[7]  = HICCUP_MIN[23:16];
+        spi_tx[8]  = CYC_STEP_DEF[7:0];
+        spi_tx[9]  = CLEAN_SHORT[7:0];       spi_tx[10] = CLEAN_SHORT[15:8];  spi_tx[11] = CLEAN_SHORT[23:16];
+        spi_frame_ignored(A_WRKEY, 12);
+        spi_read_ignored(A_TRIP_RUN, 11);
+        check_eq("threshold read-back after the keyed write: MISO bits high", miso_high_bits, 0);
+        check_eq("SPI frames: supervisor still in S_OFF (probe)", sup_state, ST_OFF);
+        check("SPI frames: En still low", En === 1'b0);
 
-    // ---------------------------------------------------------------
-    // Phase 4: start-up
-    // ---------------------------------------------------------------
-    note("Phase 4: enable switch, soft start, duty backstop");
-    en_from_switch = 1'b1;
-    t_event = $realtime;
-    #(19.8 * MS);
-    check("En still low 19.8 ms after the switch (20 ms debounce)", En === 1'b0);
-    wait_en(1'b1, 1.0 * MS);
-    t_en_rise = $realtime;
-    check_range("En rise after switch (ms)", (t_en_rise - t_event) / MS, 19.99, 20.05);
-    #(2.0 * CLK_PERIOD_NS);
-    check("Green_LED lit in soft start", Green_LED === 1'b1);
-    measure_ramp(20.0 * MS, CYC_STEP_DEF, MAX_ON_COUNTS);
-    check_eq("ramp starts at MIN_ON_COUNTS+1 clocks", ramp_first_level, MIN_ON_COUNTS + 1);
-    check_eq("ramp levels MIN..MAX (one clock per step)", ramp_levels, MAX_ON_COUNTS - MIN_ON_COUNTS + 1);
-    check_eq("ramp plateaus of the default 64 cycles per step (bad count)", ramp_bad_plateau, 0);
-    check_eq("ramp never steps backwards", ramp_backwards, 0);
-    check_range("ramp duration En->ceiling (switching cycles)",
-                (ramp_t_ceiling - t_en_rise) / SW_PERIOD_NS,
-                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF - 2.0,
-                (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF + 2.0);
-    check("Green_LED lit while switching", Green_LED === 1'b1);
-    wait_sup_state(ST_RUN, 1.0 * MS);
-    check_eq("S_RUN reached after the ramp (probe)", last_state, ST_RUN);
-    // 90% commanded in S_RUN: the backstop truncates every pulse
-    #(50.0 * US);
-    check_range("90% commanded in S_RUN: PWM_out truncated (ns)", pwm_width_ns,
-                (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    // 50% commanded: passes through, quantised to whole clocks
-    osc_high_ns = SW_PERIOD_NS / 2.0;
-    #(50.0 * US);
-    check_range("50% commanded: PWM_out passes through (ns)", pwm_width_ns,
-                osc_high_ns - CLK_PERIOD_NS - 1.0, osc_high_ns + CLK_PERIOD_NS + 1.0);
+        // ---------------------------------------------------------------
+        // Phase 4: start-up
+        // ---------------------------------------------------------------
+        note("Phase 4: enable switch, soft start, duty backstop");
+        en_from_switch = 1'b1;
+        t_event = $realtime;
+        #(19.8 * MS);
+        check("En still low 19.8 ms after the switch (20 ms debounce)", En === 1'b0);
+        wait_en(1'b1, 1.0 * MS);
+        t_en_rise = $realtime;
+        check_range("En rise after switch (ms)", (t_en_rise - t_event) / MS, 19.99, 20.05);
+        #(2.0 * CLK_PERIOD_NS);
+        check("Green_LED lit in soft start", Green_LED === 1'b1);
+        measure_ramp(20.0 * MS, CYC_STEP_DEF, MAX_ON_COUNTS);
+        check_eq("ramp starts at MIN_ON_COUNTS+1 clocks", ramp_first_level, MIN_ON_COUNTS + 1);
+        check_eq("ramp levels MIN..MAX (one clock per step)", ramp_levels, MAX_ON_COUNTS - MIN_ON_COUNTS + 1);
+        check_eq("ramp plateaus of the default 64 cycles per step (bad count)", ramp_bad_plateau, 0);
+        check_eq("ramp never steps backwards", ramp_backwards, 0);
+        check_range("ramp duration En->ceiling (switching cycles)",
+                    (ramp_t_ceiling - t_en_rise) / SW_PERIOD_NS,
+                    (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF - 2.0,
+                    (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF + 2.0);
+        check("Green_LED lit while switching", Green_LED === 1'b1);
+        wait_sup_state(ST_RUN, 1.0 * MS);
+        check_eq("S_RUN reached after the ramp (probe)", last_state, ST_RUN);
+        // 90% commanded in S_RUN: the backstop truncates every pulse
+        #(50.0 * US);
+        check_range("90% commanded in S_RUN: PWM_out truncated (ns)", pwm_width_ns,
+                    (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        // 50% commanded: passes through, quantised to whole clocks
+        osc_high_ns = SW_PERIOD_NS / 2.0;
+        #(50.0 * US);
+        check_range("50% commanded: PWM_out passes through (ns)", pwm_width_ns,
+                    osc_high_ns - CLK_PERIOD_NS - 1.0, osc_high_ns + CLK_PERIOD_NS + 1.0);
 
-    // ---------------------------------------------------------------
-    // Phase 5: PGOOD
-    // ---------------------------------------------------------------
-    note("Phase 5: PGOOD qualification");
-    PGOOD_comp = 1'b1;
-    t_event = $realtime;
-    #(8.8 * MS);
-    check("PGOOD still low 8.8 ms after the rail is good", PGOOD === 1'b0);
-    wait_pgood(1'b1, 1.0 * MS);
-    check_range("PGOOD qualify delay (switching cycles)", ($realtime - t_event) / SW_PERIOD_NS,
-                PGOOD_CYCLES - 2.0, PGOOD_CYCLES + 2.0);
-    #(2.0 * CLK_PERIOD_NS);
-    check("pgood_LED follows PGOOD", pgood_LED === 1'b1);
-    check("switch_supply follows PGOOD", switch_supply === 1'b1);
-    PGOOD_comp = 1'b0;
-    t_event = $realtime;
-    wait_pgood(1'b0, 1.0 * US);
-    check_range("PGOOD deassert after the comparator drops (clocks)",
-                ($realtime - t_event) / CLK_PERIOD_NS, 0.0, 3.5);
-    #(2.0 * US);
-    PGOOD_comp = 1'b1;
-    #(5.0 * MS);
-    check("PGOOD requalifies from zero, not from where it left off", PGOOD === 1'b0);
+        // ---------------------------------------------------------------
+        // Phase 5: PGOOD
+        // ---------------------------------------------------------------
+        note("Phase 5: PGOOD qualification");
+        PGOOD_comp = 1'b1;
+        t_event = $realtime;
+        #(8.8 * MS);
+        check("PGOOD still low 8.8 ms after the rail is good", PGOOD === 1'b0);
+        wait_pgood(1'b1, 1.0 * MS);
+        check_range("PGOOD qualify delay (switching cycles)", ($realtime - t_event) / SW_PERIOD_NS,
+                    PGOOD_CYCLES - 2.0, PGOOD_CYCLES + 2.0);
+        #(2.0 * CLK_PERIOD_NS);
+        check("pgood_LED follows PGOOD", pgood_LED === 1'b1);
+        check("switch_supply follows PGOOD", switch_supply === 1'b1);
+        PGOOD_comp = 1'b0;
+        t_event = $realtime;
+        wait_pgood(1'b0, 1.0 * US);
+        check_range("PGOOD deassert after the comparator drops (clocks)",
+                    ($realtime - t_event) / CLK_PERIOD_NS, 0.0, 3.5);
+        #(2.0 * US);
+        PGOOD_comp = 1'b1;
+        #(5.0 * MS);
+        check("PGOOD requalifies from zero, not from where it left off", PGOOD === 1'b0);
 
-    // ---------------------------------------------------------------
-    // Phase 6: overcurrent in S_RUN -> hiccup on the default base -> retry
-    // ---------------------------------------------------------------
-    note("Phase 6: overcurrent in S_RUN, hiccup on the default 5 ms base, retry");
-    red1_before = red1_rises;
-    CP_trig = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 100.0 * US);
-    t_strike = $realtime;
-    check_range("En drops after TRIP_RUN faulted cycles (switching cycles)",
-                ($realtime - t_event) / SW_PERIOD_NS, TRIP_RUN_DEF - 2.0, TRIP_RUN_DEF + 2.0);
-    check("PGOOD dropped with S_RUN", PGOOD === 1'b0);
-    CP_trig = 1'b0;
-    t_event = $realtime;
-    // strike 1: the default 5 ms base shifted by the strike level, 10 ms. The
-    // 1 ms base sent over SPI in phase 2 would have made it 2 ms.
-    #(9.9 * MS);
-    check("still cooling down 9.9 ms into the first hiccup", En === 1'b0);
-    wait_en(1'b1, 0.5 * MS);
-    hic_dur1 = $realtime - t_event;
-    check_range("first hiccup duration (ms) = 2 x the default 5 ms base", ($realtime - t_event) / MS,
-                9.99, 10.05);
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    check_range("retry re-ramps from MIN (ns)", pwm_width_ns,
-                (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    wait_sup_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
-    check_eq("retry reaches S_RUN (probe)", last_state, ST_RUN);
-    check_eq("strike level after one hiccup (probe)", strike_int, 1);
+        // ---------------------------------------------------------------
+        // Phase 6: overcurrent in S_RUN -> hiccup on the default base -> retry
+        // ---------------------------------------------------------------
+        note("Phase 6: overcurrent in S_RUN, hiccup on the default 5 ms base, retry");
+        red1_before = red1_rises;
+        CP_trig = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 100.0 * US);
+        t_strike = $realtime;
+        check_range("En drops after TRIP_RUN faulted cycles (switching cycles)",
+                    ($realtime - t_event) / SW_PERIOD_NS, TRIP_RUN_DEF - 2.0, TRIP_RUN_DEF + 2.0);
+        check("PGOOD dropped with S_RUN", PGOOD === 1'b0);
+        CP_trig = 1'b0;
+        t_event = $realtime;
+        // strike 1: the default 5 ms base shifted by the strike level, 10 ms. The
+        // 1 ms base sent over SPI in phase 2 would have made it 2 ms.
+        #(9.9 * MS);
+        check("still cooling down 9.9 ms into the first hiccup", En === 1'b0);
+        wait_en(1'b1, 0.5 * MS);
+        hic_dur1 = $realtime - t_event;
+        check_range("first hiccup duration (ms) = 2 x the default 5 ms base", ($realtime - t_event) / MS,
+                    9.99, 10.05);
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        check_range("retry re-ramps from MIN (ns)", pwm_width_ns,
+                    (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MIN_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        wait_sup_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
+        check_eq("retry reaches S_RUN (probe)", last_state, ST_RUN);
+        check_eq("strike level after one hiccup (probe)", strike_int, 1);
 
-    // ---------------------------------------------------------------
-    // Phase 7: the default 1 s clean-run window, concurrent with corners
-    // ---------------------------------------------------------------
-    note("Phase 7: default 1 s clean-run window || duty corners, glitch corners, ignored SPI traffic");
-    // The window runs from the retry's S_RUN entry. The strike stays out
-    // for all of it, so Red_LED1 blinks at its 125 ms half-period: lit in the
-    // second quarter-second after reset, dark in the third. Alongside it, the
-    // same duty and glitch corners as the SPI sequence, and random SPI frames
-    // - keyed disables among them - that a full build would act on.
-    // A second strike 20 ms into the window: the cool-down doubles (4 x the
-    // default base), the strike does not clear, and the window must start
-    // again from the retry's S_RUN entry - which the window thread below
-    // times, so its 1 s clear also proves the restart.
-    #(20.0 * MS);
-    oc_trip;
-    wait_en(1'b1, 4.0 * HICCUP_DEF * CLK_PERIOD_NS + 1.0 * MS);
-    hic_dur2 = $realtime - en_fall_t;
-    check_range("second hiccup inside the window (ms) = 4 x the default 5 ms base", hic_dur2 / MS,
-                4.0 * HICCUP_DEF * CLK_PERIOD_NS / MS - 0.01, 4.0 * HICCUP_DEF * CLK_PERIOD_NS / MS + 0.05);
-    check_range("second hiccup / first hiccup", hic_dur2 / hic_dur1, 1.98, 2.02);
-    check_eq("interrupted window: strike level 2, not cleared (probe)", strike_int, 2);
-    if ((hic_dur2 / hic_dur1 > 1.98) && (hic_dur2 / hic_dur1 < 2.02)) cover_bin(C_ESC2);
-    wait_sup_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
-    en_falls_before = en_falls;
-    fork
-        begin : window_notel
+        // ---------------------------------------------------------------
+        // Phase 7: the default 1 s clean-run window, concurrent with corners
+        // ---------------------------------------------------------------
+        note("Phase 7: default 1 s clean-run window || duty corners, glitch corners, ignored SPI traffic");
+        // The window runs from the retry's S_RUN entry. The strike stays out
+        // for all of it, so Red_LED1 blinks at its 125 ms half-period: lit in the
+        // second quarter-second after reset, dark in the third. Alongside it, the
+        // same duty and glitch corners as the SPI sequence, and random SPI frames
+        // - keyed disables among them - that a full build would act on.
+        // A second strike 20 ms into the window: the cool-down doubles (4 x the
+        // default base), the strike does not clear, and the window must start
+        // again from the retry's S_RUN entry - which the window thread below
+        // times, so its 1 s clear also proves the restart.
+        #(20.0 * MS);
+        oc_trip;
+        wait_en(1'b1, 4.0 * HICCUP_DEF * CLK_PERIOD_NS + 1.0 * MS);
+        hic_dur2 = $realtime - en_fall_t;
+        check_range("second hiccup inside the window (ms) = 4 x the default 5 ms base", hic_dur2 / MS,
+                    4.0 * HICCUP_DEF * CLK_PERIOD_NS / MS - 0.01, 4.0 * HICCUP_DEF * CLK_PERIOD_NS / MS + 0.05);
+        check_range("second hiccup / first hiccup", hic_dur2 / hic_dur1, 1.98, 2.02);
+        check_eq("interrupted window: strike level 2, not cleared (probe)", strike_int, 2);
+        if ((hic_dur2 / hic_dur1 > 1.98) && (hic_dur2 / hic_dur1 < 2.02)) cover_bin(C_ESC2);
+        wait_sup_state(ST_RUN, 3.0 * MS + (MAX_ON_COUNTS - MIN_ON_COUNTS) * CYC_STEP_DEF * SW_PERIOD_NS);
+        en_falls_before = en_falls;
+        fork
+            begin : window_notel
 
-            if ($realtime < 130.0 * MS) #(130.0 * MS - $realtime);
-            check("Red_LED1 blinking while a strike is outstanding (lit at 130 ms)", Red_LED1 === 1'b1);
-            check("Green_LED also lit: running with a strike outstanding", Green_LED === 1'b1);
-            if ($realtime < 255.0 * MS) #(255.0 * MS - $realtime);
-            check("Red_LED1 blinking: dark at 255 ms, in the off half-period", Red_LED1 === 1'b0);
-            wait_strike(2'd0, t_last_run_entry + CLEAN_DEF * SW_PERIOD_NS + 5.0 * MS - $realtime);
-            check("strike cleared by the default clean-run window", timed_out === 1'b0);
-            check_range("clean-run window from S_RUN entry (ms) = the default 1 s",
-                        ($realtime - t_last_run_entry) / MS,
-                        CLEAN_DEF * SW_PERIOD_NS / MS - 0.5, CLEAN_DEF * SW_PERIOD_NS / MS + 0.5);
-            if (timed_out === 1'b0) cover_bin(C_CLEAN_RESTART);
-            #(2.0 * CLK_PERIOD_NS);
-            check("Red_LED1 dark once the strike clears", Red_LED1 === 1'b0);
+                if ($realtime < 130.0 * MS) #(130.0 * MS - $realtime);
+                check("Red_LED1 blinking while a strike is outstanding (lit at 130 ms)", Red_LED1 === 1'b1);
+                check("Green_LED also lit: running with a strike outstanding", Green_LED === 1'b1);
+                if ($realtime < 255.0 * MS) #(255.0 * MS - $realtime);
+                check("Red_LED1 blinking: dark at 255 ms, in the off half-period", Red_LED1 === 1'b0);
+                wait_strike(2'd0, t_last_run_entry + CLEAN_DEF * SW_PERIOD_NS + 5.0 * MS - $realtime);
+                check("strike cleared by the default clean-run window", timed_out === 1'b0);
+                check_range("clean-run window from S_RUN entry (ms) = the default 1 s",
+                            ($realtime - t_last_run_entry) / MS,
+                            CLEAN_DEF * SW_PERIOD_NS / MS - 0.5, CLEAN_DEF * SW_PERIOD_NS / MS + 0.5);
+                if (timed_out === 1'b0) cover_bin(C_CLEAN_RESTART);
+                #(2.0 * CLK_PERIOD_NS);
+                check("Red_LED1 dark once the strike clears", Red_LED1 === 1'b0);
+
+            end
+            begin : corner_notel
+
+                random_duty_corners(16);
+                random_glitch_corners(6);
+                random_ignored_traffic(48);
+
+            end
+        join
+        $sformat(msg, "Red_LED1 blinked through the outstanding strike (rising edges in %0.1f ms)",
+                 ($realtime - t_strike) / MS);
+        check_range(msg, red1_rises - red1_before,
+                    ($realtime - t_strike) / (250.0 * MS) - 1.0, ($realtime - t_strike) / (250.0 * MS) + 1.0);
+        check_eq("En never fell during the window, keyed SPI disables included", en_falls - en_falls_before, 0);
+        check_eq("ignored SPI reads during the window: MISO bits high", miso_high_bits, 0);
+
+        // ---------------------------------------------------------------
+        // Phase 8: OTP and UVLO shutdown and recovery
+        // ---------------------------------------------------------------
+        note("Phase 8: OTP and UVLO shutdown and recovery, UVLO in soft start");
+        OTP_trig = 1'b1;
+        t_event = $realtime;
+        #(0.9 * MS);
+        check("OTP: En still high at 0.9 ms (1 ms debounce)", En === 1'b1);
+        wait_en(1'b0, 0.5 * MS);
+        check_range("OTP: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        #(1.0 * US);
+        check("OTP: Red_LED2 lit", Red_LED2 === 1'b1);
+        check("OTP: Green_LED dark", Green_LED === 1'b0);
+        check_eq("OTP: supervisor in S_OFF (probe)", sup_state, ST_OFF);
+        OTP_trig = 1'b0;
+        t_event = $realtime;
+        #(150.0 * US);
+        check("OTP cleared: still off at 150 us (200 us release)", En === 1'b0);
+        wait_en(1'b1, 0.5 * MS);
+        check_range("OTP cleared: automatic restart after (us)", ($realtime - t_event) / US, 199.0, 205.0);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after OTP (probe)", last_state, ST_RUN);
+
+        UVLO_trig = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 2.0 * MS);
+        check_range("UVLO: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        #(1.0 * US);
+        check("UVLO: Red_LED3 lit", Red_LED3 === 1'b1);
+        UVLO_trig = 1'b0;
+        wait_en(1'b1, 0.5 * MS);
+        check("UVLO cleared: restart", En === 1'b1);
+        check("UVLO cleared: Red_LED3 dark", Red_LED3 === 1'b0);
+        // Undervoltage again while the ramp is still running: S_SS -> S_OFF.
+        #(100.0 * US);
+        check("soft start still in progress", ss_active_int === 1'b1);
+        UVLO_trig = 1'b1;
+        wait_en(1'b0, 2.0 * MS);
+        check("UVLO during soft start: off before the ramp completes", run_active_int === 1'b0);
+        UVLO_trig = 1'b0;
+        wait_en(1'b1, 0.5 * MS);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN after UVLO in soft start (probe)", last_state, ST_RUN);
+
+        // ---------------------------------------------------------------
+        // Phase 9: SPI disable ignored, OTP during a hiccup
+        // ---------------------------------------------------------------
+        note("Phase 9: keyed SPI disable ignored while running, OTP in a hiccup");
+        // The frames that stop a full build in its phase 9
+        spi_tx[0] = 8'h00;
+        spi_frame_ignored(A_CONTROL, 1);
+        spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
+        spi_frame_ignored(A_DISKEY, 2);
+        #(1.0 * US);
+        check("keyed SPI disable has no effect: En still high", En === 1'b1);
+        check_eq("keyed SPI disable has no effect: still S_RUN (probe)", sup_state, ST_RUN);
+        check("spi_enable still tied high (probe)", sup_spi_en === 1'b1);
+
+        // Over-temperature arriving during a hiccup cool-down: S_HICCUP -> S_OFF.
+        CP_trig = 1'b1;
+        wait_en(1'b0, 100.0 * US);
+        CP_trig = 1'b0;
+        OTP_trig = 1'b1;
+        #(1.5 * MS);
+        check("OTP during the cool-down: still off", En === 1'b0);
+        check_eq("OTP during the cool-down: S_OFF, not a retry (probe)", sup_state, ST_OFF);
+        OTP_trig = 1'b0;
+        wait_en(1'b1, 1.0 * MS);
+        check("OTP cleared after the cool-down: restart", En === 1'b1);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("back in S_RUN (probe)", last_state, ST_RUN);
+
+        // ---------------------------------------------------------------
+        // Phase 11: analog OVP trips the SCR
+        // ---------------------------------------------------------------
+        note("Phase 11: analog OVP trip, reset-button recovery");
+        ovp_event = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b0, 2.0 * MS);
+        check_range("OVP: off after latch_stat debounce (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
+        check("OVP: the CPLD's own latch_out stays low", latch_out === 1'b0);
+        #(1.0 * US);
+        check("OVP: Red_LED1 solid", Red_LED1 === 1'b1);
+        ovp_event = 1'b0;
+        #(2.0 * MS);
+        check("OVP: no restart while the SCR is latched", En === 1'b0);
+        do_reset;
+        #(300.0 * US);
+        check("reset button: SCR cleared", latch_stat === 1'b0);
+        check("reset button: Red_LED1 dark", Red_LED1 === 1'b0);
+        check_eq("reset button: strike level cleared (probe)", strike_int, 0);
+        wait_en(1'b1, 21.0 * MS);
+        check("restart after reset (20 ms switch debounce again)", En === 1'b1);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("S_RUN after reset (probe)", last_state, ST_RUN);
+
+        // ---------------------------------------------------------------
+        // Phase 12: strikes accumulate to latch, on the default hiccup times
+        // ---------------------------------------------------------------
+        note("Phase 12: persistent overcurrent, strikes to latch, default hiccup times");
+        CP_trig = 1'b1;
+        strike_hiccups = 0;
+        t_event = $realtime;
+        // RUN trip -> hiccup (10 ms) -> SS trip -> hiccup (20 ms) -> SS trip -> latch
+        while ((latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS)) begin
+
+            wait_en(1'b0, 60.0 * MS - ($realtime - t_event));
+            // latch_assert lands one clock after the hiccup entry that earns it,
+            // so look a few clocks later before deciding this was a retry
+            #(5.0 * CLK_PERIOD_NS);
+            if (latch_out !== 1'b1) strike_hiccups = strike_hiccups + 1;
+            while ((En !== 1'b1) && (latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS)) begin
+
+                @(posedge clk);
+
+            end
 
         end
-        begin : corner_notel
+        check("latch_out asserted by repeated overcurrent", latch_out === 1'b1);
+        check_eq("retries before the latch = MAX_STRIKES-1", strike_hiccups, MAX_STRIKES_DEF - 1);
+        check_range("first trip to latch (ms): 10 + 20 ms of hiccups and three trips",
+                    ($realtime - t_event) / MS, 30.0, 30.4);
+        check("En low once latched", En === 1'b0);
+        CP_trig = 1'b0;
+        #(10.0 * MS);
+        check("no restart 10 ms after the fault clears", En === 1'b0);
+        check("latch_out still set", latch_out === 1'b1);
+        check("SCR read back latched", latch_stat === 1'b1);
+        check("Red_LED1 solid", Red_LED1 === 1'b1);
+        check_eq("strike level at latch (probe)", strike_int, MAX_STRIKES_DEF);
+        do_reset;
+        #(10.0 * US);
+        check("reset clears latch_out", latch_out === 1'b0);
+        #(300.0 * US);
+        check("reset clears the SCR", latch_stat === 1'b0);
+        check_eq("reset clears the strike level (probe)", strike_int, 0);
 
-            random_duty_corners(16);
-            random_glitch_corners(6);
-            random_ignored_traffic(48);
+        // ---------------------------------------------------------------
+        // Phase 13: restart after a latch, enable switch, stuck modulator
+        // ---------------------------------------------------------------
+        note("Phase 13: restart after a latch, enable switch off and on, modulator stuck high");
+        wait_en(1'b1, 21.0 * MS);
+        check("latched part restarts after the reset button", En === 1'b1);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("S_RUN after the latch is cleared (probe)", last_state, ST_RUN);
+        // A modulator stuck high: one pulse cut at the ceiling, then nothing until
+        // the modulator falls - pwm_mask holds the envelope closed.
+        @(negedge PWM_out);
+                #(1.0);   // let the pulse monitor, woken by the same edge, record it
+        pulses_before = pwm_pulses;
+        osc_stuck_high = 1'b1;
+        #(20.0 * SW_PERIOD_NS);
+        check("stuck modulator: at most one PWM_out pulse", pwm_pulses - pulses_before <= 1);
+        check("stuck modulator: PWM_out held low", PWM_out === 1'b0);
+        check_range("stuck modulator: that pulse capped at MAX_ON+1 clocks (ns)", pwm_width_ns,
+                    0.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        if ((pwm_pulses - pulses_before <= 1) && (PWM_out === 1'b0)) cover_bin(C_STUCK);
+        osc_stuck_high = 1'b0;
+        #(5.0 * SW_PERIOD_NS);
+        // enable switch: release and press, 20 ms of debounce each way
+        en_from_switch = 1'b0;
+        t_event = $realtime;
+        #(19.8 * MS);
+        check("switch released: En still high at 19.8 ms", En === 1'b1);
+        wait_en(1'b0, 1.0 * MS);
+        check_range("switch released: off after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+        en_from_switch = 1'b1;
+        t_event = $realtime;
+        wait_en(1'b1, 21.0 * MS);
+        check_range("switch pressed: restart after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
+        #(10.0 * US);
+        check("switch pressed: back in soft start", ss_active_int === 1'b1);
 
-        end
-    join
-    $sformat(msg, "Red_LED1 blinked through the outstanding strike (rising edges in %0.1f ms)",
-             ($realtime - t_strike) / MS);
-    check_range(msg, red1_rises - red1_before,
-                ($realtime - t_strike) / (250.0 * MS) - 1.0, ($realtime - t_strike) / (250.0 * MS) + 1.0);
-    check_eq("En never fell during the window, keyed SPI disables included", en_falls - en_falls_before, 0);
-    check_eq("ignored SPI reads during the window: MISO bits high", miso_high_bits, 0);
+        // ---------------------------------------------------------------
+        // Run-long invariants, scoreboard
+        // ---------------------------------------------------------------
+        extra_phases;
 
-    // ---------------------------------------------------------------
-    // Phase 8: OTP and UVLO shutdown and recovery
-    // ---------------------------------------------------------------
-    note("Phase 8: OTP and UVLO shutdown and recovery, UVLO in soft start");
-    OTP_trig = 1'b1;
-    t_event = $realtime;
-    #(0.9 * MS);
-    check("OTP: En still high at 0.9 ms (1 ms debounce)", En === 1'b1);
-    wait_en(1'b0, 0.5 * MS);
-    check_range("OTP: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    #(1.0 * US);
-    check("OTP: Red_LED2 lit", Red_LED2 === 1'b1);
-    check("OTP: Green_LED dark", Green_LED === 1'b0);
-    check_eq("OTP: supervisor in S_OFF (probe)", sup_state, ST_OFF);
-    OTP_trig = 1'b0;
-    t_event = $realtime;
-    #(150.0 * US);
-    check("OTP cleared: still off at 150 us (200 us release)", En === 1'b0);
-    wait_en(1'b1, 0.5 * MS);
-    check_range("OTP cleared: automatic restart after (us)", ($realtime - t_event) / US, 199.0, 205.0);
-    wait_sup_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after OTP (probe)", last_state, ST_RUN);
+        note("Run-long invariants and scoreboard");
+        check_eq("MISO high at any time after reset (clocks; tied low without telemetry)", miso_idle, 0);
+        check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
+        check_eq("MISO bits sampled high during every ignored SPI read", miso_high_bits, 0);
+        $sformat(msg, "              (%0d SPI frames sent to the reduced build, none with any effect)",
+                 spi_frames_sent);
+        emit(msg);
+        check_eq("switch_supply mirrored PGOOD on every clock (mismatches)", mirror_errors, 0);
+        check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
+        check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
+        check_eq("latch_out falls without a reset", latch_drops, 0);
+        check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
+        check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
+        $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
+        emit(msg);
+        check_eq("PGOOD high outside S_RUN (clocks)", pgood_not_run, 0);
+        check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
+        check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
+        check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
+        check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
 
-    UVLO_trig = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 2.0 * MS);
-    check_range("UVLO: shutdown after (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    #(1.0 * US);
-    check("UVLO: Red_LED3 lit", Red_LED3 === 1'b1);
-    UVLO_trig = 1'b0;
-    wait_en(1'b1, 0.5 * MS);
-    check("UVLO cleared: restart", En === 1'b1);
-    check("UVLO cleared: Red_LED3 dark", Red_LED3 === 1'b0);
-    // Undervoltage again while the ramp is still running: S_SS -> S_OFF.
-    #(100.0 * US);
-    check("soft start still in progress", ss_active_int === 1'b1);
-    UVLO_trig = 1'b1;
-    wait_en(1'b0, 2.0 * MS);
-    check("UVLO during soft start: off before the ramp completes", run_active_int === 1'b0);
-    UVLO_trig = 1'b0;
-    wait_en(1'b1, 0.5 * MS);
-    wait_sup_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN after UVLO in soft start (probe)", last_state, ST_RUN);
-
-    // ---------------------------------------------------------------
-    // Phase 9: SPI disable ignored, OTP during a hiccup
-    // ---------------------------------------------------------------
-    note("Phase 9: keyed SPI disable ignored while running, OTP in a hiccup");
-    // The frames that stop a full build in its phase 9
-    spi_tx[0] = 8'h00;
-    spi_frame_ignored(A_CONTROL, 1);
-    spi_tx[0] = DISABLE_KEY; spi_tx[1] = 8'h00;
-    spi_frame_ignored(A_DISKEY, 2);
-    #(1.0 * US);
-    check("keyed SPI disable has no effect: En still high", En === 1'b1);
-    check_eq("keyed SPI disable has no effect: still S_RUN (probe)", sup_state, ST_RUN);
-    check("spi_enable still tied high (probe)", sup_spi_en === 1'b1);
-
-    // Over-temperature arriving during a hiccup cool-down: S_HICCUP -> S_OFF.
-    CP_trig = 1'b1;
-    wait_en(1'b0, 100.0 * US);
-    CP_trig = 1'b0;
-    OTP_trig = 1'b1;
-    #(1.5 * MS);
-    check("OTP during the cool-down: still off", En === 1'b0);
-    check_eq("OTP during the cool-down: S_OFF, not a retry (probe)", sup_state, ST_OFF);
-    OTP_trig = 1'b0;
-    wait_en(1'b1, 1.0 * MS);
-    check("OTP cleared after the cool-down: restart", En === 1'b1);
-    wait_sup_state(ST_RUN, 15.0 * MS);
-    check_eq("back in S_RUN (probe)", last_state, ST_RUN);
-
-    // ---------------------------------------------------------------
-    // Phase 11: analog OVP trips the SCR
-    // ---------------------------------------------------------------
-    note("Phase 11: analog OVP trip, reset-button recovery");
-    ovp_event = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b0, 2.0 * MS);
-    check_range("OVP: off after latch_stat debounce (ms)", ($realtime - t_event) / MS, 0.99, 1.02);
-    check("OVP: the CPLD's own latch_out stays low", latch_out === 1'b0);
-    #(1.0 * US);
-    check("OVP: Red_LED1 solid", Red_LED1 === 1'b1);
-    ovp_event = 1'b0;
-    #(2.0 * MS);
-    check("OVP: no restart while the SCR is latched", En === 1'b0);
-    do_reset;
-    #(300.0 * US);
-    check("reset button: SCR cleared", latch_stat === 1'b0);
-    check("reset button: Red_LED1 dark", Red_LED1 === 1'b0);
-    check_eq("reset button: strike level cleared (probe)", strike_int, 0);
-    wait_en(1'b1, 21.0 * MS);
-    check("restart after reset (20 ms switch debounce again)", En === 1'b1);
-    wait_sup_state(ST_RUN, 15.0 * MS);
-    check_eq("S_RUN after reset (probe)", last_state, ST_RUN);
-
-    // ---------------------------------------------------------------
-    // Phase 12: strikes accumulate to latch, on the default hiccup times
-    // ---------------------------------------------------------------
-    note("Phase 12: persistent overcurrent, strikes to latch, default hiccup times");
-    CP_trig = 1'b1;
-    strike_hiccups = 0;
-    t_event = $realtime;
-    // RUN trip -> hiccup (10 ms) -> SS trip -> hiccup (20 ms) -> SS trip -> latch
-    while ((latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS)) begin
-
-        wait_en(1'b0, 60.0 * MS - ($realtime - t_event));
-        // latch_assert lands one clock after the hiccup entry that earns it,
-        // so look a few clocks later before deciding this was a retry
-        #(5.0 * CLK_PERIOD_NS);
-        if (latch_out !== 1'b1) strike_hiccups = strike_hiccups + 1;
-        while ((En !== 1'b1) && (latch_out !== 1'b1) && ($realtime - t_event < 60.0 * MS))
-            @(posedge clk);
+        finish_run("normal end");
 
     end
-    check("latch_out asserted by repeated overcurrent", latch_out === 1'b1);
-    check_eq("retries before the latch = MAX_STRIKES-1", strike_hiccups, MAX_STRIKES_DEF - 1);
-    check_range("first trip to latch (ms): 10 + 20 ms of hiccups and three trips",
-                ($realtime - t_event) / MS, 30.0, 30.4);
-    check("En low once latched", En === 1'b0);
-    CP_trig = 1'b0;
-    #(10.0 * MS);
-    check("no restart 10 ms after the fault clears", En === 1'b0);
-    check("latch_out still set", latch_out === 1'b1);
-    check("SCR read back latched", latch_stat === 1'b1);
-    check("Red_LED1 solid", Red_LED1 === 1'b1);
-    check_eq("strike level at latch (probe)", strike_int, MAX_STRIKES_DEF);
-    do_reset;
-    #(10.0 * US);
-    check("reset clears latch_out", latch_out === 1'b0);
-    #(300.0 * US);
-    check("reset clears the SCR", latch_stat === 1'b0);
-    check_eq("reset clears the strike level (probe)", strike_int, 0);
-
-    // ---------------------------------------------------------------
-    // Phase 13: restart after a latch, enable switch, stuck modulator
-    // ---------------------------------------------------------------
-    note("Phase 13: restart after a latch, enable switch off and on, modulator stuck high");
-    wait_en(1'b1, 21.0 * MS);
-    check("latched part restarts after the reset button", En === 1'b1);
-    wait_sup_state(ST_RUN, 15.0 * MS);
-    check_eq("S_RUN after the latch is cleared (probe)", last_state, ST_RUN);
-    // A modulator stuck high: one pulse cut at the ceiling, then nothing until
-    // the modulator falls - pwm_mask holds the envelope closed.
-    @(negedge PWM_out);
-            #(1.0);   // let the pulse monitor, woken by the same edge, record it
-    pulses_before = pwm_pulses;
-    osc_stuck_high = 1'b1;
-    #(20.0 * SW_PERIOD_NS);
-    check("stuck modulator: at most one PWM_out pulse", pwm_pulses - pulses_before <= 1);
-    check("stuck modulator: PWM_out held low", PWM_out === 1'b0);
-    check_range("stuck modulator: that pulse capped at MAX_ON+1 clocks (ns)", pwm_width_ns,
-                0.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
-    if ((pwm_pulses - pulses_before <= 1) && (PWM_out === 1'b0)) cover_bin(C_STUCK);
-    osc_stuck_high = 1'b0;
-    #(5.0 * SW_PERIOD_NS);
-    // enable switch: release and press, 20 ms of debounce each way
-    en_from_switch = 1'b0;
-    t_event = $realtime;
-    #(19.8 * MS);
-    check("switch released: En still high at 19.8 ms", En === 1'b1);
-    wait_en(1'b0, 1.0 * MS);
-    check_range("switch released: off after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
-    en_from_switch = 1'b1;
-    t_event = $realtime;
-    wait_en(1'b1, 21.0 * MS);
-    check_range("switch pressed: restart after (ms)", ($realtime - t_event) / MS, 19.99, 20.05);
-    #(10.0 * US);
-    check("switch pressed: back in soft start", ss_active_int === 1'b1);
-
-    // ---------------------------------------------------------------
-    // Run-long invariants, scoreboard
-    // ---------------------------------------------------------------
-    extra_phases;
-
-    note("Run-long invariants and scoreboard");
-    check_eq("MISO high at any time after reset (clocks; tied low without telemetry)", miso_idle, 0);
-    check_eq("MISO x or z after reset (clocks)", miso_xz, 0);
-    check_eq("MISO bits sampled high during every ignored SPI read", miso_high_bits, 0);
-    $sformat(msg, "              (%0d SPI frames sent to the reduced build, none with any effect)",
-             spi_frames_sent);
-    emit(msg);
-    check_eq("switch_supply mirrored PGOOD on every clock (mismatches)", mirror_errors, 0);
-    check_eq("PGOOD high with En low for 2+ clocks", pgood_no_en, 0);
-    check_eq("PWM_out pulses above the MAX_ON ceiling", backstop_errors, 0);
-    check_eq("latch_out falls without a reset", latch_drops, 0);
-    check_eq("FSM scoreboard: state mismatches", sm_mismatch, 0);
-    check_eq("FSM scoreboard: En mismatches", en_mismatch, 0);
-    $sformat(msg, "              (FSM scoreboard compared %0d clocks)", sm_compares);
-    emit(msg);
-    check_eq("PGOOD high outside S_RUN (clocks)", pgood_not_run, 0);
-    check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
-    check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
-    check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
-    check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
-
-    finish_run("normal end");
-
-end
 
 end
 endgenerate

@@ -40,68 +40,68 @@ logic [TIMER_W-1:0] cool_counter;
 
 always_comb begin
 
-    /*
-Purpose:
----
-Derive the cool-down interval for the present strike level. Each strike
-doubles the interval, so a fault that keeps recurring is given
-progressively longer to clear.
+      /*
+  Purpose:
+  ---
+  Derive the cool-down interval for the present strike level. Each strike
+  doubles the interval, so a fault that keeps recurring is given
+  progressively longer to clear.
 
-strike_counter increments on entry to S_HICCUP, one clock after
-hiccup_active rises, so cool_down_target steps up while cool_counter is
-still near zero. The match below simply occurs at the new, larger target;
-the target only ever grows, so the counter can never step past it.
-*/
+  strike_counter increments on entry to S_HICCUP, one clock after
+  hiccup_active rises, so cool_down_target steps up while cool_counter is
+  still near zero. The match below simply occurs at the new, larger target;
+  the target only ever grows, so the counter can never step past it.
+  */
 
-cool_down_target = TIMER_W'(base_clks)<<strike_level;
+  cool_down_target = TIMER_W'(base_clks)<<strike_level;
 
 end
 
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-    /*
-Purpose:
----
-Run the cool-down while the supervisor holds S_HICCUP, and assert
-hiccup_done once the interval has elapsed. The counter is held at target
-rather than reset, so a waveform distinguishes a finished cool-down from
-one that has just re-armed.
+      /*
+  Purpose:
+  ---
+  Run the cool-down while the supervisor holds S_HICCUP, and assert
+  hiccup_done once the interval has elapsed. The counter is held at target
+  rather than reset, so a waveform distinguishes a finished cool-down from
+  one that has just re-armed.
 
-Clocks are counted rather than switching cycles: the power stage is
-disabled throughout S_HICCUP, so there is no PWM and no cycle boundary
-to count.
+  Clocks are counted rather than switching cycles: the power stage is
+  disabled throughout S_HICCUP, so there is no PWM and no cycle boundary
+  to count.
 
-The !hiccup_active branch clears both the counter and hiccup_done on
-leaving the state. Without it hiccup_done would stay asserted into S_SS
-and S_RUN, and the next entry into S_HICCUP would exit immediately on the
-stale flag - skipping every cool-down after the first, which is exactly
-the case the escalating interval exists for.
-*/
+  The !hiccup_active branch clears both the counter and hiccup_done on
+  leaving the state. Without it hiccup_done would stay asserted into S_SS
+  and S_RUN, and the next entry into S_HICCUP would exit immediately on the
+  stale flag - skipping every cool-down after the first, which is exactly
+  the case the escalating interval exists for.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  cool_counter <= 0;
-  hiccup_done <= 0;
+    cool_counter <= 0;
+    hiccup_done <= 0;
 
-end
+  end
 
-else if (!hiccup_active) begin
+  else if (!hiccup_active) begin
 
-  hiccup_done <= 1'b0;
-  cool_counter <= 0;
+    hiccup_done <= 1'b0;
+    cool_counter <= 0;
 
-end
+  end
 
-else if (cool_counter == cool_down_target) begin
+  else if (cool_counter == cool_down_target) begin
 
-  hiccup_done  <= 1'b1;
-  cool_counter <= cool_counter;   // hold
+    hiccup_done  <= 1'b1;
+    cool_counter <= cool_counter;   // hold
 
-end
+  end
 
 
-else cool_counter <= cool_counter + 1;
+  else cool_counter <= cool_counter + 1;
 
 end
 

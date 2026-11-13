@@ -236,88 +236,88 @@ end
 // ============================================================
 initial begin
 
-/*
-Purpose:
----
-Drives the directed segments in order. Most segments carry no checks: the
-bound checker evaluates on every edge regardless, and the segments exist
-to make its antecedents occur. Add check() only where the claim is
-sub-cycle or needs a reference model.
-*/
+    /*
+    Purpose:
+    ---
+    Drives the directed segments in order. Most segments carry no checks: the
+    bound checker evaluates on every edge regardless, and the segments exist
+    to make its antecedents occur. Add check() only where the claim is
+    sub-cycle or needs a reference model.
+    */
 
-$display("\n==== %s ====\n", TB_NAME);
+    $display("\n==== %s ====\n", TB_NAME);
 
 
-/*
- Group 1: reset.
- ---
- do_reset drives rst_n high before asserting it, so the fall is a genuine
- negedge and the async clear reaches the flops before any clock edge.
- Exercises a_pwm_out_low_on_reset.
- */
+    /*
+     Group 1: reset.
+     ---
+     do_reset drives rst_n high before asserting it, so the fall is a genuine
+     negedge and the async clear reaches the flops before any clock edge.
+     Exercises a_pwm_out_low_on_reset.
+     */
 
-do_reset();
+    do_reset();
 
- /*
- Group 2: short pulse, well under the ceiling.
- ---
- CEILING-2 clocks high, so run_counter never reaches max_on_counts and the
- pulse passes through untouched one clock late. Exercises the lower bound,
- a_short_pulses_pass - without which a DUT whose output never rose would
- satisfy every other property in the checker.
- */
+     /*
+     Group 2: short pulse, well under the ceiling.
+     ---
+     CEILING-2 clocks high, so run_counter never reaches max_on_counts and the
+     pulse passes through untouched one clock late. Exercises the lower bound,
+     a_short_pulses_pass - without which a DUT whose output never rose would
+     satisfy every other property in the checker.
+     */
 
-drive_pulse(CEILING-2,4);
+    drive_pulse(CEILING-2,4);
     
 
- /*
-Group 3: long pulse, well over the ceiling.
----
-CEILING+5 clocks high. The output must drop two edges after run_counter
-reaches the ceiling - pulse_allowed is registered from run_counter and
-pwm_out from pulse_allowed - and stay down for the rest of the high phase.
-Exercises the upper bound and the no-double-pulse property together.
-*/
+     /*
+    Group 3: long pulse, well over the ceiling.
+    ---
+    CEILING+5 clocks high. The output must drop two edges after run_counter
+    reaches the ceiling - pulse_allowed is registered from run_counter and
+    pwm_out from pulse_allowed - and stay down for the rest of the high phase.
+    Exercises the upper bound and the no-double-pulse property together.
+    */
 
-drive_pulse(CEILING + 5, 4);
+    drive_pulse(CEILING + 5, 4);
 
- /*
-Group 4: the boundary, either side.
----
-Exactly CEILING, then CEILING+1. This is where an off-by-one in the
-comparison lives: a pulse of exactly the ceiling must still be truncated,
-one of CEILING-1 must not. Two pulses rather than one because the two
-cases take different paths through the comparison.
-*/
+     /*
+    Group 4: the boundary, either side.
+    ---
+    Exactly CEILING, then CEILING+1. This is where an off-by-one in the
+    comparison lives: a pulse of exactly the ceiling must still be truncated,
+    one of CEILING-1 must not. Two pulses rather than one because the two
+    cases take different paths through the comparison.
+    */
 
-drive_pulse(CEILING, 4);
-drive_pulse(CEILING+1,4);
+    drive_pulse(CEILING, 4);
+    drive_pulse(CEILING+1,4);
 
-/*
-Group 5: back-to-back long pulses.
----
-Two truncated pulses with only three low clocks between them. Confirms
-pulse_allowed re-arms on the low phase: if it stayed cleared, the second
-pulse would be suppressed entirely and a_short_pulses_pass would fire.
-*/
+    /*
+    Group 5: back-to-back long pulses.
+    ---
+    Two truncated pulses with only three low clocks between them. Confirms
+    pulse_allowed re-arms on the low phase: if it stayed cleared, the second
+    pulse would be suppressed entirely and a_short_pulses_pass would fire.
+    */
 
-drive_pulse(CEILING + 4,3);
-drive_pulse(CEILING + 4,3);
+    drive_pulse(CEILING + 4,3);
+    drive_pulse(CEILING + 4,3);
 
-/*
- Group 6: input stuck high.
- ---
- Three times the ceiling in one pulse, checking that run_counter saturates
- rather than wrapping. A wrap would drop the count back below the ceiling,
- re-arm pulse_allowed mid-pulse and hand the gate driver a second turn-on
- inside one switching cycle - the shoot-through hazard the DUT header
- warns about.
- */
+    /*
+     Group 6: input stuck high.
+     ---
+     Three times the ceiling in one pulse, checking that run_counter saturates
+     rather than wrapping. A wrap would drop the count back below the ceiling,
+     re-arm pulse_allowed mid-pulse and hand the gate driver a second turn-on
+     inside one switching cycle - the shoot-through hazard the DUT header
+     warns about.
+     */
 
-drive_pulse (3*CEILING, 4);
+    drive_pulse (3*CEILING, 4);
 
 
-finish_run("normal end");
+    finish_run("normal end");
 
 
 end

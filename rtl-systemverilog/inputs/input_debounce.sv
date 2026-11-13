@@ -90,50 +90,58 @@ logic [CNT_W-1:0] target_clks;
 
 always_comb begin
 
-/*
-Purpose:
----
-Select the qualification time for whichever transition is pending. The
-direction is implied by flag_in differing from flag_out: if flag_in is
-high while flag_out is low, an assert is pending and ASSERT_CLKS
-applies. Picking the target combinationally keeps a single counter and
-a single compare rather than duplicating the counter per direction.
-*/
+  /*
+  Purpose:
+  ---
+  Select the qualification time for whichever transition is pending. The
+  direction is implied by flag_in differing from flag_out: if flag_in is
+  high while flag_out is low, an assert is pending and ASSERT_CLKS
+  applies. Picking the target combinationally keeps a single counter and
+  a single compare rather than duplicating the counter per direction.
+  */
 
-target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
+  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);
 
 end
 
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Count the clocks for which flag_in has disagreed with the believed
-state, and clear the count the moment they agree again. Only a
-continuously stable input therefore qualifies: a glitch part-way
-through an attempted transition restarts the count from zero.
+  /*
+  Purpose:
+  ---
+  Count the clocks for which flag_in has disagreed with the believed
+  state, and clear the count the moment they agree again. Only a
+  continuously stable input therefore qualifies: a glitch part-way
+  through an attempted transition restarts the count from zero.
 
-The count clears on the edge it reaches its target, which is the edge
-flag_out flips on. The next window therefore starts from zero even when
-it begins on the very next clock - flag_in reversing straight after the
-flip - and has to earn its full qualification time.
-*/
+  The count clears on the edge it reaches its target, which is the edge
+  flag_out flips on. The next window therefore starts from zero even when
+  it begins on the very next clock - flag_in reversing straight after the
+  flip - and has to earn its full qualification time.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  disagree_counter <= 0;
-
-end
-
-else if (flag_in != flag_out) begin
-
-  if (disagree_counter < target_clks - 1'b1) begin
-
-    disagree_counter <= disagree_counter + 1;
+    disagree_counter <= 0;
 
   end
+
+  else if (flag_in != flag_out) begin
+
+    if (disagree_counter < target_clks - 1'b1) begin
+
+      disagree_counter <= disagree_counter + 1;
+
+    end
+    else begin
+
+      disagree_counter <= 0;
+
+    end
+
+  end
+
   else begin
 
     disagree_counter <= 0;
@@ -142,42 +150,34 @@ else if (flag_in != flag_out) begin
 
 end
 
-else begin
-
-  disagree_counter <= 0;
-
-end
-
-end
-
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Flip the believed state once the disagreement has persisted for the
-selected qualification time. flag_out is registered rather than driven
-combinationally from the compare so that the supervisor sees a clean
-single-clock transition with no decode glitch.
+  /*
+  Purpose:
+  ---
+  Flip the believed state once the disagreement has persisted for the
+  selected qualification time. flag_out is registered rather than driven
+  combinationally from the compare so that the supervisor sees a clean
+  single-clock transition with no decode glitch.
 
-RESET_VALUE is fail-safe high for the protection flags, matching the
-input_sync instances feeding them, so the supervisor sees a fault
-asserted until the real comparator level has qualified rather than
-treating an unknown rail as healthy.
-*/
+  RESET_VALUE is fail-safe high for the protection flags, matching the
+  input_sync instances feeding them, so the supervisor sees a fault
+  asserted until the real comparator level has qualified rather than
+  treating an unknown rail as healthy.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  flag_out <= RESET_VALUE;
+    flag_out <= RESET_VALUE;
 
-end
+  end
 
-else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin
+  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin
 
-  flag_out <= flag_in;
+    flag_out <= flag_in;
 
-end
+  end
 
 end
 

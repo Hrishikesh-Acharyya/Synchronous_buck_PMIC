@@ -514,83 +514,83 @@ endfunction
 // ==================================================================
 always_comb begin
 
-/*
-Purpose:
----
-Present the addressed byte combinationally. Holds no state: a wide mux routing
-existing signals. Default assignment before the case prevents latches on
-unimplemented addresses, which return 0x00 by contract.
-*/
+  /*
+  Purpose:
+  ---
+  Present the addressed byte combinationally. Holds no state: a wide mux routing
+  existing signals. Default assignment before the case prevents latches on
+  unimplemented addresses, which return 0x00 by contract.
+  */
 
-rdata = 8'h00;
+  rdata = 8'h00;
 
-case(addr) 
+  case(addr) 
 
-  //identity
-  ADDR_PMIC_ID    :  rdata = PMIC_ID;
-  ADDR_VERSION    :  rdata = VERSION_ID;
-  ADDR_CAPABILITY :  rdata = CAPABILITY_VAL;
-  ADDR_SCRATCH    :  rdata = scratch_r;
+    //identity
+    ADDR_PMIC_ID    :  rdata = PMIC_ID;
+    ADDR_VERSION    :  rdata = VERSION_ID;
+    ADDR_CAPABILITY :  rdata = CAPABILITY_VAL;
+    ADDR_SCRATCH    :  rdata = scratch_r;
 
-  //telemetry
+    //telemetry
 
-  // STATUS packs the whole machine state into one byte, so a host that
-  // polls one address learns everything it needs about its own last
-  // command as well as the converter.
-  ADDR_STATUS     : rdata = {write_rejected,           // [7]
-                                     disable_armed,    // [6]
-                                     spi_enable,       // [5]
-                                     en_switch,        // [4]
-                                     latch_state,      // [3]
-                                     pgood,            // [2]
-                                     sup_state};       // [1:0]
+    // STATUS packs the whole machine state into one byte, so a host that
+    // polls one address learns everything it needs about its own last
+    // command as well as the converter.
+    ADDR_STATUS     : rdata = {write_rejected,           // [7]
+                                       disable_armed,    // [6]
+                                       spi_enable,       // [5]
+                                       en_switch,        // [4]
+                                       latch_state,      // [3]
+                                       pgood,            // [2]
+                                       sup_state};       // [1:0]
 
-  ADDR_FAULT_FLAGS  :  rdata   = {5'b0, cp_state, otp_state, uvlo_state};
-  ADDR_STRIKE_LEVEL :  rdata   = 8'(strike_level);
-  ADDR_DUTY_COUNT   :  rdata   = (duty_count);
-  ADDR_PREV_PERIOD  :  rdata   = (prev_period);
-  ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
-  ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
-  ADDR_TIME_0       :  rdata   = rd_first ? timestamp_ms[7:0]  : timestamp_snap[7:0];
-  ADDR_TIME_1       :  rdata   = rd_first ? timestamp_ms[15:8] : timestamp_snap[15:8];
-  ADDR_TIME_2       :  rdata   = rd_first ? 8'(timestamp_ms[TIMESTAMP_W-1:16])                                 : 8'(timestamp_snap[TIMESTAMP_W-1:16]);
-  ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
-  ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
-  ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);
-  ADDR_FTIME_0      :  rdata   = fault_time[7:0];
-  ADDR_FTIME_1      :  rdata   = fault_time[15:8];
-  ADDR_FTIME_2      :  rdata   = 8'(fault_time[TIMESTAMP_W-1:16]);
+    ADDR_FAULT_FLAGS  :  rdata   = {5'b0, cp_state, otp_state, uvlo_state};
+    ADDR_STRIKE_LEVEL :  rdata   = 8'(strike_level);
+    ADDR_DUTY_COUNT   :  rdata   = (duty_count);
+    ADDR_PREV_PERIOD  :  rdata   = (prev_period);
+    ADDR_FCOUNT_RUN   :  rdata   = 8'(fault_count_run);
+    ADDR_FCOUNT_SS    :  rdata   = 8'(fault_count_ss);
+    ADDR_TIME_0       :  rdata   = rd_first ? timestamp_ms[7:0]  : timestamp_snap[7:0];
+    ADDR_TIME_1       :  rdata   = rd_first ? timestamp_ms[15:8] : timestamp_snap[15:8];
+    ADDR_TIME_2       :  rdata   = rd_first ? 8'(timestamp_ms[TIMESTAMP_W-1:16])                                 : 8'(timestamp_snap[TIMESTAMP_W-1:16]);
+    ADDR_BUS_ERR_L    :  rdata   = (bus_err_count[7:0]);
+    ADDR_BUS_ERR_H    :  rdata   = (bus_err_count[15:8]);
+    ADDR_FAULT_CAUSE  :  rdata   = 8'(fault_reg);
+    ADDR_FTIME_0      :  rdata   = fault_time[7:0];
+    ADDR_FTIME_1      :  rdata   = fault_time[15:8];
+    ADDR_FTIME_2      :  rdata   = 8'(fault_time[TIMESTAMP_W-1:16]);
 
-  // ---- control readback ----
-  // CONTROL reports REALITY, not intent: bit 0 is the live enable state.
-  // An armed-but-not-executed disable shows separately in bit 1, so
-  // firmware can tell "armed" from "disabled".
+    // ---- control readback ----
+    // CONTROL reports REALITY, not intent: bit 0 is the live enable state.
+    // An armed-but-not-executed disable shows separately in bit 1, so
+    // firmware can tell "armed" from "disabled".
 
-  ADDR_CONTROL : rdata = {4'b0, wd_restored, en_pending, disable_armed, spi_enable};
-  ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
-  ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
-
-
-  // ---- threshold readback: the committed values, post-clamp. All act at
-  // once except MAX_ON written in S_RUN, which reaches the gate at the next
-  // soft start (see clamp_max_on) ----
-
-  ADDR_TRIP_RUN     : rdata = 8'(trip_run);
-  ADDR_TRIP_SS      : rdata = 8'(trip_ss);
-  ADDR_MAX_STRIKES  : rdata = 8'(max_strikes);
-  ADDR_MAX_ON       : rdata = 8'(max_on_limit);
-  ADDR_HICCUP_0     : rdata = hiccup_base[7:0];
-  ADDR_HICCUP_1     : rdata = hiccup_base[15:8];
-  ADDR_HICCUP_2     : rdata = 8'(hiccup_base[HICCUP_BASE_W-1:16]);
-  ADDR_CYC_PER_STEP : rdata = 8'(cycles_per_step);
-  ADDR_CLEAN_RUN_0  : rdata = clean_run_target[7:0];
-  ADDR_CLEAN_RUN_1  : rdata = clean_run_target[15:8];
-  ADDR_CLEAN_RUN_2  : rdata = 8'(clean_run_target[CLEAN_RUN_W-1:16]);
-
-  default: rdata = 8'h00;
+    ADDR_CONTROL : rdata = {4'b0, wd_restored, en_pending, disable_armed, spi_enable};
+    ADDR_WRITE_KEY    : rdata = {7'b0, unlock_armed};
+    ADDR_DISABLE_KEY :  rdata = {7'b0, disable_armed};
 
 
-endcase
+    // ---- threshold readback: the committed values, post-clamp. All act at
+    // once except MAX_ON written in S_RUN, which reaches the gate at the next
+    // soft start (see clamp_max_on) ----
+
+    ADDR_TRIP_RUN     : rdata = 8'(trip_run);
+    ADDR_TRIP_SS      : rdata = 8'(trip_ss);
+    ADDR_MAX_STRIKES  : rdata = 8'(max_strikes);
+    ADDR_MAX_ON       : rdata = 8'(max_on_limit);
+    ADDR_HICCUP_0     : rdata = hiccup_base[7:0];
+    ADDR_HICCUP_1     : rdata = hiccup_base[15:8];
+    ADDR_HICCUP_2     : rdata = 8'(hiccup_base[HICCUP_BASE_W-1:16]);
+    ADDR_CYC_PER_STEP : rdata = 8'(cycles_per_step);
+    ADDR_CLEAN_RUN_0  : rdata = clean_run_target[7:0];
+    ADDR_CLEAN_RUN_1  : rdata = clean_run_target[15:8];
+    ADDR_CLEAN_RUN_2  : rdata = 8'(clean_run_target[CLEAN_RUN_W-1:16]);
+
+    default: rdata = 8'h00;
+
+
+  endcase
 
 end
 
@@ -600,130 +600,130 @@ end
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Accept threshold writes into temp storage only. NOTHING here reaches a live
-register; BLOCK 4 does that on integrity_OK.
+  /*
+  Purpose:
+  ---
+  Accept threshold writes into temp storage only. NOTHING here reaches a live
+  register; BLOCK 4 does that on integrity_OK.
 
-Writes are accepted regardless of unlock state. The unlock is checked at commit,
-not here, so the gating lives in exactly one place - and so a host that writes
-the threshold before the key still fails cleanly rather than half-succeeding.
+  Writes are accepted regardless of unlock state. The unlock is checked at commit,
+  not here, so the gating lives in exactly one place - and so a host that writes
+  the threshold before the key still fails cleanly rather than half-succeeding.
 
-The dirty bits are cleared on BOTH transaction boundaries: discarded on txn_abort,
-consumed on integrity_OK. Either way no temp survives into the next
-transaction, so a value written in one transaction cannot be committed by a
-later unrelated one.
-*/
+  The dirty bits are cleared on BOTH transaction boundaries: discarded on txn_abort,
+  consumed on integrity_OK. Either way no temp survives into the next
+  transaction, so a value written in one transaction cannot be committed by a
+  later unrelated one.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  temp_dirty    <= '0;
-  temp_trip_run <= '0;
-  temp_trip_ss  <= '0;
-  temp_max_strk <= '0;
-  temp_max_on   <= '0;
-  temp_hiccup_0 <= '0;
-  temp_hiccup_1 <= '0;
-  temp_hiccup_2 <= '0;
-  temp_cyc_step <= '0;
-  temp_clean_0  <= '0;
-  temp_clean_1  <= '0;
-  temp_clean_2  <= '0;
+    temp_dirty    <= '0;
+    temp_trip_run <= '0;
+    temp_trip_ss  <= '0;
+    temp_max_strk <= '0;
+    temp_max_on   <= '0;
+    temp_hiccup_0 <= '0;
+    temp_hiccup_1 <= '0;
+    temp_hiccup_2 <= '0;
+    temp_cyc_step <= '0;
+    temp_clean_0  <= '0;
+    temp_clean_1  <= '0;
+    temp_clean_2  <= '0;
 
-end
+  end
 
-else if (txn_abort || integrity_OK) begin
+  else if (txn_abort || integrity_OK) begin
 
-  temp_dirty <= 0;
+    temp_dirty <= 0;
 
-end
+  end
 
-else if (wr_en) begin
+  else if (wr_en) begin
 
-    case(addr) 
+      case(addr) 
 
-      ADDR_TRIP_RUN: begin
+        ADDR_TRIP_RUN: begin
 
-        temp_trip_run <= wdata;
-        temp_dirty[0] <= 1'b1;
+          temp_trip_run <= wdata;
+          temp_dirty[0] <= 1'b1;
 
-      end
+        end
 
-      ADDR_TRIP_SS: begin
+        ADDR_TRIP_SS: begin
 
-        temp_trip_ss <= wdata;
-        temp_dirty[1] <= 1'b1;
+          temp_trip_ss <= wdata;
+          temp_dirty[1] <= 1'b1;
 
-      end
+        end
 
-      ADDR_MAX_STRIKES: begin
+        ADDR_MAX_STRIKES: begin
 
-        temp_max_strk <= wdata;
-        temp_dirty[2] <= 1'b1;
+          temp_max_strk <= wdata;
+          temp_dirty[2] <= 1'b1;
 
-      end
+        end
 
-      ADDR_MAX_ON: begin
+        ADDR_MAX_ON: begin
 
-        temp_max_on <= wdata;
-        temp_dirty[3] <= 1'b1;
+          temp_max_on <= wdata;
+          temp_dirty[3] <= 1'b1;
 
-      end
+        end
 
-      ADDR_HICCUP_0: begin
+        ADDR_HICCUP_0: begin
 
-        temp_hiccup_0 <= wdata;
-        temp_dirty[4] <= 1'b1;
+          temp_hiccup_0 <= wdata;
+          temp_dirty[4] <= 1'b1;
 
-      end
+        end
 
-      ADDR_HICCUP_1: begin
+        ADDR_HICCUP_1: begin
 
-        temp_hiccup_1 <= wdata;
-        temp_dirty[5] <= 1'b1;
+          temp_hiccup_1 <= wdata;
+          temp_dirty[5] <= 1'b1;
 
-      end
+        end
 
-      ADDR_HICCUP_2: begin
+        ADDR_HICCUP_2: begin
 
-        temp_hiccup_2 <= wdata;
-        temp_dirty[6] <= 1'b1;
+          temp_hiccup_2 <= wdata;
+          temp_dirty[6] <= 1'b1;
 
-      end
+        end
 
-      ADDR_CYC_PER_STEP: begin
+        ADDR_CYC_PER_STEP: begin
 
-        temp_cyc_step <= wdata;
-        temp_dirty[7] <= 1'b1;
+          temp_cyc_step <= wdata;
+          temp_dirty[7] <= 1'b1;
 
-      end
+        end
 
-      ADDR_CLEAN_RUN_0: begin
+        ADDR_CLEAN_RUN_0: begin
 
-        temp_clean_0 <= wdata;
-        temp_dirty[8] <= 1'b1;
+          temp_clean_0 <= wdata;
+          temp_dirty[8] <= 1'b1;
 
-      end
+        end
 
-      ADDR_CLEAN_RUN_1: begin
+        ADDR_CLEAN_RUN_1: begin
 
-        temp_clean_1 <= wdata;
-        temp_dirty[9] <= 1'b1;
+          temp_clean_1 <= wdata;
+          temp_dirty[9] <= 1'b1;
 
-      end
+        end
 
-      ADDR_CLEAN_RUN_2: begin
+        ADDR_CLEAN_RUN_2: begin
 
-        temp_clean_2 <= wdata;
-        temp_dirty[10] <= 1'b1;
+          temp_clean_2 <= wdata;
+          temp_dirty[10] <= 1'b1;
 
-      end
+        end
 
-      default: ;
-    endcase
+        default: ;
+      endcase
 
-end
+  end
 
 
 end
@@ -811,71 +811,71 @@ end
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Move validated temp values into the live threshold registers, clamping on the
-way IN rather than on the way out. Clamping on write means the register always
-holds a legal value, so a host readback shows what is actually in effect.
+  /*
+  Purpose:
+  ---
+  Move validated temp values into the live threshold registers, clamping on the
+  way IN rather than on the way out. Clamping on write means the register always
+  holds a legal value, so a host readback shows what is actually in effect.
 
-Gating is decided once, in threshold_reject: no key, a change to an
-S_OFF-only register outside S_OFF, or a partial multi-byte write rejects every
-threshold write in the transaction. An accepted write-back of an S_OFF-only
-register commits its clamped value, which is the value it already holds. All or nothing, the strict multi-byte rule extended to the
-whole transaction, so the converter never runs a half-applied configuration.
-(hiccup_base, cycles_per_step and clean_run_target are S_OFF-only because they
-are compared against free-running counters; trip_run, trip_ss, max_strikes and
-max_on_limit are compared against bounded accumulators that re-reference every
-switching cycle, so a mid-run change to them is safe.)
+  Gating is decided once, in threshold_reject: no key, a change to an
+  S_OFF-only register outside S_OFF, or a partial multi-byte write rejects every
+  threshold write in the transaction. An accepted write-back of an S_OFF-only
+  register commits its clamped value, which is the value it already holds. All or nothing, the strict multi-byte rule extended to the
+  whole transaction, so the converter never runs a half-applied configuration.
+  (hiccup_base, cycles_per_step and clean_run_target are S_OFF-only because they
+  are compared against free-running counters; trip_run, trip_ss, max_strikes and
+  max_on_limit are compared against bounded accumulators that re-reference every
+  switching cycle, so a mid-run change to them is safe.)
 
-write_rejected is set by a rejected commit and cleared by an accepted one; a
-transaction that wrote no threshold leaves it alone, so a control-only write
-cannot clear a rejection the host has not read yet. It is reported in STATUS
-bit 7; the host reads sup_state in the same byte to tell a locked bank from a
-running converter.
-*/
+  write_rejected is set by a rejected commit and cleared by an accepted one; a
+  transaction that wrote no threshold leaves it alone, so a control-only write
+  cannot clear a rejection the host has not read yet. It is reported in STATUS
+  bit 7; the host reads sup_state in the same byte to tell a locked bank from a
+  running converter.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-    trip_run         <= TRIP_W'(TRIP_RUN_DEFAULT);
-    trip_ss          <= TRIP_W'(TRIP_SS_DEFAULT);
-    max_strikes      <= STRIKE_W'(MAX_STRIKES_DEFAULT);
-    max_on_limit     <= ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
-    hiccup_base      <= HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
-    cycles_per_step  <= CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
-    clean_run_target <= CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
-    write_rejected   <= 1'b0;
+      trip_run         <= TRIP_W'(TRIP_RUN_DEFAULT);
+      trip_ss          <= TRIP_W'(TRIP_SS_DEFAULT);
+      max_strikes      <= STRIKE_W'(MAX_STRIKES_DEFAULT);
+      max_on_limit     <= ON_TIME_W'(MAX_ON_COUNTS_DEFAULT);
+      hiccup_base      <= HICCUP_BASE_W'(HICCUP_BASE_DEFAULT_CLKS);
+      cycles_per_step  <= CYC_STEP_W'(CYCLES_PER_STEP_DEFAULT);
+      clean_run_target <= CLEAN_RUN_W'(CLEAN_RUN_CYCLES);
+      write_rejected   <= 1'b0;
 
-end
+  end
 
-// A transaction that wrote no threshold at all is not a rejection - the flag
-// is left alone so a control-only write does not clear a genuine rejection
-// the host has not read yet.
-else if (integrity_OK && |temp_dirty) begin
+  // A transaction that wrote no threshold at all is not a rejection - the flag
+  // is left alone so a control-only write does not clear a genuine rejection
+  // the host has not read yet.
+  else if (integrity_OK && |temp_dirty) begin
 
-    // All or nothing: one refused write rejects the whole set, so the
-    // converter never runs a half-applied configuration.
-    if (threshold_reject) begin
+      // All or nothing: one refused write rejects the whole set, so the
+      // converter never runs a half-applied configuration.
+      if (threshold_reject) begin
 
-        write_rejected <= 1'b1;
+          write_rejected <= 1'b1;
 
-    end
+      end
 
-    else begin
+      else begin
 
-        write_rejected <= 1'b0;
+          write_rejected <= 1'b0;
 
-        if (temp_dirty[0]) trip_run         <= clamp_trip_run   (temp_trip_run);
-        if (temp_dirty[1]) trip_ss          <= clamp_trip_ss    (temp_trip_ss);
-        if (temp_dirty[2]) max_strikes      <= clamp_max_strikes(temp_max_strk);
-        if (temp_dirty[3]) max_on_limit     <= clamp_max_on     (temp_max_on);
-        if (temp_dirty[7]) cycles_per_step  <= clamp_cyc_step   (temp_cyc_step);
-        if (hiccup_any)    hiccup_base      <= clamp_hiccup     (temp_hiccup_full);
-        if (clean_any)     clean_run_target <= clamp_clean_run  (temp_clean_full);
+          if (temp_dirty[0]) trip_run         <= clamp_trip_run   (temp_trip_run);
+          if (temp_dirty[1]) trip_ss          <= clamp_trip_ss    (temp_trip_ss);
+          if (temp_dirty[2]) max_strikes      <= clamp_max_strikes(temp_max_strk);
+          if (temp_dirty[3]) max_on_limit     <= clamp_max_on     (temp_max_on);
+          if (temp_dirty[7]) cycles_per_step  <= clamp_cyc_step   (temp_cyc_step);
+          if (hiccup_any)    hiccup_base      <= clamp_hiccup     (temp_hiccup_full);
+          if (clean_any)     clean_run_target <= clamp_clean_run  (temp_clean_full);
 
-    end
+      end
 
-end
+  end
 
 end
 
@@ -888,131 +888,131 @@ end
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Hold the control bits and manage the two key-protected operations. The enable path
-is asymmetric: enabling takes one write, disabling needs a key first, because a
-spurious enable only removes a veto while a spurious disable stops a working
-supply. en_switch_rise is
-applied last so the physical switch wins any same-cycle collision.
-SCRATCH is staged like CONTROL: held in scratch_temp and committed only
-on integrity_OK, so a bad-CRC write leaves it unchanged.
-*/
+  /*
+  Purpose:
+  ---
+  Hold the control bits and manage the two key-protected operations. The enable path
+  is asymmetric: enabling takes one write, disabling needs a key first, because a
+  spurious enable only removes a veto while a spurious disable stops a working
+  supply. en_switch_rise is
+  applied last so the physical switch wins any same-cycle collision.
+  SCRATCH is staged like CONTROL: held in scratch_temp and committed only
+  on integrity_OK, so a bad-CRC write leaves it unchanged.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  arm_timer      <=  '0;
-  spi_enable     <= 1'b1;
-  scratch_r      <= 8'h00;
-  scratch_temp    <= 8'h00;
-  scratch_pending <= 1'b0;
-  disable_armed  <= 1'b0;
-  unlock_armed   <= 1'b0;
-  en_pending     <= 1'b0;
-  en_pending_val <= 1'b0;
-  wd_restored    <= 1'b0;
-
-end
-
-else begin
-
-  if(disable_armed || unlock_armed) begin
-
-    arm_timer <= arm_timer + 1;
-
-    if(&arm_timer) begin
-
-        disable_armed <= 0;
-        unlock_armed  <= 0;
-
-    end
+    arm_timer      <=  '0;
+    spi_enable     <= 1'b1;
+    scratch_r      <= 8'h00;
+    scratch_temp    <= 8'h00;
+    scratch_pending <= 1'b0;
+    disable_armed  <= 1'b0;
+    unlock_armed   <= 1'b0;
+    en_pending     <= 1'b0;
+    en_pending_val <= 1'b0;
+    wd_restored    <= 1'b0;
 
   end
 
   else begin
 
-      arm_timer <= '0;
+      if(disable_armed || unlock_armed) begin
 
-  end
+        arm_timer <= arm_timer + 1;
+
+        if(&arm_timer) begin
+
+            disable_armed <= 0;
+            unlock_armed  <= 0;
+
+        end
+
+      end
+
+      else begin
+
+          arm_timer <= '0;
+
+      end
   
    
 
-if(wr_en) begin
+    if(wr_en) begin
 
-  case(addr)
+      case(addr)
 
-    ADDR_SCRATCH : begin
+        ADDR_SCRATCH : begin
 
-      scratch_temp    <= wdata;
-      scratch_pending <= 1'b1;     // committed on integrity_OK, dropped on txn_abort
+          scratch_temp    <= wdata;
+          scratch_pending <= 1'b1;     // committed on integrity_OK, dropped on txn_abort
+
+        end
+        ADDR_DISABLE_KEY : disable_armed <= (wdata == DISABLE_KEY_ID);
+        ADDR_WRITE_KEY : unlock_armed <= (wdata == WRITE_ACCESS_KEY_ID);
+
+        ADDR_CONTROL: begin
+
+          if(wdata[0]) begin
+
+            en_pending     <= 1'b1;
+            en_pending_val <= 1'b1;   // enable: no key needed, but still deferred
+            disable_armed <= 0;
+
+          end
+
+          else if (disable_armed) begin
+
+            en_pending     <= 1'b1;
+            en_pending_val <= 1'b0;   // disable: armed, so honoured at commit
+            disable_armed <= 1'b0;
+
+          end
+          // A disable attempt with no arm is silently ignored here;
+
+        end
+
+        default: ;
+      endcase
 
     end
-    ADDR_DISABLE_KEY : disable_armed <= (wdata == DISABLE_KEY_ID);
-    ADDR_WRITE_KEY : unlock_armed <= (wdata == WRITE_ACCESS_KEY_ID);
 
-    ADDR_CONTROL: begin
+    // Apply a pending enable change only on a validated transaction, then clear
+    // all pending state. On txn_abort, the pending change is discarded with it.
+    if (integrity_OK) begin
 
-      if(wdata[0]) begin
+        if (en_pending)      spi_enable <= en_pending_val;
+        if (scratch_pending) scratch_r  <= scratch_temp;
 
-        en_pending     <= 1'b1;
-        en_pending_val <= 1'b1;   // enable: no key needed, but still deferred
-        disable_armed <= 0;
+    end
+    if (txn_abort || integrity_OK) begin
 
-      end
-
-      else if (disable_armed) begin
-
-        en_pending     <= 1'b1;
-        en_pending_val <= 1'b0;   // disable: armed, so honoured at commit
-        disable_armed <= 1'b0;
-
-      end
-      // A disable attempt with no arm is silently ignored here;
+        disable_armed  <= 1'b0;
+        unlock_armed   <= 1'b0;
+        en_pending     <= 1'b0;
+        en_pending_val <= 1'b0;
+        scratch_pending <= 1'b0;
 
     end
 
-    default: ;
-  endcase
+    // Bus-silence watchdog. A host that commands a disable and then dies, hangs or
+    // is unplugged would otherwise hold the converter off until someone physically
+    // toggles the enable switch. Releasing the veto is the point - a status bit
+    // nobody is listening to is no recovery at all - but the release is recorded so
+    // a board that came back on its own can say why.
+    if (wd_expired) begin
 
-end
+        spi_enable  <= 1'b1;
+        wd_restored <= 1'b1;
 
-// Apply a pending enable change only on a validated transaction, then clear
-// all pending state. On txn_abort, the pending change is discarded with it.
-if (integrity_OK) begin
+    end
 
-    if (en_pending)      spi_enable <= en_pending_val;
-    if (scratch_pending) scratch_r  <= scratch_temp;
+    // A fresh host-commanded disable clears the flag: the veto now belongs to a
+    // host that is demonstrably alive.
+    if (integrity_OK && en_pending && !en_pending_val) wd_restored <= 1'b0;
+    if(en_switch_rise) spi_enable <= 1'b1;
 
-end
-if (txn_abort || integrity_OK) begin
-
-    disable_armed  <= 1'b0;
-    unlock_armed   <= 1'b0;
-    en_pending     <= 1'b0;
-    en_pending_val <= 1'b0;
-    scratch_pending <= 1'b0;
-
-end
-
-// Bus-silence watchdog. A host that commands a disable and then dies, hangs or
-// is unplugged would otherwise hold the converter off until someone physically
-// toggles the enable switch. Releasing the veto is the point - a status bit
-// nobody is listening to is no recovery at all - but the release is recorded so
-// a board that came back on its own can say why.
-if (wd_expired) begin
-
-    spi_enable  <= 1'b1;
-    wd_restored <= 1'b1;
-
-end
-
-// A fresh host-commanded disable clears the flag: the veto now belongs to a
-// host that is demonstrably alive.
-if (integrity_OK && en_pending && !en_pending_val) wd_restored <= 1'b0;
-if(en_switch_rise) spi_enable <= 1'b1;
-
-end
+  end
 
    end
 

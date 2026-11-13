@@ -450,8 +450,11 @@ function automatic bit prbs_shaped(input int k, input bit use_or);
 
     bit result;
     result = prbs_next();
-    for (int i = 1; i < k; i++)
+    for (int i = 1; i < k; i++) begin
+
         result = use_or ? (result | prbs_next()) : (result & prbs_next());
+
+    end
     return result;
 
 endfunction

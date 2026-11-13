@@ -159,42 +159,42 @@ logic [7:0] tx_shift;
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Delayed copies of sck and cs_n so the four edges below can be detected
-combinationally. Everything in this module is an enable on the clk domain;
-sck is never used as a clock.
-*/
+    /*
+    Purpose:
+    ---
+    Delayed copies of sck and cs_n so the four edges below can be detected
+    combinationally. Everything in this module is an enable on the clk domain;
+    sck is never used as a clock.
+    */
 
-if(!rst_n) begin
+    if(!rst_n) begin
   
-  sck_d <= 0;
-  cs_n_d <= 1;
+      sck_d <= 0;
+      cs_n_d <= 1;
 
-end
+    end
 
-else begin
+    else begin
 
-  sck_d <= sck;
-  cs_n_d <= cs_n;
+      sck_d <= sck;
+      cs_n_d <= cs_n;
 
-end
+    end
 
 end
 
 always_comb begin
 
-/*
-Purpose:
----
-Produce the one-clock enable pulses the rest of the module runs on.
-*/
+    /*
+    Purpose:
+    ---
+    Produce the one-clock enable pulses the rest of the module runs on.
+    */
 
-sck_fall = sck_d & ~sck;
-sck_rise = ~sck_d & sck;
-cs_fall = cs_n_d & ~cs_n;
-cs_rise = ~cs_n_d & cs_n;
+    sck_fall = sck_d & ~sck;
+    sck_rise = ~sck_d & sck;
+    cs_fall = cs_n_d & ~cs_n;
+    cs_rise = ~cs_n_d & cs_n;
 
 end
 
@@ -204,93 +204,93 @@ end
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-State register. Reset to S_IDLE, which is also where every abandoned transaction
-ends up once CS rises.
-*/
+    /*
+    Purpose:
+    ---
+    State register. Reset to S_IDLE, which is also where every abandoned transaction
+    ends up once CS rises.
+    */
 
-if(!rst_n) begin
+    if(!rst_n) begin
 
-  spi_state <= S_IDLE;
+      spi_state <= S_IDLE;
 
-end
+    end
 
-else begin
+    else begin
 
-  spi_state <= spi_state_next;
+      spi_state <= spi_state_next;
 
-end
+    end
 
 end
 
 always_comb begin
 
-/*
-Purpose:
----
-Next-state logic.
+    /*
+    Purpose:
+    ---
+    Next-state logic.
 
-Two conditions are checked ahead of the case and override every state. cs_fall
-restarts the transaction from anywhere, so a master that abandons one and asserts
-CS again needs no timeout to recover. cs_rise returns to idle from anywhere, since a transaction cannot
-outlive its chip select.
+    Two conditions are checked ahead of the case and override every state. cs_fall
+    restarts the transaction from anywhere, so a master that abandons one and asserts
+    CS again needs no timeout to recover. cs_rise returns to idle from anywhere, since a transaction cannot
+    outlive its chip select.
 
-sck_timeout poisons the transaction to S_DEAD rather than returning to idle. 
-S_DEAD holds until CS actually rises, so MISO stays low
-and BLOCK 9 sees a state it can refuse to commit. Dropping straight to S_IDLE
-would leave the FSM ready to misread the next edges of a transaction that is still
-physically in progress.
+    sck_timeout poisons the transaction to S_DEAD rather than returning to idle. 
+    S_DEAD holds until CS actually rises, so MISO stays low
+    and BLOCK 9 sees a state it can refuse to commit. Dropping straight to S_IDLE
+    would leave the FSM ready to misread the next edges of a transaction that is still
+    physically in progress.
 
-rx_byte[7] is used rather than the latched rw: on the byte_done clock rw still
-holds its pre-edge value, because it is being assigned on that same edge in
-BLOCK 4.
-*/
+    rx_byte[7] is used rather than the latched rw: on the byte_done clock rw still
+    holds its pre-edge value, because it is being assigned on that same edge in
+    BLOCK 4.
+    */
 
-spi_state_next = spi_state;
+    spi_state_next = spi_state;
 
-if(cs_fall) begin
+    if(cs_fall) begin
 
-  spi_state_next = S_CMD;
+      spi_state_next = S_CMD;
 
-end
+    end
 
-else if (cs_rise) begin
+    else if (cs_rise) begin
 
-  spi_state_next = S_IDLE;
+      spi_state_next = S_IDLE;
 
-end
+    end
 
-else if (sck_timeout && (spi_state != S_IDLE)) begin
+    else if (sck_timeout && (spi_state != S_IDLE)) begin
 
-  spi_state_next = S_DEAD;
+      spi_state_next = S_DEAD;
 
-end
+    end
 
-else begin
+    else begin
 
-  unique case(spi_state)
+      unique case(spi_state)
 
-    S_IDLE  : spi_state_next = S_IDLE;        // only cs_fall leaves
-    // The command byte decides the direction of everything that follows.
-    S_CMD   : if (byte_done) spi_state_next = rx_byte[7] ? S_TURN : S_WRITE;
-    // Data bytes then the CRC byte. The CRC is not distinguished here -
-    // delay line is what keeps it from reaching reg_file.
-    S_WRITE : spi_state_next = S_WRITE;
-    // One full byte, the dummy byte, during which MISO stays low. On the
-    // original 3-wire bus it was the master's time to release the shared
-    // line; it is kept so the read frame, and the host protocol, are
-    // unchanged.
-    S_TURN  : if (byte_done) spi_state_next = S_READ;
-    S_READ  : spi_state_next = S_READ;
-    // Poisoned. Only cs_rise leaves, handled above.
-    S_DEAD  : spi_state_next = S_DEAD;
-    default : spi_state_next = S_DEAD;
+        S_IDLE  : spi_state_next = S_IDLE;        // only cs_fall leaves
+        // The command byte decides the direction of everything that follows.
+        S_CMD   : if (byte_done) spi_state_next = rx_byte[7] ? S_TURN : S_WRITE;
+        // Data bytes then the CRC byte. The CRC is not distinguished here -
+        // delay line is what keeps it from reaching reg_file.
+        S_WRITE : spi_state_next = S_WRITE;
+        // One full byte, the dummy byte, during which MISO stays low. On the
+        // original 3-wire bus it was the master's time to release the shared
+        // line; it is kept so the read frame, and the host protocol, are
+        // unchanged.
+        S_TURN  : if (byte_done) spi_state_next = S_READ;
+        S_READ  : spi_state_next = S_READ;
+        // Poisoned. Only cs_rise leaves, handled above.
+        S_DEAD  : spi_state_next = S_DEAD;
+        default : spi_state_next = S_DEAD;
 
-  endcase
+      endcase
 
-end
+    end
 
 end
 
@@ -654,66 +654,66 @@ logic [$clog2(SCK_IDLE_TIMEOUT_CLKS+1)-1:0] idle_counter;
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Count clocks since the last SCK edge while CS is low, and poison the transaction
-on expiry.
+    /*
+    Purpose:
+    ---
+    Count clocks since the last SCK edge while CS is low, and poison the transaction
+    on expiry.
 
-This covers the one case CS framing cannot: a master that asserts CS, sends part
-of a transaction, then stops clocking WITHOUT releasing CS. Power loss, a reset
-mid-burst, a yanked header. The board is detachable, so this is routine rather
-than exotic.
+    This covers the one case CS framing cannot: a master that asserts CS, sends part
+    of a transaction, then stops clocking WITHOUT releasing CS. Power loss, a reset
+    mid-burst, a yanked header. The board is detachable, so this is routine rather
+    than exotic.
 
-Without it the slave sits waiting forever, and on a read it would keep MISO
-active indefinitely, sending stale data to a master that may no longer be
-there.
+    Without it the slave sits waiting forever, and on a read it would keep MISO
+    active indefinitely, sending stale data to a master that may no longer be
+    there.
 
-The counter is held at zero whenever CS is high, so it measures silence WITHIN a
-transaction, not idle bus time. Either SCK edge resets it: a master clocking at
-any rate above roughly 4 kHz never trips it.
+    The counter is held at zero whenever CS is high, so it measures silence WITHIN a
+    transaction, not idle bus time. Either SCK edge resets it: a master clocking at
+    any rate above roughly 4 kHz never trips it.
 
-sck_timeout is a one-clock pulse. BLOCK 2 consumes it and moves to S_DEAD, which
-is what actually returns MISO low and refuses the commit.
-*/
+    sck_timeout is a one-clock pulse. BLOCK 2 consumes it and moves to S_DEAD, which
+    is what actually returns MISO low and refuses the commit.
+    */
 
-if (!rst_n) begin
+    if (!rst_n) begin
 
-  idle_counter <= 0;
-  sck_timeout <= 0;
+      idle_counter <= 0;
+      sck_timeout <= 0;
 
-end
+    end
 
-else begin
+    else begin
 
-  sck_timeout <= 0;
+      sck_timeout <= 0;
 
-  if(cs_n) begin
+      if(cs_n) begin
 
-    idle_counter <= 0;
+        idle_counter <= 0;
 
-  end
+      end
 
-  else if (sck_rise || sck_fall) begin
+      else if (sck_rise || sck_fall) begin
 
-    idle_counter <= 0; //master alive
+        idle_counter <= 0; //master alive
 
-  end
+      end
 
-   else if (idle_counter == SCK_IDLE_TIMEOUT_CLKS[$bits(idle_counter)-1:0]) begin
+       else if (idle_counter == SCK_IDLE_TIMEOUT_CLKS[$bits(idle_counter)-1:0]) begin
 
-            sck_timeout  <= 1'b1;
-            idle_counter <= '0;
+                sck_timeout  <= 1'b1;
+                idle_counter <= '0;
 
-   end
+       end
 
-   else begin
+       else begin
     
-    idle_counter <= idle_counter + 1;
+        idle_counter <= idle_counter + 1;
 
-   end  
+       end  
 
-end
+    end
 
 end
 
@@ -723,73 +723,73 @@ end
 // ==================================================================
 always_ff @(posedge clk or negedge rst_n) begin
 
- /*
-Purpose:
----
-Decide, at cs_rise, whether a write transaction committed or was discarded.
+     /*
+    Purpose:
+    ---
+    Decide, at cs_rise, whether a write transaction committed or was discarded.
 
-integrity_ok requires ALL of:
-  - the transaction was a write (rw low)
-  - CS rose on a byte boundary (bit_count == 0), so no byte was left partial
-  - at least three bytes arrived: command, one data byte, CRC
-  - crc == 0, which is the CRC-8 property that a message followed by its own
-    CRC divides to zero
+    integrity_ok requires ALL of:
+      - the transaction was a write (rw low)
+      - CS rose on a byte boundary (bit_count == 0), so no byte was left partial
+      - at least three bytes arrived: command, one data byte, CRC
+      - crc == 0, which is the CRC-8 property that a message followed by its own
+        CRC divides to zero
 
-Anything else on a write pulses txn_abort instead, and reg_file discards its
-temporary registers.
+    Anything else on a write pulses txn_abort instead, and reg_file discards its
+    temporary registers.
 
-Reads produce NEITHER pulse. There is nothing to commit and nothing to discard,
-and a host is free to stop a read mid-byte.
+    Reads produce NEITHER pulse. There is nothing to commit and nothing to discard,
+    and a host is free to stop a read mid-byte.
 
-A transaction whose command byte never completed counts as a write, and so
-pulses txn_abort (it is shorter than three bytes): rw is cleared on cs_fall, so
-a truncated command - a CS blip that passed the filter, or lost SCK edges - is
-always counted as a bus error, whatever the previous transaction was. Without
-the clear, rw held the previous command's direction and the same fault was
-counted or not depending on history.
+    A transaction whose command byte never completed counts as a write, and so
+    pulses txn_abort (it is shorter than three bytes): rw is cleared on cs_fall, so
+    a truncated command - a CS blip that passed the filter, or lost SCK edges - is
+    always counted as a bus error, whatever the previous transaction was. Without
+    the clear, rw held the previous command's direction and the same fault was
+    counted or not depending on history.
 
-On a write, S_DEAD produces txn_abort regardless of length and CRC: a timed-out
-write must never commit, even if the bytes that did arrive happen to satisfy
-the checks. A timed-out read, like any read, produces neither pulse.
+    On a write, S_DEAD produces txn_abort regardless of length and CRC: a timed-out
+    write must never commit, even if the bytes that did arrive happen to satisfy
+    the checks. A timed-out read, like any read, produces neither pulse.
 
-Both pulses land on cs_rise, which is at least one clock after the last wr_en -
-wr_en fires on an sck_rise, and cs_rise cannot coincide with one. This matters
-because reg_file gives integrity_OK priority over wr_en, so a write landing on the
-same edge would be dropped.
-*/
+    Both pulses land on cs_rise, which is at least one clock after the last wr_en -
+    wr_en fires on an sck_rise, and cs_rise cannot coincide with one. This matters
+    because reg_file gives integrity_OK priority over wr_en, so a write landing on the
+    same edge would be dropped.
+    */
 
-if(!rst_n) begin
+    if(!rst_n) begin
 
-  integrity_ok <= 0;
-  txn_abort <= 0;
+      integrity_ok <= 0;
+      txn_abort <= 0;
 
-end
+    end
 
-else begin 
+    else begin 
 
 
-  integrity_ok <= 1'b0;
-  txn_abort        <= 1'b0;
+      integrity_ok <= 1'b0;
+      txn_abort        <= 1'b0;
 
-    if (cs_rise && !rw) begin
+        if (cs_rise && !rw) begin
 
-            if ((spi_state != S_DEAD) &&
-                (bit_count == 3'd0)   &&
-                (byte_count >= 4'd3)  &&
-                (crc == 8'h00)) begin
+                if ((spi_state != S_DEAD) &&
+                    (bit_count == 3'd0)   &&
+                    (byte_count >= 4'd3)  &&
+                    (crc == 8'h00)) begin
 
-                integrity_ok <= 1'b1;
+                        integrity_ok <= 1'b1;
 
-            end
-            else begin
+                end
+                else begin
 
-                txn_abort        <= 1'b1;
+                    txn_abort        <= 1'b1;
 
-            end
+                end
   
-  end
+      end
 
-end
+    end
 
 end
 

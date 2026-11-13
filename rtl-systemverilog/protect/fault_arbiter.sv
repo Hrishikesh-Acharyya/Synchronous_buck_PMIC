@@ -81,24 +81,24 @@ logic [BLANK_CLKS-1:0] cp_delay;
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Create a one-clock delayed copy of the synchronised PWM so that the 
-start of a switching cycle can be detected combinationally below.
-*/
+  /*
+  Purpose:
+  ---
+  Create a one-clock delayed copy of the synchronised PWM so that the 
+  start of a switching cycle can be detected combinationally below.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-    pwm_sync_d <= 0;
+      pwm_sync_d <= 0;
 
-end
+  end
 
-else begin
+  else begin
 
-  pwm_sync_d <= pwm_sync;
+    pwm_sync_d <= pwm_sync;
 
-end
+  end
 
 
 end
@@ -164,68 +164,68 @@ end
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Maintain a rolling window of the current-protection flag, one bit per
-switching cycle, and a running count of the faulted cycles within it.
+  /*
+  Purpose:
+  ---
+  Maintain a rolling window of the current-protection flag, one bit per
+  switching cycle, and a running count of the faulted cycles within it.
 
-The flag is sampled as a level rather than as an edge: the comparator has
-hysteresis and holds high for as long as the overcurrent persists, and
-what matters thermally is the fraction of recent cycles spent in
-overcurrent, not how many separate excursions occurred. A single
-sustained fault must trip the window, and edge counting would never see
-it.
+  The flag is sampled as a level rather than as an edge: the comparator has
+  hysteresis and holds high for as long as the overcurrent persists, and
+  what matters thermally is the fraction of recent cycles spent in
+  overcurrent, not how many separate excursions occurred. A single
+  sustained fault must trip the window, and edge counting would never see
+  it.
 
-The counts are maintained incrementally - plus the bit entering, minus
-the bit leaving the window - rather than by summing the register every
-clock, which would synthesise to a wide adder tree. Both reads use the
-pre-edge register value, so the indexed bit is the one about to be
-displaced.
+  The counts are maintained incrementally - plus the bit entering, minus
+  the bit leaving the window - rather than by summing the register every
+  clock, which would synthesise to a wide adder tree. Both reads use the
+  pre-edge register value, so the indexed bit is the one about to be
+  displaced.
 
-Both windows are cleared whenever neither state is active, so a hiccup
-retry starts on a clean window rather than re-tripping immediately on
-the history that caused the trip. cp_delay is cleared on the same
-condition, so the retry also starts without the
-comparator history from before the converter was switching - the CP
-synchroniser resets high, so that history would otherwise enter the
-fresh window as spurious faulted cycles.
-*/
+  Both windows are cleared whenever neither state is active, so a hiccup
+  retry starts on a clean window rather than re-tripping immediately on
+  the history that caused the trip. cp_delay is cleared on the same
+  condition, so the retry also starts without the
+  comparator history from before the converter was switching - the CP
+  synchroniser resets high, so that history would otherwise enter the
+  fresh window as spurious faulted cycles.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  fault_shifter_RUN <= 0;
-  fault_shifter_SS <=0;
-  fault_count_run <= 0;
-  fault_count_ss <=0;
+    fault_shifter_RUN <= 0;
+    fault_shifter_SS <=0;
+    fault_count_run <= 0;
+    fault_count_ss <=0;
 
-end
+  end
 
-else if (pwm_rise && run_active) begin
+  else if (pwm_rise && run_active) begin
 
-  fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])
-                                     - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);
-  fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);
+    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])
+                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);
+    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);
 
-end
+  end
 
 
-else if (pwm_rise && ss_active) begin
+  else if (pwm_rise && ss_active) begin
 
-  fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])
-                                   - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);
-  fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);
+    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])
+                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);
+    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);
   
-end 
+  end 
 
-else if (!run_active && !ss_active) begin
+  else if (!run_active && !ss_active) begin
 
-  fault_shifter_RUN <= 0;
-  fault_shifter_SS <= 0;
-  fault_count_run <=0;
-  fault_count_ss <= 0;
+    fault_shifter_RUN <= 0;
+    fault_shifter_SS <= 0;
+    fault_count_run <=0;
+    fault_count_ss <= 0;
 
-end
+  end
 
 
 end

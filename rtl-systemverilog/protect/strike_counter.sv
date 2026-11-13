@@ -53,25 +53,25 @@ logic [CLEAN_RUN_W-1:0] clean_counter;
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Delayed copies of hiccup_active and pwm_sync, so the edges below can be
-detected combinationally.
-*/
+  /*
+  Purpose:
+  ---
+  Delayed copies of hiccup_active and pwm_sync, so the edges below can be
+  detected combinationally.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  hiccup_active_d <= 0;
-  pwm_sync_d <= 0;
+    hiccup_active_d <= 0;
+    pwm_sync_d <= 0;
 
-end
-else begin
+  end
+  else begin
 
-  hiccup_active_d <= hiccup_active;
-  pwm_sync_d <= pwm_sync;
+    hiccup_active_d <= hiccup_active;
+    pwm_sync_d <= pwm_sync;
 
-end
+  end
 
 end
 
@@ -98,50 +98,50 @@ end
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Accumulate strikes and assert the latch once MAX_STRIKES is reached.
-The comparison is against MAX_STRIKES-1 because strike_level still holds
-the pre-increment value on this edge, so testing the value about to land
-fires the latch on the correct hiccup rather than one later.
+  /*
+  Purpose:
+  ---
+  Accumulate strikes and assert the latch once MAX_STRIKES is reached.
+  The comparison is against MAX_STRIKES-1 because strike_level still holds
+  the pre-increment value on this edge, so testing the value about to land
+  fires the latch on the correct hiccup rather than one later.
 
-The test is >= rather than ==. max_strikes is host-writable at any time,
-so it can drop below a count already reached; with == alone the next
-entry missed, the count wrapped round its 2-bit range and the latch
-tripped up to four hiccups late. With >= the first hiccup at or past the
-limit trips it.
+  The test is >= rather than ==. max_strikes is host-writable at any time,
+  so it can drop below a count already reached; with == alone the next
+  entry missed, the count wrapped round its 2-bit range and the latch
+  tripped up to four hiccups late. With >= the first hiccup at or past the
+  limit trips it.
 
-latch_assert is set-only and cleared by rst_n alone: it trips a physical
-SCR, which cannot be un-tripped in logic. strike_level is deliberately
-not zeroed on latching, so the accumulated count remains readable for
-telemetry.
+  latch_assert is set-only and cleared by rst_n alone: it trips a physical
+  SCR, which cannot be un-tripped in logic. strike_level is deliberately
+  not zeroed on latching, so the accumulated count remains readable for
+  telemetry.
 
-The clean-run clear is a sibling of hiccup_entry, not nested inside it,
-so a fault-free run clears the strikes during normal operation rather
-than only at the moment another hiccup begins.
-*/
+  The clean-run clear is a sibling of hiccup_entry, not nested inside it,
+  so a fault-free run clears the strikes during normal operation rather
+  than only at the moment another hiccup begins.
+  */
 
-if (!rst_n) begin
+  if (!rst_n) begin
 
-  latch_assert <= 1'b0;
-  strike_level <= '0;
+    latch_assert <= 1'b0;
+    strike_level <= '0;
 
-end
+  end
 
-else if (hiccup_entry) begin
+  else if (hiccup_entry) begin
 
-  strike_level <= strike_level + 1;
+      strike_level <= strike_level + 1;
 
-if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;
+    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;
 
-end
+  end
 
-else if (clean_counter == clean_run_target) begin
+  else if (clean_counter == clean_run_target) begin
 
-  strike_level <= '0;
+    strike_level <= '0;
 
-end
+  end
 
 end
 
@@ -149,50 +149,50 @@ end
 
 always_ff @(posedge clk or negedge rst_n) begin
 
-/*
-Purpose:
----
-Count consecutive fault-free switching cycles in S_RUN, saturating at the
-terminal value rather than wrapping.
+  /*
+  Purpose:
+  ---
+  Count consecutive fault-free switching cycles in S_RUN, saturating at the
+  terminal value rather than wrapping.
 
-The streak is broken by leaving S_RUN as well as by window_trip. Time
-spent in S_HICCUP or S_SS is not running, and a counter that survived a
-hiccup would clear the very strike that hiccup earned - defeating the
-distinction between one isolated fault and a converter failing
-repeatedly.
-*/
+  The streak is broken by leaving S_RUN as well as by window_trip. Time
+  spent in S_HICCUP or S_SS is not running, and a counter that survived a
+  hiccup would clear the very strike that hiccup earned - defeating the
+  distinction between one isolated fault and a converter failing
+  repeatedly.
+  */
 
-if(!rst_n) begin
+  if(!rst_n) begin
 
-  clean_counter <= 0;
-
-end
-
-// Synchronous clear, kept separate from the asynchronous rst_n branch:
-// only rst_n is in the sensitivity list, so run_active and pgood_comp
-// cannot share that branch without making synthesis infer them as
-// asynchronous resets too.
-
-else if (!run_active || window_trip) begin  
-
-  clean_counter <= 0;
-
-end
-
-else if(pwm_fall) begin
-
-  if(clean_counter == clean_run_target) begin
-
-    clean_counter <= clean_counter;
-
-  end
-  else begin
-
-  clean_counter <= clean_counter + 1;
+    clean_counter <= 0;
 
   end
 
-end
+  // Synchronous clear, kept separate from the asynchronous rst_n branch:
+  // only rst_n is in the sensitivity list, so run_active and pgood_comp
+  // cannot share that branch without making synthesis infer them as
+  // asynchronous resets too.
+
+  else if (!run_active || window_trip) begin  
+
+    clean_counter <= 0;
+
+  end
+
+  else if(pwm_fall) begin
+
+    if(clean_counter == clean_run_target) begin
+
+      clean_counter <= clean_counter;
+
+    end
+    else begin
+
+      clean_counter <= clean_counter + 1;
+
+    end
+
+  end
 
 end
 

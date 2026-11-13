@@ -246,100 +246,100 @@ end
 
 initial begin
 
-/*
-Purpose:
----
-Drives the directed groups in order. None of them carry procedural checks:
-every claim on this module is an edge-clocked statement about signal values,
-so all of them live as properties in the bound checker, which evaluates on
-every edge regardless of what the stimulus is doing. The groups exist only to
-make the checker's antecedents occur, and the cover counts are the evidence
-that they did.
-*/
+    /*
+    Purpose:
+    ---
+    Drives the directed groups in order. None of them carry procedural checks:
+    every claim on this module is an edge-clocked statement about signal values,
+    so all of them live as properties in the bound checker, which evaluates on
+    every edge regardless of what the stimulus is doing. The groups exist only to
+    make the checker's antecedents occur, and the cover counts are the evidence
+    that they did.
+    */
 
-$display("\n==== %s ====\n", TB_NAME);
+    $display("\n==== %s ====\n", TB_NAME);
 
-/*
-Group 1: reset.
----
-do_reset drives rst_n high before asserting it, so the fall is a genuine
-negedge and the async clear reaches the flops before any clock edge. An
-uninitialised signal going x->0 is not reliably a negedge: the always_ff
-would never wake, and flag_out would hold x until the first clock loaded
-it one cycle late.
+    /*
+    Group 1: reset.
+    ---
+    do_reset drives rst_n high before asserting it, so the fall is a genuine
+    negedge and the async clear reaches the flops before any clock edge. An
+    uninitialised signal going x->0 is not reliably a negedge: the always_ff
+    would never wake, and flag_out would hold x until the first clock loaded
+    it one cycle late.
 
-*/
+    */
 
-do_reset();
-
-
-/*
-Group 2: full qualification windows, both directions.
----
-flag_in is held well past the longest target so every window completes:
-12 clocks clears the symmetric DUT's 8 as well as the asymmetric DUT's 5
-and 3. Shorter holds leave the symmetric instance mid-window and
-c_ASSERT_works drops to one hit instead of two - the count is how you
-tell.
-Because the two DUTs reset to opposite levels, each flag_in level puts
-one instance in agreement and the other in a qualification window. One
-hold therefore exercises an assert on one instance and a release on the
-other, which is what makes c_ASSERT_works and c_RELEASE_works both
-non-zero from two stimulus lines.
-Exercises the latency bounds together: a_flag_out_qualified is the lower
-bound (no transition without an earned window) and
-a_ASSERT_and_RELEASE_work the upper (a completed window does produce one,
-on the next edge).
-*/
-#(DRIVE_OFFSET_NS) flag_in = 1'b1;
-repeat (12) @(posedge clk);
-#(DRIVE_OFFSET_NS) flag_in = 1'b0;
-repeat (12) @(posedge clk);
-/*
-Group 3: glitch at N-1, the module's reason for existing.
----
-flag_in disagrees for four edges - one short of the asymmetric DUT's
-ASSERT_CLKS of 5 - then agrees for a single edge, then holds the full
-window. flag_out must move only after the second window: the first is
-abandoned and the count must restart from zero rather than resume.
-
-*/
-
-#(DRIVE_OFFSET_NS) flag_in = 1'b1;
-repeat (4) @(posedge clk);          // one short of ASSERT_CLKS = 5
-#(DRIVE_OFFSET_NS) flag_in = 1'b0;
-@(posedge clk);                     // the glitch
-#(DRIVE_OFFSET_NS) flag_in = 1'b1;
-repeat (12) @(posedge clk);
+    do_reset();
 
 
-/*
-Group 4: flag_in reverses on the clock after a flip.
----
-flag_in falls and is held until the asymmetric DUT's flag_out follows it,
-then rises again straight after that edge, so no edge between the flip and
-the reversal agrees. The window that produced the flip is spent: the
-re-assert must earn the full ASSERT_CLKS of 5 from zero, not inherit the
-release count. Then the other way round - an assert followed at once by a
-release, which must take the full RELEASE_CLKS of 3. The symmetric DUT
-follows the same flag_in on its own count and sees the reversals
-mid-window. Exercises a_flag_out_qualified and a_ASSERT_and_RELEASE_work
-across back-to-back windows.
-*/
+    /*
+    Group 2: full qualification windows, both directions.
+    ---
+    flag_in is held well past the longest target so every window completes:
+    12 clocks clears the symmetric DUT's 8 as well as the asymmetric DUT's 5
+    and 3. Shorter holds leave the symmetric instance mid-window and
+    c_ASSERT_works drops to one hit instead of two - the count is how you
+    tell.
+    Because the two DUTs reset to opposite levels, each flag_in level puts
+    one instance in agreement and the other in a qualification window. One
+    hold therefore exercises an assert on one instance and a release on the
+    other, which is what makes c_ASSERT_works and c_RELEASE_works both
+    non-zero from two stimulus lines.
+    Exercises the latency bounds together: a_flag_out_qualified is the lower
+    bound (no transition without an earned window) and
+    a_ASSERT_and_RELEASE_work the upper (a completed window does produce one,
+    on the next edge).
+    */
+    #(DRIVE_OFFSET_NS) flag_in = 1'b1;
+    repeat (12) @(posedge clk);
+    #(DRIVE_OFFSET_NS) flag_in = 1'b0;
+    repeat (12) @(posedge clk);
+    /*
+    Group 3: glitch at N-1, the module's reason for existing.
+    ---
+    flag_in disagrees for four edges - one short of the asymmetric DUT's
+    ASSERT_CLKS of 5 - then agrees for a single edge, then holds the full
+    window. flag_out must move only after the second window: the first is
+    abandoned and the count must restart from zero rather than resume.
 
-#(DRIVE_OFFSET_NS) flag_in = 1'b0;
-@(negedge flag_out_asym);           // release flipped on this edge
-#(DRIVE_OFFSET_NS) flag_in = 1'b1;  // reverse before the next edge
-repeat (12) @(posedge clk);
-#(DRIVE_OFFSET_NS) flag_in = 1'b0;
-repeat (12) @(posedge clk);
-#(DRIVE_OFFSET_NS) flag_in = 1'b1;
-@(posedge flag_out_asym);           // assert flipped on this edge
-#(DRIVE_OFFSET_NS) flag_in = 1'b0;  // reverse before the next edge
-repeat (12) @(posedge clk);
+    */
+
+    #(DRIVE_OFFSET_NS) flag_in = 1'b1;
+    repeat (4) @(posedge clk);          // one short of ASSERT_CLKS = 5
+    #(DRIVE_OFFSET_NS) flag_in = 1'b0;
+    @(posedge clk);                     // the glitch
+    #(DRIVE_OFFSET_NS) flag_in = 1'b1;
+    repeat (12) @(posedge clk);
 
 
-finish_run("normal end");
+    /*
+    Group 4: flag_in reverses on the clock after a flip.
+    ---
+    flag_in falls and is held until the asymmetric DUT's flag_out follows it,
+    then rises again straight after that edge, so no edge between the flip and
+    the reversal agrees. The window that produced the flip is spent: the
+    re-assert must earn the full ASSERT_CLKS of 5 from zero, not inherit the
+    release count. Then the other way round - an assert followed at once by a
+    release, which must take the full RELEASE_CLKS of 3. The symmetric DUT
+    follows the same flag_in on its own count and sees the reversals
+    mid-window. Exercises a_flag_out_qualified and a_ASSERT_and_RELEASE_work
+    across back-to-back windows.
+    */
+
+    #(DRIVE_OFFSET_NS) flag_in = 1'b0;
+    @(negedge flag_out_asym);           // release flipped on this edge
+    #(DRIVE_OFFSET_NS) flag_in = 1'b1;  // reverse before the next edge
+    repeat (12) @(posedge clk);
+    #(DRIVE_OFFSET_NS) flag_in = 1'b0;
+    repeat (12) @(posedge clk);
+    #(DRIVE_OFFSET_NS) flag_in = 1'b1;
+    @(posedge flag_out_asym);           // assert flipped on this edge
+    #(DRIVE_OFFSET_NS) flag_in = 1'b0;  // reverse before the next edge
+    repeat (12) @(posedge clk);
+
+
+    finish_run("normal end");
 
 
 end
