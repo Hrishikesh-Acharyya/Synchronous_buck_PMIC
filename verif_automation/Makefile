@@ -8,24 +8,41 @@
 #
 #                   Run from this folder:  make help
 #
-# Global variables: PYTHON, SV_LINT, EVIDENCE, RULES, FILES - see below
+# Global variables: PYTHON, SV_LINT, CONTRACT, MUTATION, EVIDENCE, RULES, FILES,
+#                   MODULE, OPERATORS, SAMPLE, SEED, JOBS - see below
 
 # PYTHON: the interpreter for the tools (standard library only)
 PYTHON   ?= python3
 # SV_LINT: the house-style linter
 SV_LINT  := tools/lint/sv_lint.py
+# CONTRACT: the contract extractor
+CONTRACT := tools/contract/extract_contract.py
+# MUTATION: the mutation runner
+MUTATION := tools/mutation/run_mutation.py
 # EVIDENCE: where dated results are saved
 EVIDENCE := evidence
 # RULES / FILES: optional - a comma-separated rule subset, and files or
 #                folders to lint, written from the repository root
 RULES    ?=
 FILES    ?=
+# MODULE / OPERATORS / SAMPLE / SEED / JOBS: optional mutation selectors -
+#            comma-separated modules and operators (tools/mutation/OPERATORS.md),
+#            a random sample size and its seed, and parallel jobs (default: cores)
+MODULE    ?=
+OPERATORS ?=
+SAMPLE    ?=
+SEED      ?= 1
+JOBS      ?=
+
+# MUTATION_ARGS: the selectors as runner options
+MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operators $(OPERATORS)) \
+                $(if $(SAMPLE),--sample $(SAMPLE) --seed $(SEED)) $(if $(JOBS),--jobs $(JOBS))
 
 .DEFAULT_GOAL := help
-.PHONY: help lint lint_report lint_evidence check_scripts
+.PHONY: help lint lint_report lint_evidence contract mutants mutate mutation_evidence check_scripts
 
 help:  ## list the commands
-	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-19s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # lint: every rule in tools/lint/RULES.md over the RTL, checkers and
 #       testbenches; fails on any error. RULES=C1,S2 for a subset, FILES=sva
@@ -42,6 +59,26 @@ lint_evidence:  ## save the full report to evidence/lint/<date>_lint.txt
 	@mkdir -p $(EVIDENCE)/lint
 	@out=$(EVIDENCE)/lint/$$(date +%F)_lint.txt; \
 	$(PYTHON) $(SV_LINT) --report-only > $$out && echo "lint report saved to $$out"
+
+# contract: each module's header, parameters and ports - never its body - as
+#           build/contract/<unit>.json and .md, with index.md and the gaps
+contract:  ## extract every module's contract to build/contract/
+	@$(PYTHON) $(CONTRACT)
+
+# mutants: the mutation sites, listed without running anything
+mutants:  ## list the mutants (MODULE=, OPERATORS=, SAMPLE=, SEED=)
+	@$(PYTHON) $(MUTATION) --list $(MUTATION_ARGS)
+
+# mutate: mutation testing - each mutant in a scratch copy of the RTL against
+#         its module's own testbench. All 17 modules take hours: run it on
+#         your machine. The report lands in build/mutation/<run>/.
+mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=) - hours for all
+	@$(PYTHON) $(MUTATION) $(MUTATION_ARGS)
+
+# mutation_evidence: the same, the report and results also saved as
+#                    evidence/mutation/<date>_mutation.txt and .json
+mutation_evidence:  ## run mutation testing and save the report to evidence/mutation/
+	@$(PYTHON) $(MUTATION) --evidence $(MUTATION_ARGS)
 
 check_scripts:  ## syntax-check every script in this folder
 	@rc=0; \

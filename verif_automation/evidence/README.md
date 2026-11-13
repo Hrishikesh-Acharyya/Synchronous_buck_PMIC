@@ -21,7 +21,7 @@ find the run. Two runs of the same thing on one day get a suffix:
 | Path | What it will hold |
 |---|---|
 | `lint/` | `sv_lint` reports (`make lint_evidence`), with a summary of each in `lint/README.md` |
-| `mutation/` | mutation scores: each mutant, and which test or property killed it |
+| `mutation/` | mutation reports (`make mutation_evidence`): every mutant's outcome, the score per module and operator, and each survivor with its line before and after. The tool is ready; the first report comes with the first full run |
 | `ai_runs/ledger.md` | one row per agent run (format below) |
 | `ai_runs/findings.md` | everything an agent run found or got wrong (format below) |
 | `ai_runs/<date>_<task>/` | the full record of one run: instructions sent, diff produced, gate output |
