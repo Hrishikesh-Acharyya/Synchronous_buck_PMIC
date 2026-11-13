@@ -159,6 +159,7 @@ task automatic do_reset();
     #1;
     rst_n = 1'b0;
     repeat (RESET_CLKS) @(posedge clk);
+    #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
 endtask

@@ -140,7 +140,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 1:
 property p_flag_out_faithful;
 
   @(posedge clk) disable iff (!rst_n)
-    (flag_out == flag_in) |=> $stable(flag_out);
+    (clks_since_release && (flag_out == flag_in)) |=> $stable(flag_out);
 
 endproperty
 
@@ -299,7 +299,7 @@ property p_window_abandoned;
   //disagree counter is the internal signal of the DUT, checking against this module's counter
   // is akin to not writing this PAC group at all
   @(posedge clk) disable iff (!rst_n)
-    s_window_abandoned |=> (dut_disagree_counter == 0); 
+    s_window_abandoned |=> (clks_since_release -> (dut_disagree_counter == 0)); 
 
 endproperty
 

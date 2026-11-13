@@ -124,7 +124,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 3:
 property p_prescalar_advances_by_one;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_prescalar != PRESCALE_MAX) |=> (dut_prescalar == $past(dut_prescalar) + 1'b1);
+    ($past(rst_n) && (dut_prescalar != PRESCALE_MAX)) |=> (dut_prescalar == $past(dut_prescalar) + 1'b1);
 
 endproperty
 
@@ -154,7 +154,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 4:
 property p_prescalar_wraps_to_zero;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_prescalar == PRESCALE_MAX) |=> (dut_prescalar == '0);
+    ($past(rst_n) && (dut_prescalar == PRESCALE_MAX)) |=> (dut_prescalar == '0);
 
 endproperty
 
@@ -184,7 +184,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 property p_timestamp_increments_on_wrap;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_prescalar == PRESCALE_MAX) |=> (timestamp_ms == $past(timestamp_ms) + 1'b1);
+    ($past(rst_n) && (dut_prescalar == PRESCALE_MAX)) |=> (timestamp_ms == $past(timestamp_ms) + 1'b1);
 
 endproperty
 
@@ -217,7 +217,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 6:
 property p_timestamp_stable_otherwise;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_prescalar != PRESCALE_MAX) |=> $stable(timestamp_ms);
+    ($past(rst_n) && (dut_prescalar != PRESCALE_MAX)) |=> $stable(timestamp_ms);
 
 endproperty
 

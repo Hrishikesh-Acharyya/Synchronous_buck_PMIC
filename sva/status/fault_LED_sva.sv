@@ -243,7 +243,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 4:
 property p_red1_solid_on_latch;
 
   @(posedge clk) disable iff (!rst_n)
-    latch_live |=> Red_LED1;
+    ($past(rst_n) && latch_live) |=> Red_LED1;
 
 endproperty
 
@@ -280,7 +280,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 property p_red1_blinks_on_strikes;
 
   @(posedge clk) disable iff (!rst_n)
-    (!latch_live && (strike_level != '0)) |=> (Red_LED1 == $past(dut_blink));
+    ($past(rst_n) && (!latch_live && (strike_level != '0))) |=> (Red_LED1 == $past(dut_blink));
 
 endproperty
 
@@ -310,7 +310,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 6:
 property p_red1_dark_when_clean;
 
   @(posedge clk) disable iff (!rst_n)
-    (!latch_live && (strike_level == '0)) |=> !Red_LED1;
+    ($past(rst_n) && (!latch_live && (strike_level == '0))) |=> !Red_LED1;
 
 endproperty
 
@@ -362,7 +362,7 @@ a_blink_counter_in_range: assert property (p_blink_counter_in_range)
 property p_blink_counter_advances;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_blink_counter != BLINK_MAX) |=> (dut_blink_counter == $past(dut_blink_counter) + 1'b1);
+    ($past(rst_n) && (dut_blink_counter != BLINK_MAX)) |=> (dut_blink_counter == $past(dut_blink_counter) + 1'b1);
 
 endproperty
 
@@ -378,7 +378,7 @@ a_blink_counter_advances: assert property (p_blink_counter_advances)
 property p_blink_counter_wraps;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_blink_counter == BLINK_MAX) |=> (dut_blink_counter == '0);
+    ($past(rst_n) && (dut_blink_counter == BLINK_MAX)) |=> (dut_blink_counter == '0);
 
 endproperty
 
@@ -412,7 +412,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 8:
 property p_blink_toggles_on_wrap;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_blink_counter == BLINK_MAX) |=> (dut_blink == !$past(dut_blink));
+    ($past(rst_n) && (dut_blink_counter == BLINK_MAX)) |=> (dut_blink == !$past(dut_blink));
 
 endproperty
 
@@ -428,7 +428,7 @@ a_blink_toggles_on_wrap: assert property (p_blink_toggles_on_wrap)
 property p_blink_stable_otherwise;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_blink_counter != BLINK_MAX) |=> $stable(dut_blink);
+    ($past(rst_n) && (dut_blink_counter != BLINK_MAX)) |=> $stable(dut_blink);
 
 endproperty
 

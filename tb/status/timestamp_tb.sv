@@ -59,6 +59,9 @@ localparam realtime CLK_PERIOD_NS   = 1.0e9 / real'(CLK_HZ);
 localparam realtime WATCHDOG_NS     = 20_000.0;
 // RESET_CLKS: clocks reset is held in do_reset()
 localparam int      RESET_CLKS      = 3;
+// DRIVE_OFFSET_NS: stimulus is driven this long after a clock edge, so it
+//                  lands clearly after the edge and never races it
+localparam realtime DRIVE_OFFSET_NS = 3.0;
 
 // PRESCALE_VAL_TB: clocks per tick under test, against the package's 50,000
 localparam int      PRESCALE_VAL_TB = 5;
@@ -141,6 +144,7 @@ task automatic do_reset();
     #1;
     rst_n = 1'b0;
     repeat (RESET_CLKS) @(posedge clk);
+    #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (RESET_CLKS) @(posedge clk);
 endtask

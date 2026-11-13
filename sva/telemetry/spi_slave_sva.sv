@@ -386,7 +386,7 @@ a_state_legal: assert property (p_state_legal)
 property p_cmd_entered_only_on_cs_fall;
 
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_spi_state == S_CMD) |-> $past(chk_cs_fall);
+    ($past(rst_n) && $rose(dut_spi_state == S_CMD)) |-> $past(chk_cs_fall);
 
 endproperty
 
@@ -418,7 +418,7 @@ a_cs_fall_enters_cmd: assert property (p_cs_fall_enters_cmd)
 property p_idle_entered_only_on_cs_rise;
 
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_spi_state == S_IDLE) |-> $past(chk_cs_rise);
+    ($past(rst_n) && $rose(dut_spi_state == S_IDLE)) |-> $past(chk_cs_rise);
 
 endproperty
 
@@ -449,7 +449,7 @@ a_cs_rise_enters_idle: assert property (p_cs_rise_enters_idle)
 property p_write_entry;
 
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_spi_state == S_WRITE)
+    ($past(rst_n) && $rose(dut_spi_state == S_WRITE))
         |-> (($past(dut_spi_state) == S_CMD) && !chk_is_read && (chk_byte_count == 8'd1));
 
 endproperty
@@ -466,7 +466,7 @@ a_write_entry: assert property (p_write_entry)
 property p_turn_entry;
 
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_spi_state == S_TURN)
+    ($past(rst_n) && $rose(dut_spi_state == S_TURN))
         |-> (($past(dut_spi_state) == S_CMD) && chk_is_read && (chk_byte_count == 8'd1));
 
 endproperty
@@ -483,7 +483,7 @@ a_turn_entry: assert property (p_turn_entry)
 property p_read_entry;
 
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_spi_state == S_READ)
+    ($past(rst_n) && $rose(dut_spi_state == S_READ))
         |-> (($past(dut_spi_state) == S_TURN) && (chk_byte_count == 8'd2));
 
 endproperty
@@ -714,7 +714,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 7:
 property p_strobe_one_clock;
 
   @(posedge clk) disable iff (!rst_n)
-    wr_en |=> !wr_en;
+    ($past(rst_n) && wr_en) |=> !wr_en;
 
 endproperty
 

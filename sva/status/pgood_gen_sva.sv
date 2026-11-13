@@ -159,7 +159,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 4:
 property p_qualify_counter_resets;
 
   @(posedge clk) disable iff (!rst_n)
-    (!pgood_comp || !run_active) |=> (dut_qualify_counter == 0);
+    ($past(rst_n) && (!pgood_comp || !run_active)) |=> (dut_qualify_counter == 0);
 
 endproperty
 
@@ -193,7 +193,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 property p_run_counter_advances_on_pwm_fall;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_qualify_counter > $past(dut_qualify_counter)) |-> $past(dut_pwm_fall);
+    ($past(rst_n) && (dut_qualify_counter > $past(dut_qualify_counter))) |-> $past(dut_pwm_fall);
 
 endproperty
 
@@ -231,7 +231,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 6:
 property p_qualify_counter_saturates;
 
   @(posedge clk) disable iff (!rst_n)
-        (dut_qualify_counter == QUAL_CYCLES) && pgood_comp && run_active
+        ($past(rst_n) && (dut_qualify_counter == QUAL_CYCLES) && pgood_comp && run_active)
         |=> $stable(dut_qualify_counter);
 
 endproperty

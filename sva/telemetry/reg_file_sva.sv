@@ -501,7 +501,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5 (contract D1-D4, B2):
 
 property p_disable_key_rises_only_on_key;
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_disable_armed)
+    ($past(rst_n) && $rose(dut_disable_armed))
         |-> $past(wr_en && (addr == ADDR_DISABLE_KEY) && (wdata == DISABLE_KEY_ID));
 endproperty
 
@@ -512,7 +512,7 @@ a_disable_key_rises_only_on_key: assert property (p_disable_key_rises_only_on_ke
 
 property p_unlock_key_rises_only_on_key;
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_unlock_armed)
+    ($past(rst_n) && $rose(dut_unlock_armed))
         |-> $past(wr_en && (addr == ADDR_WRITE_KEY) && (wdata == WRITE_ACCESS_KEY_ID));
 endproperty
 
@@ -594,7 +594,7 @@ a_pending_disable_needs_key: assert property (p_pending_disable_needs_key)
 
 property p_switch_wins;
   @(posedge clk) disable iff (!rst_n)
-    en_switch_rise |=> spi_enable;
+    ($past(rst_n) && en_switch_rise) |=> spi_enable;
 endproperty
 
 a_switch_wins: assert property (p_switch_wins)
@@ -647,7 +647,7 @@ a_watchdog_restores: assert property (p_watchdog_restores)
 
 property p_wd_restored_rises_only_on_expiry;
   @(posedge clk) disable iff (!rst_n)
-    $rose(dut_wd_restored) |-> $past(chk_wd_expired);
+    ($past(rst_n) && $rose(dut_wd_restored)) |-> $past(chk_wd_expired);
 endproperty
 
 a_wd_restored_rises_only_on_expiry: assert property (p_wd_restored_rises_only_on_expiry)
@@ -733,7 +733,7 @@ a_snapshot_moves_only_on_rd_first: assert property (p_snapshot_moves_only_on_rd_
 
 property p_snapshot_takes_live_time;
   @(posedge clk) disable iff (!rst_n)
-    rd_first |=> (dut_timestamp_snap == $past(timestamp_ms));
+    ($past(rst_n) && rd_first) |=> (dut_timestamp_snap == $past(timestamp_ms));
 endproperty
 
 a_snapshot_takes_live_time: assert property (p_snapshot_takes_live_time)

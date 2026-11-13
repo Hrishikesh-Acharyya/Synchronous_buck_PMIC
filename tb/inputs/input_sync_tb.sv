@@ -212,6 +212,7 @@ initial begin
     rst_n = 1'b1;
     #1 rst_n = 1'b0;
     repeat (3) @(posedge clk);
+    #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (3) @(posedge clk);
     #(DRIVE_OFFSET_NS) rst_n = 1'b0;
@@ -224,6 +225,7 @@ initial begin
     // both directions. The three settling clocks after release let
     // clocks_after_reset_release saturate before the first transition, so
     // no edge falls inside the property's blanking window.
+    #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (3) @(posedge clk);
     #(DRIVE_OFFSET_NS) async_in = 1'b1;
@@ -245,6 +247,7 @@ initial begin
     @(posedge clk);                         // meta_ff takes 1, sync_out does not
     #(DRIVE_OFFSET_NS) rst_n = 1'b0;        // clear arrives with stages differing
     repeat (3) @(posedge clk);
+    #(DRIVE_OFFSET_NS);
     rst_n = 1'b1;
     repeat (3) @(posedge clk);
 

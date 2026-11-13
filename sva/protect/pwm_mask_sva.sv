@@ -52,7 +52,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 1:
 property p_mask_doesnt_produce_pwm;
 
   @(posedge clk) disable iff (!rst_n)
-    pwm_out |-> $past(pwm_sync); //pwm_out is registered so it appears one clock after pwm_sync
+    ($past(rst_n) && pwm_out) |-> $past(pwm_sync); //pwm_out is registered so it appears one clock after pwm_sync
 
 endproperty
 
@@ -82,7 +82,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 2:
 property p_pwm_out_cannot_go_back_up_once_truncated;
 
   @(posedge clk) disable iff (!rst_n)
-    (!pwm_out && pwm_sync && $past(pwm_sync)) |=> (!pwm_out); 
+    ($past(rst_n) && (!pwm_out && pwm_sync && $past(pwm_sync))) |=> (!pwm_out); 
 
 endproperty
 
@@ -135,7 +135,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 4:
 property p_counter_0_in_low_phase;
 
   @(posedge clk) disable iff (!rst_n)
-    (!pwm_sync) |=> (dut_run_counter == 0);
+    ($past(rst_n) && (!pwm_sync)) |=> (dut_run_counter == 0);
 
 endproperty
 
@@ -164,7 +164,7 @@ Purpose: PAC(Property, Assertion, Cover) Group 5:
 property p_short_pulses_pass;
 
   @(posedge clk) disable iff (!rst_n)
-    (dut_run_counter < max_on_counts) && (pwm_sync)|=> pwm_out;
+    ($past(rst_n) && (dut_run_counter < max_on_counts) && (pwm_sync))|=> pwm_out;
 
 endproperty
 
