@@ -2,39 +2,26 @@
 
 Each report is the full output of `make lint_evidence` (`tools/lint/sv_lint.py`;
 the rules are in `tools/lint/RULES.md`). A change to the linter makes earlier
-reports stale, so they are cleared and a new baseline is taken. The newest
-summary is at the top.
+reports stale, so they are cleared and a new one is taken. The newest summary
+is at the top.
 
-## 2026-11-12_lint.txt: baseline (linter at commit fe2e574)
+## 2026-11-13_lint.txt: clean (tree at commit 4b1fbed)
 
-57 files, 1563 errors, 32 warnings, 0 exempted. Nothing had been fixed yet.
+57 files, 0 errors, 0 warnings, 0 exempted. Every rule passes on the RTL, the
+checkers and the testbenches.
 
-| Rule | What | RTL | sva | tb |
-|---|---|---:|---:|---:|
-| H2 | Filename line does not match the file | 0 | 0 | 3 |
-| H3 | file does not end with `` `default_nettype wire `` | 1 | 2 | 1 |
-| C1 | block without a Purpose block inside it (69 of these have one above the block instead) | 15 | 2 | 221 |
-| S1 | multi-line if / else without begin / end | 28 | 1 | 59 |
-| S2 | no blank line after a block opener or a leading Purpose block | 136 | 95 | 391 |
-| S3 | no blank line before a block closer | 98 | 88 | 375 |
-| S4 (warning) | module body indented | 13 | 2 | 17 |
-| P4 | two-edge property not guarded against reset | 0 | 33 | 0 |
-| T1 | stimulus right after `@(posedge clk)` with no `#(DRIVE_OFFSET_NS)` | 0 | 0 | 14 |
+How the tree got there, from the previous report (1563 errors, 32 warnings;
+cleared because the linter changed):
 
-Every other rule (H1, K1, N1-N5, P1-P3, B1, B2) found nothing.
+| Commit | What it fixed |
+|---|---|
+| 015b2f9 | The linter itself. Rule fixes the clean-up exposed: S4 flagged continuation lines (port connections, wrapped expressions) and clocking blocks, and stopped checking a checker after its first `assert property`; S2 tied a comment after a module header to the header; C1 did not walk over `integer` / `real` declarations; P4 missed a helper named for the reset's release; T1 would have flagged drives through a clocking block. |
+| 59a6fef | A design bug the race-free reset exposed in `input_debounce`, fixed with the designer's approval - see that commit. |
+| 1db52d5 | P4: 31 two-edge checker properties guarded against reset. T1: 14 reset releases offset from the clock edge. |
+| 4b1fbed | Layout across the RTL, checkers and testbenches (S1-S4, C1, H2, H3). No logic change; the RTL's sv2v output is token-identical. |
 
-Findings that are more than layout:
-
-- **H2:** `tb/protect/pwm_mask_tb.sv` says `pwm_mask.sv`;
-  `tb/telemetry/pwm_stats_tb.sv` and `tb/template_tb.sv` say
-  `tb_template.sv`.
-- **H3:** `rtl-systemverilog/telemetry/fault_cause.sv`, `sva/bind_sva.sv`,
-  `sva/sva_pkg.sv`, `tb/top/pmic_top/bind_top_only.sv`.
-- **P4:** 33 properties in seven checkers (`input_debounce`, `pwm_mask`,
-  `fault_LED`, `pgood_gen`, `timestamp`, `reg_file`, `spi_slave`) use `|=>`
-  or `$past` with only `disable iff (!rst_n)`. The checkers written later
-  (`hiccup_timer`, `soft_start`, `strike_counter`, `fault_cause`, the top
-  level) carry `$past(rst_n)` or `out_of_reset` and pass.
-- **T1:** all 14 are the `do_reset` task (or reset release in group 1),
-  which releases `rst_n` straight after `@(posedge clk)`. It is the same code
-  in each testbench, copied from `tb/template_tb.sv`.
+Checked after these commits: Verilator lint in both builds, the script check,
+`verilog_check` (17 of 17 files code-identical to sv2v), and the full
+`equiv_all` gate - all 17 testbenches pass on the SystemVerilog source and on
+the sv2v output, both cocotb suites included; 341 of 341 SVA covers hit, 0
+assertion failures.

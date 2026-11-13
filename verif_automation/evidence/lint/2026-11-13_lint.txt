@@ -1,0 +1,27 @@
+sv_lint report - 2026-11-13 - commit 4b1fbed
+scope: rtl-systemverilog sva tb
+
+
+sv_lint: 57 files - 0 errors, 0 warnings, 0 exempted
+  rule level     found  description
+  H1   error         0  header block with Filename / File Description / Global variables lines
+  H2   error         0  header Filename matches the file
+  H3   error         0  file ends with `default_nettype wire
+  C1   error         0  every always / initial block, task and function has a Purpose block, inside it
+  S1   error         0  multi-line if / else use begin / end
+  S2   error         0  blank line after every block opener, and after a block's Purpose block
+  S3   error         0  blank line before every block closer
+  S4   warning       0  module body at the indentation of module / endmodule
+  K1   error         0  parameters and localparams in ALL CAPS
+  N1   error         0  a_ / c_ / p_ naming in checkers
+  N2   error         0  every property used; a_X asserts p_X
+  N3   error         0  every PAC group with an assertion has a cover, or says why not
+  N4   error         0  assertions report through note_failure() with a label-first message
+  N5   error         0  no $error / $fatal in checkers, no $fatal in testbenches
+  P1   error         0  a property about reset has no disable iff
+  P2   error         0  no === / !== in checkers
+  P3   error         0  no $rose / $fell on multi-bit signals
+  P4   error         0  a property reaching back one edge is guarded by $past(rst_n) or an out-of-reset helper
+  B2   error         0  checkers reach DUT internals through dut_ ports, not hierarchical names
+  T1   error         0  testbench stimulus after a clock edge is offset by #(DRIVE_OFFSET_NS)
+  B1   error         0  every checker bound, every bind's checker exists
