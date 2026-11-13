@@ -2,11 +2,10 @@
 #
 # Filename:         sv_lint.py
 #
-# File Description: House-style and rulebook linter for the SystemVerilog and
-#                   Verilog sources: the RTL, the bound checkers and the
-#                   testbenches. It checks the mechanical rules of
-#                   docs/VERIFICATION_RULES.md and the project's coding
-#                   standard - the ones a script can judge without opinion.
+# File Description: House-style linter for the SystemVerilog and Verilog
+#                   sources: the RTL, the bound checkers and the testbenches.
+#                   It checks the project's coding standard and verification
+#                   rules - the ones a script can judge without opinion.
 #                   It checks form, not assertion quality: whether a property
 #                   is complete or subsumed is out of scope.
 #
@@ -330,7 +329,7 @@ def rule_C1(src):
         k = n - 1
         while k >= 0 and re.match(rf"\s*({PROCEDURAL_OPENERS})\b.*;\s*$", src.code[k]):
             k -= 1
-        while k >= 0 and re.match(r"\s*(logic|wire|reg|bit|int)\b.*;\s*$", src.code[k]):
+        while k >= 0 and re.match(r"\s*(logic|wire|reg|bit|int|integer|real|realtime|time)\b.*;\s*$", src.code[k]):
             k -= 1
         if k >= 0 and k in src.comment_lines:
             continue
@@ -425,6 +424,8 @@ def rule_S2(src):
         if not is_blank(src, n + 1):
             yield n + 1, f"no blank line after {what}"
             continue
+        if what == "the module header":
+            continue                    # a comment after the header belongs to the next item
         after = block_comment_after(src, n)
         if after and "Purpose" in comment_text(src, after) and not is_blank(src, after[1] + 1):
             yield after[1] + 2, "no blank line after the Purpose block"
@@ -447,20 +448,22 @@ def rule_S3(src):
             yield n + 1, f"no blank line before {m.group(1)}"
 
 
-def rule_S4(src):
+def _module_items(src):
 
     """
-    Purpose: The module body sits at the same indentation as module /
-             endmodule: lines directly inside a module (not inside its
-             blocks) start in column 0. Reported once per module, at the first
-             offending line.
+    Purpose: For every module, yield (line, at_top) for each line of its body
+             that starts a new item: 0-based line, and whether it sits
+             directly in the module (True) or inside one of its blocks.
+             Lines that continue an unfinished statement (a wrapped
+             expression, a port list, enum members) are not item starts and
+             are skipped. Comment-only lines are skipped too.
     """
-    depth, in_module, header_done, reported = 0, False, False, False
+    depth, brackets, in_module, header_done, open_stmt = 0, 0, False, False, False
     for n, code in enumerate(src.code):
         s = code.strip()
         if re.match(r"module\b", s):
-            in_module, header_done, reported, depth = True, False, False, 0
-        if not in_module:
+            in_module, header_done, depth, brackets, open_stmt = True, False, 0, 0, False
+        if not in_module or not s:
             continue
         if not header_done:
             if re.search(r"\)\s*;\s*$", code) or re.match(r"module\s+\w+\s*;", s):
@@ -469,12 +472,36 @@ def rule_S4(src):
         if re.match(r"endmodule\b", s):
             in_module = False
             continue
-        if s and depth == 0 and code[:1] in (" ", "\t") and not reported:
-            yield n + 1, "module body is indented; it sits at the indentation of module / endmodule"
-            reported = True
-        depth += len(re.findall(r"\b(begin|fork|case[xz]?|function|task|property|sequence|generate|covergroup)\b", code))
-        depth -= len(re.findall(r"\b(end|join|join_any|join_none|endcase|endfunction|endtask|endproperty|endsequence|endgenerate|endgroup)\b", code))
+        if brackets == 0 and not open_stmt:
+            yield n, depth == 0
+        depth += len(re.findall(r"\b(begin|fork|case[xz]?|generate|clocking)\b", code))
+        depth += len(re.findall(r"^\s*(?:(?:virtual|static|protected|local|pure|extern)\s+)*"
+                                r"(function|task|property|sequence|covergroup)\b", code))
+        depth -= len(re.findall(r"\b(end|join|join_any|join_none|endcase|endfunction|endtask|"
+                                r"endproperty|endsequence|endgenerate|endgroup|endclocking)\b", code))
         depth = max(depth, 0)
+        brackets += len(re.findall(r"[(\[{]", code)) - len(re.findall(r"[)\]}]", code))
+        brackets = max(brackets, 0)
+        # a statement is open until it ends in ';' or at a block keyword
+        open_stmt = not re.search(r"(;|\bbegin(\s*:\s*\w+)?|\bend(\s*:\s*\w+)?|\bendcase|\bendfunction|"
+                                  r"\bendtask|\bendproperty|\bendsequence|\bendgenerate|\bgenerate|\bendgroup|"
+                                  r"^\s*`\w+.*)\s*$", code)
+
+
+def rule_S4(src):
+
+    """
+    Purpose: The module body sits at the same indentation as module /
+             endmodule: every item directly inside a module (not inside its
+             blocks, and not a continuation line) starts in column 0.
+             Reported once per module, at the first offending line.
+    """
+    seen = set()
+    for n, at_top in _module_items(src):
+        start = max(k for k in range(n + 1) if re.match(r"\s*module\b", src.code[k]))
+        if at_top and src.code[n][:1] in (" ", "\t") and start not in seen:
+            seen.add(start)
+            yield n + 1, "module body is indented; it sits at the indentation of module / endmodule"
 
 
 # ==============================================================================
@@ -589,7 +616,7 @@ def rule_N3(src):
             first, last = next(g for g in groups if g[0] <= line < g[1])
             if any(first <= c < last for c in covers.values()):
                 continue
-            # a documented decision (rulebook 6): the group's Purpose says
+            # a documented decision: the group's Purpose says
             # it shares another group's cover, or why it has none
             group = "\n".join(src.raw[first:last])
             start = group.find("Purpose")
@@ -745,11 +772,12 @@ def _reset_helpers(src):
 
     """
     Purpose: The out-of-reset helpers a file declares: checker-local signals
-             named for reset (out_of_reset, clocks_after_reset_release),
-             which hold a property off until the first edges after reset.
+             named for reset or its release (out_of_reset,
+             clocks_after_reset_release, clks_since_release), which hold a
+             property off until the first edges after reset.
     """
     text = "\n".join(src.code)
-    names = set(re.findall(r"\b(?:logic|bit|int|reg)\b[^;]*?\b(\w*reset\w*)\s*[;,=\[]", text))
+    names = set(re.findall(r"\b(?:logic|bit|int|reg)\b[^;]*?\b(\w*(?:reset|release)\w*)\s*[;,=\[]", text))
     return {n for n in names if n not in ("rst_n",)}
 
 
@@ -809,18 +837,26 @@ def rule_T1(src):
              clock edge is offset by #(DRIVE_OFFSET_NS), so it lands clearly
              after the edge and not in a race with it. Flags an assignment
              that follows @(posedge clk) - on the same line or as the next
-             statement - with no delay between.
+             statement - with no delay between. A drive through a clocking
+             block (cb.sig <= v) is skipped: the block's output skew is the
+             offset.
     """
     if src.kind != "tb":
         return
     edge = r"@\s*\(\s*posedge\s+\w*clk\w*\s*\)"
+    # a drive through a clocking block takes the block's output skew, so
+    # it needs no offset of its own
+    blocks = set(re.findall(r"\bclocking\s+(\w+)", "\n".join(src.code)))
+    def is_stimulus(code):
+        lhs = re.match(r"\s*(\w+)\s*\.", code)
+        return _is_assignment(code) and not (lhs and lhs.group(1) in blocks)
     for n, code in enumerate(src.code):
         m = re.search(edge + r"\s*(.*)$", code)
         if not m:
             continue
         rest = m.group(1).strip()
         if rest and rest != ";":
-            if _is_assignment(rest):
+            if is_stimulus(rest):
                 yield n + 1, "stimulus on the clock edge - offset it with #(DRIVE_OFFSET_NS)"
             continue
         if rest != ";":
@@ -828,7 +864,7 @@ def rule_T1(src):
         k = n + 1
         while k < len(src.code) and not src.code[k].strip():
             k += 1
-        if k < len(src.code) and _is_assignment(src.code[k]):
+        if k < len(src.code) and is_stimulus(src.code[k]):
             yield k + 1, "stimulus right after @(posedge clk) - offset it with #(DRIVE_OFFSET_NS)"
 
 

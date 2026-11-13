@@ -12,7 +12,7 @@ it. They never replace it.
 
 | Folder | Tool | Status |
 |---|---|---|
-| `lint/` | `sv_lint.py`: house-style and rulebook linter for the RTL, checkers and testbenches. Rules are in `lint/RULES.md`, accepted exceptions in `lint/exemptions.txt` | in use |
+| `lint/` | `sv_lint.py`: house-style linter for the RTL, checkers and testbenches. Rules are in `lint/RULES.md`, accepted exceptions in `lint/exemptions.txt` | in use |
 | `contract/` | contract extractor: turns each module's header contract and the RTL ports into a machine-readable list of the behaviours a checker must cover | planned |
 | `mutation/` | mutation runner: makes small, known edits to a scratch copy of the RTL (never the real files), reruns the module's testbench and checker, and reports which mutants survived | planned |
 | `traceability/` | traceability matrix: contract clause, then the property or cover that checks it, then the test that exercises it | planned |

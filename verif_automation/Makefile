@@ -12,7 +12,7 @@
 
 # PYTHON: the interpreter for the tools (standard library only)
 PYTHON   ?= python3
-# SV_LINT: the house-style and rulebook linter
+# SV_LINT: the house-style linter
 SV_LINT  := tools/lint/sv_lint.py
 # EVIDENCE: where dated results are saved
 EVIDENCE := evidence

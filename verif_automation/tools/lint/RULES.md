@@ -21,29 +21,29 @@ the reason. A line without a reason stops the run.
 
 ## Rules
 
-| ID | Level | Rule | Source |
-|---|---|---|---|
-| H1 | error | The file opens with a header block containing `# Filename:`, `# File Description:` and `# Global variables:` lines. Presence only; what Global variables lists is not checked. | coding standard |
-| H2 | error | The header's Filename names this file. | coding standard |
-| H3 | error | The file ends with `` `default_nettype wire ``. | coding standard |
-| C1 | error | Every `always_*` / `always` / `initial` / `final` block and every task and function has a Purpose block. A block that spans lines carries it inside, as the first thing after its declaration line; above the block no longer counts. A single-statement `always` / `initial` with no `begin` carries a Purpose block or a `//` comment above it; a run of them, with the declarations of the signals they drive, may share one comment. | rulebook §2 |
-| S1 | error | An `if` or `else` whose statement is on its own line uses `begin` / `end`. A one-line `if` / `else` (statement on the same line) needs none. | coding standard |
-| S2 | error | A blank line after every line that opens a block: a multi-line `begin`, the module header, a `task` / `function` / `property` / `sequence` declaration. When the block starts with its Purpose block, a blank line follows that too. A comment line does not count as blank. | coding standard |
-| S3 | error | A blank line before every line that closes a block: `end`, `endmodule`, `endtask`, `endfunction`, `endproperty`, `endsequence`. A comment line does not count as blank. | coding standard |
-| S4 | warning | The module body sits at the indentation of `module` / `endmodule`. Reported once per module. | rulebook §2 |
-| K1 | error | Parameters and localparams are ALL CAPS. | rulebook §2 |
-| N1 | error | In checkers, assertions are labelled `a_`, covers `c_`, named properties `p_`; no unlabelled assertion or cover. | rulebook §6 |
-| N2 | error | Every named property is asserted or covered, and `a_X` asserts `p_X`. | rulebook §6 |
-| N3 | error | Every assertion has a cover in its own PAC group (the lines between two `////////` rule lines). Stems need not match; cover-only groups are fine. A group without a cover must say so in its Purpose block: that it shares a named cover, or why it has none. | rulebook §6 |
-| N4 | error | An assertion reports through `sva_pkg::note_failure()`, with a message starting with its own label. | rulebook §6 |
-| N5 | error | No `$error` / `$fatal` in a checker; no `$fatal` in a testbench. | rulebook §6, §7 |
-| P1 | error | A property about reset (its antecedent tests `!rst_n`) has no `disable iff`. | rulebook §4 |
-| P2 | error | No `===` / `!==` in a checker; `==` in properties. | rulebook §4 |
-| P3 | error | No `$rose` / `$fell` on a multi-bit signal (judged where the argument is declared in the same file). | rulebook §4 |
-| P4 | error | A checker property that reaches back one edge (`$past`, `$stable`, `$changed`, `\|=>`) is guarded against a reset between the edges: it reads `$past(rst_n)` or an out-of-reset helper (a checker-local signal named for reset, such as `out_of_reset`). A property about reset itself (its antecedent tests `!rst_n`) needs none. | rulebook §4 |
-| B1 | error | Every checker module is bound in `sva/bind_sva.sv`, and every bind names a checker that exists. | rulebook §1, §6 |
-| B2 | error | A checker reaches DUT internals only through its `dut_` ports, wired by the bind; no hierarchical name (`u_core.state`). A field or method of the checker's own signal (`state.name()`) is not a path. | rulebook §1, §6 |
-| T1 | error | In a SystemVerilog / Verilog testbench, an assignment that follows `@(posedge clk)` - on the same line or as the next statement - is offset by `#(DRIVE_OFFSET_NS)` first, so stimulus never races the edge. | rulebook §1 |
+| ID | Level | Rule |
+|---|---|---|
+| H1 | error | The file opens with a header block containing `# Filename:`, `# File Description:` and `# Global variables:` lines. Presence only; what Global variables lists is not checked. |
+| H2 | error | The header's Filename names this file. |
+| H3 | error | The file ends with `` `default_nettype wire ``. |
+| C1 | error | Every `always_*` / `always` / `initial` / `final` block and every task and function has a Purpose block. A block that spans lines carries it inside, as the first thing after its declaration line; above the block no longer counts. A single-statement `always` / `initial` with no `begin` carries a Purpose block or a `//` comment above it; a run of them, with the declarations of the signals they drive (`logic`, `reg`, `integer`, `real`, ...), may share one comment. |
+| S1 | error | An `if` or `else` whose statement is on its own line uses `begin` / `end`. A one-line `if` / `else` (statement on the same line) needs none. |
+| S2 | error | A blank line after every line that opens a block: a multi-line `begin`, the module header, a `task` / `function` / `property` / `sequence` declaration. When the block starts with its Purpose block, a blank line follows that too; a comment after the module header belongs to the item below it, not to the header. A comment line does not count as blank. |
+| S3 | error | A blank line before every line that closes a block: `end`, `endmodule`, `endtask`, `endfunction`, `endproperty`, `endsequence`. A comment line does not count as blank. |
+| S4 | warning | Every item directly inside a module (not inside one of its blocks) starts at the indentation of `module` / `endmodule`. Continuation lines - a wrapped expression, port connections, enum members - are not items, and the inside of a `clocking` block is not module level. Reported once per module. |
+| K1 | error | Parameters and localparams are ALL CAPS. |
+| N1 | error | In checkers, assertions are labelled `a_`, covers `c_`, named properties `p_`; no unlabelled assertion or cover. |
+| N2 | error | Every named property is asserted or covered, and `a_X` asserts `p_X`. |
+| N3 | error | Every assertion has a cover in its own PAC group (the lines between two `////////` rule lines). Stems need not match; cover-only groups are fine. A group without a cover must say so in its Purpose block: that it shares a named cover, or why it has none. |
+| N4 | error | An assertion reports through `sva_pkg::note_failure()`, with a message starting with its own label. |
+| N5 | error | No `$error` / `$fatal` in a checker; no `$fatal` in a testbench. |
+| P1 | error | A property about reset (its antecedent tests `!rst_n`) has no `disable iff`. |
+| P2 | error | No `===` / `!==` in a checker; `==` in properties. |
+| P3 | error | No `$rose` / `$fell` on a multi-bit signal (judged where the argument is declared in the same file). |
+| P4 | error | A checker property that reaches back one edge (`$past`, `$stable`, `$changed`, `\|=>`) is guarded against a reset between the edges: it reads `$past(rst_n)` or an out-of-reset helper (a checker-local signal named for reset or its release, such as `out_of_reset` or `clks_since_release`). A property about reset itself (its antecedent tests `!rst_n`) needs none. |
+| B1 | error | Every checker module is bound in `sva/bind_sva.sv`, and every bind names a checker that exists. |
+| B2 | error | A checker reaches DUT internals only through its `dut_` ports, wired by the bind; no hierarchical name (`u_core.state`). A field or method of the checker's own signal (`state.name()`) is not a path. |
+| T1 | error | In a SystemVerilog / Verilog testbench, an assignment that follows `@(posedge clk)` - on the same line or as the next statement - is offset by `#(DRIVE_OFFSET_NS)` first, so stimulus never races the edge. A drive through a clocking block (`cb.sig <= v`) is exempt: the block's output skew already places it after the edge. |
 
 ## Decided against
 
@@ -92,6 +92,6 @@ out: they are not `begin` / `end` blocks, and in the current code 13 of 18
 ## Out of scope
 
 The linter checks form: layout, naming, comments, and the mechanical
-rulebook rules above. Whether an assertion is complete, subsumed by another,
+verification rules above. Whether an assertion is complete, subsumed by another,
 or reads its guard on the right edge is a matter of judgement about
 assertion quality, and is not the linter's job.
