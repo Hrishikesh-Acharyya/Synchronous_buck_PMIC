@@ -7,6 +7,11 @@ is at the top.
 
 ## Totals: 1,681 findings caught and fixed
 
+**Every finding is listed one by one - file, line, rule, the code at that line
+and the commit that fixed it - in `2026-11-13_findings.md`**, together with the
+16 findings introduced and fixed during the clean-up, the design bug, and the
+linter's own bugs.
+
 `2026-11-13_lint_original_code.txt` is the current linter (all 23 rules) run
 on the code as it stood before the clean-up (commit 7ea100f), so every finding
 is counted once, under the rules that now hold - the first rules' findings and
