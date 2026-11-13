@@ -4,8 +4,9 @@ The results of `tools/` and `ai/`, kept as a dated record. Soak evidence for
 the handwritten suites stays beside each suite (for example
 `tb/top/pmic_top/soak/`).
 
-Nothing is recorded yet: the tools and the agent runs are still being set up.
-A file appears here when the first real result does.
+So far: the lint reports and the RTL change requests. The agent runs and the
+other tools are still being set up; their files appear when the first real
+result does.
 
 ## Naming
 

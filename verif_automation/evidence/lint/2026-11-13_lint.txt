@@ -1,17 +1,20 @@
-sv_lint report - 2026-11-13 - commit 4b1fbed
+sv_lint report - 2026-11-13 - commit 27b5413
 scope: rtl-systemverilog sva tb
 
 
-sv_lint: 57 files - 0 errors, 0 warnings, 0 exempted
+sv_lint: 57 files - 0 errors, 0 warnings, 8 exempted
   rule level     found  description
   H1   error         0  header block with Filename / File Description / Global variables lines
   H2   error         0  header Filename matches the file
   H3   error         0  file ends with `default_nettype wire
+  H4   error         0  no template text left in the header
   C1   error         0  every always / initial block, task and function has a Purpose block, inside it
   S1   error         0  multi-line if / else use begin / end
   S2   error         0  blank line after every block opener, and after a block's Purpose block
   S3   error         0  blank line before every block closer
   S4   warning       0  module body at the indentation of module / endmodule
+  S5   error         0  multi-line always / initial / loop bodies use begin / end
+  S6   error         0  every line inside a block sits deeper than its opening line
   K1   error         0  parameters and localparams in ALL CAPS
   N1   error         0  a_ / c_ / p_ naming in checkers
   N2   error         0  every property used; a_X asserts p_X
