@@ -163,6 +163,11 @@ task automatic finish_run(input string reason);
     else
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
     $display("--------------------------------------------------");
+    // tally: one plain key=value line for the run scripts (run_tb.sh reads
+    //        it for the summary card; the terminal filter hides it). Keep it
+    //        as is - the banner above is for people and may be reworded.
+    $display("tally: checks_run=%0d checks_failed=%0d sva_failures=%0d exit=%s",
+             checks_run, checks_failed, sva_pkg::sva_failures, reason);
     // $stop on failure: non-zero exit status, so make and CI see the FAIL.
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;

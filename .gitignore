@@ -54,11 +54,52 @@ vivado/
 # Full yosys logs of the liberty-mapped run; the summary is committed instead
 Build/area.txt
 Build/area_notel.txt
-# Staging tree of make package; regenerated on every run
+# Staging trees of make split / make verilog_notel; regenerated on every run
+Build/split_raw/
+Build/split_raw_notel/
+Build/rtl-verilog-notel/
+# Left behind by the retired make package (Silicluster flow); make clean removes them
 Build/package_raw/
-# The submission zip; make zip regenerates it on demand and it is not committed
+Build/package_raw_trimmed/
+# make convert_notel output; regenerated from Build/pmic_full.v on demand
+Build/pmic_full_notel.v
+# Bundles from make bundle / bundle_notel; regenerated on demand
 Build/*.zip
-# Place and route: fetched platform files and run outputs (pnr/README.md)
+# Place and route, for when it is redone: fetched platform files and run outputs
 pnr/platform/
 pnr/work/
-Build/package_raw_trimmed/
+
+
+sim_build/
+results.xml
+__pycache__/
+*.fst
+coverage.dat
+
+# cocotb host_if testbench (tb/telemetry/host_if). Per-run output is kept on
+# disk but not tracked: random_seeds' coverage in cov/, a soak's per-run logs,
+# event CSVs and coverage in soak/raw/. Only a soak's evidence is tracked:
+# soak/README.md, results.txt, summary.txt, all_events.csv, merged.dat.
+tb/telemetry/host_if/cov/
+tb/telemetry/host_if/soak/*
+!tb/telemetry/host_if/soak/README.md
+!tb/telemetry/host_if/soak/results.txt
+!tb/telemetry/host_if/soak/summary.txt
+!tb/telemetry/host_if/soak/all_events.csv
+!tb/telemetry/host_if/soak/merged.dat
+!tb/telemetry/host_if/soak/functional_coverage.xml
+# per-run files that older MAKEFILE versions wrote next to the testbench
+tb/telemetry/host_if/cov_run*.dat
+tb/telemetry/host_if/merged.dat
+
+# cocotb whole-supervisor testbench (tb/top/pmic_top): the same layout as
+# host_if - working coverage in cov/, a soak's per-run files in soak/raw/,
+# only the soak's evidence tracked.
+tb/top/pmic_top/cov/
+tb/top/pmic_top/soak/*
+!tb/top/pmic_top/soak/README.md
+!tb/top/pmic_top/soak/results.txt
+!tb/top/pmic_top/soak/summary.txt
+!tb/top/pmic_top/soak/all_events.csv
+!tb/top/pmic_top/soak/merged.dat
+!tb/top/pmic_top/soak/functional_coverage.xml

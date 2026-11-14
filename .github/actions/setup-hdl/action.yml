@@ -10,15 +10,15 @@
 #                   read every run as INCONCLUSIVE. The first build takes
 #                   several minutes; every run after restores it in seconds.
 #
-#                   sv2v comes from its release binary. yosys comes from the
-#                   Ubuntu package - it only ever reads the sv2v output, which
-#                   is plain Verilog-2005, so its old SystemVerilog frontend
-#                   does not matter here.
+#                   sv2v comes from its release binary. yosys and Icarus
+#                   Verilog come from the Ubuntu packages - yosys only ever
+#                   reads the sv2v output, which is plain Verilog-2005, so its
+#                   old SystemVerilog frontend does not matter here.
 #
 # Global variables: None
 
 name: Set up HDL tools
-description: Verilator (cached source build), sv2v and yosys, on demand
+description: Verilator (cached source build), sv2v, yosys and Icarus Verilog, on demand
 
 inputs:
   verilator:
@@ -35,6 +35,9 @@ inputs:
     default: "v0.0.13"
   yosys:
     description: Install yosys
+    default: "false"
+  iverilog:
+    description: Install Icarus Verilog
     default: "false"
 
 runs:
@@ -93,3 +96,11 @@ runs:
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends yosys
         yosys -V
+
+    - name: Install Icarus Verilog
+      if: inputs.iverilog == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends iverilog
+        iverilog -V 2>&1 | head -n 1

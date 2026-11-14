@@ -1,0 +1,14 @@
+  reg_file_sva: 24 of 26 covers hit, 2 at zero
+  spi_slave_sva: 18 of 27 covers hit, 9 at zero
+zero-hit covers:
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/reg_file_sva.svl589n25tuserpagev_user/reg_file_svaoc_arm_lapsehhost_if_wrapper.u_reg_file.u_sva.c_arm_lapse' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/reg_file_sva.svl786n22tuserpagev_user/reg_file_svaoc_bus_err_saturatedhhost_if_wrapper.u_reg_file.u_sva.c_bus_err_saturated' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl548n21tuserpagev_user/spi_slave_sva__S64oc_timeout_in_cmdhhost_if_wrapper.u_spi_slave.u_sva.c_timeout_in_cmd' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl550n21tuserpagev_user/spi_slave_sva__S64oc_timeout_in_writehhost_if_wrapper.u_spi_slave.u_sva.c_timeout_in_write' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl552n21tuserpagev_user/spi_slave_sva__S64oc_timeout_in_readhhost_if_wrapper.u_spi_slave.u_sva.c_timeout_in_read' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl983n26tuserpagev_user/spi_slave_sva__S64oc_abort_mid_bytehhost_if_wrapper.u_spi_slave.u_sva.c_abort_mid_byte' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl985n26tuserpagev_user/spi_slave_sva__S64oc_abort_shorthhost_if_wrapper.u_spi_slave.u_sva.c_abort_short' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl987n26tuserpagev_user/spi_slave_sva__S64oc_abort_after_timeouthhost_if_wrapper.u_spi_slave.u_sva.c_abort_after_timeout' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl989n26tuserpagev_user/spi_slave_sva__S64oc_read_closed_mid_bytehhost_if_wrapper.u_spi_slave.u_sva.c_read_closed_mid_byte' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl991n38tuserpagev_user/spi_slave_sva__S64oc_closed_before_command_after_readhhost_if_wrapper.u_spi_slave.u_sva.c_closed_before_command_after_read' 0
+C 'f/mnt/e/Synchronous_buck_convertor/Sync_Buck_convertor/sva/telemetry/spi_slave_sva.svl993n38tuserpagev_user/spi_slave_sva__S64oc_closed_before_command_after_writehhost_if_wrapper.u_spi_slave.u_sva.c_closed_before_command_after_write' 0

@@ -63,6 +63,76 @@ bind pwm_stats pwm_stats_sva #(
     .*
 );
 
+bind soft_start soft_start_sva #(
+    .MIN_ON_COUNTS(MIN_ON_COUNTS),
+    .ON_TIME_W(ON_TIME_W)
+) u_sva (.*);
+
+bind hiccup_timer hiccup_timer_sva #(
+    .STRIKE_W(STRIKE_W),
+    .TIMER_W(TIMER_W)
+) u_sva (.*);
+
+bind strike_counter strike_counter_sva #(
+    .CLEAN_RUN_W(CLEAN_RUN_W),
+    .STRIKE_W(STRIKE_W)
+) u_sva (.*);
+
+bind fault_cause fault_cause_sva u_sva (.*);
+
+bind supervisor supervisor_sva u_sva (.*);
+
+bind pmic_top pmic_top_sva #(
+    .TELEMETRY_EN(TELEMETRY_EN)
+) u_sva (.*);
+
+bind fault_arbiter fault_arbiter_sva #(
+    .WINDOW_RUN (WINDOW_RUN),
+    .WINDOW_SS  (WINDOW_SS)
+) u_sva (
+    .*
+);
+
+bind spi_slave spi_slave_sva #(
+    .SCK_IDLE_TIMEOUT_CLKS(SCK_IDLE_TIMEOUT_CLKS)
+) u_sva (
+    .dut_spi_state(spi_state),
+    .*
+);
+
+// reg_file: commit discipline, threshold gates and safe ranges, keys, enable
+// path, watchdog, read port, bus-error counter. Internals are the ones named in
+// reg_file's "Internal state" section.
+bind reg_file reg_file_sva #(
+    .PMIC_ID            (PMIC_ID),
+    .VERSION_ID         (VERSION_ID),
+    .DISABLE_KEY_ID     (DISABLE_KEY_ID),
+    .WRITE_ACCESS_KEY_ID(WRITE_ACCESS_KEY_ID),
+    .ARM_TIMEOUT_W      (ARM_TIMEOUT_W)
+) u_sva (
+    .dut_scratch_r      (scratch_r),
+    .dut_temp_dirty     (temp_dirty),
+    .dut_temp_cyc_step  (temp_cyc_step),
+    .dut_temp_hiccup_full(temp_hiccup_full),
+    .dut_temp_clean_full(temp_clean_full),
+    .dut_en_pending     (en_pending),
+    .dut_en_pending_val (en_pending_val),
+    .dut_scratch_pending(scratch_pending),
+    .dut_disable_armed  (disable_armed),
+    .dut_unlock_armed   (unlock_armed),
+    .dut_arm_timer      (arm_timer),
+    .dut_wd_mark        (wd_mark),
+    .dut_wd_restored    (wd_restored),
+    .dut_write_rejected (write_rejected),
+    .dut_bus_err_count  (bus_err_count),
+    .dut_timestamp_snap (timestamp_snap),
+    .*
+);
+
+
+
+
+
 
 
 

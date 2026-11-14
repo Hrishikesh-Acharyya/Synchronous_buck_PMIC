@@ -184,6 +184,11 @@ task automatic finish_run(input string reason);
     else
         $display("%s%s: FAIL%s", ANSI_RED, TB_NAME, ANSI_RESET);
     $display("--------------------------------------------------");
+    // tally: one plain key=value line for the run scripts (run_tb.sh reads
+    //        it for the summary card; the terminal filter hides it). Keep it
+    //        as is - the banner above is for people and may be reworded.
+    $display("tally: checks_run=%0d checks_failed=%0d sva_failures=%0d exit=%s",
+             checks_run, checks_failed, sva_pkg::sva_failures, reason);
     // $stop on failure: non-zero exit status, so make and CI see the FAIL.
     // Not $fatal - by this point the tallies are already printed.
     if (passed) $finish;
@@ -312,6 +317,24 @@ initial begin
     still reach the target on real switching cycles.
     */
 
+    repeat (QUAL_CYCLES_TB + 1) drive_cycle();
+
+    /*
+    Group 9: a single-clock rail drop-out at saturation.
+    ---
+    PGOOD is up and the counter saturated; the comparator drops for exactly
+    one clock. pgood_comp is not debounced, so that one clock clears the
+    counter and PGOOD must requalify from zero. The shortest dip is the one
+    that separates the edge the counter is cleared on from the edge after
+    it: a saturation check that read pgood_comp a clock late saw the rail
+    already good again and reported the clear as a wrap. Found by the
+    whole-supervisor suite.
+    */
+
+    @(posedge clk);
+    #(DRIVE_OFFSET_NS) pgood_comp = 1'b0;
+    @(posedge clk);
+    #(DRIVE_OFFSET_NS) pgood_comp = 1'b1;
     repeat (QUAL_CYCLES_TB + 1) drive_cycle();
 
     finish_run("normal end");

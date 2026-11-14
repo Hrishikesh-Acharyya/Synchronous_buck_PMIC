@@ -54,10 +54,10 @@ module input_debounce (
 	flag_out
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_DEBOUNCE_ASSERT_CLKS = pmic_types_pkg_ms_to_clks(1);
 	parameter signed [31:0] ASSERT_CLKS = pmic_types_pkg_DEBOUNCE_ASSERT_CLKS;
@@ -70,10 +70,10 @@ module input_debounce (
 	output reg flag_out;
 	generate
 		if (ASSERT_CLKS < 1) begin : gen_assert_clks_legal
-			initial $display("Error [elaboration] ../rtl/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
+			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:65:9 - input_debounce.gen_assert_clks_legal\n msg: ", "input_debounce: ASSERT_CLKS must be >= 1, got %0d", ASSERT_CLKS);
 		end
 		if (RELEASE_CLKS < 1) begin : gen_release_clks_legal
-			initial $display("Error [elaboration] ../rtl/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
+			initial $display("Error [elaboration] ../rtl-systemverilog/inputs/input_debounce.sv:69:9 - input_debounce.gen_release_clks_legal\n msg: ", "input_debounce: RELEASE_CLKS must be >= 1, got %0d", RELEASE_CLKS);
 		end
 	endgenerate
 	localparam signed [31:0] CNT_MAX = (ASSERT_CLKS > RELEASE_CLKS ? ASSERT_CLKS : RELEASE_CLKS);
@@ -121,10 +121,10 @@ module soft_start (
 	reg _sv2v_0;
 	localparam signed [31:0] pmic_types_pkg_LM5106_SHRINK_NS = 128;
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	parameter signed [31:0] MIN_ON_COUNTS = pmic_types_pkg_MIN_ON_COUNTS;
@@ -171,18 +171,19 @@ module soft_start (
 		end
 		else if (ss_active) begin
 			if (pwm_fall) begin
-				if (cycle_counter == (cycles_per_step - 1'b1)) begin
+				if (cycle_counter == (cycles_per_step - 1'b1))
 					cycle_counter <= 1'sb0;
-					if (max_on_counts == max_on_limit)
-						SS_done <= 1'b1;
-					else begin
-						max_on_counts <= max_on_counts + 1;
-						if ((max_on_counts + 1) == max_on_limit)
-							SS_done <= 1'b1;
-					end
-				end
 				else
 					cycle_counter <= cycle_counter + 1;
+			end
+			if (max_on_counts >= max_on_limit) begin
+				max_on_counts <= max_on_limit;
+				SS_done <= 1'b1;
+			end
+			else if (pwm_fall && (cycle_counter == (cycles_per_step - 1'b1))) begin
+				max_on_counts <= max_on_counts + 1;
+				if ((max_on_counts + 1) == max_on_limit)
+					SS_done <= 1'b1;
 			end
 		end
 		else if (run_active)
@@ -204,7 +205,7 @@ module pwm_mask (
 	pwm_out
 );
 	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	function automatic signed [31:0] pmic_types_pkg_duty_to_counts;
@@ -355,12 +356,12 @@ module fault_arbiter (
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip = sv2v_cast_67DF8(fault_count_run) >= trip_run;
+		window_trip = run_active && (sv2v_cast_67DF8(fault_count_run) >= trip_run);
 	end
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		window_trip_SS = fault_count_ss >= trip_ss;
+		window_trip_SS = ss_active && (fault_count_ss >= trip_ss);
 	end
 	always @(*) begin
 		if (_sv2v_0)
@@ -388,10 +389,10 @@ module hiccup_timer (
 	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
 	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
 	parameter signed [31:0] STRIKE_W = pmic_types_pkg_STRIKE_W;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
 	localparam signed [31:0] pmic_types_pkg_HICCUP_TIMER_W = $clog2((pmic_types_pkg_HICCUP_BASE_MAX_CLKS << 2) + 1);
@@ -495,7 +496,7 @@ module strike_counter (
 		end
 		else if (hiccup_entry) begin
 			strike_level <= strike_level + 1;
-			if (strike_level == (max_strikes - 1'b1))
+			if (strike_level >= (max_strikes - 1'b1))
 				latch_assert <= 1'b1;
 		end
 		else if (clean_counter == clean_run_target)
@@ -582,7 +583,7 @@ module timestamp (
 	rst_n,
 	timestamp_ms
 );
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
 	localparam signed [31:0] pmic_types_pkg_PRESCALE_VAL = pmic_types_pkg_CLK_HZ / pmic_types_pkg_PRESCALAR_HZ;
 	parameter signed [31:0] PRESCALE_VAL = pmic_types_pkg_PRESCALE_VAL;
@@ -630,10 +631,10 @@ module fault_LED (
 	Red_LED3
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	parameter signed [31:0] LED_BLINK_HALF_CLKS = pmic_types_pkg_ms_to_clks(125);
 	parameter signed [31:0] BLINK_W = $clog2(LED_BLINK_HALF_CLKS + 1);
@@ -718,7 +719,7 @@ module pwm_stats (
 	prev_period
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
@@ -781,7 +782,7 @@ module reg_file (
 	rd_first,
 	rd_byte_done,
 	integrity_OK,
-	abort,
+	txn_abort,
 	sup_state,
 	pgood,
 	latch_state,
@@ -823,7 +824,7 @@ module reg_file (
 	input wire rd_first;
 	input wire rd_byte_done;
 	input wire integrity_OK;
-	input wire abort;
+	input wire txn_abort;
 	input wire [1:0] sup_state;
 	input wire pgood;
 	input wire latch_state;
@@ -835,7 +836,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_MAX_STRIKES_DEFAULT = 3;
 	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
 	input wire [1:0] strike_level;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
 	localparam signed [31:0] pmic_types_pkg_CNT_W = $clog2(pmic_types_pkg_CLKS_PER_SW + 1) + 1;
@@ -864,7 +865,7 @@ module reg_file (
 	output reg [pmic_types_pkg_ON_TIME_W - 1:0] max_on_limit;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_W = $clog2(pmic_types_pkg_HICCUP_BASE_MAX_CLKS + 1);
@@ -919,6 +920,8 @@ module reg_file (
 	localparam [7:0] CAPABILITY_VAL = 8'b00111101;
 	localparam signed [31:0] WD_TIMEOUT_MS = 5000;
 	reg [7:0] scratch_r;
+	reg [7:0] scratch_temp;
+	reg scratch_pending;
 	reg disable_armed;
 	reg unlock_armed;
 	reg [ARM_TIMEOUT_W - 1:0] arm_timer;
@@ -970,7 +973,7 @@ module reg_file (
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			bus_err_count <= 1'sb0;
-		else if (abort && !(&bus_err_count))
+		else if (txn_abort && !(&bus_err_count))
 			bus_err_count <= bus_err_count + 1'b1;
 	localparam signed [31:0] pmic_types_pkg_WINDOW_RUN = 16;
 	function automatic signed [5:0] sv2v_cast_67DF8_signed;
@@ -1016,7 +1019,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	function automatic signed [pmic_types_pkg_ON_TIME_W - 1:0] sv2v_cast_D6A01_signed;
@@ -1134,7 +1137,7 @@ module reg_file (
 			temp_clean_1 <= 1'sb0;
 			temp_clean_2 <= 1'sb0;
 		end
-		else if (abort || integrity_OK)
+		else if (txn_abort || integrity_OK)
 			temp_dirty <= 0;
 		else if (wr_en)
 			case (addr)
@@ -1227,7 +1230,23 @@ module reg_file (
 			;
 		off_ok = sup_state == 2'b00;
 	end
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
+	reg off_change;
+	function automatic [23:0] sv2v_cast_24;
+		input reg [23:0] inp;
+		sv2v_cast_24 = inp;
+	endfunction
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		off_change = ((temp_dirty[7] && (temp_cyc_step != sv2v_cast_8(cycles_per_step))) || (hiccup_any && (temp_hiccup_full != sv2v_cast_24(hiccup_base)))) || (clean_any && (temp_clean_full != sv2v_cast_24(clean_run_target)));
+	end
+	reg threshold_reject;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		threshold_reject = ((!unlock_armed || (off_change && !off_ok)) || (hiccup_any && !hiccup_all)) || (clean_any && !clean_all);
+	end
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
 	localparam signed [31:0] pmic_types_pkg_TRIP_RUN_DEFAULT = 12;
@@ -1243,39 +1262,25 @@ module reg_file (
 			clean_run_target <= sv2v_cast_DC11B_signed(pmic_types_pkg_CLEAN_RUN_CYCLES);
 			write_rejected <= 1'b0;
 		end
-		else if (integrity_OK) begin
-			if (|temp_dirty) begin
+		else if (integrity_OK && |temp_dirty) begin
+			if (threshold_reject)
+				write_rejected <= 1'b1;
+			else begin
 				write_rejected <= 1'b0;
-				if (!unlock_armed)
-					write_rejected <= 1'b1;
-				else begin
-					if (temp_dirty[0])
-						trip_run <= clamp_trip_run(temp_trip_run);
-					if (temp_dirty[1])
-						trip_ss <= clamp_trip_ss(temp_trip_ss);
-					if (temp_dirty[2])
-						max_strikes <= clamp_max_strikes(temp_max_strk);
-					if (temp_dirty[3])
-						max_on_limit <= clamp_max_on(temp_max_on);
-					if (temp_dirty[7]) begin
-						if (off_ok)
-							cycles_per_step <= clamp_cyc_step(temp_cyc_step);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (hiccup_any) begin
-						if (hiccup_all && off_ok)
-							hiccup_base <= clamp_hiccup(temp_hiccup_full);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (clean_any) begin
-						if (clean_all && off_ok)
-							clean_run_target <= clamp_clean_run(temp_clean_full);
-						else
-							write_rejected <= 1'b1;
-					end
-				end
+				if (temp_dirty[0])
+					trip_run <= clamp_trip_run(temp_trip_run);
+				if (temp_dirty[1])
+					trip_ss <= clamp_trip_ss(temp_trip_ss);
+				if (temp_dirty[2])
+					max_strikes <= clamp_max_strikes(temp_max_strk);
+				if (temp_dirty[3])
+					max_on_limit <= clamp_max_on(temp_max_on);
+				if (temp_dirty[7])
+					cycles_per_step <= clamp_cyc_step(temp_cyc_step);
+				if (hiccup_any)
+					hiccup_base <= clamp_hiccup(temp_hiccup_full);
+				if (clean_any)
+					clean_run_target <= clamp_clean_run(temp_clean_full);
 			end
 		end
 	always @(posedge clk or negedge rst_n)
@@ -1283,6 +1288,8 @@ module reg_file (
 			arm_timer <= 1'sb0;
 			spi_enable <= 1'b1;
 			scratch_r <= 8'h00;
+			scratch_temp <= 8'h00;
+			scratch_pending <= 1'b0;
 			disable_armed <= 1'b0;
 			unlock_armed <= 1'b0;
 			en_pending <= 1'b0;
@@ -1301,7 +1308,10 @@ module reg_file (
 				arm_timer <= 1'sb0;
 			if (wr_en)
 				case (addr)
-					ADDR_SCRATCH: scratch_r <= wdata;
+					ADDR_SCRATCH: begin
+						scratch_temp <= wdata;
+						scratch_pending <= 1'b1;
+					end
 					ADDR_DISABLE_KEY: disable_armed <= wdata == DISABLE_KEY_ID;
 					ADDR_WRITE_KEY: unlock_armed <= wdata == WRITE_ACCESS_KEY_ID;
 					ADDR_CONTROL:
@@ -1321,12 +1331,15 @@ module reg_file (
 			if (integrity_OK) begin
 				if (en_pending)
 					spi_enable <= en_pending_val;
+				if (scratch_pending)
+					scratch_r <= scratch_temp;
 			end
-			if (abort || integrity_OK) begin
+			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;
 				en_pending_val <= 1'b0;
+				scratch_pending <= 1'b0;
 			end
 			if (wd_expired) begin
 				spi_enable <= 1'b1;
@@ -1356,13 +1369,13 @@ module spi_slave (
 	rd_first,
 	rd_byte_done,
 	integrity_ok,
-	abort
+	txn_abort
 );
 	reg _sv2v_0;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	parameter signed [31:0] SCK_IDLE_TIMEOUT_CLKS = pmic_types_pkg_ms_to_clks(2);
 	input wire clk;
@@ -1379,7 +1392,7 @@ module spi_slave (
 	output reg rd_first;
 	output reg rd_byte_done;
 	output reg integrity_ok;
-	output reg abort;
+	output reg txn_abort;
 	reg sck_d;
 	reg cs_n_d;
 	reg sck_rise;
@@ -1487,8 +1500,10 @@ module spi_slave (
 				addr <= addr + 7'd1;
 			if (sck_rise)
 				rx_shift <= {rx_shift[5:0], sdio_in};
-			if (cs_fall)
+			if (cs_fall) begin
 				held_valid <= 1'b0;
+				rw <= 1'b0;
+			end
 			else if (byte_done) begin
 				if (spi_state == 3'b001) begin
 					rw <= rx_byte[7];
@@ -1574,16 +1589,16 @@ module spi_slave (
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
 			integrity_ok <= 0;
-			abort <= 0;
+			txn_abort <= 0;
 		end
 		else begin
 			integrity_ok <= 1'b0;
-			abort <= 1'b0;
+			txn_abort <= 1'b0;
 			if (cs_rise && !rw) begin
 				if ((((spi_state != 3'b101) && (bit_count == 3'd0)) && (byte_count >= 4'd3)) && (crc == 8'h00))
 					integrity_ok <= 1'b1;
 				else
-					abort <= 1'b1;
+					txn_abort <= 1'b1;
 			end
 		end
 	initial _sv2v_0 = 0;
@@ -1679,17 +1694,17 @@ endmodule
 `default_nettype none
 module supervisor (
 	clk,
-	SS_done,
 	rst_n,
-	latch_state,
-	OTP,
-	window_trip_SS,
-	window_trip,
-	latch_assert,
-	UVLO,
-	hiccup_done,
 	en_SW,
 	spi_enable,
+	OTP,
+	UVLO,
+	latch_state,
+	latch_assert,
+	SS_done,
+	window_trip_SS,
+	window_trip,
+	hiccup_done,
 	en,
 	ss_active,
 	run_active,
@@ -1698,27 +1713,31 @@ module supervisor (
 );
 	reg _sv2v_0;
 	input wire clk;
-	input wire SS_done;
 	input wire rst_n;
-	input wire latch_state;
-	input wire OTP;
-	input wire window_trip_SS;
-	input wire window_trip;
-	input wire latch_assert;
-	input wire UVLO;
-	input wire hiccup_done;
 	input wire en_SW;
 	input wire spi_enable;
+	input wire OTP;
+	input wire UVLO;
+	input wire latch_state;
+	input wire latch_assert;
+	input wire SS_done;
+	input wire window_trip_SS;
+	input wire window_trip;
+	input wire hiccup_done;
 	output reg en;
 	output reg ss_active;
 	output reg run_active;
 	output reg hiccup_active;
 	output reg [1:0] state_out;
-	reg en_from_state;
+	reg g_en;
 	reg [1:0] state;
 	reg [1:0] next_state;
-	wire g_en;
-	assign g_en = spi_enable & en_SW;
+	reg en_from_state;
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		g_en = spi_enable & en_SW;
+	end
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			state <= 2'b00;
@@ -1777,26 +1796,14 @@ module supervisor (
 		if (_sv2v_0)
 			;
 		ss_active = state == 2'b01;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
 		run_active = state == 2'b10;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
 		hiccup_active = state == 2'b11;
+		state_out = state;
 	end
 	always @(*) begin
 		if (_sv2v_0)
 			;
 		en = ((((g_en & en_from_state) & ~OTP) & ~latch_state) & ~UVLO) & ~latch_assert;
-	end
-	always @(*) begin
-		if (_sv2v_0)
-			;
-		state_out = state;
 	end
 	initial _sv2v_0 = 0;
 endmodule
@@ -1939,10 +1946,10 @@ module pmic_top (
 	wire sck_filt;
 	wire cs_n_filt;
 	wire mosi_filt;
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 10000 * ms;
+		pmic_types_pkg_ms_to_clks = 50000 * ms;
 	endfunction
 	input_debounce #(
 		.ASSERT_CLKS(pmic_types_pkg_ms_to_clks(20)),
@@ -2158,7 +2165,7 @@ module pmic_top (
 		.max_on_counts(max_on_counts),
 		.pwm_out(PWM_out)
 	);
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MS = 5;
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_DEFAULT_CLKS = pmic_types_pkg_ms_to_clks(pmic_types_pkg_HICCUP_BASE_MS);
 	localparam signed [31:0] pmic_types_pkg_TRIP_RUN_DEFAULT = 12;
@@ -2205,7 +2212,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_ok(spi_integrity_ok),
-				.abort(spi_abort)
+				.txn_abort(spi_abort)
 			);
 			reg_file u_reg_file(
 				.clk(clk),
@@ -2217,7 +2224,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_OK(spi_integrity_ok),
-				.abort(spi_abort),
+				.txn_abort(spi_abort),
 				.sup_state(sup_state),
 				.pgood(PGOOD),
 				.latch_state(latch_stat_sync_db),

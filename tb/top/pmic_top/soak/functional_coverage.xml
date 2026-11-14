@@ -1,0 +1,164 @@
+<top abs_name="top" size="112" coverage="112" cover_percentage="100.0">
+  <pmic_top size="112" coverage="112" cover_percentage="100.0" abs_name="top.pmic_top">
+    <event size="53" coverage="53" cover_percentage="100.0" abs_name="top.pmic_top.event">
+      <kind size="14" coverage="14" cover_percentage="100.0" abs_name="top.pmic_top.event.kind" weight="1" at_least="1">
+        <bin0 bin="switch" hits="870" abs_name="top.pmic_top.event.kind.bin0" />
+        <bin1 bin="otp" hits="1614" abs_name="top.pmic_top.event.kind.bin1" />
+        <bin2 bin="uvlo" hits="1662" abs_name="top.pmic_top.event.kind.bin2" />
+        <bin3 bin="host" hits="1515" abs_name="top.pmic_top.event.kind.bin3" />
+        <bin4 bin="trip" hits="1711" abs_name="top.pmic_top.event.kind.bin4" />
+        <bin5 bin="persist" hits="125" abs_name="top.pmic_top.event.kind.bin5" />
+        <bin6 bin="ovp" hits="303" abs_name="top.pmic_top.event.kind.bin6" />
+        <bin7 bin="reset" hits="686" abs_name="top.pmic_top.event.kind.bin7" />
+        <bin8 bin="rail" hits="825" abs_name="top.pmic_top.event.kind.bin8" />
+        <bin9 bin="wait" hits="1154" abs_name="top.pmic_top.event.kind.bin9" />
+        <bin10 bin="thresholds" hits="866" abs_name="top.pmic_top.event.kind.bin10" />
+        <bin11 bin="glitch" hits="855" abs_name="top.pmic_top.event.kind.bin11" />
+        <bin12 bin="fault_in_hiccup" hits="194" abs_name="top.pmic_top.event.kind.bin12" />
+        <bin13 bin="clean_run" hits="20" abs_name="top.pmic_top.event.kind.bin13" />
+      </kind>
+      <condition size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.event.condition" weight="1" at_least="1">
+        <bin0 bin="off" hits="7193" abs_name="top.pmic_top.event.condition.bin0" />
+        <bin1 bin="running" hits="2544" abs_name="top.pmic_top.event.condition.bin1" />
+        <bin2 bin="latched" hits="2663" abs_name="top.pmic_top.event.condition.bin2" />
+      </condition>
+      <kind_x_condition size="36" coverage="36" cover_percentage="100.0" abs_name="top.pmic_top.event.kind_x_condition" weight="1" at_least="1">
+        <bin0 bin="('switch', 'off')" hits="616" abs_name="top.pmic_top.event.kind_x_condition.bin0" />
+        <bin1 bin="('switch', 'running')" hits="120" abs_name="top.pmic_top.event.kind_x_condition.bin1" />
+        <bin2 bin="('switch', 'latched')" hits="134" abs_name="top.pmic_top.event.kind_x_condition.bin2" />
+        <bin3 bin="('otp', 'off')" hits="1119" abs_name="top.pmic_top.event.kind_x_condition.bin3" />
+        <bin4 bin="('otp', 'running')" hits="247" abs_name="top.pmic_top.event.kind_x_condition.bin4" />
+        <bin5 bin="('otp', 'latched')" hits="248" abs_name="top.pmic_top.event.kind_x_condition.bin5" />
+        <bin6 bin="('uvlo', 'off')" hits="1131" abs_name="top.pmic_top.event.kind_x_condition.bin6" />
+        <bin7 bin="('uvlo', 'running')" hits="271" abs_name="top.pmic_top.event.kind_x_condition.bin7" />
+        <bin8 bin="('uvlo', 'latched')" hits="260" abs_name="top.pmic_top.event.kind_x_condition.bin8" />
+        <bin9 bin="('host', 'off')" hits="999" abs_name="top.pmic_top.event.kind_x_condition.bin9" />
+        <bin10 bin="('host', 'running')" hits="261" abs_name="top.pmic_top.event.kind_x_condition.bin10" />
+        <bin11 bin="('host', 'latched')" hits="255" abs_name="top.pmic_top.event.kind_x_condition.bin11" />
+        <bin12 bin="('trip', 'off')" hits="950" abs_name="top.pmic_top.event.kind_x_condition.bin12" />
+        <bin13 bin="('trip', 'running')" hits="378" abs_name="top.pmic_top.event.kind_x_condition.bin13" />
+        <bin14 bin="('trip', 'latched')" hits="383" abs_name="top.pmic_top.event.kind_x_condition.bin14" />
+        <bin15 bin="('persist', 'running')" hits="125" abs_name="top.pmic_top.event.kind_x_condition.bin15" />
+        <bin16 bin="('ovp', 'off')" hits="166" abs_name="top.pmic_top.event.kind_x_condition.bin16" />
+        <bin17 bin="('ovp', 'running')" hits="65" abs_name="top.pmic_top.event.kind_x_condition.bin17" />
+        <bin18 bin="('ovp', 'latched')" hits="72" abs_name="top.pmic_top.event.kind_x_condition.bin18" />
+        <bin19 bin="('reset', 'off')" hits="144" abs_name="top.pmic_top.event.kind_x_condition.bin19" />
+        <bin20 bin="('reset', 'running')" hits="58" abs_name="top.pmic_top.event.kind_x_condition.bin20" />
+        <bin21 bin="('reset', 'latched')" hits="484" abs_name="top.pmic_top.event.kind_x_condition.bin21" />
+        <bin22 bin="('rail', 'off')" hits="468" abs_name="top.pmic_top.event.kind_x_condition.bin22" />
+        <bin23 bin="('rail', 'running')" hits="174" abs_name="top.pmic_top.event.kind_x_condition.bin23" />
+        <bin24 bin="('rail', 'latched')" hits="183" abs_name="top.pmic_top.event.kind_x_condition.bin24" />
+        <bin25 bin="('wait', 'off')" hits="636" abs_name="top.pmic_top.event.kind_x_condition.bin25" />
+        <bin26 bin="('wait', 'running')" hits="253" abs_name="top.pmic_top.event.kind_x_condition.bin26" />
+        <bin27 bin="('wait', 'latched')" hits="265" abs_name="top.pmic_top.event.kind_x_condition.bin27" />
+        <bin28 bin="('thresholds', 'off')" hits="479" abs_name="top.pmic_top.event.kind_x_condition.bin28" />
+        <bin29 bin="('thresholds', 'running')" hits="183" abs_name="top.pmic_top.event.kind_x_condition.bin29" />
+        <bin30 bin="('thresholds', 'latched')" hits="204" abs_name="top.pmic_top.event.kind_x_condition.bin30" />
+        <bin31 bin="('glitch', 'off')" hits="485" abs_name="top.pmic_top.event.kind_x_condition.bin31" />
+        <bin32 bin="('glitch', 'running')" hits="195" abs_name="top.pmic_top.event.kind_x_condition.bin32" />
+        <bin33 bin="('glitch', 'latched')" hits="175" abs_name="top.pmic_top.event.kind_x_condition.bin33" />
+        <bin34 bin="('fault_in_hiccup', 'running')" hits="194" abs_name="top.pmic_top.event.kind_x_condition.bin34" />
+        <bin35 bin="('clean_run', 'running')" hits="20" abs_name="top.pmic_top.event.kind_x_condition.bin35" />
+      </kind_x_condition>
+    </event>
+    <stop size="21" coverage="21" cover_percentage="100.0" abs_name="top.pmic_top.stop">
+      <cause size="7" coverage="7" cover_percentage="100.0" abs_name="top.pmic_top.stop.cause" weight="1" at_least="1">
+        <bin0 bin="switch" hits="120" abs_name="top.pmic_top.stop.cause.bin0" />
+        <bin1 bin="host" hits="301" abs_name="top.pmic_top.stop.cause.bin1" />
+        <bin2 bin="otp" hits="277" abs_name="top.pmic_top.stop.cause.bin2" />
+        <bin3 bin="uvlo" hits="297" abs_name="top.pmic_top.stop.cause.bin3" />
+        <bin4 bin="ovp" hits="90" abs_name="top.pmic_top.stop.cause.bin4" />
+        <bin5 bin="strike_latch" hits="247" abs_name="top.pmic_top.stop.cause.bin5" />
+        <bin6 bin="reset" hits="94" abs_name="top.pmic_top.stop.cause.bin6" />
+      </cause>
+      <from size="2" coverage="2" cover_percentage="100.0" abs_name="top.pmic_top.stop.from" weight="1" at_least="1">
+        <bin0 bin="run" hits="1269" abs_name="top.pmic_top.stop.from.bin0" />
+        <bin1 bin="hiccup" hits="157" abs_name="top.pmic_top.stop.from.bin1" />
+      </from>
+      <cause_x_from size="12" coverage="12" cover_percentage="100.0" abs_name="top.pmic_top.stop.cause_x_from" weight="1" at_least="1">
+        <bin0 bin="('switch', 'run')" hits="120" abs_name="top.pmic_top.stop.cause_x_from.bin0" />
+        <bin1 bin="('host', 'run')" hits="261" abs_name="top.pmic_top.stop.cause_x_from.bin1" />
+        <bin2 bin="('host', 'hiccup')" hits="40" abs_name="top.pmic_top.stop.cause_x_from.bin2" />
+        <bin3 bin="('otp', 'run')" hits="247" abs_name="top.pmic_top.stop.cause_x_from.bin3" />
+        <bin4 bin="('otp', 'hiccup')" hits="30" abs_name="top.pmic_top.stop.cause_x_from.bin4" />
+        <bin5 bin="('uvlo', 'run')" hits="271" abs_name="top.pmic_top.stop.cause_x_from.bin5" />
+        <bin6 bin="('uvlo', 'hiccup')" hits="26" abs_name="top.pmic_top.stop.cause_x_from.bin6" />
+        <bin7 bin="('ovp', 'run')" hits="65" abs_name="top.pmic_top.stop.cause_x_from.bin7" />
+        <bin8 bin="('ovp', 'hiccup')" hits="25" abs_name="top.pmic_top.stop.cause_x_from.bin8" />
+        <bin9 bin="('strike_latch', 'run')" hits="247" abs_name="top.pmic_top.stop.cause_x_from.bin9" />
+        <bin10 bin="('reset', 'run')" hits="58" abs_name="top.pmic_top.stop.cause_x_from.bin10" />
+        <bin11 bin="('reset', 'hiccup')" hits="36" abs_name="top.pmic_top.stop.cause_x_from.bin11" />
+      </cause_x_from>
+    </stop>
+    <strike size="14" coverage="14" cover_percentage="100.0" abs_name="top.pmic_top.strike">
+      <level size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.strike.level" weight="1" at_least="1">
+        <bin0 bin="1" hits="473" abs_name="top.pmic_top.strike.level.bin0" />
+        <bin1 bin="2" hits="249" abs_name="top.pmic_top.strike.level.bin1" />
+        <bin2 bin="3" hits="152" abs_name="top.pmic_top.strike.level.bin2" />
+      </level>
+      <limit size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.strike.limit" weight="1" at_least="1">
+        <bin0 bin="1" hits="75" abs_name="top.pmic_top.strike.limit.bin0" />
+        <bin1 bin="2" hits="47" abs_name="top.pmic_top.strike.limit.bin1" />
+        <bin2 bin="3" hits="752" abs_name="top.pmic_top.strike.limit.bin2" />
+      </limit>
+      <latched size="2" coverage="2" cover_percentage="100.0" abs_name="top.pmic_top.strike.latched" weight="1" at_least="1">
+        <bin0 bin="False" hits="627" abs_name="top.pmic_top.strike.latched.bin0" />
+        <bin1 bin="True" hits="247" abs_name="top.pmic_top.strike.latched.bin1" />
+      </latched>
+      <level_x_limit size="6" coverage="6" cover_percentage="100.0" abs_name="top.pmic_top.strike.level_x_limit" weight="1" at_least="1">
+        <bin0 bin="(1, 1)" hits="57" abs_name="top.pmic_top.strike.level_x_limit.bin0" />
+        <bin1 bin="(1, 2)" hits="20" abs_name="top.pmic_top.strike.level_x_limit.bin1" />
+        <bin2 bin="(1, 3)" hits="396" abs_name="top.pmic_top.strike.level_x_limit.bin2" />
+        <bin3 bin="(2, 2)" hits="25" abs_name="top.pmic_top.strike.level_x_limit.bin3" />
+        <bin4 bin="(2, 3)" hits="211" abs_name="top.pmic_top.strike.level_x_limit.bin4" />
+        <bin5 bin="(3, 3)" hits="145" abs_name="top.pmic_top.strike.level_x_limit.bin5" />
+      </level_x_limit>
+    </strike>
+    <recovery size="7" coverage="7" cover_percentage="100.0" abs_name="top.pmic_top.recovery">
+      <path size="7" coverage="7" cover_percentage="100.0" abs_name="top.pmic_top.recovery.path" weight="1" at_least="1">
+        <bin0 bin="hiccup_retry" hits="293" abs_name="top.pmic_top.recovery.path.bin0" />
+        <bin1 bin="fault_cleared" hits="669" abs_name="top.pmic_top.recovery.path.bin1" />
+        <bin2 bin="host_enable" hits="211" abs_name="top.pmic_top.recovery.path.bin2" />
+        <bin3 bin="switch_on" hits="196" abs_name="top.pmic_top.recovery.path.bin3" />
+        <bin4 bin="reset_button" hits="197" abs_name="top.pmic_top.recovery.path.bin4" />
+        <bin5 bin="strikes_forgotten" hits="20" abs_name="top.pmic_top.recovery.path.bin5" />
+        <bin6 bin="switch_over_host" hits="94" abs_name="top.pmic_top.recovery.path.bin6" />
+      </path>
+    </recovery>
+    <latch size="7" coverage="7" cover_percentage="100.0" abs_name="top.pmic_top.latch">
+      <source size="2" coverage="2" cover_percentage="100.0" abs_name="top.pmic_top.latch.source" weight="1" at_least="1">
+        <bin0 bin="strikes" hits="247" abs_name="top.pmic_top.latch.source.bin0" />
+        <bin1 bin="ovp" hits="338" abs_name="top.pmic_top.latch.source.bin1" />
+      </source>
+      <when size="2" coverage="2" cover_percentage="100.0" abs_name="top.pmic_top.latch.when" weight="1" at_least="1">
+        <bin0 bin="running" hits="337" abs_name="top.pmic_top.latch.when.bin0" />
+        <bin1 bin="off" hits="248" abs_name="top.pmic_top.latch.when.bin1" />
+      </when>
+      <source_x_when size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.latch.source_x_when" weight="1" at_least="1">
+        <bin0 bin="('strikes', 'running')" hits="247" abs_name="top.pmic_top.latch.source_x_when.bin0" />
+        <bin1 bin="('ovp', 'running')" hits="90" abs_name="top.pmic_top.latch.source_x_when.bin1" />
+        <bin2 bin="('ovp', 'off')" hits="248" abs_name="top.pmic_top.latch.source_x_when.bin2" />
+      </source_x_when>
+    </latch>
+    <filter size="7" coverage="7" cover_percentage="100.0" abs_name="top.pmic_top.filter">
+      <glitch size="5" coverage="5" cover_percentage="100.0" abs_name="top.pmic_top.filter.glitch" weight="1" at_least="1">
+        <bin0 bin="otp_pulse" hits="208" abs_name="top.pmic_top.filter.glitch.bin0" />
+        <bin1 bin="uvlo_pulse" hits="213" abs_name="top.pmic_top.filter.glitch.bin1" />
+        <bin2 bin="otp_dropout" hits="78" abs_name="top.pmic_top.filter.glitch.bin2" />
+        <bin3 bin="uvlo_dropout" hits="85" abs_name="top.pmic_top.filter.glitch.bin3" />
+        <bin4 bin="switch_blip" hits="271" abs_name="top.pmic_top.filter.glitch.bin4" />
+      </glitch>
+      <pending size="2" coverage="2" cover_percentage="100.0" abs_name="top.pmic_top.filter.pending" weight="1" at_least="1">
+        <bin0 bin="False" hits="842" abs_name="top.pmic_top.filter.pending.bin0" />
+        <bin1 bin="True" hits="13" abs_name="top.pmic_top.filter.pending.bin1" />
+      </pending>
+    </filter>
+    <pgood size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.pgood">
+      <edge size="3" coverage="3" cover_percentage="100.0" abs_name="top.pmic_top.pgood.edge" weight="1" at_least="1">
+        <bin0 bin="qualified" hits="84" abs_name="top.pmic_top.pgood.edge.bin0" />
+        <bin1 bin="rail_drop" hits="25" abs_name="top.pmic_top.pgood.edge.bin1" />
+        <bin2 bin="left_run" hits="59" abs_name="top.pmic_top.pgood.edge.bin2" />
+      </edge>
+    </pgood>
+  </pmic_top>
+</top>

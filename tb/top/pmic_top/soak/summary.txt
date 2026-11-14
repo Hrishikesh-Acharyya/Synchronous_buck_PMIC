@@ -1,0 +1,23 @@
+  pmic_top_sva: 13 of 14 covers hit, 1 at zero
+zero-hit covers:
+  pmic_top_harness.u_dut.u_sva.c_pwm_truncated  (pmic_top_sva.sv:203)
+functional coverage (covergroups):
+  pmic_top.event.kind                       14 of 14  bins hit
+  pmic_top.event.condition                   3 of 3   bins hit
+  pmic_top.event.kind_x_condition           36 of 36  bins hit
+  pmic_top.stop.cause                        7 of 7   bins hit
+  pmic_top.stop.from                         2 of 2   bins hit
+  pmic_top.stop.cause_x_from                12 of 12  bins hit
+  pmic_top.strike.level                      3 of 3   bins hit
+  pmic_top.strike.limit                      3 of 3   bins hit
+  pmic_top.strike.latched                    2 of 2   bins hit
+  pmic_top.strike.level_x_limit              6 of 6   bins hit
+  pmic_top.recovery.path                     7 of 7   bins hit
+  pmic_top.latch.source                      2 of 2   bins hit
+  pmic_top.latch.when                        2 of 2   bins hit
+  pmic_top.latch.source_x_when               3 of 3   bins hit
+  pmic_top.filter.glitch                     5 of 5   bins hit
+  pmic_top.filter.pending                    2 of 2   bins hit
+  pmic_top.pgood.edge                        3 of 3   bins hit
+empty bins:
+  no empty bins
