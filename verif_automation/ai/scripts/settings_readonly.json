@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "deny": [
+      "Edit",
+      "Write",
+      "NotebookEdit",
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "Agent",
+      "mcp__*",
+      "Read(tb/**)",
+      "Read(sva/**)",
+      "Read(sim/**)",
+      "Read(verif_automation/evidence/**)"
+    ]
+  }
+}

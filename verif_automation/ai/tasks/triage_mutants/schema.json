@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["plausible", "equivalent"]},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+          "reason": {"type": "string"}
+        },
+        "required": ["id", "verdict", "confidence", "reason"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["verdicts"],
+  "additionalProperties": false
+}

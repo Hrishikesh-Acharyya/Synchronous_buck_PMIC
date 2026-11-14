@@ -32,16 +32,16 @@ find the run. Two runs of the same thing on one day get a suffix:
 
 **`ai_runs/ledger.md`** has one row per run, in the order they ran:
 
-| Run | Date | Commit | Task | Given | Produced | Gate | Verdict | Findings |
-|---|---|---|---|---|---|---|---|---|
+| Run | Date | Commit | Task | Given | Produced | Gate | Verdict |
+|---|---|---|---|---|---|---|---|
 
 - **Run:** A1, A2, and so on.
 - **Task:** the folder in `ai/tasks/`.
 - **Given:** the inputs the agent was allowed to read.
 - **Produced:** the files it wrote or changed.
 - **Gate:** the checks run on its output, and their result.
-- **Verdict:** accepted, partly accepted or rejected, and by whom.
-- **Findings:** IDs in `findings.md`.
+- **Verdict:** accepted, partly accepted or rejected, and by whom; findings
+  it led to are listed in `findings.md` with the run's ID.
 
 **`ai_runs/findings.md`** has one row per finding:
 
