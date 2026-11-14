@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (async_in != RESET_VALUE) ? async_in : meta_ff;"
+   ],
+   "category": "other",
+   "description": "A 'fast release' path: the non-safe (released) level goes from async_in straight to sync_out, and only a return to the safe RESET_VALUE goes through meta_ff",
+   "reason": "With RESET_VALUE=0, a rising async_in shows on sync_out one clock early (after one flop, not two), and a one-clock high glitch shows on sync_out while still asserted at the clock edge, where a correct synchroniser delays it two clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 54,
+   "before": [
+    "        meta_ff  <= async_in;"
+   ],
+   "after": [
+    "        meta_ff  <= (sync_out == meta_ff) ? async_in : meta_ff;"
+   ],
+   "category": "sequencing",
+   "description": "The first stage waits for the second stage to catch up (handshake) before taking a new sample of async_in, instead of sampling every clock",
+   "reason": "A one-clock pulse on async_in is stretched to two clocks on sync_out, and a change that comes right after another is seen one clock late, because meta_ff holds for a clock after every change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.54.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (meta_ff == async_in) ? meta_ff : RESET_VALUE;"
+   ],
+   "category": "other",
+   "description": "'Assume the worst' is applied every clock: whenever meta_ff and async_in disagree, sync_out is forced to the safe RESET_VALUE instead of taking meta_ff",
+   "reason": "With RESET_VALUE=0, a falling async_in shows on sync_out one clock early, and a one-clock high pulse on async_in never reaches sync_out, where a correct synchroniser passes it through two clocks later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.13"
+ }
+]

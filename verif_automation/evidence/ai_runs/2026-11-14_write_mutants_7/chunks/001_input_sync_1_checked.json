@@ -1,0 +1,55 @@
+[
+ {
+  "proposal": {
+   "line": 48,
+   "before": [
+    "        meta_ff  <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= async_in;"
+   ],
+   "category": "reset_init",
+   "description": "meta_ff is pre-loaded with the live async_in during reset instead of the safe RESET_VALUE, as if reset should 'prime' the synchroniser with the real input",
+   "reason": "If async_in is not RESET_VALUE when rst_n goes high, sync_out moves to async_in on the first clock after release instead of the second. It also no longer holds the worst-case value for the full two clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.48.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 49,
+   "before": [
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        sync_out <= async_in;"
+   ],
+   "category": "reset_init",
+   "description": "sync_out follows the live async_in during reset instead of holding the safe RESET_VALUE",
+   "reason": "While rst_n is low and async_in differs from RESET_VALUE, sync_out shows the unsynchronised input instead of the safe level. For a fault input, this means it reports no fault during reset."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.49.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        if (meta_ff == async_in) begin",
+    "            sync_out <= meta_ff;",
+    "        end"
+   ],
+   "category": "other",
+   "description": "The second stage becomes a two-sample agreement filter: sync_out takes meta_ff only when it equals the current async_in, otherwise it holds",
+   "reason": "A pulse on async_in that lasts a single clock never reaches sync_out, while the original passes it through two clocks later. Input that toggles every clock leaves sync_out stuck at its old value."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.6"
+ }
+]

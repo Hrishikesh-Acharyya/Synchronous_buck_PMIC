@@ -1,0 +1,81 @@
+[
+ {
+  "proposal": {
+   "line": 54,
+   "before": [
+    "        meta_ff  <= async_in;",
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        meta_ff  <= async_in;",
+    "        sync_out <= async_in;"
+   ],
+   "category": "sequencing",
+   "description": "sync_out samples async_in directly, bypassing meta_ff: a one-stage synchroniser with one clock less latency",
+   "reason": "Every edge on async_in reaches sync_out one clock earlier than the two-flop design (latency 1 instead of 2); also meta_ff becomes unused in the data path, so after reset sync_out tracks async_in from the first clock rather than showing RESET_VALUE for two clocks."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ },
+ {
+  "proposal": {
+   "line": 48,
+   "before": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= 1'b0;"
+   ],
+   "category": "reset_init",
+   "description": "sync_out resets to a hard-coded 0 instead of RESET_VALUE; only meta_ff honours the parameter",
+   "reason": "For the RESET_VALUE=1 instances (CP/OTP/UVLO/latch_stat/CS_n), sync_out reads 0 (fault not asserted / CS_n active) during reset and the first clock after release, instead of the safe value 1."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.49.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 48,
+   "before": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= 1'b0;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "category": "reset_init",
+   "description": "meta_ff resets to a hard-coded 0 instead of RESET_VALUE, so the first stage forgets the safe value",
+   "reason": "For RESET_VALUE=1 instances, on the first clock after reset release sync_out drops to 0 (fault de-asserted / CS_n low) for one clock before the real async_in level arrives, regardless of the input."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.48.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 46,
+   "before": [
+    "    if (!rst_n) begin",
+    "",
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "    if (!rst_n) begin",
+    "",
+    "        meta_ff  <= ~RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "category": "reset_init",
+   "description": "meta_ff resets to the opposite of RESET_VALUE (safe level misremembered for the first stage)",
+   "reason": "For every instance, on the first clock after reset release sync_out shows the inverse of RESET_VALUE for one clock (e.g. Osc/SCK sync pulse high, CS_n sync goes low) before async_in propagates."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.48.AIM.3"
+ }
+]

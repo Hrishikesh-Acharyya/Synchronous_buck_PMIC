@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff | sync_out;"
+   ],
+   "category": "other",
+   "description": "sync_out is made a sticky latch: once a 1 has passed through it holds 1 until rst_n, as if every synchronised input were a latched fault flag",
+   "reason": "With RESET_VALUE=0, after async_in goes high and then low, sync_out stays 1 instead of following it back to 0 two clocks later. With RESET_VALUE=1, sync_out never leaves 1 after reset."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (async_in == RESET_VALUE) ? RESET_VALUE : meta_ff;"
+   ],
+   "category": "sequencing",
+   "description": "A 'fast fault path': the safe/asserted level (RESET_VALUE) goes from async_in straight to sync_out, and only the release goes through meta_ff",
+   "reason": "When async_in moves to RESET_VALUE, sync_out shows it one clock later instead of two, and a one-clock pulse to RESET_VALUE that meta_ff never samples still reaches sync_out. Moves away from RESET_VALUE still take two clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.8"
+ },
+ {
+  "proposal": {
+   "line": 54,
+   "before": [
+    "        meta_ff  <= async_in;"
+   ],
+   "after": [
+    "        meta_ff  <= async_in ^ RESET_VALUE;"
+   ],
+   "category": "other",
+   "description": "RESET_VALUE is read as an input-polarity setting, so the first stage stores async_in inverted whenever RESET_VALUE is 1",
+   "reason": "In instances with RESET_VALUE=1 (CS_n, CP, OTP, UVLO, latch_stat), sync_out after reset is the inverse of async_in, two clocks later. With RESET_VALUE=0 nothing changes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.54.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 49,
+   "before": [
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff;"
+   ],
+   "category": "reset_init",
+   "description": "During reset sync_out shifts in meta_ff instead of being forced to RESET_VALUE, so a stale first-stage sample survives reset entry and power-up leaves sync_out undefined until a clock edge",
+   "reason": "When rst_n falls, sync_out takes the old meta_ff value, not RESET_VALUE, and keeps it until the next clk edge. At power-up with no clock yet, sync_out stays X/undefined instead of RESET_VALUE."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.49.AIM.10"
+ }
+]

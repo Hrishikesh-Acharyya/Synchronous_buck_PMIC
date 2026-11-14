@@ -1,0 +1,907 @@
+{
+ "module": "input_sync",
+ "file": "rtl-systemverilog/inputs/input_sync.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "20:33",
+   "commit": "a625f66",
+   "uncommitted": false,
+   "asked": 6,
+   "proposed": 4,
+   "accepted": 3,
+   "rejected": [
+    {
+     "description": "sync_out samples async_in directly, bypassing meta_ff: a one-stage synchroniser with one clock less latency",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants_6"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "20:35",
+   "commit": "a625f66",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 7,
+   "accepted": 7,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants_7"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "20:37",
+   "commit": "a625f66",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 5,
+   "accepted": 5,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants_8"
+  },
+  {
+   "n": 4,
+   "kind": "withdrawn",
+   "date": "2026-11-14",
+   "time": "20:49",
+   "commit": "217b430",
+   "uncommitted": false,
+   "reason": "a mechanical operator already makes this fault: STK or VNG on the same assignment",
+   "mutants": [
+    "input_sync.49.AIM.1",
+    "input_sync.48.AIM.2",
+    "input_sync.48.AIM.3",
+    "input_sync.54.AIM.9"
+   ],
+   "descriptions": [
+    "sync_out resets to a hard-coded 0 instead of RESET_VALUE; only meta_ff honours the parameter",
+    "meta_ff resets to a hard-coded 0 instead of RESET_VALUE, so the first stage forgets the safe value",
+    "meta_ff resets to the opposite of RESET_VALUE (safe level misremembered for the first stage)",
+    "RESET_VALUE is read as an input-polarity setting, so the first stage stores async_in inverted whenever RESET_VALUE is 1"
+   ]
+  },
+  {
+   "n": 5,
+   "kind": "withdrawn",
+   "date": "2026-11-14",
+   "time": "20:49",
+   "commit": "217b430",
+   "uncommitted": false,
+   "reason": "a different circuit, not a slip a designer makes writing a two-flop synchroniser",
+   "mutants": [
+    "input_sync.55.AIM.6",
+    "input_sync.55.AIM.7",
+    "input_sync.54.AIM.12",
+    "input_sync.55.AIM.13",
+    "input_sync.55.AIM.14",
+    "input_sync.55.AIM.15"
+   ],
+   "descriptions": [
+    "The second stage becomes a two-sample agreement filter: sync_out takes meta_ff only when it equals the current async_in, otherwise it holds",
+    "sync_out is made a sticky latch: once a 1 has passed through it holds 1 until rst_n, as if every synchronised input were a latched fault flag",
+    "The first stage waits for the second stage to catch up (handshake) before taking a new sample of async_in, instead of sampling every clock",
+    "'Assume the worst' is applied every clock: whenever meta_ff and async_in disagree, sync_out is forced to the safe RESET_VALUE instead of taking meta_ff",
+    "The second stage is written as the receiving end of a toggle (pulse) synchroniser: sync_out flips whenever the first stage holds 1, instead of copying the level",
+    "The synchroniser output is turned into a rising-edge detector on the synchronised level: sync_out goes high for one clock when meta_ff rises, not for as long as async_in stays high"
+   ]
+  },
+  {
+   "n": 6,
+   "kind": "mutation",
+   "date": "2026-11-14",
+   "time": "20:54",
+   "commit": "217b430",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 27,
+   "counts": {
+    "killed": 20,
+    "lint": 7
+   },
+   "score": "100.0%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_input_sync": 4.834702491760254
+   }
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.AIM.1",
+   "operator": "AIM",
+   "line": 48,
+   "description": "sync_out resets to a hard-coded 0 instead of RESET_VALUE; only meta_ff honours the parameter",
+   "before": "meta_ff  <= RESET_VALUE; / sync_out <= RESET_VALUE;",
+   "after": "meta_ff  <= RESET_VALUE; / sync_out <= 1'b0;",
+   "category": "reset_init",
+   "reason": "For the RESET_VALUE=1 instances (CP/OTP/UVLO/latch_stat/CS_n), sync_out reads 0 (fault not asserted / CS_n active) during reset and the first clock after release, instead of the safe value 1.",
+   "written_in": 1,
+   "retired": 4,
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  "AIM.2": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.AIM.2",
+   "operator": "AIM",
+   "line": 48,
+   "description": "meta_ff resets to a hard-coded 0 instead of RESET_VALUE, so the first stage forgets the safe value",
+   "before": "meta_ff  <= RESET_VALUE; / sync_out <= RESET_VALUE;",
+   "after": "meta_ff  <= 1'b0; / sync_out <= RESET_VALUE;",
+   "category": "reset_init",
+   "reason": "For RESET_VALUE=1 instances, on the first clock after reset release sync_out drops to 0 (fault de-asserted / CS_n low) for one clock before the real async_in level arrives, regardless of the input.",
+   "written_in": 1,
+   "retired": 4,
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  "AIM.3": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.AIM.3",
+   "operator": "AIM",
+   "line": 46,
+   "description": "meta_ff resets to the opposite of RESET_VALUE (safe level misremembered for the first stage)",
+   "before": "if (!rst_n) begin /  / meta_ff  <= RESET_VALUE; / sync_out <= RESET_VALUE;",
+   "after": "if (!rst_n) begin /  / meta_ff  <= ~RESET_VALUE; / sync_out <= RESET_VALUE;",
+   "category": "reset_init",
+   "reason": "For every instance, on the first clock after reset release sync_out shows the inverse of RESET_VALUE for one clock (e.g. Osc/SCK sync pulse high, CS_n sync goes low) before async_in propagates.",
+   "written_in": 1,
+   "retired": 4,
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.AIM.4",
+   "operator": "AIM",
+   "line": 48,
+   "description": "meta_ff is pre-loaded with the live async_in during reset instead of the safe RESET_VALUE, as if reset should 'prime' the synchroniser with the real input",
+   "before": "meta_ff  <= RESET_VALUE;",
+   "after": "meta_ff  <= async_in;",
+   "category": "reset_init",
+   "reason": "If async_in is not RESET_VALUE when rst_n goes high, sync_out moves to async_in on the first clock after release instead of the second. It also no longer holds the worst-case value for the full two clocks.",
+   "written_in": 2
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.AIM.5",
+   "operator": "AIM",
+   "line": 49,
+   "description": "sync_out follows the live async_in during reset instead of holding the safe RESET_VALUE",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": "sync_out <= async_in;",
+   "category": "reset_init",
+   "reason": "While rst_n is low and async_in differs from RESET_VALUE, sync_out shows the unsynchronised input instead of the safe level. For a fault input, this means it reports no fault during reset.",
+   "written_in": 2
+  },
+  "AIM.6": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.6",
+   "operator": "AIM",
+   "line": 55,
+   "description": "The second stage becomes a two-sample agreement filter: sync_out takes meta_ff only when it equals the current async_in, otherwise it holds",
+   "before": "sync_out <= meta_ff;",
+   "after": "if (meta_ff == async_in) begin / sync_out <= meta_ff; / end",
+   "category": "other",
+   "reason": "A pulse on async_in that lasts a single clock never reaches sync_out, while the original passes it through two clocks later. Input that toggles every clock leaves sync_out stuck at its old value.",
+   "written_in": 2,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "AIM.7": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.7",
+   "operator": "AIM",
+   "line": 55,
+   "description": "sync_out is made a sticky latch: once a 1 has passed through it holds 1 until rst_n, as if every synchronised input were a latched fault flag",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= meta_ff | sync_out;",
+   "category": "other",
+   "reason": "With RESET_VALUE=0, after async_in goes high and then low, sync_out stays 1 instead of following it back to 0 two clocks later. With RESET_VALUE=1, sync_out never leaves 1 after reset.",
+   "written_in": 2,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_two_clock_latency",
+     "killed_by": {
+      "assertions": [
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.8",
+   "operator": "AIM",
+   "line": 55,
+   "description": "A 'fast fault path': the safe/asserted level (RESET_VALUE) goes from async_in straight to sync_out, and only the release goes through meta_ff",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= (async_in == RESET_VALUE) ? RESET_VALUE : meta_ff;",
+   "category": "sequencing",
+   "reason": "When async_in moves to RESET_VALUE, sync_out shows it one clock later instead of two, and a one-clock pulse to RESET_VALUE that meta_ff never samples still reaches sync_out. Moves away from RESET_VALUE still take two clocks.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.AIM.9",
+   "operator": "AIM",
+   "line": 54,
+   "description": "RESET_VALUE is read as an input-polarity setting, so the first stage stores async_in inverted whenever RESET_VALUE is 1",
+   "before": "meta_ff  <= async_in;",
+   "after": "meta_ff  <= async_in ^ RESET_VALUE;",
+   "category": "other",
+   "reason": "In instances with RESET_VALUE=1 (CS_n, CP, OTP, UVLO, latch_stat), sync_out after reset is the inverse of async_in, two clocks later. With RESET_VALUE=0 nothing changes.",
+   "written_in": 2,
+   "retired": 4,
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.AIM.10",
+   "operator": "AIM",
+   "line": 49,
+   "description": "During reset sync_out shifts in meta_ff instead of being forced to RESET_VALUE, so a stale first-stage sample survives reset entry and power-up leaves sync_out undefined until a clock edge",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": "sync_out <= meta_ff;",
+   "category": "reset_init",
+   "reason": "When rst_n falls, sync_out takes the old meta_ff value, not RESET_VALUE, and keeps it until the next clk edge. At power-up with no clock yet, sync_out stays X/undefined instead of RESET_VALUE.",
+   "written_in": 2
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release +1",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release",
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.11",
+   "operator": "AIM",
+   "line": 55,
+   "description": "A 'fast release' path: the non-safe (released) level goes from async_in straight to sync_out, and only a return to the safe RESET_VALUE goes through meta_ff",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= (async_in != RESET_VALUE) ? async_in : meta_ff;",
+   "category": "other",
+   "reason": "With RESET_VALUE=0, a rising async_in shows on sync_out one clock early (after one flop, not two), and a one-clock high glitch shows on sync_out while still asserted at the clock edge, where a correct synchroniser delays it two clocks.",
+   "written_in": 3
+  },
+  "AIM.12": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.AIM.12",
+   "operator": "AIM",
+   "line": 54,
+   "description": "The first stage waits for the second stage to catch up (handshake) before taking a new sample of async_in, instead of sampling every clock",
+   "before": "meta_ff  <= async_in;",
+   "after": "meta_ff  <= (sync_out == meta_ff) ? async_in : meta_ff;",
+   "category": "sequencing",
+   "reason": "A one-clock pulse on async_in is stretched to two clocks on sync_out, and a change that comes right after another is seen one clock late, because meta_ff holds for a clock after every change.",
+   "written_in": 3,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "AIM.13": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.13",
+   "operator": "AIM",
+   "line": 55,
+   "description": "'Assume the worst' is applied every clock: whenever meta_ff and async_in disagree, sync_out is forced to the safe RESET_VALUE instead of taking meta_ff",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= (meta_ff == async_in) ? meta_ff : RESET_VALUE;",
+   "category": "other",
+   "reason": "With RESET_VALUE=0, a falling async_in shows on sync_out one clock early, and a one-clock high pulse on async_in never reaches sync_out, where a correct synchroniser passes it through two clocks later.",
+   "written_in": 3,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "AIM.14": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.14",
+   "operator": "AIM",
+   "line": 55,
+   "description": "The second stage is written as the receiving end of a toggle (pulse) synchroniser: sync_out flips whenever the first stage holds 1, instead of copying the level",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= sync_out ^ meta_ff;",
+   "category": "other",
+   "reason": "When async_in is held at 1 after reset, sync_out toggles every clock instead of settling at 1. A level input then shows up at the port as a square wave, and a fault that stays asserted reads as asserted only every other clock.",
+   "written_in": 3,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "AIM.15": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.AIM.15",
+   "operator": "AIM",
+   "line": 55,
+   "description": "The synchroniser output is turned into a rising-edge detector on the synchronised level: sync_out goes high for one clock when meta_ff rises, not for as long as async_in stays high",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= meta_ff & ~sync_out;",
+   "category": "wrong_event",
+   "reason": "When async_in rises and stays high, sync_out pulses high for one clock and then alternates instead of holding 1. Any consumer that needs a steady level (enable, fault) sees the input drop out every other clock.",
+   "written_in": 3,
+   "retired": 5,
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release +1",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release",
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.35.EDG.1",
+   "operator": "EDG",
+   "line": 35,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "f08a840493#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET +1",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET",
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.46.BDL.1",
+   "operator": "BDL",
+   "line": 46,
+   "description": "empty the 2-statement body of the if at line 46",
+   "before": "if (!rst_n) begin",
+   "after": "if (!rst_n) begin end"
+  },
+  "4b72644b47#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET +1",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET",
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.46.CSK.1",
+   "operator": "CSK",
+   "line": 46,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b0) begin"
+  },
+  "2a07bac648#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_two_clock_latency",
+     "killed_by": {
+      "assertions": [
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.46.CSK.2",
+   "operator": "CSK",
+   "line": 46,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b1) begin"
+  },
+  "d9cd5a9d8a#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET +1",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET",
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.46.UOD.1",
+   "operator": "UOD",
+   "line": 46,
+   "description": "drop the '!' before rst_n",
+   "before": "if (!rst_n) begin",
+   "after": "if (rst_n) begin"
+  },
+  "a2b9115670#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.SDL.1",
+   "operator": "SDL",
+   "line": 48,
+   "description": "delete 'meta_ff <= RESET_VALUE;'",
+   "before": "meta_ff  <= RESET_VALUE;",
+   "after": ";"
+  },
+  "fc45c79923#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.STK.1",
+   "operator": "STK",
+   "line": 48,
+   "description": "meta_ff stuck at all-zeros (was 'RESET_VALUE')",
+   "before": "meta_ff  <= RESET_VALUE;",
+   "after": "meta_ff  <= '0;"
+  },
+  "aa753bb43c#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.STK.2",
+   "operator": "STK",
+   "line": 48,
+   "description": "meta_ff stuck at all-ones (was 'RESET_VALUE')",
+   "before": "meta_ff  <= RESET_VALUE;",
+   "after": "meta_ff  <= '1;"
+  },
+  "4122dd8eca#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.48.VNG.1",
+   "operator": "VNG",
+   "line": 48,
+   "description": "meta_ff inverted (was 'RESET_VALUE')",
+   "before": "meta_ff  <= RESET_VALUE;",
+   "after": "meta_ff  <= ~(RESET_VALUE);"
+  },
+  "a1ca96b501#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.SDL.1",
+   "operator": "SDL",
+   "line": 49,
+   "description": "delete 'sync_out <= RESET_VALUE;'",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": ";"
+  },
+  "871130569a#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.STK.1",
+   "operator": "STK",
+   "line": 49,
+   "description": "sync_out stuck at all-zeros (was 'RESET_VALUE')",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": "sync_out <= '0;"
+  },
+  "fd53300b57#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.STK.2",
+   "operator": "STK",
+   "line": 49,
+   "description": "sync_out stuck at all-ones (was 'RESET_VALUE')",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": "sync_out <= '1;"
+  },
+  "be821f376d#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_sync_out_reads_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_sync_out_reads_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.49.VNG.1",
+   "operator": "VNG",
+   "line": 49,
+   "description": "sync_out inverted (was 'RESET_VALUE')",
+   "before": "sync_out <= RESET_VALUE;",
+   "after": "sync_out <= ~(RESET_VALUE);"
+  },
+  "f75b3b93d3#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.52.EDL.1",
+   "operator": "EDL",
+   "line": 52,
+   "description": "delete the else branch at line 52",
+   "before": "else begin",
+   "after": ""
+  },
+  "d031b37ce6#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.SDL.1",
+   "operator": "SDL",
+   "line": 54,
+   "description": "delete 'meta_ff <= async_in;'",
+   "before": "meta_ff  <= async_in;",
+   "after": ";"
+  },
+  "e983e19ddb#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.STK.1",
+   "operator": "STK",
+   "line": 54,
+   "description": "meta_ff stuck at all-zeros (was 'async_in')",
+   "before": "meta_ff  <= async_in;",
+   "after": "meta_ff  <= '0;"
+  },
+  "15aaadadbe#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.STK.2",
+   "operator": "STK",
+   "line": 54,
+   "description": "meta_ff stuck at all-ones (was 'async_in')",
+   "before": "meta_ff  <= async_in;",
+   "after": "meta_ff  <= '1;"
+  },
+  "6cda0d754d#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_two_clock_latency",
+     "killed_by": {
+      "assertions": [
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.54.VNG.1",
+   "operator": "VNG",
+   "line": 54,
+   "description": "meta_ff inverted (was 'async_in')",
+   "before": "meta_ff  <= async_in;",
+   "after": "meta_ff  <= ~(async_in);"
+  },
+  "a23526641e#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.SDL.1",
+   "operator": "SDL",
+   "line": 55,
+   "description": "delete 'sync_out <= meta_ff;'",
+   "before": "sync_out <= meta_ff;",
+   "after": ";"
+  },
+  "8d6872ce5b#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.STK.1",
+   "operator": "STK",
+   "line": 55,
+   "description": "sync_out stuck at all-zeros (was 'meta_ff')",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= '0;"
+  },
+  "f0ae3c8b59#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.STK.2",
+   "operator": "STK",
+   "line": 55,
+   "description": "sync_out stuck at all-ones (was 'meta_ff')",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= '1;"
+  },
+  "467555c092#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_one_clock_after_release +1",
+     "killed_by": {
+      "assertions": [
+       "a_one_clock_after_release",
+       "a_two_clock_latency"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_sync.55.VNG.1",
+   "operator": "VNG",
+   "line": 55,
+   "description": "sync_out inverted (was 'meta_ff')",
+   "before": "sync_out <= meta_ff;",
+   "after": "sync_out <= ~(meta_ff);"
+  }
+ }
+}

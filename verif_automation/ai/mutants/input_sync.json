@@ -1,0 +1,241 @@
+{
+ "unit": "input_sync",
+ "file": "rtl-systemverilog/inputs/input_sync.sv",
+ "mutants": [
+  {
+   "key": 4,
+   "line": 48,
+   "category": "reset_init",
+   "description": "meta_ff is pre-loaded with the live async_in during reset instead of the safe RESET_VALUE, as if reset should 'prime' the synchroniser with the real input",
+   "reason": "If async_in is not RESET_VALUE when rst_n goes high, sync_out moves to async_in on the first clock after release instead of the second. It also no longer holds the worst-case value for the full two clocks.",
+   "before": [
+    "        meta_ff  <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= async_in;"
+   ],
+   "run": "2026-11-14_write_mutants_7"
+  },
+  {
+   "key": 5,
+   "line": 49,
+   "category": "reset_init",
+   "description": "sync_out follows the live async_in during reset instead of holding the safe RESET_VALUE",
+   "reason": "While rst_n is low and async_in differs from RESET_VALUE, sync_out shows the unsynchronised input instead of the safe level. For a fault input, this means it reports no fault during reset.",
+   "before": [
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        sync_out <= async_in;"
+   ],
+   "run": "2026-11-14_write_mutants_7"
+  },
+  {
+   "key": 8,
+   "line": 55,
+   "category": "sequencing",
+   "description": "A 'fast fault path': the safe/asserted level (RESET_VALUE) goes from async_in straight to sync_out, and only the release goes through meta_ff",
+   "reason": "When async_in moves to RESET_VALUE, sync_out shows it one clock later instead of two, and a one-clock pulse to RESET_VALUE that meta_ff never samples still reaches sync_out. Moves away from RESET_VALUE still take two clocks.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (async_in == RESET_VALUE) ? RESET_VALUE : meta_ff;"
+   ],
+   "run": "2026-11-14_write_mutants_7"
+  },
+  {
+   "key": 10,
+   "line": 49,
+   "category": "reset_init",
+   "description": "During reset sync_out shifts in meta_ff instead of being forced to RESET_VALUE, so a stale first-stage sample survives reset entry and power-up leaves sync_out undefined until a clock edge",
+   "reason": "When rst_n falls, sync_out takes the old meta_ff value, not RESET_VALUE, and keeps it until the next clk edge. At power-up with no clock yet, sync_out stays X/undefined instead of RESET_VALUE.",
+   "before": [
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff;"
+   ],
+   "run": "2026-11-14_write_mutants_7"
+  },
+  {
+   "key": 11,
+   "line": 55,
+   "category": "other",
+   "description": "A 'fast release' path: the non-safe (released) level goes from async_in straight to sync_out, and only a return to the safe RESET_VALUE goes through meta_ff",
+   "reason": "With RESET_VALUE=0, a rising async_in shows on sync_out one clock early (after one flop, not two), and a one-clock high glitch shows on sync_out while still asserted at the clock edge, where a correct synchroniser delays it two clocks.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (async_in != RESET_VALUE) ? async_in : meta_ff;"
+   ],
+   "run": "2026-11-14_write_mutants_8"
+  }
+ ],
+ "last_key": 15,
+ "withdrawn": [
+  {
+   "key": 1,
+   "line": 48,
+   "category": "reset_init",
+   "description": "sync_out resets to a hard-coded 0 instead of RESET_VALUE; only meta_ff honours the parameter",
+   "reason": "For the RESET_VALUE=1 instances (CP/OTP/UVLO/latch_stat/CS_n), sync_out reads 0 (fault not asserted / CS_n active) during reset and the first clock after release, instead of the safe value 1.",
+   "before": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= 1'b0;"
+   ],
+   "run": "2026-11-14_write_mutants_6",
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  {
+   "key": 2,
+   "line": 48,
+   "category": "reset_init",
+   "description": "meta_ff resets to a hard-coded 0 instead of RESET_VALUE, so the first stage forgets the safe value",
+   "reason": "For RESET_VALUE=1 instances, on the first clock after reset release sync_out drops to 0 (fault de-asserted / CS_n low) for one clock before the real async_in level arrives, regardless of the input.",
+   "before": [
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "        meta_ff  <= 1'b0;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "run": "2026-11-14_write_mutants_6",
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  {
+   "key": 3,
+   "line": 46,
+   "category": "reset_init",
+   "description": "meta_ff resets to the opposite of RESET_VALUE (safe level misremembered for the first stage)",
+   "reason": "For every instance, on the first clock after reset release sync_out shows the inverse of RESET_VALUE for one clock (e.g. Osc/SCK sync pulse high, CS_n sync goes low) before async_in propagates.",
+   "before": [
+    "    if (!rst_n) begin",
+    "",
+    "        meta_ff  <= RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "after": [
+    "    if (!rst_n) begin",
+    "",
+    "        meta_ff  <= ~RESET_VALUE;",
+    "        sync_out <= RESET_VALUE;"
+   ],
+   "run": "2026-11-14_write_mutants_6",
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  {
+   "key": 9,
+   "line": 54,
+   "category": "other",
+   "description": "RESET_VALUE is read as an input-polarity setting, so the first stage stores async_in inverted whenever RESET_VALUE is 1",
+   "reason": "In instances with RESET_VALUE=1 (CS_n, CP, OTP, UVLO, latch_stat), sync_out after reset is the inverse of async_in, two clocks later. With RESET_VALUE=0 nothing changes.",
+   "before": [
+    "        meta_ff  <= async_in;"
+   ],
+   "after": [
+    "        meta_ff  <= async_in ^ RESET_VALUE;"
+   ],
+   "run": "2026-11-14_write_mutants_7",
+   "withdrawn": "a mechanical operator already makes this fault: STK or VNG on the same assignment"
+  },
+  {
+   "key": 6,
+   "line": 55,
+   "category": "other",
+   "description": "The second stage becomes a two-sample agreement filter: sync_out takes meta_ff only when it equals the current async_in, otherwise it holds",
+   "reason": "A pulse on async_in that lasts a single clock never reaches sync_out, while the original passes it through two clocks later. Input that toggles every clock leaves sync_out stuck at its old value.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        if (meta_ff == async_in) begin",
+    "            sync_out <= meta_ff;",
+    "        end"
+   ],
+   "run": "2026-11-14_write_mutants_7",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  {
+   "key": 7,
+   "line": 55,
+   "category": "other",
+   "description": "sync_out is made a sticky latch: once a 1 has passed through it holds 1 until rst_n, as if every synchronised input were a latched fault flag",
+   "reason": "With RESET_VALUE=0, after async_in goes high and then low, sync_out stays 1 instead of following it back to 0 two clocks later. With RESET_VALUE=1, sync_out never leaves 1 after reset.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff | sync_out;"
+   ],
+   "run": "2026-11-14_write_mutants_7",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  {
+   "key": 12,
+   "line": 54,
+   "category": "sequencing",
+   "description": "The first stage waits for the second stage to catch up (handshake) before taking a new sample of async_in, instead of sampling every clock",
+   "reason": "A one-clock pulse on async_in is stretched to two clocks on sync_out, and a change that comes right after another is seen one clock late, because meta_ff holds for a clock after every change.",
+   "before": [
+    "        meta_ff  <= async_in;"
+   ],
+   "after": [
+    "        meta_ff  <= (sync_out == meta_ff) ? async_in : meta_ff;"
+   ],
+   "run": "2026-11-14_write_mutants_8",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  {
+   "key": 13,
+   "line": 55,
+   "category": "other",
+   "description": "'Assume the worst' is applied every clock: whenever meta_ff and async_in disagree, sync_out is forced to the safe RESET_VALUE instead of taking meta_ff",
+   "reason": "With RESET_VALUE=0, a falling async_in shows on sync_out one clock early, and a one-clock high pulse on async_in never reaches sync_out, where a correct synchroniser passes it through two clocks later.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= (meta_ff == async_in) ? meta_ff : RESET_VALUE;"
+   ],
+   "run": "2026-11-14_write_mutants_8",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  {
+   "key": 14,
+   "line": 55,
+   "category": "other",
+   "description": "The second stage is written as the receiving end of a toggle (pulse) synchroniser: sync_out flips whenever the first stage holds 1, instead of copying the level",
+   "reason": "When async_in is held at 1 after reset, sync_out toggles every clock instead of settling at 1. A level input then shows up at the port as a square wave, and a fault that stays asserted reads as asserted only every other clock.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= sync_out ^ meta_ff;"
+   ],
+   "run": "2026-11-14_write_mutants_8",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  },
+  {
+   "key": 15,
+   "line": 55,
+   "category": "wrong_event",
+   "description": "The synchroniser output is turned into a rising-edge detector on the synchronised level: sync_out goes high for one clock when meta_ff rises, not for as long as async_in stays high",
+   "reason": "When async_in rises and stays high, sync_out pulses high for one clock and then alternates instead of holding 1. Any consumer that needs a steady level (enable, fault) sees the input drop out every other clock.",
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff & ~sync_out;"
+   ],
+   "run": "2026-11-14_write_mutants_8",
+   "withdrawn": "a different circuit, not a slip a designer makes writing a two-flop synchroniser"
+  }
+ ]
+}

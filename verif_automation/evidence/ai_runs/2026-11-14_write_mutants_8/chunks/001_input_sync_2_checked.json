@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= sync_out ^ meta_ff;"
+   ],
+   "category": "other",
+   "description": "The second stage is written as the receiving end of a toggle (pulse) synchroniser: sync_out flips whenever the first stage holds 1, instead of copying the level",
+   "reason": "When async_in is held at 1 after reset, sync_out toggles every clock instead of settling at 1. A level input then shows up at the port as a square wave, and a fault that stays asserted reads as asserted only every other clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 55,
+   "before": [
+    "        sync_out <= meta_ff;"
+   ],
+   "after": [
+    "        sync_out <= meta_ff & ~sync_out;"
+   ],
+   "category": "wrong_event",
+   "description": "The synchroniser output is turned into a rising-edge detector on the synchronised level: sync_out goes high for one clock when meta_ff rises, not for as long as async_in stays high",
+   "reason": "When async_in rises and stays high, sync_out pulses high for one clock and then alternates instead of holding 1. Any consumer that needs a steady level (enable, fault) sees the input drop out every other clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_sync.55.AIM.15"
+ }
+]

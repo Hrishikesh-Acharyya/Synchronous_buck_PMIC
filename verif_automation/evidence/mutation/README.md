@@ -5,6 +5,7 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | Module | Mutants | AI-written | Killed | Lint | Covers | Timeout | Survived | Not run | Score | Survivors not decided | Score, explained survivors out | Steps: AI wrote / mutation / AI judged | Last step |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
 | [`fault_cause`](fault_cause.md) | 23 | 23 | 0 | 0 | 0 | 0 | 0 | 23 | - | 0 | - | 2 / 0 / 0 | 2026-11-14 664452d |
+| [`input_sync`](input_sync.md) | 27 | 5 | 20 | 7 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 217b430 |
 | [`reset_sync`](reset_sync.md) | 22 | 2 | 17 | 5 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 664452d |
 
 Score = (killed + lint + covers + timeout) / (those + survived), over each mutant's newest outcome. The aim is no undecided survivor, not 100% - see `tools/mutation/README.md`.
