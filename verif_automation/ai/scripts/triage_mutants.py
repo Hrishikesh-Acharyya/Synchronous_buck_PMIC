@@ -34,9 +34,24 @@
 #                   equivalent too (--audit), and an "equivalent" mutant that
 #                   a test kills is reported as a triage error.
 #
-#                   Usage: triage_mutants.py [--modules a,b] [--chunk N]
+#                   Two ways to use it:
+#                     after the tests (recommended) - with --survivors, only
+#                       the mutants that survived a mutation run are judged:
+#                       each is a real gap (plausible) or changes nothing
+#                       (equivalent). A hundred or so mutants, and exactly
+#                       the ones that need a judgement.
+#                     before the tests - every mutant that passes lint is
+#                       judged, and the mutation run can then skip the ones
+#                       called equivalent (--triage, --audit). About ten
+#                       times the requests, for little saving: the plausible
+#                       ones, which are most of them, are simulated anyway.
+#
+#                   Usage: triage_mutants.py [--survivors RESULTS.json]
+#                                            [--modules a,b] [--chunk N]
 #                                            [--model NAME] [--resume DIR]
 #                                            [--dry-run] [--evidence]
+#                     --survivors a mutation run's results.json: judge only
+#                                 the mutants that survived it
 #                     --dry-run   write the prompts and the exact command,
 #                                 call nothing
 #                     --resume    continue a run that stopped (a usage limit,
@@ -154,6 +169,7 @@ def main():
              record.
     """
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--survivors")
     ap.add_argument("--modules")
     ap.add_argument("--chunk", type=int, default=40)
     ap.add_argument("--model")
@@ -168,17 +184,30 @@ def main():
         want = set(args.modules.split(","))
         ms = [m for m in ms if m.unit in want]
     stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    run = pathlib.Path(args.resume) if args.resume else REPO / "verif_automation" / "build" / "ai_runs" / f"{stamp}_triage_mutants"
+    task = "judge_survivors" if args.survivors else "triage_mutants"
+    run = pathlib.Path(args.resume) if args.resume else REPO / "verif_automation" / "build" / "ai_runs" / f"{stamp}_{task}"
     (run / "chunks").mkdir(parents=True, exist_ok=True)
 
-    # 1. lint screen: only the mutants lint accepts need a judgement
-    print(f"screening {len(ms)} mutants with make lint ...", flush=True)
-    work = run / "work"
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        screened = list(pool.map(lambda m: R.run_one(m, work, 0, False, simulate=False)[0], ms))
-    shutil.rmtree(work, ignore_errors=True)
-    clean = [m for m, s in zip(ms, screened) if s == "clean"]
-    print(f"{len(clean)} pass lint and go to triage; {len(ms) - len(clean)} are already caught or not legal")
+    if args.survivors:
+        # after the tests: only the mutants that survived that run
+        survived = {r["id"] for r in json.loads(pathlib.Path(args.survivors).read_text())["results"]
+                    if r["status"] == "survived"}
+        clean = [m for m in ms if m.id in survived]
+        missing = survived - {m.id for m in clean}
+        if missing and not args.modules:
+            sys.exit(f"{len(missing)} survivors of that run are not mutants of the RTL as it is now "
+                     f"(for example {sorted(missing)[0]}) - the RTL has changed since; run the mutation again")
+        ms = clean
+        print(f"{len(clean)} survivors of {args.survivors} go to judgement")
+    else:
+        # before the tests: lint screen - only the mutants lint accepts need a judgement
+        print(f"screening {len(ms)} mutants with make lint ...", flush=True)
+        work = run / "work"
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            screened = list(pool.map(lambda m: R.run_one(m, work, 0, False, simulate=False)[0], ms))
+        shutil.rmtree(work, ignore_errors=True)
+        clean = [m for m, s in zip(ms, screened) if s == "clean"]
+        print(f"{len(clean)} pass lint and go to triage; {len(ms) - len(clean)} are already caught or not legal")
 
     # 2. chunks: one module at a time, at most --chunk mutants each
     chunks = []
@@ -244,11 +273,13 @@ def main():
         models |= set((r.get("modelUsage") or {}).keys())
     n_eq = sum(v["verdict"] == "equivalent" and v["confidence"] == "high" for v in verdicts.values())
     n_un = sum(bool(v.get("untriaged")) for v in verdicts.values())
-    header = {"date": datetime.date.today().isoformat(), "commit": commit, "task": "triage_mutants",
+    header = {"date": datetime.date.today().isoformat(), "commit": commit, "task": task,
+              "survivors_of": args.survivors or "",
               "agent": "Claude Code (claude -p), read-only", "models": sorted(models),
               "mutants_listed": len(ms), "sent_to_triage": len(clean), "judged": len(verdicts) - n_un,
               "equivalent_high_confidence": n_eq, "untriaged": n_un, "complete": not stopped and not args.dry_run}
-    summary = [f"# Triage of mutants - {header['date']} - commit {commit}", "",
+    title = "Judgement of surviving mutants" if args.survivors else "Triage of mutants"
+    summary = [f"# {title} - {header['date']} - commit {commit}", "",
                f"Agent: {header['agent']}" + (f"; model(s): {', '.join(sorted(models))}" if models else ""),
                f"Mutants listed: {len(ms)}; passed lint and sent to triage: {len(clean)}; judged: "
                f"{header['judged']}; judged equivalent with high confidence: {n_eq}; untriaged: {n_un}", "",
@@ -259,9 +290,14 @@ def main():
     summary += ["", "## Judged equivalent (high confidence)", ""]
     summary += [f"- `{mid}`: {v['reason']}" for mid, v in sorted(verdicts.items())
                 if v["verdict"] == "equivalent" and v["confidence"] == "high"] or ["None."]
+    if args.survivors:
+        summary += ["", "## Judged a real gap - the edit changes behaviour and no test noticed", ""]
+        summary += [f"- `{mid}` ({v['confidence']}): {v['reason']}" for mid, v in sorted(verdicts.items())
+                    if not (v["verdict"] == "equivalent" and v["confidence"] == "high")] or ["None."]
     (run / "summary.md").write_text("\n".join(summary) + "\n")
     if not args.dry_run:
-        out = REPO / "verif_automation" / "build" / "mutation" / "triage.json"
+        out = REPO / "verif_automation" / "build" / "mutation" / \
+            ("survivors_judged.json" if args.survivors else "triage.json")
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps({"header": header, "verdicts": verdicts}, indent=1) + "\n")
         shutil.copy(out, run / "triage.json")
@@ -282,7 +318,7 @@ def save_evidence(run, header, n_eq, n_un):
     """
     ev = REPO / "verif_automation" / "evidence" / "ai_runs"
     ev.mkdir(parents=True, exist_ok=True)
-    name, n = f"{header['date']}_triage_mutants", 1
+    name, n = f"{header['date']}_{header['task']}", 1
     while (ev / (name if n == 1 else f"{name}_{n}")).exists():
         n += 1
     dest = ev / (name if n == 1 else f"{name}_{n}")
@@ -295,11 +331,12 @@ def save_evidence(run, header, n_eq, n_un):
             "| Run | Date | Commit | Task | Given | Produced | Gate | Verdict |\n|---|---|---|---|---|---|---|---|\n")
     rows = sum(1 for line in ledger.read_text().splitlines() if line.startswith("| A"))
     with ledger.open("a") as f:
-        f.write(f"| A{rows + 1} | {header['date']} | {header['commit']} | triage_mutants (`{dest.name}/`) | "
+        gate = "the designer's review of each verdict" if header["task"] == "judge_survivors" else \
+            "the mutation run's audit: every mutant judged equivalent that a test kills is a triage error"
+        f.write(f"| A{rows + 1} | {header['date']} | {header['commit']} | {header['task']} (`{dest.name}/`) | "
                 f"read access to rtl-systemverilog/; {header['sent_to_triage']} mutants | verdicts for "
-                f"{header['judged']} ({n_eq} equivalent with high confidence, {n_un} untriaged) | "
-                f"the mutation run's audit: every mutant judged equivalent that a test kills is a triage error | "
-                f"pending the audit |\n")
+                f"{header['judged']} ({n_eq} equivalent with high confidence, {n_un} untriaged) | {gate} | "
+                f"pending |\n")
     print(f"evidence: {dest}, ledger {ledger}")
 
 

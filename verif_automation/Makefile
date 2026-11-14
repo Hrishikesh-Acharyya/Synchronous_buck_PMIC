@@ -52,6 +52,9 @@ CHUNK     ?=
 MODEL     ?=
 RESUME    ?=
 DRY       ?=
+# RESULTS: the mutation run whose survivors make judge works on (default:
+#          the newest run in build/mutation/)
+RESULTS   ?= $(lastword $(sort $(wildcard build/mutation/*/results.json)))
 
 # MUTATION_ARGS: the selectors as runner options
 MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operators $(OPERATORS)) \
@@ -64,7 +67,7 @@ TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)
               $(if $(RESUME),--resume $(RESUME)) $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS))
 
 .DEFAULT_GOAL := help
-.PHONY: help lint lint_report lint_evidence contract mutants mutants_check triage triage_evidence mutate mutation_evidence check_scripts
+.PHONY: help lint lint_report lint_evidence contract mutants mutants_check triage triage_evidence judge judge_evidence mutate mutation_evidence setup_check check_scripts
 
 help:  ## list the commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-19s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -110,6 +113,21 @@ triage:  ## AI triage of the mutants, read-only (MODULE=, CHUNK=, MODEL=, RESUME
 
 triage_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
 	@$(PYTHON) ai/scripts/triage_mutants.py --evidence $(TRIAGE_ARGS)
+
+# judge: the AI step after the tests (the recommended order). Only the
+#        mutants that survived a mutation run are judged: a real gap, or an
+#        edit that changes nothing. Writes build/mutation/survivors_judged.json.
+judge:  ## AI judgement of a run's surviving mutants, read-only (RESULTS=, MODULE=, MODEL=, RESUME=, DRY=1)
+	@test -n "$(RESULTS)" || { echo "no mutation run found - run make mutate first, or give RESULTS="; exit 1; }
+	@$(PYTHON) ai/scripts/triage_mutants.py --survivors $(RESULTS) $(TRIAGE_ARGS)
+
+judge_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
+	@test -n "$(RESULTS)" || { echo "no mutation run found - run make mutate first, or give RESULTS="; exit 1; }
+	@$(PYTHON) ai/scripts/triage_mutants.py --survivors $(RESULTS) --evidence $(TRIAGE_ARGS)
+
+# setup_check: is everything these commands need installed? Reads only.
+setup_check:  ## check that the tools these commands need are installed
+	@$(PYTHON) tools/setup_check.py
 
 # mutate: mutation testing - each mutant in a scratch copy of the RTL against
 #         its module's own testbench. All 17 modules take hours: run it on

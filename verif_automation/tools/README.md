@@ -36,7 +36,9 @@ From `verif_automation/`, which has its own Makefile, separate from
 | `make contract` | extract every module's contract to `build/contract/` |
 | `make mutants` | list the mutants without running them (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`) |
 | `make mutants_check` | health check of the mutant generator: every mutant lint-screened, none simulated |
-| `make triage` | the AI step: Claude Code, read-only, judges each mutant plausible or equivalent before simulation (`MODULE=`, `CHUNK=`, `MODEL=`, `RESUME=`, `DRY=1`); see `ai/README.md` |
+| `make setup_check` | check that the tools these commands need are installed |
+| `make judge` | the AI step: Claude Code, read-only, judges each surviving mutant of a run a real gap or equivalent (`RESULTS=`, `MODEL=`, `RESUME=`, `DRY=1`); see `ai/README.md` |
+| `make triage` | the same judgement made before simulation, on every mutant that passes lint (`MODULE=`, `CHUNK=`, `MODEL=`, `RESUME=`, `DRY=1`); see `ai/README.md` |
 | `make mutate` | mutation testing; all modules take hours (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`, `JOBS=`, `IDS=`, `SIM_ARGS=`, `TRIAGE=`, `AUDIT=`) |
 | `make mutation_evidence` | the same, with the report saved to `evidence/mutation/<date>_mutation.txt` and `.json` and the run indexed in `evidence/mutation/README.md` |
 | `make check_scripts` | syntax check of every script under `tools/` and `ai/` |
