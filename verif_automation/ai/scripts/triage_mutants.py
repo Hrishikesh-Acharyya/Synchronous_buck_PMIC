@@ -65,7 +65,7 @@
 #                                 --judge) the judgements added to the
 #                                 module records
 #
-# Global variables: REPO, TASK, CLAUDE - see below
+# Global variables: REPO, TASK, CLAUDE, EFFORTS - see below
 
 import argparse
 import concurrent.futures
@@ -88,15 +88,19 @@ REPO = R.REPO
 TASK = HERE.parent / "tasks" / "triage_mutants"
 # CLAUDE: the Claude Code command (override with the CLAUDE environment variable)
 CLAUDE = os.environ.get("CLAUDE", "claude")
+# EFFORTS: the reasoning-effort levels the agent accepts
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
 
-def command(model, task=None):
+def command(model, task=None, effort=None):
 
     """
     Purpose: The exact Claude Code command for one chunk. Read-only tools,
              no MCP servers, anything that would ask for permission denied,
              and the answer forced into the task's schema. The prompt goes
              in on stdin. task is the task folder (default: this script's).
+             model and effort are passed on when given; without them the
+             agent uses its own defaults.
     """
     task = task or TASK
     cmd = [CLAUDE, "-p",
@@ -108,6 +112,8 @@ def command(model, task=None):
            "--json-schema", json.dumps(json.loads((task / "schema.json").read_text()))]
     if model:
         cmd += ["--model", model]
+    if effort:
+        cmd += ["--effort", effort]
     return cmd
 
 
@@ -202,6 +208,7 @@ def main():
     ap.add_argument("--modules")
     ap.add_argument("--chunk", type=int, default=40)
     ap.add_argument("--model")
+    ap.add_argument("--effort", choices=EFFORTS)
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2, help="parallel lint screens")
     ap.add_argument("--resume")
     ap.add_argument("--dry-run", action="store_true")
@@ -257,7 +264,7 @@ def main():
         for k in range(0, len(group), args.chunk):
             chunks.append((unit, file, group[k:k + args.chunk]))
 
-    cmd = command(args.model)
+    cmd = command(args.model, effort=args.effort)
     (run / "command.txt").write_text(" ".join(c if " " not in c and "{" not in c else repr(c) for c in cmd)
                                      + "   < chunks/NN_prompt.txt\n")
     verdicts, log, stopped = {}, [], None

@@ -48,6 +48,7 @@ def main():
     """
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model")
+    ap.add_argument("--effort", choices=T.EFFORTS)
     args = ap.parse_args()
     failed = []
 
@@ -69,7 +70,7 @@ def main():
     lines = (REPO / RTL).read_bytes().decode().replace("\r", "").split("\n")
     n = next(i for i, x in enumerate(lines) if x.startswith("module "))
     prompt = (TASK / "TASK.md").read_text().replace("{rtl}", RTL).replace("{tb}", TB).replace("{line}", str(n + 1))
-    cmd = T.command(args.model, TASK)
+    cmd = T.command(args.model, TASK, args.effort)
     print("  ...   sending one small request (up to a minute)", flush=True)
     start = time.time()
     try:

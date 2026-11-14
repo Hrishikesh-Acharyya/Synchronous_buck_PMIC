@@ -121,20 +121,29 @@ def body_lines(path):
     return out
 
 
-def prompt_for(unit, file, count, mechanical, stored):
+def prompt_for(unit, file, count, mechanical, stored, refused):
 
     """
     Purpose: The prompt for one module: the task instructions, the module
-             and the number asked for, the mechanical operators, and the
-             mutants already written for it.
+             and the number asked for, the mechanical operators, the mutants
+             already written for it, and the proposals already refused (each
+             with the check it failed), so that neither is written again.
     """
     ops = "\n".join(f"- {op}: {what}" for op, what in M.OPERATORS.items() if op != M.AI_OPERATOR)
     have = "\n".join(f"- line {e['line']}: {e['description']}" for e in stored) or "None yet."
+    seen, lines = set(), []
+    for r in refused:                           # each refused proposal once
+        if r["description"] not in seen:
+            seen.add(r["description"])
+            lines.append(f"- {r['description']} - refused: {r['why']}")
     return (TASK / "TASK.md").read_text() + (
         f"\n## The module\n\n`{unit}`, in `{file}`. Write up to {count} mutants.\n"
         f"\n## The mechanical operators\n\nThese are already made for this module ({mechanical} mutants). "
         f"Do not write an edit that one of them makes.\n\n{ops}\n"
-        f"\n## Mutants already written for this module\n\n{have}\n")
+        f"\n## Mutants already written for this module\n\n{have}\n"
+        f"\n## Proposals already refused for this module\n\nDo not write these again, in any wording. If the "
+        f"design-aware faults left are all of a kind that is refused, return fewer mutants.\n\n"
+        + ("\n".join(lines) or "None yet.") + "\n")
 
 
 def proposals_of(result):
@@ -233,6 +242,7 @@ def main():
     ap.add_argument("--modules")
     ap.add_argument("--count", type=int)
     ap.add_argument("--model")
+    ap.add_argument("--effort", choices=T.EFFORTS)
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2, help="parallel lint screens")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-record", action="store_true")
@@ -254,7 +264,7 @@ def main():
     stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
     run = REPO / "verif_automation" / "build" / "ai_runs" / f"{stamp}_write_mutants"
     (run / "chunks").mkdir(parents=True, exist_ok=True)
-    cmd = T.command(args.model, TASK)
+    cmd = T.command(args.model, TASK, args.effort)
     (run / "command.txt").write_text(" ".join(c if " " not in c and "{" not in c else repr(c) for c in cmd)
                                      + "   < chunks/NN_prompt.txt\n")
     STORE.mkdir(parents=True, exist_ok=True)
@@ -272,6 +282,8 @@ def main():
         taken = {M.code_key(m.apply(text)): m.id for m in mech} if not args.dry_run else {}
 
         unit_asked, unit_new, unit_rejected, unit_models = 0, [], [], set()
+        # what the gate refused in earlier runs, from the module's record
+        earlier = [x for r in REC.load(unit)["runs"] if r["kind"] == "write_mutants" for x in r["rejected"]]
         # a module asked for more than PER_REQUEST gets several requests,
         # each shown what the earlier ones produced
         for part, want in enumerate([PER_REQUEST] * (count // PER_REQUEST) + [count % PER_REQUEST] * bool(
@@ -279,7 +291,7 @@ def main():
             tag = f"{n:03d}_{unit}_{part}"
             stored = json.loads(store_file.read_text())["mutants"] if store_file.exists() else []
             asked += want
-            prompt = prompt_for(unit, rel, want, sum(m.unit == unit for m in mech), stored)
+            prompt = prompt_for(unit, rel, want, sum(m.unit == unit for m in mech), stored, earlier + unit_rejected)
             (run / "chunks" / f"{tag}_prompt.txt").write_text(prompt)
             if args.dry_run:
                 log.append((tag, want, "dry run", "", ""))

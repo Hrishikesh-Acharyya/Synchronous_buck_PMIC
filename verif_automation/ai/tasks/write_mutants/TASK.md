@@ -16,7 +16,8 @@ to write.
 - The name of **one module** and its file, and how many mutants are asked
   for.
 - The mechanical operators, so that you do not repeat them.
-- The mutants already written for this module, so that you do not repeat
+- The mutants already written for this module, and the proposals a program
+  has already refused (with the check each failed), so that you do not repeat
   those either.
 - Read access to the RTL in `rtl-systemverilog/` and to the project's
   documents. Read the module's own file in full first - its header states
@@ -64,7 +65,9 @@ Kinds of fault to look for - use these as `category`:
 - An edit to the module's ports, its header parameters, or the width of any
   declaration.
 - An edit that leaves a signal undriven or unused, or assigns a signal from
-  two blocks - lint rejects those before any test runs.
+  two blocks - lint rejects those before any test runs. Lint also rejects a
+  flop whose asynchronous reset is made synchronous, or dropped from its
+  sensitivity list.
 - An edit that one mechanical operator already makes.
 - Two mutants that are the same fault written twice.
 - A fault that cannot change anything at the ports. If you cannot say what

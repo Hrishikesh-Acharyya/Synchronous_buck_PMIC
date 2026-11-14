@@ -10,8 +10,8 @@
 #
 # Global variables: PYTHON, SV_LINT, CONTRACT, MUTATION, EVIDENCE, RULES, FILES,
 #                   MODULE, OPERATORS, SAMPLE, SEED, JOBS, IDS, SIM_ARGS,
-#                   TRIAGE, AUDIT, CHUNK, MODEL, RESUME, DRY, COUNT, RECORD, AS,
-#                   WHY - see below
+#                   TRIAGE, AUDIT, CHUNK, MODEL, EFFORT, RESUME, DRY, COUNT,
+#                   RECORD, AS, WHY - see below
 
 # PYTHON: the interpreter for the tools (standard library only)
 PYTHON   ?= python3
@@ -51,8 +51,16 @@ AUDIT     ?= all
 #                 run's folder to continue, and DRY=1 to write the prompts
 #                 and call nothing. RESUME= also continues a stopped make
 #                 mutate (its folder in build/mutation/)
+# MODEL / EFFORT: the agent's model and reasoning effort for every AI step -
+#                  a model alias (opus, sonnet, fable) and low, medium, high,
+#                  xhigh or max. MODEL=sonnet is the cheaper choice for the
+#                  small modules; empty values leave the agent on its own
+#                  defaults
 CHUNK     ?=
-MODEL     ?=
+MODEL     ?= opus
+EFFORT    ?= medium
+# AGENT_ARGS: the model and effort as script options
+AGENT_ARGS = $(if $(MODEL),--model $(MODEL)) $(if $(EFFORT),--effort $(EFFORT))
 RESUME    ?=
 DRY       ?=
 # COUNT: optional - how many mutants make ai_mutants asks for per module
@@ -77,12 +85,12 @@ MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operator
                 $(if $(TRIAGE),--triage $(TRIAGE) --audit $(AUDIT)) $(if $(RESUME),--resume $(RESUME)) $(NO_RECORD)
 
 # TRIAGE_ARGS: the triage settings as script options
-TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)) $(if $(MODEL),--model $(MODEL)) \
+TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)) $(AGENT_ARGS) \
               $(if $(RESUME),--resume $(RESUME)) $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS)) $(NO_RECORD)
 
 .DEFAULT_GOAL := help
 # WRITE_ARGS: the ai_mutants settings as script options
-WRITE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(COUNT),--count $(COUNT)) $(if $(MODEL),--model $(MODEL)) \
+WRITE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(COUNT),--count $(COUNT)) $(AGENT_ARGS) \
              $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS)) $(NO_RECORD)
 
 .PHONY: help lint lint_report lint_evidence contract mutants mutants_check ai_check ai_mutants triage judge \
@@ -131,15 +139,15 @@ mutants_check:  ## health check of the mutant generator: lint-screen every mutan
 #             code that lint accepts) before it is stored in ai/mutants/, from
 #             where make mutate runs it beside the mechanical ones as operator
 #             AIM. Run it again to add more. Simulates nothing.
-ai_mutants:  ## AI-written, design-aware mutants, gated and stored in ai/mutants/ (MODULE=, COUNT=, MODEL=, DRY=1)
+ai_mutants:  ## AI-written, design-aware mutants, gated and stored in ai/mutants/ (MODULE=, COUNT=, MODEL=, EFFORT=, DRY=1)
 	@$(PYTHON) ai/scripts/write_mutants.py $(WRITE_ARGS)
 
 # ai_check: is the agent ready? One small request with the same command, tools
 #           and permission settings as the real tasks: checks the login, that
 #           the answer comes back as structured data, that the RTL can be read
 #           and that the testbenches cannot. Costs a few thousand tokens.
-ai_check:  ## check that Claude Code is installed, logged in and held to read-only by the settings (MODEL=)
-	@$(PYTHON) ai/scripts/check_agent.py $(if $(MODEL),--model $(MODEL))
+ai_check:  ## check that Claude Code is installed, logged in and held to read-only by the settings (MODEL=, EFFORT=)
+	@$(PYTHON) ai/scripts/check_agent.py $(AGENT_ARGS)
 
 # triage: the AI step, before any simulation. Claude Code, run on this
 #         machine read-only, judges each mutant that passes lint: can the edit
@@ -153,7 +161,7 @@ triage:  ## AI triage of the mutants before the tests, read-only (MODULE=, CHUNK
 #        in the module records that the designer has not decided are judged:
 #        a real gap, or an edit that changes nothing. Each judgement is added
 #        to its mutant in the record, beside any earlier one.
-judge:  ## AI judgement of the surviving mutants in the records, read-only (MODULE=, MODEL=, RESUME=, DRY=1)
+judge:  ## AI judgement of the surviving mutants in the records, read-only (MODULE=, MODEL=, EFFORT=, RESUME=, DRY=1)
 	@$(PYTHON) ai/scripts/triage_mutants.py --judge $(TRIAGE_ARGS)
 
 # decide: the designer's decision on survivors, added to the record with its

@@ -80,7 +80,9 @@ asked for where the design-aware faults are - 40 for `reg_file`, 30 for
 (`COUNT=` changes that). At most 20 are asked for in one request; a module
 asked for more gets several, each shown what the earlier ones produced.
 Running it again for a module adds to what is there in the same way: the
-agent is shown the mutants already written and asked for different ones.
+agent is shown the mutants already written and asked for different ones. It is also shown every proposal the gate has already refused
+for the module, with the check it failed, so a second run does not spend
+itself on the same refused idea.
 
 The agent only proposes. `scripts/write_mutants.py` puts every proposal
 through a gate, and stores only what passes:
@@ -243,10 +245,26 @@ If a limit stops `make judge` or `make triage`, `RESUME=` continues it without
 repeating what is done. `make ai_mutants` stores each module's mutants as it
 goes; after a stop, run it again with `MODULE=` naming the modules left.
 
-Both tasks are real reasoning about RTL - what a module is for, what can be
-reached, what holds - so use the strongest model the plan gives (`MODEL=`).
-A small, fast model writes mutants the operators already cover, and calls
-more real gaps "equivalent"; the second is the costly mistake.
+Every AI step runs on the model and reasoning effort set by `MODEL=` and
+`EFFORT=`. The default is `MODEL=opus EFFORT=medium`. Both are passed to the
+agent as given: a model alias (`opus`, `sonnet`, `fable`), and `low`,
+`medium`, `high`, `xhigh` or `max`. The model each run really used is read
+from its responses and written into the module's record.
+
+One trial request per model, six mutants for `strike_counter` at medium
+effort, output discarded:
+
+| Model | Accepted by the gate | Then killed by a named assertion | Tokens in / out | Time |
+|---|---:|---:|---:|---:|
+| `opus` | 4 of 6 | 4 of 4 | 21 thousand / 3 thousand | 35 s |
+| `sonnet` | 6 of 6 | 5 of 6, one survived | 36 thousand / 4 thousand | 28 s |
+
+Both wrote faults that need the design's meaning, and `sonnet` counts for
+less against a plan's limits - so `MODEL=sonnet` is the economical choice
+for the small modules. That is one small module: for `reg_file`, `spi_slave`,
+`pmic_top` and `supervisor`, and for `make judge` - where calling a real gap
+"equivalent" is the costly mistake - keep the default or raise the effort
+(`EFFORT=high`).
 
 ## Layout
 
@@ -284,8 +302,9 @@ make decide IDS=<id> AS=equivalent WHY="the reason"
 make triage MODULE=supervisor            the before-the-tests order, one module
 ```
 
-`MODEL=` passes a model name to the agent; the models actually used are read
-from the responses and written into the run record.
+`MODEL=` and `EFFORT=` set the agent's model and reasoning effort (default
+`opus`, `medium`); the models actually used are read from the responses and
+written into the run record.
 
 ## Planned tasks
 
