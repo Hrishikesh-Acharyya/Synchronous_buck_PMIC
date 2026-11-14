@@ -46,10 +46,11 @@ SIM_ARGS  ?=
 #                 number, or 0
 TRIAGE    ?=
 AUDIT     ?= all
-# CHUNK / MODEL / RESUME / DRY: optional triage settings - mutants per request
+# CHUNK / MODEL / RESUME / DRY: optional AI-step settings - mutants per request
 #                 (default 40), a model name passed to the agent, a stopped
 #                 run's folder to continue, and DRY=1 to write the prompts
-#                 and call nothing
+#                 and call nothing. RESUME= also continues a stopped make
+#                 mutate (its folder in build/mutation/)
 CHUNK     ?=
 MODEL     ?=
 RESUME    ?=
@@ -65,7 +66,7 @@ RESULTS   ?= $(lastword $(sort $(wildcard build/mutation/*/results.json)))
 MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operators $(OPERATORS)) \
                 $(if $(SAMPLE),--sample $(SAMPLE)) --seed $(SEED) $(if $(JOBS),--jobs $(JOBS)) \
                 $(if $(IDS),--ids $(IDS)) $(if $(SIM_ARGS),--sim-args "$(SIM_ARGS)") \
-                $(if $(TRIAGE),--triage $(TRIAGE) --audit $(AUDIT))
+                $(if $(TRIAGE),--triage $(TRIAGE) --audit $(AUDIT)) $(if $(RESUME),--resume $(RESUME))
 
 # TRIAGE_ARGS: the triage settings as script options
 TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)) $(if $(MODEL),--model $(MODEL)) \
@@ -157,7 +158,7 @@ setup_check:  ## check that the tools these commands need are installed
 # mutate: mutation testing - each mutant in a scratch copy of the RTL against
 #         its module's own testbench. All 17 modules take hours: run it on
 #         your machine. The report lands in build/mutation/<run>/.
-mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=, IDS=, SIM_ARGS=, TRIAGE=, AUDIT=) - hours for all
+mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=, IDS=, SIM_ARGS=, RESUME=) - hours for all
 	@$(PYTHON) $(MUTATION) $(MUTATION_ARGS)
 
 # mutation_evidence: the same, the report and results also saved as

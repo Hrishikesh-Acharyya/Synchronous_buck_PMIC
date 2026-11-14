@@ -48,7 +48,8 @@
 #                                 evidence/ai_runs/ and add it to the ledger
 #
 # Global variables: REPO, TASK, STORE, COUNTS, DEFAULT_COUNT, MAX_BEFORE,
-#                   MAX_AFTER, MAX_CHANGED, MAX_CONTEXT - see below
+#                   MAX_AFTER, MAX_CHANGED, MAX_CONTEXT, PER_REQUEST, NUMBERED
+#                   - see below
 
 import argparse
 import concurrent.futures
@@ -57,6 +58,7 @@ import difflib
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -86,6 +88,12 @@ MAX_BEFORE, MAX_AFTER, MAX_CHANGED = 12, 16, 6
 # MAX_CONTEXT: unchanged lines added around a stored edit until its text
 #              stands at only one place in the file
 MAX_CONTEXT = 6
+# PER_REQUEST: the most mutants asked for in one request. A module asked for
+#              more gets several requests, each shown what the earlier ones
+#              produced - smaller answers, and less repetition
+PER_REQUEST = 20
+# NUMBERED: a line quoted with a viewer's line number in front of it
+NUMBERED = re.compile(r"^\s*\d+\s*(?:\t|\u2192|\|)\s?")
 
 
 def body_lines(path):
@@ -133,8 +141,8 @@ def proposals_of(result):
         return [], "the response was not JSON"
     if result.get("is_error"):
         return [], f"the run reported an error: {str(result.get('result', ''))[:200]}"
-    out = result.get("structured_output")
-    if not isinstance(out, dict) or not isinstance(out.get("mutants"), list):
+    out = T.structured(result)
+    if out is None or not isinstance(out.get("mutants"), list):
         return [], "no structured mutants in the response"
     return out["mutants"], None
 
@@ -160,6 +168,11 @@ def shape(p, unit, rel, text, body, taken):
         return None, None, None, f"too large: replaces {len(before)} lines with {len(after)}"
     line = p.get("line") if isinstance(p.get("line"), int) else 0
     hits = M.locate(text, before, line)
+    if not hits and all(NUMBERED.match(b) for b in before if b.strip()):
+        # lines quoted with the line numbers a file viewer shows: take the numbers off
+        before = [NUMBERED.sub("", b) for b in before]
+        after = [NUMBERED.sub("", a) for a in after]
+        hits = M.locate(text, before, line)
     if not hits:
         return None, None, None, "the lines it replaces are not in the file"
     if len(hits) > 1 and line - 1 not in hits:
@@ -240,83 +253,96 @@ def main():
     asked = proposed = accepted_n = 0
     for n, unit in enumerate(units, 1):
         rel = files[unit]
-        tag = f"{n:03d}_{unit}"
         text = M.source_text(str(REPO / rel))
         store_file = STORE / f"{unit}.json"
-        stored = json.loads(store_file.read_text())["mutants"] if store_file.exists() else []
         count = args.count or COUNTS.get(unit, DEFAULT_COUNT)
-        asked += count
         mech = [m for m in mechanical if m.file == rel]
-        prompt = prompt_for(unit, rel, count, sum(m.unit == unit for m in mech), stored)
-        (run / "chunks" / f"{tag}_prompt.txt").write_text(prompt)
-        if args.dry_run:
-            log.append((tag, count, "dry run", "", ""))
-            continue
-
-        props, problem, attempts = [], "not asked yet", 0
-        while problem and attempts < 2 and not stopped:
-            attempts += 1
-            print(f"[{n}/{len(units)}] {unit}: asking for {count} mutants (attempt {attempts}) ...", flush=True)
-            try:
-                p = subprocess.run(cmd, input=prompt, capture_output=True, text=True, cwd=REPO, timeout=3600)
-            except FileNotFoundError:
-                sys.exit(f"'{T.CLAUDE}' not found - install Claude Code and log in, or set CLAUDE=/path/to/claude")
-            except subprocess.TimeoutExpired:
-                problem = "no answer within an hour"
-                continue
-            (run / "chunks" / f"{tag}_response.json").write_text(p.stdout)
-            props, problem = proposals_of(T.read_response(p.stdout))
-            out_text = (p.stdout + p.stderr).lower()
-            if problem and any(w in out_text for w in ("usage limit", "rate limit", "limit reached", "not logged in",
-                                                       "authentication")):
-                stopped = f"stopped at {tag}: {problem} - run again for the remaining modules (MODULE=)"
-        if problem:
-            log.append((tag, count, "no answer", "", problem))
-            if stopped:
-                break
-            continue
-
-        # the gate: checks 1-4 on each proposal, then make lint on the ones that pass
-        taken = {M.code_key(m.apply(text)): m.id for m in mech}
-        for e in stored:
-            m = M.written_mutant(e, unit, rel, text)
-            if m is not None:
-                taken[M.code_key(m.apply(text))] = m.id
         body = body_lines(REPO / rel)
-        next_key = max((e["key"] for e in stored), default=0) + 1
-        checked, passing = [], []
-        for k, prop in enumerate(props):
-            entry, m, key, why = shape(prop, unit, rel, text, body, taken)
-            checked.append({"proposal": prop, "accepted": False, "why": why})
-            if why is None:
-                taken[key] = f"proposal {k + 1} of this answer"
-                passing.append((k, entry, m))
-        work = run / "work"
-        with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
-            screened = list(pool.map(lambda item: R.run_one(item[2], work / f"{unit}_{item[0]}", 0, False,
-                                                            simulate=False), passing))
-        shutil.rmtree(work, ignore_errors=True)
-        new = []
-        for (k, entry, m), (status, _, detail) in zip(passing, screened):
-            if status != "clean":
-                checked[k]["why"] = ("make lint already catches it" if status == "lint" else "not legal code") \
-                    + f": {detail[:160]}"
+        # the code of every mutant already made: no proposal may repeat one
+        taken = {M.code_key(m.apply(text)): m.id for m in mech} if not args.dry_run else {}
+
+        # a module asked for more than PER_REQUEST gets several requests,
+        # each shown what the earlier ones produced
+        for part, want in enumerate([PER_REQUEST] * (count // PER_REQUEST) + [count % PER_REQUEST] * bool(
+                count % PER_REQUEST), 1):
+            tag = f"{n:03d}_{unit}_{part}"
+            stored = json.loads(store_file.read_text())["mutants"] if store_file.exists() else []
+            asked += want
+            prompt = prompt_for(unit, rel, want, sum(m.unit == unit for m in mech), stored)
+            (run / "chunks" / f"{tag}_prompt.txt").write_text(prompt)
+            if args.dry_run:
+                log.append((tag, want, "dry run", "", ""))
                 continue
-            entry["key"], next_key = next_key, next_key + 1
-            entry["run"] = run.name
-            checked[k].update(accepted=True, why=None, id=f"{unit}.{m.line}.{M.AI_OPERATOR}.{entry['key']}")
-            new.append(entry)
-        (run / "chunks" / f"{tag}_checked.json").write_text(json.dumps(checked, indent=1) + "\n")
-        if new:
-            store_file.write_text(json.dumps({"unit": unit, "file": rel, "mutants": stored + new}, indent=1) + "\n")
-        proposed += len(props)
-        accepted_n += len(new)
-        for c in checked:
-            if not c["accepted"]:
-                rejected_all.append((unit, " ".join(str(c["proposal"].get("description", "")).split())[:90], c["why"]))
-        log.append((tag, count, "ok", f"{len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected",
-                    ""))
-        print(f"    {len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", flush=True)
+
+            props, problem, attempts = [], "not asked yet", 0
+            while problem and attempts < 2 and not stopped:
+                attempts += 1
+                print(f"[{n}/{len(units)}] {unit}: asking for {want} mutants (request {part}, attempt {attempts}) ...",
+                      flush=True)
+                try:
+                    p = subprocess.run(cmd, input=prompt, capture_output=True, text=True, cwd=REPO, timeout=3600)
+                except FileNotFoundError:
+                    sys.exit(f"'{T.CLAUDE}' not found - install Claude Code and log in, or set "
+                             "CLAUDE=/path/to/claude")
+                except subprocess.TimeoutExpired:
+                    problem = "no answer within an hour"
+                    continue
+                (run / "chunks" / f"{tag}_response.json").write_text(p.stdout)
+                props, problem = proposals_of(T.read_response(p.stdout))
+                out_text = (p.stdout + p.stderr).lower()
+                if problem and any(w in out_text for w in ("usage limit", "rate limit", "limit reached",
+                                                           "not logged in", "authentication")):
+                    stopped = f"stopped at {tag}: {problem} - run again for the remaining modules (MODULE=)"
+            if problem:
+                log.append((tag, want, "no answer", "", problem))
+                break
+
+            # the gate: checks 1-4 on each proposal, then make lint on the ones that pass
+            for e in stored:
+                m = M.written_mutant(e, unit, rel, text)
+                if m is not None:
+                    taken[M.code_key(m.apply(text))] = m.id
+            next_key = max((e["key"] for e in stored), default=0) + 1
+            checked, passing = [], []
+            for k, prop in enumerate(props):
+                entry, m, key, why = shape(prop, unit, rel, text, body, taken)
+                checked.append({"proposal": prop, "accepted": False, "why": why})
+                if why is None:
+                    taken[key] = f"proposal {k + 1} of the same answer"
+                    passing.append((k, entry, m, key))
+            work = R.SCRATCH / run.name / "work"
+            with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+                screened = list(pool.map(lambda item: R.run_one(item[2], work / f"{unit}_{item[0]}", 0, False,
+                                                                simulate=False), passing))
+            shutil.rmtree(R.SCRATCH / run.name, ignore_errors=True)
+            new = []
+            for (k, entry, m, key), (status, _, detail, _) in zip(passing, screened):
+                if status != "clean":
+                    del taken[key]
+                    checked[k]["why"] = {"lint": "make lint already catches it", "stillborn": "not legal code"}.get(
+                        status, "could not be screened") + f": {detail[:160]}"
+                    continue
+                entry["key"], next_key = next_key, next_key + 1
+                entry["run"] = run.name
+                checked[k].update(accepted=True, why=None, id=f"{unit}.{m.line}.{M.AI_OPERATOR}.{entry['key']}")
+                new.append(entry)
+            (run / "chunks" / f"{tag}_checked.json").write_text(json.dumps(checked, indent=1) + "\n")
+            if new:
+                store_file.write_text(json.dumps({"unit": unit, "file": rel, "mutants": stored + new}, indent=1)
+                                      + "\n")
+            proposed += len(props)
+            accepted_n += len(new)
+            for c in checked:
+                if not c["accepted"]:
+                    rejected_all.append((unit, " ".join(str(c["proposal"].get("description", "")).split())[:90],
+                                         c["why"]))
+            log.append((tag, want, "ok",
+                        f"{len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", ""))
+            print(f"    {len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", flush=True)
+            if not props:
+                break               # the agent has no more to offer for this module
+        if stopped:
+            break
 
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True,
                             text=True).stdout.strip() or "unknown"
@@ -331,7 +357,7 @@ def main():
                f"Agent: {header['agent']}" + (f"; model(s): {', '.join(sorted(models))}" if models else ""),
                f"Modules: {len(units)}; mutants asked for: {asked}; proposed: {proposed}; accepted by the gate: "
                f"{accepted_n}; rejected: {proposed - accepted_n}", "",
-               "| Module | Asked for | Outcome | Result | Note |", "|---|---:|---|---|---|"]
+               "| Request | Asked for | Outcome | Result | Note |", "|---|---:|---|---|---|"]
     summary += [f"| {t} | {c} | {o} | {res} | {note} |" for t, c, o, res, note in log]
     if stopped:
         summary += ["", f"**Incomplete:** {stopped}"]

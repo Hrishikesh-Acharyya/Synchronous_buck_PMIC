@@ -21,16 +21,51 @@ nothing.
    unmutated RTL. A failure there stops the run: mutation results on a
    failing baseline mean nothing.
 3. For each mutant, in parallel:
-   - the RTL tree is copied to `build/mutation/<run>/work/<id>/` and the one
-     edit made there - the real `rtl-systemverilog/` is never written;
+   - the RTL tree is copied to a scratch folder and the one edit made there -
+     the real `rtl-systemverilog/` is never written. The scratch copies and
+     their builds go under `~/build/sync_buck/mutation/<run>/`, beside the
+     `sim/` builds and outside the repository: a Verilator build writes
+     hundreds of small files, which is slow on a Windows mount;
    - `make lint` screens the copy, in a fraction of a second; a mutant it
      rejects is caught already and is not simulated (about one in seven);
    - the module's own testbench runs against the copy, through the existing
      `sim/` target with `SV_DIR=` pointing at it and its own build folder;
-   - the outcome is read from the run's `result.tsv` and logs.
+   - the outcome is read from the run's `result.tsv` and logs. For a killed
+     mutant, what killed it is read too: the assertions that fired, the
+     cocotb tests that failed, the testbench checks that failed;
+   - the outcome is appended to `build/mutation/<run>/progress.jsonl` at
+     once, so nothing finished is ever lost.
 4. `report.txt` and `results.json` are written to `build/mutation/<run>/`;
    with `make mutation_evidence`, copied to `evidence/mutation/` and the run
    added as a row to `evidence/mutation/README.md`.
+
+## A run of hours
+
+A full run is 3,274 mutants and takes hours, so it is built to be stopped
+and to fail safely:
+
+- **Stop and continue.** Ctrl-C, a closed terminal or a kill stops it
+  cleanly: running simulations are ended, and the last line printed is the
+  command that continues it - `make mutate RESUME=build/mutation/<run>`. A
+  continued run keeps its own selection and seed, repeats nothing, and
+  refuses to continue if the RTL, checkers or testbenches have changed since.
+- **A hung simulation cannot stall it.** Each simulation runs in its own
+  process group and has a time limit of ten times its testbench's unmutated
+  run (two minutes at least). At the limit the whole group is killed and the
+  mutant is recorded as `timeout`.
+- **A crash is not a kill.** The report's WHAT KILLED THEM section counts the
+  kills by what failed. A run that ended FAIL with no assertion, test or
+  check named in its log is listed by name, to be looked at.
+- **A failure of the tool is not a result.** If the tool itself fails on a
+  mutant - the disk is full, a file cannot be copied - that mutant is
+  recorded as `error`, left out of the score and listed, to be run again
+  with `IDS=`.
+- Every five minutes it prints the time gone and an estimate of the time
+  left.
+
+For scale: on a 4-core machine the host_if suite takes about 25 seconds a
+mutant and the integration testbench about two minutes, four at a time -
+roughly five hours for everything, as an estimate from short runs. `JOBS=` defaults to every core.
 
 The random tests inside a suite - the host_if suite's random walk - run with
 one fixed seed (`SEED=`, default 1), the same for the baseline and every
@@ -57,6 +92,7 @@ make mutants_check                              # lint-screen all, no simulation
 make mutate MODULE=input_debounce               # one module, a minute or two
 make mutate SAMPLE=50                           # a random 50 of all mutants
 make mutation_evidence                          # everything, saved as evidence - hours
+make mutate RESUME=build/mutation/<run>         # continue a run that was stopped
 make mutate IDS=reg_file.554.TRN.1 SIM_ARGS="HOSTIF_EVENTS=4000"
                                                 # re-run survivors against a longer random walk
 ```
@@ -106,6 +142,38 @@ which:
 
 A survivor that hits fewer SVA covers than the unmutated run is marked: the
 edit took a scenario away, which usually means it is not equivalent.
+
+## What score to aim for
+
+Not 100%. Some mutants change nothing that can be observed - the edited code
+never runs, or the two forms are the same under an invariant of the module -
+and no test can ever kill those. A raw score of 100% would mean a test had
+been bent to fail on a design that still works.
+
+The aim is **no unexplained survivor**. Every survivor ends as one of:
+
+1. **killed** - a property or test was added or strengthened, and the mutant
+   re-run with `IDS=` now dies. This is a gap closed;
+2. **equivalent** - with the reason written down: which line never runs, or
+   which invariant makes the two forms the same;
+3. **accepted** - a real difference that the verification leaves open on
+   purpose, with the reason: behaviour outside the conditions the module's
+   header allows, say.
+
+What to read besides the total:
+
+- **the score per module**, not only overall. A unit-tested module should
+  end in the high nineties, its remainder all in group 2. `pmic_top` is
+  tested through the integration testbench alone and will sit lower;
+- **CAUGHT ONLY BY A LOST COVER** - counted as caught, but no check failed:
+  the behaviour is observed, not checked. Treat each as a survivor;
+- **the AIM row** - the AI-written mutants are the faults a designer would
+  really make. A survivor there is the first to look at;
+- **WHAT KILLED THEM** - a module whose kills come from tests and never from
+  its bound checker has a checker that states little.
+
+Do not raise the score by removing mutants or operators. A first run in the
+eighties is normal; the work that follows is the result, not the number.
 
 ## What it does not do
 

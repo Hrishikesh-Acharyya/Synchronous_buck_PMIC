@@ -30,8 +30,27 @@
 #                                left out of the score
 #                     ai_equiv   judged equivalent by the triage (--triage)
 #                                and not simulated; left out of the score
+#                     error      the tool itself failed on this mutant; left
+#                                out of the score, to be run again (--ids)
 #                   Score = (killed + lint + covers + timeout) / (all -
-#                   stillborn - ai_equiv).
+#                   stillborn - ai_equiv - error).
+#
+#                   A killed mutant records what killed it: the assertions
+#                   that fired, the cocotb tests that failed, the testbench
+#                   checks that failed. A run that ended FAIL with none of
+#                   those named in its log is listed apart, so that a crash
+#                   is never quietly counted as a kill.
+#
+#                   Built for a run of hours:
+#                     - every mutant's outcome is appended to progress.jsonl
+#                       as it finishes; --resume DIR continues a run that
+#                       was stopped, without repeating what is done
+#                     - each simulation runs in its own process group, and
+#                       the whole group is killed at the timeout, so a hung
+#                       simulator cannot stall the run
+#                     - the scratch copies and builds go under SCRATCH,
+#                       outside the repository (which may be a slow mount);
+#                       only the report and results are written here
 #
 #                   With --triage FILE (the output of the AI triage task),
 #                   a mutant judged "equivalent" with high confidence is not
@@ -61,6 +80,8 @@
 #                     --sim-args  extra make variables for the sim/ target,
 #                                 e.g. "HOSTIF_EVENTS=4000" to re-run
 #                                 survivors against a longer random walk
+#                     --resume    a stopped run's folder (build/mutation/
+#                                 <run>): continue it with the same selection
 #                     --list      list the mutants and stop (no simulation)
 #                     --check     screen every mutant with make lint and stop:
 #                                 how many are legal, how many lint catches -
@@ -71,7 +92,8 @@
 #                   Output: verif_automation/build/mutation/<run>/report.txt
 #                   and results.json.
 #
-# Global variables: REPO, TARGETS, DEFAULT_TARGET - see below
+# Global variables: REPO, TARGETS, DEFAULT_TARGET, AI_STORE, SCRATCH, RUN,
+#                   ACTIVE - see below
 
 import argparse
 import concurrent.futures
@@ -82,9 +104,12 @@ import pathlib
 import random
 import re
 import shutil
+import signal
 import subprocess
 import sys
+import threading
 import time
+import xml.etree.ElementTree
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import mutants as M  # noqa: E402
@@ -106,6 +131,13 @@ TARGETS = {
 DEFAULT_TARGET = ("tb_{m}", "{m}_tb")
 # AI_STORE: where the mutants written by the AI step are kept
 AI_STORE = REPO / "verif_automation" / "ai" / "mutants"
+# SCRATCH: where the scratch RTL copies and their builds go - beside the
+#          sim/ builds (TBBUILD, default ~/build/sync_buck), not in the
+#          repository: Verilator writes hundreds of small files per build,
+#          and the repository may be a Windows mount where each is slow
+SCRATCH = pathlib.Path(os.environ.get("TBBUILD") or pathlib.Path.home() / "build" / "sync_buck") / "mutation"
+# ACTIVE: the simulations running now, so that an interrupt can end them
+ACTIVE, ACTIVE_LOCK = set(), threading.Lock()
 
 
 def target_of(module):
@@ -160,7 +192,7 @@ def screen(sv_dir):
 
 # RUN: per-run settings shared by every worker - the suites' random seed and
 #      any extra make variables for the sim/ targets
-RUN = {"seed": 1, "sim_args": [], "covers": {}, "stale": []}
+RUN = {"seed": 1, "sim_args": [], "covers": {}, "stale": [], "stopping": False}
 
 
 def run_target(target, top, sv_dir, build, timeout):
@@ -177,11 +209,22 @@ def run_target(target, top, sv_dir, build, timeout):
            "QUIET=1", "NOFAIL=1", "VJOBS=1", "COLOR=0", *RUN["sim_args"]]
     seed = str(RUN["seed"])
     start = time.time()
+    # its own process group: at the timeout make, the simulator and anything
+    # else it started are all killed, not only make
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
+                            env={**os.environ, "MAKEFLAGS": "", "RANDOM_SEED": seed, "COCOTB_RANDOM_SEED": seed})
+    with ACTIVE_LOCK:
+        ACTIVE.add(proc)
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
-                       env={**os.environ, "MAKEFLAGS": "", "RANDOM_SEED": seed, "COCOTB_RANDOM_SEED": seed})
+        proc.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
+        stop(proc)
         return "timeout", time.time() - start, f"no result after {timeout:.0f} s", None
+    finally:
+        with ACTIVE_LOCK:
+            ACTIVE.discard(proc)
+    if RUN["stopping"]:
+        return "error", time.time() - start, "interrupted", None
     secs = time.time() - start
     d = build / "sv" / top
     result = d / "result.tsv"
@@ -198,8 +241,62 @@ def run_target(target, top, sv_dir, build, timeout):
             return "lint", secs, "Verilator: " + ", ".join(warnings), None
         return "stillborn", secs, (errors[0][:120] if errors else "build failed"), None
     if verdict == "FAIL":
-        return "killed", secs, "", covers
+        return "killed", secs, killed_by(d), covers
     return "survived", secs, "", covers
+
+
+def stop(proc):
+    """Purpose: end a simulation and everything it started."""
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+    proc.wait()
+
+
+def killed_by(d):
+
+    """
+    Purpose: What failed in the run whose build folder is d, read from its
+             log and its cocotb results: the bound assertions that fired,
+             the cocotb tests that failed, the testbench checks that failed.
+             Returns a dict with those and "named" - False when the run
+             ended FAIL with none of them in its log, which needs a look.
+    """
+    log = (d / "run.log").read_text(errors="replace") if (d / "run.log").exists() else ""
+    assertions = list(dict.fromkeys(re.findall(r"SVA FAIL: (\w+)", log)))
+    checks = re.findall(r"(?m)^\[[^\]]*\]\s+FAIL\s+(.*)$", log)
+    tests = []
+    if (d / "results.xml").exists():
+        try:
+            for case in xml.etree.ElementTree.parse(d / "results.xml").getroot().iter("testcase"):
+                if case.find("failure") is not None or case.find("error") is not None:
+                    tests.append(case.get("name", "?"))
+        except xml.etree.ElementTree.ParseError:
+            pass
+    watchdog = bool(re.search(r"(?i)watchdog", log))
+    out = {"assertions": assertions, "tests": tests, "checks": len(checks), "watchdog": watchdog,
+           "named": bool(assertions or tests or checks or watchdog)}
+    if checks:
+        out["first_check"] = " ".join(checks[0].split())[:100]
+    if not out["named"]:
+        tail = [line.strip() for line in log.splitlines() if line.strip()]
+        out["log_end"] = tail[-1][:160] if tail else "the log is empty"
+    return out
+
+
+def killed_text(k):
+    """Purpose: one line saying what killed a mutant, from killed_by()'s dict."""
+    parts = []
+    if k["assertions"]:
+        parts.append(f"assertion {k['assertions'][0]}" + (f" +{len(k['assertions']) - 1}" if len(k["assertions"]) > 1 else ""))
+    if k["tests"]:
+        parts.append(f"test {k['tests'][0]}" + (f" +{len(k['tests']) - 1}" if len(k["tests"]) > 1 else ""))
+    if k["checks"]:
+        parts.append(f"{k['checks']} testbench check{'s' if k['checks'] > 1 else ''}")
+    if k["watchdog"] and not parts:
+        parts.append("the testbench watchdog")
+    return ", ".join(parts) if parts else f"NO FAILING CHECK NAMED - log ends: {k.get('log_end', '')}"
 
 
 def run_one(m, work, timeout, keep, simulate=True):
@@ -207,29 +304,37 @@ def run_one(m, work, timeout, keep, simulate=True):
     """
     Purpose: Make one mutant in a scratch copy of the RTL, screen it with
              make lint, and - if lint accepts it and simulate is set - test
-             it.
+             it. Returns (status, seconds, detail, extra); extra holds
+             "killed_by" for a killed mutant.
     """
     root = work / m.id
-    shutil.rmtree(root, ignore_errors=True)
-    tree = root / "rtl-systemverilog"
-    shutil.copytree(REPO / "rtl-systemverilog", tree)
-    path = REPO / m.file
-    raw = path.read_bytes().decode("utf-8", "replace")
-    text = m.apply(raw.replace("\r", ""))
-    (tree / pathlib.Path(m.file).relative_to("rtl-systemverilog")).write_bytes(
-        (text.replace("\n", "\r\n") if "\r\n" in raw else text).encode())
-    start = time.time()
-    status, detail = screen(tree)
-    secs = time.time() - start
-    if status == "clean" and simulate:
-        target, top = target_of(m.unit)
-        status, secs, detail, covers = run_target(target, top, tree, root / "build", timeout)
-        base = RUN["covers"].get(target)
-        if status == "survived" and covers is not None and base is not None and covers < base:
-            status, detail = "covers", f"hit {covers} SVA covers, the unmutated run {base}"
+    extra = {}
+    try:
+        shutil.rmtree(root, ignore_errors=True)
+        tree = root / "rtl-systemverilog"
+        shutil.copytree(REPO / "rtl-systemverilog", tree)
+        path = REPO / m.file
+        raw = path.read_bytes().decode("utf-8", "replace")
+        text = m.apply(raw.replace("\r", ""))
+        (tree / pathlib.Path(m.file).relative_to("rtl-systemverilog")).write_bytes(
+            (text.replace("\n", "\r\n") if "\r\n" in raw else text).encode())
+        start = time.time()
+        status, detail = screen(tree)
+        secs = time.time() - start
+        if status == "clean" and simulate:
+            target, top = target_of(m.unit)
+            status, secs, detail, covers = run_target(target, top, tree, root / "build", timeout)
+            base = RUN["covers"].get(target)
+            if status == "killed":
+                extra["killed_by"] = detail
+                detail = killed_text(detail)
+            if status == "survived" and covers is not None and base is not None and covers < base:
+                status, detail = "covers", f"hit {covers} SVA covers, the unmutated run {base}"
+    except Exception as e:          # the tool failed, not the mutant: reported, never scored
+        status, secs, detail = "error", 0.0, f"{type(e).__name__}: {e}"[:200]
     if not keep:
         shutil.rmtree(root, ignore_errors=True)
-    return status, secs, detail
+    return status, secs, detail, extra
 
 
 def repeats(ms):
@@ -280,8 +385,9 @@ def report(results, header):
     """
     out = header + [""]
     cols = ["killed", "lint", "covers", "timeout", "survived", "stillborn"]
-    if any(r["status"] == "ai_equiv" for r in results):
-        cols.append("ai_equiv")
+    for extra in ("ai_equiv", "error"):
+        if any(r["status"] == extra for r in results):
+            cols.append(extra)
     if any(r["status"] == "clean" for r in results):
         cols = ["clean", "lint", "stillborn"]          # a --check run: nothing simulated
 
@@ -335,13 +441,33 @@ def report(results, header):
     if other:
         out += ["", f"STILLBORN AND TIMEOUT ({len(other)})", ""]
         out += [f"  {r['id']}  {r['status']}  {r['detail']}" for r in other]
+    killed = [r for r in results if r["status"] == "killed" and r.get("killed_by")]
+    if killed:
+        by = [r["killed_by"] for r in killed]
+        unnamed = [r for r in killed if not r["killed_by"]["named"]]
+        out += ["", f"WHAT KILLED THEM ({len(killed)})", "",
+                f"  a bound assertion fired:                      {sum(bool(k['assertions']) for k in by)}",
+                f"  no assertion, a test or testbench check did:  "
+                f"{sum(not k['assertions'] and bool(k['tests'] or k['checks']) for k in by)}",
+                f"  only the testbench watchdog:                  "
+                f"{sum(not (k['assertions'] or k['tests'] or k['checks']) and k['watchdog'] for k in by)}",
+                f"  nothing named in the log:                     {len(unnamed)}"]
+        if unnamed:
+            out += ["", f"KILLED WITH NO FAILING CHECK NAMED ({len(unnamed)}) - check each is a real failure, not a "
+                        "crash of the run; run again with IDS= and --keep to see the log", ""]
+            out += [f"  {r['id']}  {r['description']}  [{r['detail']}]" for r in unnamed]
+    errors = [r for r in results if r["status"] == "error"]
+    if errors:
+        out += ["", f"ERRORS ({len(errors)}) - the tool failed on these; they are not scored. Run them again "
+                    "with IDS=", ""]
+        out += [f"  {r['id']}  {r['detail']}" for r in errors]
     return "\n".join(out) + "\n"
 
 
 def _row(name, row, cols):
     """Purpose: one table row with the score."""
     n = sum(row.values())
-    live = n - row["stillborn"] - row.get("ai_equiv", 0)
+    live = n - row["stillborn"] - row.get("ai_equiv", 0) - row.get("error", 0)
     if "clean" in cols:
         score = "-"
     else:
@@ -370,7 +496,20 @@ def main():
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--keep", action="store_true", help="keep each mutant's scratch folder")
     ap.add_argument("--evidence", action="store_true")
+    ap.add_argument("--resume")
     args = ap.parse_args()
+
+    # --resume: the stopped run's own selection, whatever is given now
+    selection = ("modules", "operators", "ids", "sample", "seed", "sim_args", "triage", "audit", "check")
+    done_before = {}
+    if args.resume:
+        out = pathlib.Path(args.resume).resolve()
+        if not (out / "progress.jsonl").exists():
+            sys.exit(f"{out} has no progress.jsonl - not a run that can be continued")
+        lines = [json.loads(x) for x in (out / "progress.jsonl").read_text().splitlines() if x.strip()]
+        meta, done_before = lines[0], {r["id"]: r for r in lines[1:]}
+        for k in selection:
+            setattr(args, k, meta["selection"][k])
 
     RUN["seed"] = args.seed
     RUN["sim_args"] = args.sim_args.split()
@@ -409,10 +548,25 @@ def main():
                             text=True).stdout.strip() or "unknown"
     dirty = subprocess.run(["git", "status", "--porcelain", "--", "rtl-systemverilog", "sva", "tb"], cwd=REPO,
                            capture_output=True, text=True).stdout.strip()
-    run_name = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    out = REPO / "verif_automation" / "build" / "mutation" / run_name
-    work = out / "work"
+    if args.resume:
+        if meta["commit"] != commit or meta["dirty"] != bool(dirty):
+            sys.exit(f"that run was of commit {meta['commit']}{' with uncommitted changes' if meta['dirty'] else ''}; "
+                     f"the tree is now {commit}{' with uncommitted changes' if dirty else ''} - start a new run")
+        # an outcome is kept only if the mutant is still the same edit; an error is run again
+        kept = {m.id: done_before[m.id] for m in ms if m.id in done_before
+                and done_before[m.id]["description"] == m.description and done_before[m.id]["status"] != "error"}
+    else:
+        out = REPO / "verif_automation" / "build" / "mutation" / datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        out.mkdir(parents=True, exist_ok=True)
+        kept = {}
+        (out / "progress.jsonl").write_text(json.dumps({
+            "commit": commit, "dirty": bool(dirty), "selection": {k: getattr(args, k) for k in selection}}) + "\n")
+    scratch = SCRATCH / out.name
+    work = scratch / "work"
     work.mkdir(parents=True, exist_ok=True)
+    free = shutil.disk_usage(work).free / 1e9
+    if free < 1.0 + 0.3 * args.jobs:
+        print(f"warning: {free:.1f} GB free under {SCRATCH} - each running mutant needs up to 0.2 GB", flush=True)
 
     # baseline: make lint, and every target used, must pass on the unmutated RTL
     status, detail = screen(REPO / "rtl-systemverilog")
@@ -422,37 +576,67 @@ def main():
     for target, top in sorted({target_of(m.unit) for m in ms} if not args.check else []):
         print(f"baseline  {target} ...", flush=True)
         status, secs, detail, covers = run_target(target, top, REPO / "rtl-systemverilog",
-                                                  out / "baseline" / target, 3600)
+                                                  scratch / "baseline" / target, 3600)
         if status != "survived":
-            sys.exit(f"baseline: {target} fails on the unmutated RTL ({status} {detail}) - fix that first")
+            why = killed_text(detail) if status == "killed" else detail
+            sys.exit(f"baseline: {target} fails on the unmutated RTL ({status}: {why}) - fix that first")
         baseline[target] = secs
         RUN["covers"][target] = covers
-    print(f"running {len(ms)} mutants on {args.jobs} jobs", flush=True)
+    todo = [m for m in ms if m.id not in kept]
+    print(f"running {len(todo)} mutants on {args.jobs} jobs"
+          + (f" ({len(kept)} already done in {out.name})" if kept else ""), flush=True)
 
-    results, done = [], 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        futures = {pool.submit(run_one, m, work,
-                               max(120.0, args.timeout_factor * baseline.get(target_of(m.unit)[0], 0)),
-                               args.keep, not args.check and m.id not in skip): m
-                   for m in ms}
-        for fut in concurrent.futures.as_completed(futures):
-            m = futures[fut]
-            status, secs, detail = fut.result()
-            if status == "clean" and m.id in skip:
-                status, detail = "ai_equiv", "judged equivalent by the triage; not simulated"
-            before, after = line_pair(m)
-            results.append({"id": m.id, "file": m.file, "unit": m.unit, "line": m.line, "operator": m.operator,
-                            "description": m.description, "status": status, "detail": detail,
-                            "seconds": round(secs, 1), "before": before, "after": after})
-            if m.id in triage:
-                results[-1]["triage"] = triage[m.id]
-            done += 1
-            if not args.check or status != "clean":
-                print(f"[{done}/{len(ms)}] {status:9s} {m.id}  {m.description}"
-                      + (f"  [{detail}]" if detail and status in ("lint", "stillborn") else ""), flush=True)
+    # an interrupt, a kill or a closed terminal all stop the run the same clean way
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, interrupted)
+
+    results, done, started, told = list(kept.values()), len(kept), time.time(), time.time()
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs)
+    futures = {pool.submit(run_one, m, work,
+                           max(120.0, args.timeout_factor * baseline.get(target_of(m.unit)[0], 0)),
+                           args.keep, not args.check and m.id not in skip): m
+               for m in todo}
+    try:
+        with (out / "progress.jsonl").open("a") as progress:
+            for fut in concurrent.futures.as_completed(futures):
+                m = futures[fut]
+                status, secs, detail, extra = fut.result()
+                if status == "clean" and m.id in skip:
+                    status, detail = "ai_equiv", "judged equivalent by the triage; not simulated"
+                before, after = line_pair(m)
+                results.append({"id": m.id, "file": m.file, "unit": m.unit, "line": m.line, "operator": m.operator,
+                                "description": m.description, "status": status, "detail": detail,
+                                "seconds": round(secs, 1), "before": before, "after": after, **extra})
+                if m.id in triage:
+                    results[-1]["triage"] = triage[m.id]
+                progress.write(json.dumps(results[-1]) + "\n")
+                progress.flush()
+                done += 1
+                if not args.check or status != "clean":
+                    print(f"[{done}/{len(ms)}] {status:9s} {m.id}  {m.description}"
+                          + (f"  [{detail}]" if detail and status in ("lint", "stillborn", "killed", "error") else ""),
+                          flush=True)
+                if time.time() - told > 300 and done < len(ms):
+                    told, gone = time.time(), time.time() - started
+                    left = gone / max(1, done - len(kept)) * (len(ms) - done)
+                    print(f"    {gone / 60:.0f} min so far, about {left / 60:.0f} min left", flush=True)
+    except KeyboardInterrupt:
+        # stop cleanly: nothing new starts, running simulations are ended, what is done is kept
+        RUN["stopping"] = True
+        pool.shutdown(wait=False, cancel_futures=True)
+        with ACTIVE_LOCK:
+            running = list(ACTIVE)
+        for proc in running:
+            stop(proc)
+        pool.shutdown(wait=True)
+        shutil.rmtree(scratch, ignore_errors=True)
+        sys.exit(f"\nstopped after {done} of {len(ms)} mutants. Continue with:  make mutate RESUME={out}")
+    pool.shutdown(wait=True)
     results.sort(key=lambda r: (r["file"], r["line"], r["id"]))
     if not args.keep:
-        shutil.rmtree(work, ignore_errors=True)
+        shutil.rmtree(scratch, ignore_errors=True)
 
     scope = (f"{len(ms)} mutants" + (f" (sample of {total_found}, seed {args.seed})" if args.sample else
                                      f" of {total_found}"))
@@ -465,8 +649,8 @@ def main():
               f"random tests: seed {args.seed}" + (f"; extra sim settings: {args.sim_args}" if args.sim_args else ""),
               *([f"triage: {args.triage}; audit of the mutants it judged equivalent: {args.audit}"]
                 if args.triage else []),
-              "score = (killed + lint + covers + timeout) / (mutants - stillborn - ai_equiv); a survivor is a "
-              "gap or an equivalent mutant"]
+              "score = (killed + lint + covers + timeout) / (mutants - stillborn - ai_equiv - error); a survivor "
+              "is a gap or an equivalent mutant"]
     if args.check:
         same = repeats(ms)
         header[2:] = ["check only: every mutant screened with make lint, none simulated",
@@ -501,7 +685,7 @@ def main():
                 "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
         n_of = {k: sum(r["status"] == k for r in results)
                 for k in ("killed", "lint", "covers", "timeout", "survived", "stillborn")}
-        live = len(results) - n_of["stillborn"] - sum(r["status"] == "ai_equiv" for r in results)
+        live = len(results) - n_of["stillborn"] - sum(r["status"] in ("ai_equiv", "error") for r in results)
         score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['covers'] + n_of['timeout']) / live:.1f}%" if live else "-"
         what = (f"modules {args.modules}" if args.modules else "all modules") \
             + (f", operators {args.operators}" if args.operators else "") \

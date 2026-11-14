@@ -38,6 +38,7 @@ From `verif_automation/`, which has its own Makefile, separate from
 | `make mutants_check` | health check of the mutant generator: every mutant lint-screened, none simulated |
 | `make setup_check` | check that the tools these commands need are installed |
 | `make ai_mutants` | the AI step that writes mutants: Claude Code, read-only, proposes design-aware faults for each module; a deterministic gate stores the ones that pass in `ai/mutants/`, and `make mutate` runs them as operator AIM (`MODULE=`, `COUNT=`, `MODEL=`, `DRY=1`); see `../ai/README.md` |
+| `make mutate RESUME=build/mutation/<run>` | continue a mutation run that was stopped - nothing already done is repeated |
 | `make judge` | the AI step: Claude Code, read-only, judges each surviving mutant of a run a real gap or equivalent (`RESULTS=`, `MODEL=`, `RESUME=`, `DRY=1`); see `ai/README.md` |
 | `make triage` | the same judgement made before simulation, on every mutant that passes lint (`MODULE=`, `CHUNK=`, `MODEL=`, `RESUME=`, `DRY=1`); see `ai/README.md` |
 | `make mutate` | mutation testing; all modules take hours (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`, `JOBS=`, `IDS=`, `SIM_ARGS=`, `TRIAGE=`, `AUDIT=`) |

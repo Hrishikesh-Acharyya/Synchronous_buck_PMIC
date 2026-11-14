@@ -70,9 +70,10 @@ module at a time and returns faults as data: the lines to replace, the lines
 to put there, what the fault is, and what changes at the ports. Most are
 asked for where the design-aware faults are - 40 for `reg_file`, 30 for
 `spi_slave`, 15 for `pmic_top`, 12 for `supervisor`, 6 for each small module
-(`COUNT=` changes that) - and running it again for a module adds to what is
-there: the agent is shown the mutants already written and asked for
-different ones.
+(`COUNT=` changes that). At most 20 are asked for in one request; a module
+asked for more gets several, each shown what the earlier ones produced.
+Running it again for a module adds to what is there in the same way: the
+agent is shown the mutants already written and asked for different ones.
 
 The agent only proposes. `scripts/write_mutants.py` puts every proposal
 through a gate, and stores only what passes:
@@ -197,12 +198,16 @@ make judge DRY=1
 ## How much it uses, and which model
 
 A request carries the task instructions, the list of mutants and whatever
-RTL the agent reads - the module's file and the package. Rough sizes,
-estimated from the file sizes (not measured from a run):
+RTL the agent reads - the module's file and the package. Rough sizes: the
+first row is scaled from two trial requests made while the script was built,
+their output discarded (4 mutants for `hiccup_timer`:
+29 thousand tokens in, 3 thousand out, 40 seconds; 12 for `reg_file`: 45
+thousand in, 12 thousand out, two minutes); the other two are estimated from
+the file sizes, not measured:
 
 | | Requests | Input | Output |
 |---|---:|---:|---:|
-| `make ai_mutants`, every module | 17 | about 0.5 million tokens | about 40 thousand |
+| `make ai_mutants`, every module | about 20 | about 0.7 million tokens | about 0.2 million |
 | `make judge`, a few hundred survivors | 10 to 20 | about 0.6 million tokens | about 30 thousand |
 | `make triage`, every mutant | about 80 | about 2.5 million tokens | about 250 thousand |
 

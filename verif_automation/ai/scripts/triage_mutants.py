@@ -133,6 +133,27 @@ def read_response(text):
     return data if isinstance(data, dict) else None
 
 
+def structured(result):
+
+    """
+    Purpose: The structured answer of a response: its structured_output, or
+             - from a version of the agent that returns the answer as text -
+             the JSON object in its result text. None if there is neither.
+    """
+    out = result.get("structured_output")
+    if isinstance(out, dict):
+        return out
+    text = str(result.get("result", ""))
+    a, b = text.find("{"), text.rfind("}")
+    if a < 0 or b < a:
+        return None
+    try:
+        out = json.loads(text[a:b + 1])
+    except ValueError:
+        return None
+    return out if isinstance(out, dict) else None
+
+
 def check(result, chunk):
 
     """
@@ -144,8 +165,8 @@ def check(result, chunk):
         return {}, "the response was not JSON"
     if result.get("is_error"):
         return {}, f"the run reported an error: {str(result.get('result', ''))[:200]}"
-    out = result.get("structured_output")
-    if not isinstance(out, dict) or not isinstance(out.get("verdicts"), list):
+    out = structured(result)
+    if out is None or not isinstance(out.get("verdicts"), list):
         return {}, "no structured verdicts in the response"
     want = {m.id for m in chunk}
     got = {}
@@ -203,7 +224,7 @@ def main():
     else:
         # before the tests: lint screen - only the mutants lint accepts need a judgement
         print(f"screening {len(ms)} mutants with make lint ...", flush=True)
-        work = run / "work"
+        work = R.SCRATCH / run.name / "work"
         with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
             screened = list(pool.map(lambda m: R.run_one(m, work, 0, False, simulate=False)[0], ms))
         shutil.rmtree(work, ignore_errors=True)

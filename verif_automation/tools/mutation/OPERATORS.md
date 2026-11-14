@@ -123,14 +123,15 @@ these - see `../../ai/README.md`.
 
 | Outcome | Meaning | Counts toward the score |
 |---|---|---|
-| killed | the testbench or a bound checker failed | yes |
+| killed | the testbench or a bound checker failed. What failed is recorded: the assertions that fired, the tests and testbench checks that failed | yes |
 | lint | Verilator `-Wall` refused the mutant: `make lint`, run first on every mutant, or the testbench build | yes |
 | covers | every check passed, but an SVA cover the unmutated run hits was not hit: the regression would read INCONCLUSIVE instead of PASS. Caught, but only by a lost cover - listed on its own in the report | yes |
 | timeout | the run did not finish in time | yes |
 | survived | everything passed: a verification gap, or a mutant that changes nothing (an equivalent mutant) | no |
 | stillborn | not a legal design: a hard compile error | left out |
+| error | the tool itself failed on this mutant; run it again with `IDS=` | left out |
 
-Score = (killed + lint + covers + timeout) / (mutants - stillborn). Whether a
+Score = (killed + lint + covers + timeout) / (mutants - stillborn - error). Whether a
 survivor is a gap or an equivalent mutant is not decided by this tool.
 
 ## Checking the generator itself

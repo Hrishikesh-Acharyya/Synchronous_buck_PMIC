@@ -762,13 +762,13 @@ def code_key(text):
 def locate(text, before, near=0):
 
     """
-    Purpose: Where the lines `before` stand in text, compared with leading
-             and trailing spaces ignored. Returns the 0-based index of the
-             first line of every place they match, the one nearest the
-             1-based line `near` first.
+    Purpose: Where the lines `before` stand in text, compared with runs of
+             spaces and tabs counted as one space and none at either end.
+             Returns the 0-based index of the first line of every place
+             they match, the one nearest the 1-based line `near` first.
     """
-    want = [b.strip() for b in before]
-    lines = [x.strip() for x in text.split("\n")]
+    want = [" ".join(b.split()) for b in before]
+    lines = [" ".join(x.split()) for x in text.split("\n")]
     if not want or not any(want):
         return []
     hits = [i for i in range(len(lines) - len(want) + 1) if lines[i:i + len(want)] == want]
