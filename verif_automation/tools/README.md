@@ -44,6 +44,7 @@ From `verif_automation/`, which has its own Makefile, separate from
 | `make mutate` | mutation testing; all modules take hours (`MODULE=`, `OPERATORS=`, `SAMPLE=`, `SEED=`, `JOBS=`, `IDS=`, `SIM_ARGS=`, `TRIAGE=`, `AUDIT=`) |
 | `make status` | each module's mutation record in a few lines: the score, and the survivors still to decide or close (`MODULE=`) |
 | `make decide` | record your decision on survivors in the module's record: `IDS=<id>,<id> AS=equivalent\|accepted\|gap WHY="the reason"` |
+| `make drop` | withdraw AI-written mutants after reading them: `IDS=<id>,<id> WHY="the reason"` - no longer run, kept in the record with the reason |
 | `make ai_check` | check that Claude Code is installed, logged in, answers in the tasks' form, can read the RTL and cannot read the testbenches |
 | `make check_scripts` | syntax check of every script under `tools/` and `ai/` |
 

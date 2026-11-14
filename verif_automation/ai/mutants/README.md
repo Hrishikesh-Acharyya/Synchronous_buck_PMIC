@@ -28,7 +28,11 @@ longer be placed; `make mutants` names it as left out.
 
 ## Changing the set
 
-- Remove a mutant: delete its entry. Leave the other keys as they are.
+- Remove a mutant: `make drop IDS=<id> WHY="the reason"`. It moves the entry
+  to the file's `withdrawn` list - no longer run, and refused by the gate if
+  the agent proposes the same edit again - and marks it withdrawn in the
+  module's record with your reason. Do not delete an entry by hand: the
+  record would not know why it went.
 - Add more: `make ai_mutants MODULE=<module>` again. New mutants take the
   next keys.
 - An entry may be written by hand in the same form - it is run like any

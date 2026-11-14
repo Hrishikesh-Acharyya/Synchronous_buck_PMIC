@@ -94,7 +94,7 @@ WRITE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(COUNT),--count $(COUNT))
              $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS)) $(NO_RECORD)
 
 .PHONY: help lint lint_report lint_evidence contract mutants mutants_check ai_check ai_mutants triage judge \
-        mutate decide status setup_check check_scripts
+        mutate decide drop status setup_check check_scripts
 
 help:  ## list the commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-21s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -170,6 +170,13 @@ judge:  ## AI judgement of the surviving mutants in the records, read-only (MODU
 #         closed by a property or test).
 decide:  ## record your decision on survivors: IDS=<id>,<id> AS=equivalent|accepted|gap WHY="the reason"
 	@$(PYTHON) tools/mutation/record.py decide --ids "$(IDS)" $(if $(AS),--as $(AS)) --why "$(WHY)"
+
+# drop: withdraw AI-written mutants after reading them - a fault no designer
+#       would make, or one a mechanical operator already makes. Each is taken
+#       out of ai/mutants/ and marked withdrawn in the record with the reason;
+#       the agent is shown what was withdrawn and does not write it again.
+drop:  ## withdraw AI-written mutants: IDS=<id>,<id> WHY="the reason"
+	@$(PYTHON) tools/mutation/record.py drop --ids "$(IDS)" --why "$(WHY)"
 
 # status: each module's record in a few lines - the score, and the survivors
 #         still to be decided or closed

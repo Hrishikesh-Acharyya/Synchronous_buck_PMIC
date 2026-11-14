@@ -68,7 +68,13 @@ Kinds of fault to look for - use these as `category`:
   two blocks - lint rejects those before any test runs. Lint also rejects a
   flop whose asynchronous reset is made synchronous, or dropped from its
   sensitivity list.
-- An edit that one mechanical operator already makes.
+- An edit that one mechanical operator already makes, in any spelling. In
+  particular: replacing the whole value of one assignment by a constant 0 or
+  1 is STK, and inverting it is VNG - `x <= 1'b0` in place of `x <= y` is
+  STK's mutant even though STK writes it `'0`.
+- A different circuit. Replacing a synchroniser by an edge detector, a
+  latch or a filter is not a slip a designer makes while writing a
+  synchroniser; it is another design.
 - Two mutants that are the same fault written twice.
 - A fault that cannot change anything at the ports. If you cannot say what
   changes and when, leave it out.

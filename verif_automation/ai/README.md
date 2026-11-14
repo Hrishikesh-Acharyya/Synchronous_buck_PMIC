@@ -101,9 +101,13 @@ screen, the same testbench, the same score. Every rejected proposal is
 listed in the run record with the check it failed.
 
 What the gate does not decide is whether a mutant is a *good* one - a fault
-worth testing for. The stored files are plain JSON, a dozen lines a mutant:
-read them, delete any entry that is not a fault a designer could make, and
-commit the rest. Once committed, the set is fixed - a mutation run uses the
+worth testing for. That is the designer's reading: `make mutants MODULE=m
+OPERATORS=AIM` lists them, the file holds each one's lines, and
+`make drop IDS=<id>,<id> WHY="the reason"` withdraws the ones that are not a
+fault a designer could make, or that an operator already makes in another
+spelling. A withdrawn mutant is no longer run and leaves the score; it stays
+in the module's record with the reason, and the agent is shown it and does
+not write it again. Commit the rest. Once committed, the set is fixed - a mutation run uses the
 file, never the agent, so it gives the same result every time.
 
 ```

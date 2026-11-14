@@ -284,12 +284,16 @@ def main():
         unit_asked, unit_new, unit_rejected, unit_models = 0, [], [], set()
         # what the gate refused in earlier runs, from the module's record
         earlier = [x for r in REC.load(unit)["runs"] if r["kind"] == "write_mutants" for x in r["rejected"]]
+        # and what the designer withdrew after reading it
+        earlier += [{"description": d, "why": "withdrawn by the designer: " + r["reason"]}
+                    for r in REC.load(unit)["runs"] if r["kind"] == "withdrawn" for d in r["descriptions"]]
         # a module asked for more than PER_REQUEST gets several requests,
         # each shown what the earlier ones produced
         for part, want in enumerate([PER_REQUEST] * (count // PER_REQUEST) + [count % PER_REQUEST] * bool(
                 count % PER_REQUEST), 1):
             tag = f"{n:03d}_{unit}_{part}"
-            stored = json.loads(store_file.read_text())["mutants"] if store_file.exists() else []
+            store: dict = json.loads(store_file.read_text()) if store_file.exists() else {"mutants": []}
+            stored = store["mutants"]
             asked += want
             prompt = prompt_for(unit, rel, want, sum(m.unit == unit for m in mech), stored, earlier + unit_rejected)
             (run / "chunks" / f"{tag}_prompt.txt").write_text(prompt)
@@ -323,11 +327,13 @@ def main():
                 break
 
             # the gate: checks 1-4 on each proposal, then make lint on the ones that pass
-            for e in stored:
+            for e in stored + store.get("withdrawn", []):
                 m = M.written_mutant(e, unit, rel, text)
                 if m is not None:
-                    taken[M.code_key(m.apply(text))] = m.id
-            next_key = max((e["key"] for e in stored), default=0) + 1
+                    taken[M.code_key(m.apply(text))] = m.id + (" (withdrawn by the designer)" if "withdrawn" in e
+                                                               else "")
+            # a key is never given twice, even after its mutant is withdrawn (last_key)
+            next_key = max([store.get("last_key", 0)] + [e["key"] for e in stored]) + 1
             checked, passing = [], []
             for k, prop in enumerate(props):
                 entry, m, key, why = shape(prop, unit, rel, text, body, taken)
@@ -354,7 +360,8 @@ def main():
                 unit_new.append({**entry, "id": checked[k]["id"]})
             (run / "chunks" / f"{tag}_checked.json").write_text(json.dumps(checked, indent=1) + "\n")
             if new:
-                store_file.write_text(json.dumps({"unit": unit, "file": rel, "mutants": stored + new}, indent=1)
+                store.update(unit=unit, file=rel, last_key=next_key - 1, mutants=stored + new)
+                store_file.write_text(json.dumps(store, indent=1)
                                       + "\n")
             proposed += len(props)
             accepted_n += len(new)

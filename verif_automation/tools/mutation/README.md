@@ -67,6 +67,8 @@ and marked retired, out of the present score.
 ```
 make ai_check                            # once: the agent is installed, logged in, read-only
 make ai_mutants MODULE=fault_cause       # the agent writes design-aware mutants; again for more
+make mutants MODULE=fault_cause OPERATORS=AIM    # read what it wrote
+make drop IDS=fault_cause.88.AIM.4 WHY="STK already makes this"   # withdraw the weak ones
 make mutants_check MODULE=fault_cause    # every mutant is legal code
 make mutate MODULE=fault_cause           # run them
 make status MODULE=fault_cause           # the score, and the survivors still open

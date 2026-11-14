@@ -38,8 +38,13 @@
 #                   Usage: record.py show [--modules a,b]
 #                          record.py decide --ids ID,ID --as equivalent|accepted|gap
 #                                           --why "the reason"
+#                          record.py drop --ids ID,ID --why "the reason"
 #                          record.py render
 #                     show    print each module's present state
+#                     drop    withdraw AI-written mutants: each is taken out
+#                             of ai/mutants/ so it is no longer run, and
+#                             stays in the record, marked withdrawn with the
+#                             reason, out of the present score
 #                     decide  record the designer's decision on survivors:
 #                               equivalent  the edit changes nothing that can
 #                                           be observed
@@ -49,7 +54,7 @@
 #                                           by a property or test
 #                     render  rewrite every .md and the index from the .json
 #
-# Global variables: REPO, DIR, CAUGHT, DECISIONS - see below
+# Global variables: REPO, DIR, STORE, CAUGHT, DECISIONS - see below
 
 import argparse
 import datetime
@@ -66,6 +71,8 @@ REPO = pathlib.Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], capt
                     or pathlib.Path(__file__).resolve().parents[3])
 # DIR: where the records are kept
 DIR = REPO / "verif_automation" / "evidence" / "mutation"
+# STORE: where the AI-written mutants are kept (one <module>.json each)
+STORE = REPO / "verif_automation" / "ai" / "mutants"
 # CAUGHT: the outcomes that count as caught
 CAUGHT = ("killed", "lint", "covers", "timeout")
 # DECISIONS: what the designer can decide about a survivor
@@ -142,6 +149,7 @@ def entry_for(rec, key, item):
         if f in item:
             e[f] = item[f]
     e.pop("retired", None)
+    e.pop("withdrawn", None)
     return e
 
 
@@ -313,6 +321,56 @@ def decide(ids, what, why):
     return missing
 
 
+def withdraw(ids, why):
+
+    """
+    Purpose: Withdraw AI-written mutants named by id: take each out of its
+             module's file in ai/mutants/, so it is no longer run, and mark
+             it withdrawn in the record with the reason - its history is
+             kept, and it leaves the present score. A mutant is matched by
+             its module and key (the last part of its id). Nothing is done
+             unless every id is found. Returns the ids not found.
+    """
+    by_unit, missing = {}, []
+    for i in ids:
+        parts = i.split(".")
+        if len(parts) < 4 or parts[-2] != "AIM" or not parts[-1].isdigit():
+            missing.append(i)
+            continue
+        by_unit.setdefault(parts[0], []).append((i, int(parts[-1])))
+    stores = {}
+    for unit, group in by_unit.items():
+        path = STORE / f"{unit}.json"
+        stores[unit] = json.loads(path.read_text()) if path.exists() else {"mutants": []}
+        have = {e["key"] for e in stores[unit]["mutants"]}
+        missing += [i for i, key in group if key not in have]
+    if missing:
+        return missing
+    for unit, group in by_unit.items():
+        data, keys = stores[unit], {key for _, key in group}
+        gone = [e for e in data["mutants"] if e["key"] in keys]
+        # last_key: the highest key ever given, so a withdrawn key is never given again
+        data["last_key"] = max([data.get("last_key", 0)] + [e["key"] for e in data["mutants"]])
+        data["mutants"] = [e for e in data["mutants"] if e["key"] not in keys]
+        # kept in the file, apart: the gate refuses the same edit if it is proposed again
+        data["withdrawn"] = data.get("withdrawn", []) + [{**e, "withdrawn": why} for e in gone]
+        (STORE / f"{unit}.json").write_text(json.dumps(data, indent=1) + "\n")
+        rec = load(unit, data.get("file", ""))
+        n = new_run(rec, "withdrawn", reason=why, mutants=[i for i, _ in group],
+                    descriptions=[e["description"] for e in gone])
+        for e in gone:
+            entry = rec["mutants"].setdefault(f"AIM.{e['key']}", {"outcomes": [], "judgements": [], "decisions": []})
+            entry.setdefault("id", f"{unit}.{e['line']}.AIM.{e['key']}")
+            entry.setdefault("operator", "AIM")
+            entry.setdefault("line", e["line"])
+            entry.setdefault("description", e["description"])
+            entry.setdefault("before", " / ".join(x.strip() for x in e["before"]))
+            entry.setdefault("after", " / ".join(x.strip() for x in e["after"]))
+            entry["retired"], entry["withdrawn"] = n, why
+        save(rec)
+    return []
+
+
 def _history_row(r):
     """Purpose: one line of a record's history table."""
     where = f"{r['date']} {r['time']}", r["commit"] + (" +" if r.get("uncommitted") else "")
@@ -329,6 +387,9 @@ def _history_row(r):
             + (f" ({', '.join(r['models'])})" if r.get("models") else "")
         result = f"{r['judged']} judged, {r['equivalent_high_confidence']} called equivalent with high confidence" \
             + (f"; `{r['run_record']}`" if r.get("run_record") else "")
+    elif r["kind"] == "withdrawn":
+        what = "designer withdrew AI-written mutants"
+        result = _cell(f"{', '.join(r['mutants'])} - {r['reason']}")
     else:
         what = f"designer's decision: {r['decision']}"
         result = _cell(f"{', '.join(r['mutants'])} - {r['reason']}")
@@ -363,8 +424,10 @@ def render(rec):
                 f"{d['gap']} a gap still to close, **{d['undecided']} not yet decided**. Score with the equivalent "
                 f"and accepted ones taken out: {c['explained_score']}."]
     if c["retired"]:
-        out.append(f"{c['retired']} earlier mutants are retired: the RTL changed and the generator no longer makes "
-                   "them. Their history is kept below; they are not in these numbers.")
+        taken = sum(bool(e.get("withdrawn")) for e in rec["mutants"].values())
+        out.append(f"{c['retired']} earlier mutants are not in these numbers: {taken} AI-written ones the designer "
+                   f"withdrew, {c['retired'] - taken} the generator no longer makes because the RTL changed. Their "
+                   "history is kept below.")
 
     surv = sorted(((e.get("line", 0), e["id"], e) for e in rec["mutants"].values() if state(e) == "survived"),
                   key=lambda x: (x[0], x[1]))
@@ -401,8 +464,9 @@ def render(rec):
     if written:
         out += ["| Key | Step | Category | The fault | Now | Killed by |", "|---:|---:|---|---|---|---|"]
         for key, e in written:
+            now = f"withdrawn: {e['withdrawn']}" if e.get("withdrawn") else state(e)
             out.append(f"| {key} | {e.get('written_in', '')} | {e.get('category', '')} | {_cell(e['description'])} | "
-                       f"{state(e)} | {_cell(_killer(e))} |")
+                       f"{_cell(now)} | {_cell(_killer(e))} |")
     else:
         out.append("None yet.")
     for r in rec["runs"]:
@@ -416,7 +480,7 @@ def render(rec):
     for e in sorted(rec["mutants"].values(), key=lambda e: (bool(e.get("retired")), e.get("line", 0), e["id"])):
         runs = " ".join(f"{o['run']}:{o['status']}" for o in e["outcomes"]) or "not run"
         if e.get("retired"):
-            runs += f" (retired at step {e['retired']})"
+            runs += f" ({'withdrawn' if e.get('withdrawn') else 'retired'} at step {e['retired']})"
         out.append(f"| `{e['id']}` | {_cell(e['description'])} | {runs} | {_cell(_killer(e))} |")
     return "\n".join(out) + "\n"
 
@@ -471,16 +535,24 @@ def write_index():
 def main():
 
     """
-    Purpose: The record's own commands: show, decide, render.
+    Purpose: The record's own commands: show, decide, drop, render.
     """
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=("show", "decide", "render"))
+    ap.add_argument("command", choices=("show", "decide", "drop", "render"))
     ap.add_argument("--modules")
     ap.add_argument("--ids")
     ap.add_argument("--as", dest="what", choices=sorted(DECISIONS))
     ap.add_argument("--why", default="")
     args = ap.parse_args()
 
+    if args.command == "drop":
+        if not args.ids or not args.why.strip():
+            sys.exit('give the mutants and the reason:  make drop IDS=<id>,<id> WHY="the reason"')
+        missing = withdraw(args.ids.split(","), " ".join(args.why.split()))
+        if missing:
+            sys.exit(f"not an AI-written mutant in ai/mutants/ (nothing was changed): {', '.join(missing)}")
+        print(f"withdrawn: {args.ids}")
+        return
     if args.command == "decide":
         if not args.ids or not args.what or not args.why.strip():
             sys.exit('give the mutants, the decision and the reason:  make decide IDS=<id>,<id> AS=equivalent '
