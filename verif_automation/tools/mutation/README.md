@@ -14,8 +14,8 @@ nothing.
 
 ## How a run works
 
-1. Every mutant of the selected modules is listed (1,296 across 17 modules
-   at the time of writing, from 13 operators).
+1. Every mutant of the selected modules is listed (1,647 across 17 modules
+   and the package at the time of writing, from 17 operators).
 2. `make lint` and each `sim/` target the run will use are run once on the
    unmutated RTL. A failure there stops the run: mutation results on a
    failing baseline mean nothing.
@@ -41,7 +41,7 @@ mutant. A mutant's outcome is therefore the same every time it is run.
 |---|---|
 | every module with a unit testbench | `tb_<module>` |
 | `reg_file`, `spi_slave` | `tb_host_if`, the host-interface cocotb suite |
-| `pmic_top` | `tb_top`, the integration testbench |
+| `pmic_top`, and the package's functions | `tb_top`, the integration testbench |
 
 A mutant is run only against its own module's testbench, not the whole
 regression, so the score measures each unit's own verification.
@@ -65,10 +65,15 @@ Verilator model, so the first minutes are mostly compiling. The host_if suite
 takes about a minute per mutant and covers `reg_file` and `spi_slave`, which
 hold about half of all mutants - they dominate a full run.
 
-## With the AI triage
+## With the AI
 
-`make triage` (see `../../ai/README.md`) has an AI agent judge each mutant
-before simulation: plausible or equivalent. `make mutate TRIAGE=build/mutation/triage.json`
+After a run, `make judge` (see `../../ai/README.md`) has an AI agent judge
+each survivor: a real gap, or an edit that changes nothing. This is the
+recommended order - the agent sees only the hundred or so mutants that need
+a judgement.
+
+The other order is possible too. `make triage` has the agent judge every
+mutant before simulation, and `make mutate TRIAGE=build/mutation/triage.json`
 then uses those verdicts. With `AUDIT=all`, the default, every mutant is
 still simulated, and the report's AI TRIAGE section lists each mutant the
 agent called equivalent that a test killed - a triage error. With a smaller

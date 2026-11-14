@@ -16,16 +16,18 @@
 #
 #                   Where mutations are made: every always / always_ff /
 #                   always_comb block, every continuous assign, every function
-#                   body and every module instance of every module. Not
-#                   mutated: the package (its constants are design parameters,
+#                   body and every module instance (connections and parameter
+#                   overrides) of every module, and the package's functions.
+#                   Not mutated: the package's constants (design parameters,
 #                   not logic), initial blocks and generate regions
-#                   (elaboration-time checks), declarations, widths and bit
-#                   selects, and system-task calls such as $display.
+#                   (elaboration-time checks), declarations and their widths,
+#                   and system-task calls such as $display.
 #
 #                   Two mutants that mean the same thing are not both made:
 #                   negating a condition that is one == / != or one negation
-#                   is left to ROR / UOD, and deleting an else that holds one
-#                   assignment is left to SDL.
+#                   is left to ROR / UOD, deleting an else that holds one
+#                   assignment is left to SDL, and turning x_d <= x into
+#                   x_d <= x_d is left to SDL too.
 #
 # Global variables: OPERATORS - the operator table
 
@@ -40,7 +42,8 @@ import svparse  # noqa: E402
 # OPERATORS: id -> what the operator does
 OPERATORS = {
     "ROR": "relational boundary or equality: < <-> <=, > <-> >=, == <-> !=",
-    "LCR": "logical connective: && <-> ||, binary & <-> |",
+    "LCR": "logical connective: && <-> ||, binary & <-> |, binary ^ -> |",
+    "CTD": "a term dropped from a condition: a && b -> a, and -> b (also ||, and binary & and |)",
     "AOR": "arithmetic: binary + <-> -",
     "SHF": "shift direction: << <-> >>",
     "CND": "negate an if condition: if (c) -> if (!(c))",
@@ -48,6 +51,9 @@ OPERATORS = {
     "TRN": "swap the branches of a ?: - c ? a : b -> c ? b : a",
     "CST": "constant: 1'b0 <-> 1'b1, '0 <-> '1, any other integer literal +1 and -1",
     "ENM": "an enum constant replaced by the next member of its enum (an FSM state, say)",
+    "DLY": "a signal swapped with its one-clock-delayed copy: x <-> x_d",
+    "BSL": "wrong bit or field: a constant select moved by one - x[3] -> x[2], x[6:4] -> x[7:5]",
+    "CIS": "the labels of two adjacent case items swapped",
     "CCS": "the first two elements of a concatenation swapped: {a, b} -> {b, a}",
     "SDL": "delete one procedural assignment statement",
     "EDL": "delete an else branch",
@@ -58,7 +64,7 @@ OPERATORS = {
 # _SWAP: operator token replacements, per operator id
 _SWAP = {
     "ROR": {"<": "<=", "<=": "<", ">": ">=", ">=": ">", "==": "!=", "!=": "=="},
-    "LCR": {"&&": "||", "||": "&&", "&": "|", "|": "&"},
+    "LCR": {"&&": "||", "||": "&&", "&": "|", "|": "&", "^": "|"},
     "AOR": {"+": "-", "-": "+"},
     "SHF": {"<<": ">>", ">>": "<<", "<<<": ">>>", ">>>": "<<<"},
 }
@@ -69,6 +75,16 @@ _OPEN = {"(", "[", "{", "'{", "'("}
 _CLOSE = {")", "]", "}"}
 # _NO_SWAP_PORTS: instance inputs never swapped - every instance shares them
 _NO_SWAP_PORTS = {"clk", "rst_n"}
+# _TERM_STOPS: for each connective, the operators (of the same or lower
+#              precedence) that end one of its operands
+_TERM_STOPS = {
+    "&&": {"&&", "||", "?", ":", ","},
+    "||": {"||", "?", ":", ","},
+    "&": {"&", "^", "|", "&&", "||", "?", ":", ","},
+    "|": {"|", "&&", "||", "?", ":", ","},
+}
+# _DELAY_SUFFIX: how this RTL names a signal's one-clock-delayed copy
+_DELAY_SUFFIX = "_d"
 
 
 @dataclass
@@ -131,16 +147,96 @@ def _constant_variants(text):
     return []                           # real numbers, x / z literals: left alone
 
 
-def _expr_sites(src, first, last, enums):
+def _term_drops(src, k, first, last):
+
+    """
+    Purpose: For the binary connective at token k, the edits that drop one
+             of its operands: always the right one, and the left one too when
+             it is the first term of its chain (so each term of a && b && c
+             is dropped exactly once). An operand runs to the next operator
+             of the same or lower precedence at the same bracket depth.
+    """
+    toks = src.tokens
+    stops = _TERM_STOPS[toks[k].text]
+
+    def is_stop(j):
+        return toks[j].text in stops and (toks[j].text in ("?", ":", ",") or _has_left_operand(toks, j))
+
+    right, depth = last, 0
+    for j in range(k + 1, last + 1):
+        x = toks[j].text
+        if x in _OPEN:
+            depth += 1
+        elif x in _CLOSE:
+            if depth == 0:
+                right = j - 1
+                break
+            depth -= 1
+        elif depth == 0 and is_stop(j):
+            right = j - 1
+            break
+    left, depth = first, 0
+    for j in range(k - 1, first - 1, -1):
+        x = toks[j].text
+        if x in _CLOSE:
+            depth += 1
+        elif x in _OPEN:
+            if depth == 0:
+                left = j + 1
+                break
+            depth -= 1
+        elif depth == 0 and is_stop(j):
+            left = j + 1
+            break
+    if right > k:
+        term = " ".join(src.text[toks[k + 1].start:toks[right].end].split())
+        yield "CTD", toks[k - 1].end, toks[right].end, "", f"drop the term '{term[:40]}'"
+    first_of_chain = left == first or not (toks[left - 1].text in stops and toks[left - 1].text == toks[k].text)
+    if left < k and first_of_chain:
+        term = " ".join(src.text[toks[left].start:toks[k - 1].end].split())
+        yield "CTD", toks[left].start, toks[k + 1].start, "", f"drop the term '{term[:40]}'"
+
+
+def _select_sites(src, first, last):
+
+    """
+    Purpose: Constant bit and part selects between tokens first..last, each
+             moved by one in both directions: x[3] -> x[4], x[2];
+             x[6:4] -> x[7:5], x[5:3]. A select that lands outside the signal
+             is refused by lint, so only in-range moves reach simulation.
+    """
+    toks = src.tokens
+    for k in range(first, last + 1):
+        if toks[k].text != "[" or toks[k - 1].kind != "id":
+            continue
+        a = toks[k + 1]
+        if not re.fullmatch(r"\d+", a.text):
+            continue
+        if toks[k + 2].text == "]":
+            n = int(a.text)
+            for v in (n + 1, n - 1):
+                if v >= 0:
+                    yield "BSL", a.start, a.end, str(v), f"{toks[k - 1].text}[{n}] -> [{v}]"
+        elif toks[k + 2].text == ":" and re.fullmatch(r"\d+", toks[k + 3].text) and toks[k + 4].text == "]":
+            hi, lo = int(a.text), int(toks[k + 3].text)
+            for d in (1, -1):
+                if lo + d >= 0:
+                    yield ("BSL", a.start, toks[k + 3].end, f"{hi + d}:{lo + d}",
+                           f"{toks[k - 1].text}[{hi}:{lo}] -> [{hi + d}:{lo + d}]")
+
+
+def _expr_sites(src, first, last, enums, names=frozenset()):
 
     """
     Purpose: The mutation sites inside the expression between token indices
              first..last: yields (operator id, start offset, end offset, new
-             text, description). Nothing inside [ ] is touched (selects and
-             widths), nor the width in front of a cast (8'(x)), nor a
-             replication count ({N{x}}).
+             text, description). Inside [ ] only constant selects are
+             touched (BSL); the width in front of a cast (8'(x)) and a
+             replication count ({N{x}}) never are. names is the set of
+             identifiers in the module, for DLY.
     """
     toks = src.tokens
+    yield from _select_sites(src, first, last)
     depth_sq = 0
     for k in range(first, last + 1):
         t = toks[k]
@@ -151,6 +247,12 @@ def _expr_sites(src, first, last, enums):
         if depth_sq:
             continue
         nxt = toks[k + 1].text if k + 1 < len(toks) else ""
+        if t.text in _TERM_STOPS and _has_left_operand(toks, k):
+            yield from _term_drops(src, k, first, last)
+        if t.kind == "id" and toks[k - 1].text != "." and nxt != "(":
+            other = t.text[:-len(_DELAY_SUFFIX)] if t.text.endswith(_DELAY_SUFFIX) else t.text + _DELAY_SUFFIX
+            if other in names:
+                yield "DLY", t.start, t.end, other, f"{t.text} -> {other}"
         for op, table in _SWAP.items():
             if t.text in table and (op in ("ROR", "SHF") or _has_left_operand(toks, k)):
                 yield op, t.start, t.end, table[t.text], f"{t.text} -> {table[t.text]}"
@@ -370,14 +472,23 @@ def find(path, rel, info=None):
     toks = src.tokens
     out = []
     for unit in src.units:
-        if unit.kind != "module":
-            continue
+        names = frozenset(t.text for t in toks[unit.first:unit.last + 1] if t.kind == "id")
         for block in unit.blocks:
             if block.kind in ("initial", "final"):
                 continue
+            if unit.kind == "package" and block.kind != "function":
+                continue
             for s in svparse.walk(block.stmt):
-                if s.kind == "assign":
-                    for site in _expr_sites(src, s.value[0], s.value[1], enums):
+                if s.kind == "other" and s.value and s.value[1] >= s.value[0]:
+                    for site in _expr_sites(src, s.value[0], s.value[1], enums, names):
+                        out.append((unit.name,) + site)
+                elif s.kind == "assign":
+                    target_text = " ".join(src.code[toks[s.target[0]].start:toks[s.target[1]].end].split())
+                    for site in _expr_sites(src, s.value[0], s.value[1], enums, names):
+                        if site[0] == "DLY" and site[3] == target_text and s.value[0] == s.value[1]:
+                            continue        # x_d <= x_d holds the value: the same mutant as SDL
+                        out.append((unit.name,) + site)
+                    for site in _select_sites(src, s.target[0], s.target[1]):
                         out.append((unit.name,) + site)
                     if block.kind != "assign":      # deleting a continuous assign is not legal code
                         stmt_text = src.code[toks[s.first].start:toks[s.last].end]
@@ -385,7 +496,7 @@ def find(path, rel, info=None):
                                     f"delete '{' '.join(stmt_text.split())[:60]}'"))
                 elif s.kind == "if":
                     a, b = s.cond
-                    for site in _expr_sites(src, a, b, enums):
+                    for site in _expr_sites(src, a, b, enums, names):
                         out.append((unit.name,) + site)
                     if not _cnd_is_duplicate(src, a, b):
                         cond_text = src.text[toks[a].start:toks[b].end]
@@ -395,10 +506,23 @@ def find(path, rel, info=None):
                         out.append((unit.name, "EDL", toks[s.else_tok].start, toks[s.else_.last].end, "",
                                     f"delete the else branch at line {toks[s.else_tok].line + 1}"))
                 elif s.kind == "case":
-                    for site in _expr_sites(src, s.cond[0], s.cond[1], enums):
+                    for site in _expr_sites(src, s.cond[0], s.cond[1], enums, names):
                         out.append((unit.name,) + site)
+                    labelled = [lab for lab, _ in s.items if lab is not None]
+                    for (a1, b1), (a2, b2) in zip(labelled, labelled[1:]):
+                        t1 = src.text[toks[a1].start:toks[b1].end]
+                        t2 = src.text[toks[a2].start:toks[b2].end]
+                        between = src.text[toks[b1].end:toks[a2].start]
+                        out.append((unit.name, "CIS", toks[a1].start, toks[b2].end, t2 + between + t1,
+                                    f"case labels {' '.join(t1.split())[:24]} and {' '.join(t2.split())[:24]} swapped"))
+        if unit.kind != "module":
+            continue
         for site in _instance_sites(src, unit, modules):
             out.append((unit.name,) + site)
+        for inst in unit.instances:
+            for pname, a, b in inst.overrides:
+                for op, start, end, new, what in _expr_sites(src, a, b, enums):
+                    out.append((unit.name, op, start, end, new, f"{inst.name} parameter {pname}: {what}"))
     mutants, seen = [], {}
     for unit, op, start, end, new, what in sorted(out, key=lambda m: (m[2], m[1], m[4])):
         line = src.text.count("\n", 0, start) + 1

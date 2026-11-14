@@ -15,6 +15,10 @@
 #                                whole design, run first on every mutant, or
 #                                the testbench build, which also uses -Wall:
 #                                caught before simulation
+#                     covers     every check passed, but an SVA cover the
+#                                unmutated run hits was not hit: the
+#                                regression would read INCONCLUSIVE, not
+#                                PASS - caught, but only by a lost cover
 #                     timeout    the run did not finish in time (a hang the
 #                                watchdog did not end)
 #                     survived   everything passed - a gap in the
@@ -26,8 +30,8 @@
 #                                left out of the score
 #                     ai_equiv   judged equivalent by the triage (--triage)
 #                                and not simulated; left out of the score
-#                   Score = (killed + lint + timeout) / (all - stillborn -
-#                   ai_equiv).
+#                   Score = (killed + lint + covers + timeout) / (all -
+#                   stillborn - ai_equiv).
 #
 #                   With --triage FILE (the output of the AI triage task),
 #                   a mutant judged "equivalent" with high confidence is not
@@ -96,6 +100,7 @@ TARGETS = {
     "spi_slave": ("tb_host_if", "host_if_tb"),
     "reg_file": ("tb_host_if", "host_if_tb"),
     "pmic_top": ("tb_top", "pmic_top_tb"),
+    "pmic_types_pkg": ("tb_top", "pmic_top_tb"),
 }
 # DEFAULT_TARGET: the unit testbench of a module
 DEFAULT_TARGET = ("tb_{m}", "{m}_tb")
@@ -207,7 +212,7 @@ def run_one(m, work, timeout, keep, simulate=True):
         status, secs, detail, covers = run_target(target, top, tree, root / "build", timeout)
         base = RUN["covers"].get(target)
         if status == "survived" and covers is not None and base is not None and covers < base:
-            detail = f"hit {covers} SVA covers, the unmutated run {base}"
+            status, detail = "covers", f"hit {covers} SVA covers, the unmutated run {base}"
     if not keep:
         shutil.rmtree(root, ignore_errors=True)
     return status, secs, detail
@@ -226,7 +231,7 @@ def report(results, header):
              and every survivor with its line before and after.
     """
     out = header + [""]
-    cols = ["killed", "lint", "timeout", "survived", "stillborn"]
+    cols = ["killed", "lint", "covers", "timeout", "survived", "stillborn"]
     if any(r["status"] == "ai_equiv" for r in results):
         cols.append("ai_equiv")
     if any(r["status"] == "clean" for r in results):
@@ -263,7 +268,7 @@ def report(results, header):
     if judged:
         eq = [r for r in judged if r["triage"]["verdict"] == "equivalent" and r["triage"]["confidence"] == "high"]
         audited = [r for r in eq if r["status"] != "ai_equiv"]
-        wrong = [r for r in audited if r["status"] in ("killed", "timeout")]
+        wrong = [r for r in audited if r["status"] in ("killed", "covers", "timeout")]
         out += ["", "AI TRIAGE", "",
                 f"  judged: {len(judged)}   plausible: {len(judged) - len(eq)}   equivalent (high confidence): {len(eq)}",
                 f"  audited by simulation: {len(audited)} of {len(eq)}   contradicted (judged equivalent, but "
@@ -271,6 +276,13 @@ def report(results, header):
         for r in wrong:
             out.append(f"  TRIAGE ERROR  {r['id']}  {r['file']}:{r['line']}  {r['operator']}  {r['description']}")
             out.append(f"      the triage said: {r['triage']['reason']}")
+    weak = [r for r in results if r["status"] == "covers"]
+    if weak:
+        out += ["", f"CAUGHT ONLY BY A LOST COVER ({len(weak)}) - no check failed", ""]
+        for r in weak:
+            out.append(f"  {r['id']}  {r['file']}:{r['line']}  {r['operator']}  {r['description']}  [{r['detail']}]")
+            out.append(f"      before: {r['before']}")
+            out.append(f"      after:  {r['after']}")
     other = [r for r in results if r["status"] in ("stillborn", "timeout")]
     if other:
         out += ["", f"STILLBORN AND TIMEOUT ({len(other)})", ""]
@@ -285,7 +297,7 @@ def _row(name, row, cols):
     if "clean" in cols:
         score = "-"
     else:
-        score = f"{100 * (row['killed'] + row['lint'] + row['timeout']) / live:.1f}%" if live else "-"
+        score = f"{100 * (row['killed'] + row['lint'] + row['covers'] + row['timeout']) / live:.1f}%" if live else "-"
     return f"{name:<16}{n:>8}" + "".join(f"{row[c]:>11}" for c in cols) + f"{score:>8}"
 
 
@@ -402,8 +414,8 @@ def main():
               f"random tests: seed {args.seed}" + (f"; extra sim settings: {args.sim_args}" if args.sim_args else ""),
               *([f"triage: {args.triage}; audit of the mutants it judged equivalent: {args.audit}"]
                 if args.triage else []),
-              "score = (killed + lint + timeout) / (mutants - stillborn - ai_equiv); a survivor is a gap or an "
-              "equivalent mutant"]
+              "score = (killed + lint + covers + timeout) / (mutants - stillborn - ai_equiv); a survivor is a "
+              "gap or an equivalent mutant"]
     if args.check:
         header[2:] = ["check only: every mutant screened with make lint, none simulated",
                       "clean = legal and accepted by lint (would be simulated); lint = caught by make lint; "
@@ -428,11 +440,12 @@ def main():
             index.write_text(
                 "# Mutation runs\n\nOne row per run saved with `make mutation_evidence`, oldest first. Each "
                 "report lists every\nsurvivor with its line before and after; the `.json` beside it holds "
-                "every mutant's outcome.\n\n| Report | Commit | Scope | Mutants | Killed | Lint | Timeout | "
-                "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n")
-        n_of = {k: sum(r["status"] == k for r in results) for k in ("killed", "lint", "timeout", "survived", "stillborn")}
+                "every mutant's outcome.\n\n| Report | Commit | Scope | Mutants | Killed | Lint | Covers | Timeout | "
+                "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+        n_of = {k: sum(r["status"] == k for r in results)
+                for k in ("killed", "lint", "covers", "timeout", "survived", "stillborn")}
         live = len(results) - n_of["stillborn"] - sum(r["status"] == "ai_equiv" for r in results)
-        score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['timeout']) / live:.1f}%" if live else "-"
+        score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['covers'] + n_of['timeout']) / live:.1f}%" if live else "-"
         what = (f"modules {args.modules}" if args.modules else "all modules") \
             + (f", operators {args.operators}" if args.operators else "") \
             + (f", sample {args.sample}" if args.sample else "") + (f", ids {args.ids}" if args.ids else "") \
@@ -440,7 +453,7 @@ def main():
             + (f", triage (audit {args.audit})" if args.triage else "")
         with index.open("a") as f:
             f.write(f"| `{stem}.txt` | {commit}{' (uncommitted changes)' if dirty else ''} | {what} | {len(results)} | "
-                    f"{n_of['killed']} | {n_of['lint']} | {n_of['timeout']} | {n_of['survived']} | "
+                    f"{n_of['killed']} | {n_of['lint']} | {n_of['covers']} | {n_of['timeout']} | {n_of['survived']} | "
                     f"{n_of['stillborn']} | {score} |\n")
         print(f"evidence: {ev / stem}.txt / .json, indexed in {index}")
 

@@ -449,7 +449,8 @@ class Instance:
     Purpose: One module instantiation: the module instantiated, the instance
              name, and its named connections, each (port name, first token,
              last token of the connected expression). Unconnected ports
-             (.p()) and wildcards are left out.
+             (.p()) and wildcards are left out. overrides holds the named
+             parameter overrides of its #( ) list in the same form.
     """
 
     module: str
@@ -457,6 +458,7 @@ class Instance:
     first: int
     last: int
     connections: list
+    overrides: list = field(default_factory=list)
 
 
 @dataclass
@@ -656,25 +658,32 @@ def _read_instance(toks, j, p):
     after_label = toks[j - 1].kind == "id" and toks[j - 2].text == ":"
     if prev not in (";", "end", "begin", "generate", "endgenerate", "endfunction", "endtask") and not after_label:
         return None
+    def named(lo, hi):
+        found, m = [], lo
+        while m < hi:
+            if toks[m].text == "." and toks[m + 1].kind == "id" and toks[m + 2].text == "(":
+                e = p.close(m + 2)
+                if e - 1 >= m + 3:
+                    found.append((toks[m + 1].text, m + 3, e - 1))
+                m = e + 1
+            else:
+                m += 1
+        return found
+
     k = j + 1
+    overrides = []
     if toks[k].text == "#":
         if toks[k + 1].text != "(":
             return None
-        k = p.close(k + 1) + 1
+        pc = p.close(k + 1)
+        overrides = named(k + 2, pc)
+        k = pc + 1
     if not (toks[k].kind == "id" and toks[k + 1].text == "(" and toks[k + 2].text in (".", ")")):
         return None
     c = p.close(k + 1)
-    conns, m = [], k + 2
-    while m < c:
-        if toks[m].text == "." and toks[m + 1].kind == "id" and toks[m + 2].text == "(":
-            e = p.close(m + 2)
-            if e - 1 >= m + 3:
-                conns.append((toks[m + 1].text, m + 3, e - 1))
-            m = e + 1
-        else:
-            m += 1
+    conns = named(k + 2, c)
     last = c + 1 if toks[c + 1].text == ";" else c
-    return Instance(toks[j].text, toks[k].text, j, last, conns)
+    return Instance(toks[j].text, toks[k].text, j, last, conns, overrides)
 
 
 def _read_decls(toks, first, last, comments, raw_lines, code, what):
