@@ -205,11 +205,11 @@ module pmic_top (
 	// Package constants used here, inlined by the conversion from
 	// pmic_types_pkg.sv. Each is evaluated at elaboration; none is hardware.
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// ms_to_clks: milliseconds -> clk counts
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 50000 * ms;
+		pmic_types_pkg_ms_to_clks = 10000 * ms;
 	endfunction
 	// ---- input debouncers ----
 	// The enable switch is debounced symmetric and long, 20 ms each way:
@@ -522,7 +522,7 @@ module pmic_top (
 	);
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
 	//                          the reset value of the writable register
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles
 	//                 it, so the default sequence is 10 / 20 ms. Only 2 retries

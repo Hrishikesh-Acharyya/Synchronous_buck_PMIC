@@ -38,7 +38,7 @@ module timestamp (
 	// Package constants used here, inlined by the conversion from
 	// pmic_types_pkg.sv. Each is evaluated at elaboration; none is hardware.
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	//PRESCALAR_HZ: Default frequency value of the prescalar.
 	localparam signed [31:0] pmic_types_pkg_PRESCALAR_HZ = 1000;
 	//PRESCALE_VAL: THe value prescalar counts to

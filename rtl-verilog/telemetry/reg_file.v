@@ -117,7 +117,7 @@ module reg_file (
 	localparam signed [31:0] pmic_types_pkg_STRIKE_W = 2;
 	input wire [1:0] strike_level;
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is
@@ -172,7 +172,7 @@ module reg_file (
 	// ms_to_clks: milliseconds -> clk counts
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 50000 * ms;
+		pmic_types_pkg_ms_to_clks = 10000 * ms;
 	endfunction
 	localparam signed [31:0] pmic_types_pkg_HICCUP_BASE_MAX_CLKS = pmic_types_pkg_ms_to_clks(20);
 	// HICCUP_BASE_W: width of the writable base register. Sized for the
@@ -534,7 +534,7 @@ module reg_file (
 	//             division is exact, as it is at 50 MHz (12000 / 1000).
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
 	endfunction
 	// MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
 	//                the driver shrinkage before any of it reaches the gate,
@@ -907,7 +907,7 @@ module reg_file (
 	end
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
 	//                          the reset value of the writable register
-	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 16;
+	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles
 	//                 it, so the default sequence is 10 / 20 ms. Only 2 retries

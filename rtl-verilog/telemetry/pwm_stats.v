@@ -61,7 +61,7 @@ module pwm_stats (
 	// Package constants used here, inlined by the conversion from
 	// pmic_types_pkg.sv. Each is evaluated at elaboration; none is hardware.
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is

@@ -104,11 +104,11 @@
 #                   Verilator and Icarus identical stimulus and the SV and
 #                   converted runs stay comparable transaction for transaction.
 #
-#                   CLK_HZ is a parameter so the same file runs at 50 MHz (the
-#                   package default) and at 10 MHz (the Silicluster build, with
-#                   the package rebuilt at 10 MHz); every expectation derives
+#                   CLK_HZ is a parameter so the same file runs at 10 MHz (this
+#                   build, the Silicluster v3 clock limit) and at 50 MHz (with
+#                   the package rebuilt at 50 MHz); every expectation derives
 #                   from it except CYC_STEP_DEF, which mirrors the package's
-#                   CYCLES_PER_STEP_DEFAULT (16 at 50 MHz, 64 at 10 MHz).
+#                   CYCLES_PER_STEP_DEFAULT (64 at 10 MHz, 16 at 50 MHz).
 #
 #                   Exit status: $finish on PASS, $stop on FAIL. Verilator exits
 #                   non-zero on $stop. Icarus vvp does not, so the Makefile turns
@@ -130,7 +130,7 @@ module pmic_top_tb;
 // ============================================================
 // CLK_HZ: supervisor clock. Must equal pmic_types_pkg::CLK_HZ of the build
 //         under test (the Makefile passes the package's value).
-parameter integer CLK_HZ = 50_000_000;
+parameter integer CLK_HZ = 10_000_000;
 // TELEMETRY_EN: configuration under test, passed to pmic_top (see the header).
 //               1 = full build and the SPI sequence, 0 = reduced build and the
 //               pins-only sequence.
@@ -154,7 +154,7 @@ localparam integer WINDOW_SS       = 32;
 localparam integer MAX_STRIKES_DEF = 3;
 // CYC_STEP_DEF: must equal pmic_types_pkg::CYCLES_PER_STEP_DEFAULT - 16 for
 //               the 50 MHz package, 64 for the 10 MHz Silicluster build.
-localparam integer CYC_STEP_DEF    = 16;
+localparam integer CYC_STEP_DEF    = 64;
 localparam integer CYC_STEP_MAX    = 64;
 localparam integer HICCUP_DEF      = (CLK_HZ / 1000) * 5;
 localparam integer HICCUP_MIN      = (CLK_HZ / 1000) * 1;

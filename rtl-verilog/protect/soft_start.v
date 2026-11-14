@@ -59,7 +59,7 @@ module soft_start (
 	//                 in the linear region.
 	localparam signed [31:0] pmic_types_pkg_MIN_GATE_ON_NS = 112;
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// ns_to_clks: nanoseconds -> clk counts. Split into two steps because
 	//             clocks-per-nanosecond is less than one and would truncate
 	//             to zero in integer arithmetic.
@@ -72,7 +72,7 @@ module soft_start (
 	//             division is exact, as it is at 50 MHz (12000 / 1000).
 	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
 		input reg signed [31:0] ns;
-		pmic_types_pkg_ns_to_clks = ((50 * ns) + 999) / 1000;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
 	endfunction
 	// MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
 	//                the driver shrinkage before any of it reaches the gate,

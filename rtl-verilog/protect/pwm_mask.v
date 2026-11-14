@@ -37,7 +37,7 @@ module pwm_mask (
 	//                   never the primary limiter in normal operation.
 	localparam signed [31:0] pmic_types_pkg_DIGITAL_DUTY_PCT = 75;
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is

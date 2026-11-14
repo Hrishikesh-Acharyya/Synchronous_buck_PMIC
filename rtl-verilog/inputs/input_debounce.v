@@ -55,11 +55,11 @@ module input_debounce (
 	// Package constants used here, inlined by the conversion from
 	// pmic_types_pkg.sv. Each is evaluated at elaboration; none is hardware.
 	// CLK_HZ: supervisor clock, from the external oscillator
-	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 50000000;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
 	// ms_to_clks: milliseconds -> clk counts
 	function automatic signed [31:0] pmic_types_pkg_ms_to_clks;
 		input reg signed [31:0] ms;
-		pmic_types_pkg_ms_to_clks = 50000 * ms;
+		pmic_types_pkg_ms_to_clks = 10000 * ms;
 	endfunction
 	// DEBOUNCE_ASSERT_CLKS: clocks a flag must hold high continuously
 	//                       before the debounced output asserts
