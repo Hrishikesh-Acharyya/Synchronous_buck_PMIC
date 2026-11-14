@@ -557,7 +557,7 @@ def main():
     if args.list:
         for m in ms:
             print(f"{m.id:36s} {m.file}:{m.line:<5d} {m.operator}  {m.description}")
-        print(f"{len(ms)} mutants (of {total_found})")
+        print(f"{len(ms)} mutants listed (the whole design has {total_found})")
         if RUN["stale"]:
             print(f"{len(RUN['stale'])} AI-written mutants no longer match the RTL and are left out: "
                   + ", ".join(RUN["stale"]))
@@ -656,8 +656,8 @@ def main():
     if not args.keep:
         shutil.rmtree(scratch, ignore_errors=True)
 
-    scope = (f"{len(ms)} mutants" + (f" (sample of {total_found}, seed {args.seed})" if args.sample else
-                                     f" of {total_found}"))
+    scope = (f"{len(ms)} mutants" + (f" (a sample of the design's {total_found}, seed {args.seed})" if args.sample
+                                     else f" (the whole design has {total_found})"))
     header = [f"mutation report - {datetime.date.today().isoformat()} - commit {commit}"
               + (" (uncommitted changes in rtl / sva / tb)" if dirty else ""),
               f"scope: {scope}; modules: {args.modules or 'all'}; operators: {args.operators or 'all'}",
