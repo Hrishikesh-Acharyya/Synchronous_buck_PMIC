@@ -167,8 +167,8 @@ def counts(rec, only=None):
              score, and the survivors by decision. only filters the entries
              (a function of the entry).
     """
-    c = {k: 0 for k in ("killed", "lint", "covers", "timeout", "survived", "stillborn", "error", "not run",
-                        "ai_equiv", "retired")}
+    c: dict = {k: 0 for k in ("killed", "lint", "covers", "timeout", "survived", "stillborn", "error", "not run",
+                              "ai_equiv", "retired")}
     d = {"equivalent": 0, "accepted": 0, "gap": 0, "undecided": 0}
     for e in rec["mutants"].values():
         if only and not only(e):

@@ -515,6 +515,8 @@ def _type_signatures(src, unit):
     for m in re.finditer(r"(?m)^[ \t]*(?:logic|wire|reg|bit)\b([^;()]*);", code):
         body = m.group(1)
         rng = re.match(r"\s*(?:signed\s*)?(\[[^\]]*\])?", body)
+        if rng is None:
+            continue
         sig = "".join(rng.group(1).split()) if rng.group(1) else "1"
         for part in body[rng.end():].split(","):
             name = re.match(r"\s*([A-Za-z_]\w*)", part)
@@ -598,7 +600,8 @@ def design_info(rtl_root):
             if unit.kind == "module":
                 modules[unit.name] = {p.name: (p.direction, " ".join(p.type.split())) for p in unit.ports}
         for m in re.finditer(r"typedef\s+enum\b[^{;]*\{([^}]*)\}", src.code):
-            members = [re.match(r"\s*(\w+)", part).group(1) for part in m.group(1).split(",") if part.strip()]
+            found = [re.match(r"\s*(\w+)", part) for part in m.group(1).split(",") if part.strip()]
+            members = [x.group(1) for x in found if x]
             for name in members:
                 enums[name] = members
     return modules, enums

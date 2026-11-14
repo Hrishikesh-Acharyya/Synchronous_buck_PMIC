@@ -210,6 +210,8 @@ def shape(p, unit, rel, text, body, taken):
     if not entry["description"]:
         return None, None, None, "no description"
     m = M.written_mutant(entry, unit, rel, text, at=at)
+    if m is None:
+        return None, None, None, "the lines it replaces are not in the file"
     first, last = body.get(unit, (0, 0))
     if not (first <= m.line and at + len(before) <= last):
         return None, None, None, "edits the module's ports or parameters, or lines outside the module"
@@ -318,7 +320,7 @@ def main():
             for k, prop in enumerate(props):
                 entry, m, key, why = shape(prop, unit, rel, text, body, taken)
                 checked.append({"proposal": prop, "accepted": False, "why": why})
-                if why is None:
+                if why is None and key is not None:
                     taken[key] = f"proposal {k + 1} of the same answer"
                     passing.append((k, entry, m, key))
             work = R.SCRATCH / run.name / "work"
@@ -355,7 +357,7 @@ def main():
             print(f"    {len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", flush=True)
             if not props:
                 break               # the agent has no more to offer for this module
-        if keep and (unit_new or unit_rejected):
+        if kept_in is not None and (unit_new or unit_rejected):
             # this run added to the module's record: its accepted mutants and every rejected proposal
             REC.add_written(unit, rel, unit_new, unit_rejected, unit_asked, sorted(unit_models),
                             f"ai_runs/{kept_in.name}")

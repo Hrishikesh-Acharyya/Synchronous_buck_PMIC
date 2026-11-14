@@ -89,7 +89,8 @@ def main():
                 "curl -I https://api.anthropic.com\n        " + hint)
     elif "log in" in low or "login" in low or "authenticat" in low or "api key" in low:
         hint = "it is not logged in - run claude once in a terminal and log in with the subscription account\n        " + hint
-    if not say(result is not None and not result.get("is_error"), f"the request was answered ({secs:.0f} s)", hint):
+    answered = result is not None and not result.get("is_error")
+    if not say(answered, f"the request was answered ({secs:.0f} s)", hint) or result is None:
         sys.exit(1)
     usage = result.get("usage") or {}
     models = ", ".join((result.get("modelUsage") or {}).keys())
@@ -98,9 +99,9 @@ def main():
 
     # 3. the answer's form, and what it could and could not read
     out = T.structured(result)
-    if not say(isinstance(out, dict) and {"rtl_line", "tb_read", "tb_search"} <= set(out),
-               "the answer came back as structured data",
-               "the answer was not in the task's form - update Claude Code: claude update"):
+    formed = out is not None and {"rtl_line", "tb_read", "tb_search"} <= set(out)
+    if not say(formed, "the answer came back as structured data",
+               "the answer was not in the task's form - update Claude Code: claude update") or out is None:
         sys.exit(1)
     say(" ".join(str(out["rtl_line"]).split()) == " ".join(lines[n].split()),
         f"the RTL can be read ({RTL})", f"expected line {n + 1}: {lines[n]!r}; got {out['rtl_line']!r}")

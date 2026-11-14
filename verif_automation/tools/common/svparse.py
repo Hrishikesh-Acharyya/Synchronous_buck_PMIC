@@ -27,6 +27,7 @@
 
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 # KEYWORDS: words that are never identifiers in the expressions this reader
 #           walks
@@ -167,7 +168,7 @@ def tokenize(code):
         m = TOKEN_RE.match(code, i)
         if not m:
             raise ValueError(f"unreadable text at line {line_at(i) + 1}: {code[i:i + 20]!r}")
-        kind = m.lastgroup
+        kind = m.lastgroup or ""
         text = m.group(0)
         if kind == "id" and text in KEYWORDS:
             kind = "kw"
@@ -198,14 +199,14 @@ class Stmt:
     first: int
     last: int
     body: list = field(default_factory=list)
-    cond: tuple = None
-    then_: "Stmt" = None
-    else_: "Stmt" = None
-    else_tok: int = None
+    cond: Any = None
+    then_: Any = None
+    else_: Any = None
+    else_tok: Any = None
     items: list = field(default_factory=list)
-    target: tuple = None
-    op: int = None
-    value: tuple = None
+    target: Any = None
+    op: Any = None
+    value: Any = None
 
 
 class Parser:
@@ -404,7 +405,7 @@ class Param:
     default: str
     comment: str
     in_header: bool = True
-    span: tuple = None
+    span: Any = None
 
 
 @dataclass

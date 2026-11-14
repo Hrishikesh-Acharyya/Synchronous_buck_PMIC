@@ -519,9 +519,10 @@ def main():
 
     # --resume: the stopped run's own selection, whatever is given now
     selection = ("modules", "operators", "ids", "sample", "seed", "sim_args", "triage", "audit", "check")
-    done_before = {}
+    done_before, meta = {}, {}
+    out = pathlib.Path(args.resume).resolve() if args.resume else \
+        REPO / "verif_automation" / "build" / "mutation" / datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
     if args.resume:
-        out = pathlib.Path(args.resume).resolve()
         if not (out / "progress.jsonl").exists():
             sys.exit(f"{out} has no progress.jsonl - not a run that can be continued")
         lines = [json.loads(x) for x in (out / "progress.jsonl").read_text().splitlines() if x.strip()]
@@ -574,7 +575,6 @@ def main():
         kept = {m.id: done_before[m.id] for m in ms if m.id in done_before
                 and done_before[m.id]["description"] == m.description and done_before[m.id]["status"] != "error"}
     else:
-        out = REPO / "verif_automation" / "build" / "mutation" / datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
         out.mkdir(parents=True, exist_ok=True)
         kept = {}
         (out / "progress.jsonl").write_text(json.dumps({
