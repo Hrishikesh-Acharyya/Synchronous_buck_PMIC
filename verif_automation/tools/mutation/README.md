@@ -16,9 +16,9 @@ nothing.
 
 1. Every mutant of the selected modules is listed (1,296 across 17 modules
    at the time of writing, from 13 operators).
-2. Each `sim/` target the run will use is run once on the unmutated RTL. A
-   target that does not pass stops the run: mutation results on a failing
-   baseline mean nothing.
+2. `make lint` and each `sim/` target the run will use are run once on the
+   unmutated RTL. A failure there stops the run: mutation results on a
+   failing baseline mean nothing.
 3. For each mutant, in parallel:
    - the RTL tree is copied to `build/mutation/<run>/work/<id>/` and the one
      edit made there - the real `rtl-systemverilog/` is never written;
@@ -28,7 +28,12 @@ nothing.
      `sim/` target with `SV_DIR=` pointing at it and its own build folder;
    - the outcome is read from the run's `result.tsv` and logs.
 4. `report.txt` and `results.json` are written to `build/mutation/<run>/`;
-   with `make mutation_evidence`, copied to `evidence/mutation/`.
+   with `make mutation_evidence`, copied to `evidence/mutation/` and the run
+   added as a row to `evidence/mutation/README.md`.
+
+The random tests inside a suite - the host_if suite's random walk - run with
+one fixed seed (`SEED=`, default 1), the same for the baseline and every
+mutant. A mutant's outcome is therefore the same every time it is run.
 
 ## Which testbench tests which module
 
@@ -51,12 +56,30 @@ make mutants_check                              # lint-screen all, no simulation
 make mutate MODULE=input_debounce               # one module, a minute or two
 make mutate SAMPLE=50                           # a random 50 of all mutants
 make mutation_evidence                          # everything, saved as evidence - hours
+make mutate IDS=reg_file.554.TRN.1 SIM_ARGS="HOSTIF_EVENTS=4000"
+                                                # re-run survivors against a longer random walk
 ```
 
 `JOBS=` sets the parallel runs (default: every core). Each run builds its own
 Verilator model, so the first minutes are mostly compiling. The host_if suite
 takes about a minute per mutant and covers `reg_file` and `spi_slave`, which
 hold about half of all mutants - they dominate a full run.
+
+## Reading the result
+
+A run gives a score and a list. The score is the share of mutants the
+verification caught; the list is every survivor, with its line before and
+after the edit. A survivor is one of two things, and the tool does not say
+which:
+
+- a **gap**: the edit changed the design's behaviour and nothing noticed.
+  Closed by adding the property or test that notices, then re-running that
+  mutant (`IDS=`) to see it killed;
+- an **equivalent mutant**: the edit changed nothing that can be observed -
+  unreachable code, a redundant condition. Closed by recording why.
+
+A survivor that hits fewer SVA covers than the unmutated run is marked: the
+edit took a scenario away, which usually means it is not equivalent.
 
 ## What it does not do
 

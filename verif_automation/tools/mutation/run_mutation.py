@@ -29,17 +29,30 @@
 #                   Every mutant is first screened with make lint (a fraction
 #                   of a second); only the ones it accepts are simulated.
 #                   Every target is first run on the unmutated RTL; a target
-#                   that does not pass there stops the run.
+#                   that fails there stops the run. A surviving mutant that
+#                   hits fewer SVA covers than that run did is marked so.
+#
+#                   The random tests inside a suite (the host_if suite's
+#                   random walk) run with one fixed seed, the same for the
+#                   baseline and every mutant, so a mutant's outcome is the
+#                   same every time it is run.
 #
 #                   Usage: run_mutation.py [--modules a,b] [--operators X,Y]
 #                                          [--sample N] [--seed S] [--jobs J]
-#                                          [--ids ID,ID] [--list] [--evidence]
+#                                          [--ids ID,ID] [--sim-args "V=1 ..."]
+#                                          [--list] [--check] [--evidence]
+#                     --seed      the seed for --sample and for the suites'
+#                                 random tests (default 1)
+#                     --sim-args  extra make variables for the sim/ target,
+#                                 e.g. "HOSTIF_EVENTS=4000" to re-run
+#                                 survivors against a longer random walk
 #                     --list      list the mutants and stop (no simulation)
 #                     --check     screen every mutant with make lint and stop:
 #                                 how many are legal, how many lint catches -
 #                                 a health check of the mutant generator
 #                     --evidence  also save the report and results under
 #                                 evidence/mutation/<date>_mutation.{txt,json}
+#                                 and add the run to evidence/mutation/README.md
 #                   Output: verif_automation/build/mutation/<run>/report.txt
 #                   and results.json.
 #
@@ -115,25 +128,36 @@ def screen(sv_dir):
     return "clean", ""
 
 
+# RUN: per-run settings shared by every worker - the suites' random seed and
+#      any extra make variables for the sim/ targets
+RUN = {"seed": 1, "sim_args": [], "covers": {}}
+
+
 def run_target(target, top, sv_dir, build, timeout):
 
     """
     Purpose: Run one sim/ target against the RTL tree in sv_dir, building in
-             build. Returns (status, seconds, detail).
+             build. The suite's random seed is fixed (cocotb reads it from
+             the environment), so every run of a target draws the same
+             random tests. Returns (status, seconds, detail, covers hit -
+             None when nothing was simulated).
     """
     build.mkdir(parents=True, exist_ok=True)
     cmd = ["make", "-s", "-C", str(REPO / "sim"), target, f"SV_DIR={sv_dir}", f"TBBUILD={build}",
-           "QUIET=1", "NOFAIL=1", "VJOBS=1", "COLOR=0"]
+           "QUIET=1", "NOFAIL=1", "VJOBS=1", "COLOR=0", *RUN["sim_args"]]
+    seed = str(RUN["seed"])
     start = time.time()
     try:
         subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
-                       env={**os.environ, "MAKEFLAGS": ""})
+                       env={**os.environ, "MAKEFLAGS": "", "RANDOM_SEED": seed, "COCOTB_RANDOM_SEED": seed})
     except subprocess.TimeoutExpired:
-        return "timeout", time.time() - start, f"no result after {timeout:.0f} s"
+        return "timeout", time.time() - start, f"no result after {timeout:.0f} s", None
     secs = time.time() - start
     d = build / "sv" / top
     result = d / "result.tsv"
-    verdict = result.read_text().split("\t")[2] if result.exists() else "FAIL"
+    fields = result.read_text().split("\t") if result.exists() else []
+    verdict = fields[2] if len(fields) > 2 else "FAIL"
+    covers = int(fields[4]) if len(fields) > 4 and fields[4].isdigit() else None
     simulated = (d / "results.xml").exists() if target.endswith(("cocotb", "host_if")) else (d / "run.log").exists()
     if not simulated:
         log = d / "build.log" if (d / "build.log").exists() else d / "run.log"
@@ -141,13 +165,11 @@ def run_target(target, top, sv_dir, build, timeout):
         errors = [l for l in text.splitlines() if l.startswith("%Error") and "Exiting due to" not in l]
         warnings = sorted({m.group(1) for m in re.finditer(r"%Warning-(\w+)", text)})
         if warnings and not errors:
-            return "lint", secs, "Verilator: " + ", ".join(warnings)
-        return "stillborn", secs, (errors[0][:120] if errors else "build failed")
+            return "lint", secs, "Verilator: " + ", ".join(warnings), None
+        return "stillborn", secs, (errors[0][:120] if errors else "build failed"), None
     if verdict == "FAIL":
-        return "killed", secs, ""
-    if verdict == "INCONCLUSIVE":
-        return "survived", secs, "a cover read zero"
-    return "survived", secs, ""
+        return "killed", secs, "", covers
+    return "survived", secs, "", covers
 
 
 def run_one(m, work, timeout, keep, simulate=True):
@@ -171,7 +193,10 @@ def run_one(m, work, timeout, keep, simulate=True):
     secs = time.time() - start
     if status == "clean" and simulate:
         target, top = target_of(m.unit)
-        status, secs, detail = run_target(target, top, tree, root / "build", timeout)
+        status, secs, detail, covers = run_target(target, top, tree, root / "build", timeout)
+        base = RUN["covers"].get(target)
+        if status == "survived" and covers is not None and base is not None and covers < base:
+            detail = f"hit {covers} SVA covers, the unmutated run {base}"
     if not keep:
         shutil.rmtree(root, ignore_errors=True)
     return status, secs, detail
@@ -248,6 +273,7 @@ def main():
     ap.add_argument("--ids")
     ap.add_argument("--sample", type=int)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--sim-args", default="")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--timeout-factor", type=float, default=10.0)
     ap.add_argument("--list", action="store_true")
@@ -256,6 +282,8 @@ def main():
     ap.add_argument("--evidence", action="store_true")
     args = ap.parse_args()
 
+    RUN["seed"] = args.seed
+    RUN["sim_args"] = args.sim_args.split()
     ms = all_mutants()
     total_found = len(ms)
     if args.modules:
@@ -291,10 +319,12 @@ def main():
     baseline = {}
     for target, top in sorted({target_of(m.unit) for m in ms} if not args.check else []):
         print(f"baseline  {target} ...", flush=True)
-        status, secs, detail = run_target(target, top, REPO / "rtl-systemverilog", out / "baseline" / target, 3600)
-        if status != "survived" or detail:
-            sys.exit(f"baseline: {target} does not pass on the unmutated RTL ({status} {detail}) - fix that first")
+        status, secs, detail, covers = run_target(target, top, REPO / "rtl-systemverilog",
+                                                  out / "baseline" / target, 3600)
+        if status != "survived":
+            sys.exit(f"baseline: {target} fails on the unmutated RTL ({status} {detail}) - fix that first")
         baseline[target] = secs
+        RUN["covers"][target] = covers
     print(f"running {len(ms)} mutants on {args.jobs} jobs", flush=True)
 
     results, done = [], 0
@@ -326,6 +356,7 @@ def main():
               "tests: each module's own testbench with its bound checker (reg_file and spi_slave: the host_if "
               "cocotb suite; pmic_top: the integration testbench)",
               "baseline: make lint passes" + "".join(f", {t} passes ({s:.0f} s)" for t, s in sorted(baseline.items())),
+              f"random tests: seed {args.seed}" + (f"; extra sim settings: {args.sim_args}" if args.sim_args else ""),
               "score = (killed + lint + timeout) / (mutants - stillborn); a survivor is a gap or an "
               "equivalent mutant - not judged here"]
     if args.check:
@@ -347,7 +378,25 @@ def main():
         stem = f"{stem}{'' if n == 1 else f'_{n}'}"
         shutil.copy(out / "report.txt", ev / f"{stem}.txt")
         shutil.copy(out / "results.json", ev / f"{stem}.json")
-        print(f"evidence: {ev / stem}.txt / .json")
+        index = ev / "README.md"
+        if not index.exists():
+            index.write_text(
+                "# Mutation runs\n\nOne row per run saved with `make mutation_evidence`, oldest first. Each "
+                "report lists every\nsurvivor with its line before and after; the `.json` beside it holds "
+                "every mutant's outcome.\n\n| Report | Commit | Scope | Mutants | Killed | Lint | Timeout | "
+                "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n")
+        n_of = {k: sum(r["status"] == k for r in results) for k in ("killed", "lint", "timeout", "survived", "stillborn")}
+        live = len(results) - n_of["stillborn"]
+        score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['timeout']) / live:.1f}%" if live else "-"
+        what = (f"modules {args.modules}" if args.modules else "all modules") \
+            + (f", operators {args.operators}" if args.operators else "") \
+            + (f", sample {args.sample}" if args.sample else "") + (f", ids {args.ids}" if args.ids else "") \
+            + (f", {args.sim_args}" if args.sim_args else "")
+        with index.open("a") as f:
+            f.write(f"| `{stem}.txt` | {commit}{' (uncommitted changes)' if dirty else ''} | {what} | {len(results)} | "
+                    f"{n_of['killed']} | {n_of['lint']} | {n_of['timeout']} | {n_of['survived']} | "
+                    f"{n_of['stillborn']} | {score} |\n")
+        print(f"evidence: {ev / stem}.txt / .json, indexed in {index}")
 
 
 if __name__ == "__main__":

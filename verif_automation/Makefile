@@ -33,10 +33,16 @@ OPERATORS ?=
 SAMPLE    ?=
 SEED      ?= 1
 JOBS      ?=
+# IDS / SIM_ARGS: optional - particular mutants by id (to re-run survivors),
+#                 and extra make variables for the sim/ target, such as
+#                 SIM_ARGS="HOSTIF_EVENTS=4000" for a longer random walk
+IDS       ?=
+SIM_ARGS  ?=
 
 # MUTATION_ARGS: the selectors as runner options
 MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operators $(OPERATORS)) \
-                $(if $(SAMPLE),--sample $(SAMPLE) --seed $(SEED)) $(if $(JOBS),--jobs $(JOBS))
+                $(if $(SAMPLE),--sample $(SAMPLE)) --seed $(SEED) $(if $(JOBS),--jobs $(JOBS)) \
+                $(if $(IDS),--ids $(IDS)) $(if $(SIM_ARGS),--sim-args "$(SIM_ARGS)")
 
 .DEFAULT_GOAL := help
 .PHONY: help lint lint_report lint_evidence contract mutants mutants_check mutate mutation_evidence check_scripts
@@ -78,7 +84,7 @@ mutants_check:  ## health check of the mutant generator: lint-screen every mutan
 # mutate: mutation testing - each mutant in a scratch copy of the RTL against
 #         its module's own testbench. All 17 modules take hours: run it on
 #         your machine. The report lands in build/mutation/<run>/.
-mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=) - hours for all
+mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=, IDS=, SIM_ARGS=) - hours for all
 	@$(PYTHON) $(MUTATION) $(MUTATION_ARGS)
 
 # mutation_evidence: the same, the report and results also saved as
