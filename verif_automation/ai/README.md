@@ -1,7 +1,7 @@
 # verif_automation/ai
 
-AI-assisted verification: an AI agent judges, and later writes, verification
-work, and the simulator decides whether that work holds. This folder holds
+AI-assisted verification: an AI agent writes and judges verification work,
+and the simulator decides whether that work holds. This folder holds
 what the agent is asked to do and the scripts that run it. Every run kept as
 a record - accepted or not - goes to `verif_automation/evidence/ai_runs/`.
 
@@ -31,19 +31,88 @@ count.
    the mutants it was written for; a new test must pass and add coverage.
 4. **Independence where it matters.** When the agent writes a checker or
    model, it is given the contract (`tools/contract`), not the RTL body, so it
-   cannot copy the design's own mistakes. When it judges the design itself -
-   the mutant triage - it reads the RTL and is kept away from the testbenches
-   and checkers, so its judgement is about the design and not about what the
-   tests happen to catch.
+   cannot copy the design's own mistakes. When it works on the design itself -
+   writing mutants, judging mutants - it reads the RTL and is kept away from
+   the testbenches and checkers, so its work is about the design and not
+   about what the tests happen to catch.
 5. **Everything is disclosed.** Every run is logged: what it was asked, what
    it was given, what it produced, what checks ran, what was accepted or
    rejected and why, and the agent's own mistakes. A rejected or wrong output
    is logged the same as an accepted one.
 
-## The first task: judging mutants
+## The tasks, in the order they are used
 
-A mutant is the design with one small edit (`tools/mutation`). The agent's
-job is one question per mutant, answered from the RTL
+| Step | Command | Who does it |
+|---|---|---|
+| 1. write the design-aware mutants | `make ai_mutants` | the agent proposes; a deterministic gate decides what is kept |
+| 2. check every mutant is legal code | `make mutants_check` | the tools, no AI |
+| 3. simulate every mutant | `make mutate` | the tools, no AI |
+| 4. judge the survivors | `make judge` | the agent gives a first opinion; the designer decides |
+
+Nothing in steps 1 or 4 writes a checker or a test, and nothing the agent
+says changes a score: the score comes from step 3 alone.
+
+## Writing mutants
+
+A mutant is the design with one small fault put in on purpose
+(`tools/mutation`). The mechanical operators make the faults that are one
+token wide - a `<` for a `<=`, a constant off by one, a line deleted - 3,274
+of them. What they cannot make is a fault that needs to know what the module
+is for:
+
+- a snapshot taken at the end of a transaction instead of its start;
+- a write-reject rule that lets one register through;
+- a count that saturates one early in one mode only;
+- an aborted SPI transaction that leaves a half-written byte behind.
+
+Those are the agent's to write (`tasks/write_mutants/TASK.md`). It reads one
+module at a time and returns faults as data: the lines to replace, the lines
+to put there, what the fault is, and what changes at the ports. Most are
+asked for where the design-aware faults are - 40 for `reg_file`, 30 for
+`spi_slave`, 15 for `pmic_top`, 12 for `supervisor`, 6 for each small module
+(`COUNT=` changes that) - and running it again for a module adds to what is
+there: the agent is shown the mutants already written and asked for
+different ones.
+
+The agent only proposes. `scripts/write_mutants.py` puts every proposal
+through a gate, and stores only what passes:
+
+1. the lines it replaces are in the file, at one place;
+2. it changes at most 6 lines, inside the module's body - not its ports or
+   parameters;
+3. it changes the code, not only comments or spacing;
+4. it is not a mutant a mechanical operator already makes, nor one already
+   stored;
+5. it is legal code and `make lint` accepts it - so only a test can catch it.
+
+What passes is added to `mutants/<module>.json`. From there `make mutate`
+runs it beside the mechanical mutants, as operator `AIM`: the same lint
+screen, the same testbench, the same score. Every rejected proposal is
+listed in the run record with the check it failed.
+
+What the gate does not decide is whether a mutant is a *good* one - a fault
+worth testing for. The stored files are plain JSON, a dozen lines a mutant:
+read them, delete any entry that is not a fault a designer could make, and
+commit the rest. Once committed, the set is fixed - a mutation run uses the
+file, never the agent, so it gives the same result every time.
+
+```
+make ai_mutants DRY=1                  write the prompts, call nothing
+make ai_mutants MODULE=reg_file        one module
+make ai_mutants                        every module
+make mutants OPERATORS=AIM             list what is stored
+make mutants_check OPERATORS=AIM       lint-screen them again (after an RTL change)
+make mutate OPERATORS=AIM              simulate only them
+```
+
+A stored mutant is found by the text of the lines it replaces, so it follows
+those lines when the file above them changes. If the lines themselves change,
+it can no longer be placed: `make mutants` and the mutation report name it as
+left out, and it needs writing again.
+
+## Judging mutants
+
+The agent's job here is one question per mutant, answered from the RTL
 (`tasks/triage_mutants/TASK.md`): can this edit change the module's behaviour
 at its ports?
 
@@ -59,7 +128,7 @@ AI. Then have the agent judge only the survivors: each is a real gap in the
 verification (plausible) or harmless (equivalent).
 
 ```
-make mutate                 simulate every mutant - an hour or two, no AI
+make mutate                 simulate every mutant - hours, no AI
 make judge                  the agent judges the survivors of that run
 ```
 
@@ -74,8 +143,8 @@ make mutate TRIAGE=build/mutation/triage.json
 Why after is better: the agent can only ever remove the mutants that change
 nothing, and those are few. The plausible ones - most of them - have to be
 simulated either way, so judging first saves little simulation and costs
-about ten times the requests (roughly 1,500 mutants against a hundred or so
-survivors).
+several times the requests (roughly 2,800 mutants pass lint, against a few
+hundred survivors).
 
 What keeps either order honest:
 
@@ -121,7 +190,8 @@ the subscription account; a Pro plan or higher is needed, and no API key.
 Then, before the first real run, see exactly what would be sent:
 
 ```
-make judge DRY=1            writes the prompts and the command, calls nothing
+make ai_mutants DRY=1       writes the prompts and the command, calls nothing
+make judge DRY=1
 ```
 
 ## How much it uses, and which model
@@ -132,36 +202,46 @@ estimated from the file sizes (not measured from a run):
 
 | | Requests | Input | Output |
 |---|---:|---:|---:|
-| `make judge`, about 130 survivors | under 10 | about 0.3 million tokens | about 15 thousand |
-| `make triage`, every mutant | about 45 | about 1.3 million tokens | about 130 thousand |
+| `make ai_mutants`, every module | 17 | about 0.5 million tokens | about 40 thousand |
+| `make judge`, a few hundred survivors | 10 to 20 | about 0.6 million tokens | about 30 thousand |
+| `make triage`, every mutant | about 80 | about 2.5 million tokens | about 250 thousand |
 
 On a subscription this counts against the plan's usage limits, not a bill.
-If a limit stops a run, `RESUME=` continues it without repeating what is
-done.
+If a limit stops `make judge` or `make triage`, `RESUME=` continues it without
+repeating what is done. `make ai_mutants` stores each module's mutants as it
+goes; after a stop, run it again with `MODULE=` naming the modules left.
 
-The judgement is real reasoning about RTL - reachability, invariants - so
-use the strongest model the plan gives (`MODEL=`), especially for `make
-judge`, where there are few mutants and each verdict matters. A small, fast
-model will call more real gaps "equivalent"; that is the costly mistake.
+Both tasks are real reasoning about RTL - what a module is for, what can be
+reached, what holds - so use the strongest model the plan gives (`MODEL=`).
+A small, fast model writes mutants the operators already cover, and calls
+more real gaps "equivalent"; the second is the costly mistake.
 
 ## Layout
 
 | Path | What it holds |
 |---|---|
-| `tasks/triage_mutants/TASK.md` | the instructions the agent is given |
+| `tasks/write_mutants/TASK.md` | the instructions for writing mutants |
+| `tasks/write_mutants/schema.json` | the shape of a proposed mutant |
+| `scripts/write_mutants.py` | asks for mutants a module at a time through `claude -p`, gates every proposal, stores what passes, writes the run record |
+| `mutants/<module>.json` | the accepted AI-written mutants - committed, and what `make mutate` runs |
+| `tasks/triage_mutants/TASK.md` | the instructions for judging mutants |
 | `tasks/triage_mutants/schema.json` | the shape its answer must have |
 | `scripts/triage_mutants.py` | the runner for both orders: selects the mutants, sends them a module chunk at a time through `claude -p`, checks each answer, writes the verdicts and the run record |
 | `scripts/settings_readonly.json` | the permission settings for a read-only task |
 
 A run's record is written to `build/ai_runs/<date>_<time>_<task>/` (not
-committed). `make judge_evidence` and `make triage_evidence` also copy it to
-`evidence/ai_runs/` and add a row to the ledger there.
+committed). `make ai_mutants_evidence`, `make judge_evidence` and
+`make triage_evidence` also copy it to `evidence/ai_runs/` and add a row to
+the ledger there.
 
 ## Running it
 
 On the designer's machine, with Claude Code installed and logged in:
 
 ```
+make ai_mutants                          write and gate the design-aware mutants
+make mutants_check                       every mutant, mechanical and AI-written, is legal
+make mutate                              simulate them all - no AI
 make judge DRY=1                         write the prompts, call nothing
 make judge                               the newest mutation run's survivors
 make judge RESULTS=build/mutation/<run>/results.json

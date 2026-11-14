@@ -13,7 +13,8 @@
       "Read(tb/**)",
       "Read(sva/**)",
       "Read(sim/**)",
-      "Read(verif_automation/evidence/**)"
+      "Read(verif_automation/evidence/**)",
+      "Read(verif_automation/build/**)"
     ]
   }
 }

@@ -31,6 +31,7 @@ text search.
 | BDL | a whole block of two or more statements emptied: the body of an `if`, or of a `case` item | `if (a) begin x <= 1; y <= 0; end` -> `if (a) begin end` |
 | SDL | one procedural assignment statement deleted | `count <= count + 1;` -> `;` |
 | EDL | an `else` branch deleted | `if (a) ... else begin x = 0; y = 0; end` -> `if (a) ...` |
+| AIM | not an operator: a design-aware edit written by the AI step, accepted by its gate and kept in `ai/mutants/` | "FCOUNT_RUN is cleared by a write to FCOUNT_SS" |
 | ICS | wrong wire: two same-type inputs of one instance swapped, two same-type outputs of one instance swapped, or the same input of two instances of one module swapped | `u_otp_sync (.async_in(OTP_trig))` -> `(.async_in(UVLO_trig))` |
 
 ## Where they apply
@@ -111,6 +112,12 @@ no mutant on any wire. SIB, CIS and CID are aimed at `reg_file` and
 `spi_slave`, whose address decodes and numbered register banks are where a
 copied line with one name left unchanged goes unnoticed.
 
+What no mechanical operator can make is an edit that needs the design's
+meaning: a field written from the wrong event, a reject rule that forgets
+one state, a counter that saturates one count early for one mode only. Those
+are written by the AI step (`make ai_mutants`, operator AIM) and run beside
+these - see `../../ai/README.md`.
+
 
 ## Outcomes
 
@@ -129,5 +136,13 @@ survivor is a gap or an equivalent mutant is not decided by this tool.
 ## Checking the generator itself
 
 `make mutants_check` screens every mutant with `make lint` and simulates
-none: a few minutes for all of them. `stillborn` must read 0 - a mutant that
-is not legal code is a fault in the generator, not in the design.
+none: a few minutes for all of them. Two numbers must read 0:
+
+- `stillborn` - a mutant that is not legal code is a fault in the generator,
+  not in the design;
+- `repeats` - a mutant that changes no code, or is the same code as another
+  mutant once comments and spacing are taken out, would count one weakness
+  twice.
+
+At the time of writing: 3,274 mutants, 0 stillborn, 0 repeats, 504 caught by
+lint, 2,770 left for the testbenches.

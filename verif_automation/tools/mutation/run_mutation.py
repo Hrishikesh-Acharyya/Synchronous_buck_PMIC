@@ -104,6 +104,8 @@ TARGETS = {
 }
 # DEFAULT_TARGET: the unit testbench of a module
 DEFAULT_TARGET = ("tb_{m}", "{m}_tb")
+# AI_STORE: where the mutants written by the AI step are kept
+AI_STORE = REPO / "verif_automation" / "ai" / "mutants"
 
 
 def target_of(module):
@@ -112,8 +114,8 @@ def target_of(module):
     return t.format(m=module), top.format(m=module)
 
 
-def all_mutants():
-    """Purpose: every mutant of every tracked RTL file, in file order."""
+def mechanical_mutants():
+    """Purpose: every mutant the operators make, of every tracked RTL file, in file order."""
     files = subprocess.run(["git", "ls-files", "--", "rtl-systemverilog"], cwd=REPO, capture_output=True,
                            text=True).stdout.split()
     info = M.design_info(REPO / "rtl-systemverilog")
@@ -121,6 +123,18 @@ def all_mutants():
     for rel in sorted(f for f in files if f.endswith(".sv")):
         out += M.find(str(REPO / rel), rel, info)
     return out
+
+
+def all_mutants():
+
+    """
+    Purpose: Every mutant: the mechanical ones, and the ones the AI step
+             wrote (AI_STORE). An AI-written mutant whose lines have changed
+             since it was written cannot be placed; those are counted in
+             RUN["stale"] and reported.
+    """
+    written, RUN["stale"] = M.written(AI_STORE, REPO)
+    return sorted(mechanical_mutants() + written, key=lambda m: (m.file, m.start, m.operator, m.id))
 
 
 def screen(sv_dir):
@@ -146,7 +160,7 @@ def screen(sv_dir):
 
 # RUN: per-run settings shared by every worker - the suites' random seed and
 #      any extra make variables for the sim/ targets
-RUN = {"seed": 1, "sim_args": [], "covers": {}}
+RUN = {"seed": 1, "sim_args": [], "covers": {}, "stale": []}
 
 
 def run_target(target, top, sv_dir, build, timeout):
@@ -218,10 +232,44 @@ def run_one(m, work, timeout, keep, simulate=True):
     return status, secs, detail
 
 
+def repeats(ms):
+
+    """
+    Purpose: For --check: the mutants that are not a mutant of their own -
+             each (id, what) where what is "changes no code" or "the same
+             code as <id>". Compared with comments and spacing taken out.
+    """
+    out, by_file = [], {}
+    for m in ms:
+        by_file.setdefault(m.file, []).append(m)
+    for file, group in by_file.items():
+        text = M.source_text(str(REPO / file))
+        seen = {M.code_key(text): None}
+        for m in group:
+            key = M.code_key(m.apply(text))
+            if key in seen:
+                out.append((m.id, "changes no code" if seen[key] is None else f"the same code as {seen[key]}"))
+            else:
+                seen[key] = m.id
+    return out
+
+
 def line_pair(m):
-    """Purpose: the mutated line before and after the edit."""
+
+    """
+    Purpose: The mutated line before and after the edit. For an edit of
+             several lines (an AI-written mutant), every line it replaces
+             and every line it puts there, joined with " / ".
+    """
     text = M.source_text(str(REPO / m.file))
-    return text.split("\n")[m.line - 1].strip(), m.apply(text).split("\n")[m.line - 1].strip()
+    if m.operator != M.AI_OPERATOR:
+        return text.split("\n")[m.line - 1].strip(), m.apply(text).split("\n")[m.line - 1].strip()
+    old, new = text[m.start:m.end].split("\n"), m.new_text.split("\n")
+    while len(old) > 1 and len(new) > 1 and old[0].strip() == new[0].strip():
+        old, new = old[1:], new[1:]
+    while len(old) > 1 and len(new) > 1 and old[-1].strip() == new[-1].strip():
+        old, new = old[:-1], new[:-1]
+    return " / ".join(x.strip() for x in old), " / ".join(x.strip() for x in new)
 
 
 def report(results, header):
@@ -352,6 +400,9 @@ def main():
         for m in ms:
             print(f"{m.id:36s} {m.file}:{m.line:<5d} {m.operator}  {m.description}")
         print(f"{len(ms)} mutants (of {total_found})")
+        if RUN["stale"]:
+            print(f"{len(RUN['stale'])} AI-written mutants no longer match the RTL and are left out: "
+                  + ", ".join(RUN["stale"]))
         return
 
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True,
@@ -417,9 +468,15 @@ def main():
               "score = (killed + lint + covers + timeout) / (mutants - stillborn - ai_equiv); a survivor is a "
               "gap or an equivalent mutant"]
     if args.check:
+        same = repeats(ms)
         header[2:] = ["check only: every mutant screened with make lint, none simulated",
                       "clean = legal and accepted by lint (would be simulated); lint = caught by make lint; "
-                      "stillborn = not legal code (a fault in the mutant generator if it is not 0)"]
+                      "stillborn = not legal code (a fault in the mutant generator if it is not 0)",
+                      f"repeats: {len(same)} mutants change no code or are the same code as another (should be 0)"
+                      + "".join(f"\n  {mid}: {what}" for mid, what in same)]
+    if RUN["stale"]:
+        header.append(f"left out: {len(RUN['stale'])} AI-written mutants whose lines have changed since they "
+                      f"were written ({', '.join(RUN['stale'])})")
     text = report(results, header)
     (out / "report.txt").write_text(text)
     (out / "results.json").write_text(json.dumps({"header": header, "results": results}, indent=1) + "\n")

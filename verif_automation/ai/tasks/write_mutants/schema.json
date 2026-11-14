@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "mutants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": {"type": "integer"},
+          "before": {"type": "array", "items": {"type": "string"}},
+          "after": {"type": "array", "items": {"type": "string"}},
+          "category": {
+            "type": "string",
+            "enum": ["wrong_event", "missing_case", "priority", "boundary", "protocol", "field",
+                     "sequencing", "reset_init", "other"]
+          },
+          "description": {"type": "string"},
+          "reason": {"type": "string"}
+        },
+        "required": ["line", "before", "after", "category", "description", "reason"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["mutants"],
+  "additionalProperties": false
+}

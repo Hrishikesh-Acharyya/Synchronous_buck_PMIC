@@ -15,7 +15,8 @@ nothing.
 ## How a run works
 
 1. Every mutant of the selected modules is listed (3,274 across 17 modules
-   and the package at the time of writing, from 26 operators).
+   and the package at the time of writing, from 26 operators), together with
+   the mutants the AI step has written (operator AIM - see "With the AI").
 2. `make lint` and each `sim/` target the run will use are run once on the
    unmutated RTL. A failure there stops the run: mutation results on a
    failing baseline mean nothing.
@@ -67,6 +68,16 @@ hold over half of all mutants (1,764 of 3,274) - they dominate a full run.
 
 ## With the AI
 
+Before a run, `make ai_mutants` has an AI agent write the mutants the
+operators cannot: faults that need the design's meaning. The agent only
+proposes; a deterministic gate decides what is stored in `../../ai/mutants/`,
+and this runner loads what is there as operator AIM - listed, screened,
+simulated and scored exactly like the rest (`OPERATORS=AIM` selects them).
+Each is kept as the lines it replaces and the lines it puts there, so it is
+found again when the file's line numbers move. If the lines themselves have
+changed, the mutant can no longer be placed: it is left out, and the list and
+the report say so by name.
+
 After a run, `make judge` (see `../../ai/README.md`) has an AI agent judge
 each survivor: a real gap, or an edit that changes nothing. This is the
 recommended order - the agent sees only the hundred or so mutants that need
@@ -101,3 +112,5 @@ edit took a scenario away, which usually means it is not equivalent.
 - It does not decide whether a survivor is a real gap or an equivalent
   mutant. That judgement is a later step.
 - It does not write or change any checker or test.
+- It does not call the AI. The AI-written mutants it runs are a file in the
+  repository, the same on every run.

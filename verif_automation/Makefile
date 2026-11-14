@@ -9,7 +9,9 @@
 #                   Run from this folder:  make help
 #
 # Global variables: PYTHON, SV_LINT, CONTRACT, MUTATION, EVIDENCE, RULES, FILES,
-#                   MODULE, OPERATORS, SAMPLE, SEED, JOBS - see below
+#                   MODULE, OPERATORS, SAMPLE, SEED, JOBS, IDS, SIM_ARGS,
+#                   TRIAGE, AUDIT, CHUNK, MODEL, RESUME, DRY, COUNT, RESULTS -
+#                   see below
 
 # PYTHON: the interpreter for the tools (standard library only)
 PYTHON   ?= python3
@@ -52,6 +54,9 @@ CHUNK     ?=
 MODEL     ?=
 RESUME    ?=
 DRY       ?=
+# COUNT: optional - how many mutants make ai_mutants asks for per module
+#        (default: 40 for reg_file, 30 for spi_slave, fewer for the rest)
+COUNT     ?=
 # RESULTS: the mutation run whose survivors make judge works on (default:
 #          the newest run in build/mutation/)
 RESULTS   ?= $(lastword $(sort $(wildcard build/mutation/*/results.json)))
@@ -67,10 +72,15 @@ TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)
               $(if $(RESUME),--resume $(RESUME)) $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS))
 
 .DEFAULT_GOAL := help
-.PHONY: help lint lint_report lint_evidence contract mutants mutants_check triage triage_evidence judge judge_evidence mutate mutation_evidence setup_check check_scripts
+# WRITE_ARGS: the ai_mutants settings as script options
+WRITE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(COUNT),--count $(COUNT)) $(if $(MODEL),--model $(MODEL)) \
+             $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS))
+
+.PHONY: help lint lint_report lint_evidence contract mutants mutants_check ai_mutants ai_mutants_evidence \
+        triage triage_evidence judge judge_evidence mutate mutation_evidence setup_check check_scripts
 
 help:  ## list the commands
-	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-19s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-21s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # lint: every rule in tools/lint/RULES.md over the RTL, checkers and
 #       testbenches; fails on any error. RULES=C1,S2 for a subset, FILES=sva
@@ -93,7 +103,8 @@ lint_evidence:  ## save the full report to evidence/lint/<date>_lint.txt
 contract:  ## extract every module's contract to build/contract/
 	@$(PYTHON) $(CONTRACT)
 
-# mutants: the mutation sites, listed without running anything
+# mutants: the mutation sites, listed without running anything - the
+#          mechanical mutants and the AI-written ones (OPERATORS=AIM for those)
 mutants:  ## list the mutants (MODULE=, OPERATORS=, SAMPLE=, SEED=)
 	@$(PYTHON) $(MUTATION) --list $(MUTATION_ARGS)
 
@@ -102,6 +113,20 @@ mutants:  ## list the mutants (MODULE=, OPERATORS=, SAMPLE=, SEED=)
 #                minutes for all of them; stillborn should read 0.
 mutants_check:  ## health check of the mutant generator: lint-screen every mutant, no simulation
 	@$(PYTHON) $(MUTATION) --check $(MUTATION_ARGS)
+
+# ai_mutants: the AI step that writes mutants. Claude Code, run on this machine
+#             read-only, reads one module at a time and proposes faults that
+#             need the design's meaning - the ones no mechanical operator can
+#             make. Each proposal passes a deterministic gate (the lines exist,
+#             the edit is small and real, not a mutant already made, legal
+#             code that lint accepts) before it is stored in ai/mutants/, from
+#             where make mutate runs it beside the mechanical ones as operator
+#             AIM. Run it again to add more. Simulates nothing.
+ai_mutants:  ## AI-written, design-aware mutants, gated and stored in ai/mutants/ (MODULE=, COUNT=, MODEL=, DRY=1)
+	@$(PYTHON) ai/scripts/write_mutants.py $(WRITE_ARGS)
+
+ai_mutants_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
+	@$(PYTHON) ai/scripts/write_mutants.py --evidence $(WRITE_ARGS)
 
 # triage: the AI step, before any simulation. Claude Code, run on this
 #         machine read-only, judges each mutant that passes lint: can the edit

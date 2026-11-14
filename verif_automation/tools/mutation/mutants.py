@@ -31,8 +31,19 @@
 #                   x_d <= x_d is left to SDL too. OPERATORS.md lists them
 #                   all.
 #
-# Global variables: OPERATORS - the operator table
+#                   Beside these mechanical mutants, written() loads the
+#                   mutants the AI step wrote and a deterministic gate
+#                   accepted (ai/mutants/<unit>.json, operator AIM): edits
+#                   that need the design's meaning. Each is kept as the
+#                   lines it replaces and the lines it puts there, and is
+#                   found again by that text, so it survives the file's line
+#                   numbers moving.
+#
+# Global variables: OPERATORS - the operator table; AI_OPERATOR - the
+#                   operator id of the AI-written mutants
 
+import hashlib
+import json
 import pathlib
 import re
 import sys
@@ -71,7 +82,10 @@ OPERATORS = {
     "EDL": "delete an else branch",
     "ICS": "wrong wire: two same-type inputs, or two same-type outputs, of one instance swapped, "
            "or the same input of two instances of one module swapped",
+    "AIM": "a design-aware edit written by the AI step, accepted by its gate and kept in ai/mutants/",
 }
+# AI_OPERATOR: the operator id of the mutants written by the AI step
+AI_OPERATOR = "AIM"
 
 # _SWAP: operator token replacements, per operator id
 _SWAP = {
@@ -731,3 +745,84 @@ def source_text(path):
     """Purpose: a file's text as the parser saw it (carriage returns removed)."""
     with open(path, "rb") as f:
         return f.read().decode("utf-8", "replace").replace("\r", "")
+
+
+def code_key(text):
+
+    """
+    Purpose: A file's code with comments and spacing taken out, as a
+             short key. Two texts with the same key are the same design:
+             used to refuse an edit that changes nothing, and one that
+             makes a mutant already made.
+    """
+    code = "\0".join(tok.text for tok in svparse.tokenize(svparse.blank(text)[0]))
+    return hashlib.sha1(code.encode()).hexdigest()
+
+
+def locate(text, before, near=0):
+
+    """
+    Purpose: Where the lines `before` stand in text, compared with leading
+             and trailing spaces ignored. Returns the 0-based index of the
+             first line of every place they match, the one nearest the
+             1-based line `near` first.
+    """
+    want = [b.strip() for b in before]
+    lines = [x.strip() for x in text.split("\n")]
+    if not want or not any(want):
+        return []
+    hits = [i for i in range(len(lines) - len(want) + 1) if lines[i:i + len(want)] == want]
+    return sorted(hits, key=lambda i: abs(i + 1 - near))
+
+
+def written_mutant(entry, unit, rel, text, at=None):
+
+    """
+    Purpose: The Mutant for one stored AI-written entry, placed in text, or
+             None if the lines it replaces are no longer there (or stand in
+             two places equally near its recorded line). The replacement
+             takes the indentation of the lines it replaces. at forces the
+             0-based line it starts on.
+    """
+    before, after = entry["before"], entry["after"]
+    if at is None:
+        hits = locate(text, before, entry.get("line", 0))
+        if not hits:
+            return None
+        near = entry.get("line", 0)
+        if len(hits) > 1 and abs(hits[0] + 1 - near) == abs(hits[1] + 1 - near):
+            return None
+        at = hits[0]
+    lines = text.split("\n")
+    start = sum(len(x) + 1 for x in lines[:at])
+    end = start + sum(len(x) + 1 for x in lines[at:at + len(before)]) - 1
+    indent = lines[at][:len(lines[at]) - len(lines[at].lstrip())]
+    shared = min((len(a) - len(a.lstrip()) for a in after if a.strip()), default=0)
+    new = "\n".join((indent + a[shared:]) if a.strip() else "" for a in after)
+    same = 0                                    # the first line the edit really changes
+    while same < min(len(before), len(after)) - 1 and before[same].strip() == after[same].strip():
+        same += 1
+    return Mutant(f"{unit}.{at + same + 1}.{AI_OPERATOR}.{entry['key']}", rel, unit, at + same + 1, AI_OPERATOR,
+                  entry["description"], start, end, new)
+
+
+def written(store, repo):
+
+    """
+    Purpose: Every AI-written mutant kept under store (one <unit>.json per
+             module), placed in the RTL as it is now. Returns (mutants,
+             stale): stale lists the ids of entries whose lines have since
+             changed - they are not run, and need writing again.
+    """
+    out, stale = [], []
+    for path in sorted(pathlib.Path(store).glob("*.json")):
+        data = json.loads(path.read_text())
+        source = pathlib.Path(repo) / data["file"]
+        text = source_text(str(source)) if source.exists() else ""
+        for entry in data["mutants"]:
+            m = written_mutant(entry, data["unit"], data["file"], text)
+            if m is None:
+                stale.append(f"{data['unit']}.{AI_OPERATOR}.{entry['key']}")
+            else:
+                out.append(m)
+    return out, stale

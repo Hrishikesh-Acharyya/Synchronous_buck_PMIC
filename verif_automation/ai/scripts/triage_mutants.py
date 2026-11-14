@@ -83,21 +83,22 @@ TASK = HERE.parent / "tasks" / "triage_mutants"
 CLAUDE = os.environ.get("CLAUDE", "claude")
 
 
-def command(model):
+def command(model, task=None):
 
     """
     Purpose: The exact Claude Code command for one chunk. Read-only tools,
              no MCP servers, anything that would ask for permission denied,
              and the answer forced into the task's schema. The prompt goes
-             in on stdin.
+             in on stdin. task is the task folder (default: this script's).
     """
+    task = task or TASK
     cmd = [CLAUDE, "-p",
            "--tools", "Read,Grep,Glob",
            "--strict-mcp-config",
            "--permission-mode", "dontAsk",
            "--settings", str(HERE / "settings_readonly.json"),
            "--output-format", "json",
-           "--json-schema", json.dumps(json.loads((TASK / "schema.json").read_text()))]
+           "--json-schema", json.dumps(json.loads((task / "schema.json").read_text()))]
     if model:
         cmd += ["--model", model]
     return cmd
@@ -307,14 +308,20 @@ def main():
     if stopped:
         print(stopped)
     if args.evidence and not args.dry_run:
-        save_evidence(run, header, n_eq, n_un)
+        gate = "the designer's review of each verdict" if task == "judge_survivors" else \
+            "the mutation run's audit: every mutant judged equivalent that a test kills is a triage error"
+        save_evidence(run, header, f"read access to rtl-systemverilog/; {len(clean)} mutants",
+                      f"verdicts for {header['judged']} ({n_eq} equivalent with high confidence, {n_un} untriaged)",
+                      gate)
 
 
-def save_evidence(run, header, n_eq, n_un):
+def save_evidence(run, header, given, produced, gate):
 
     """
     Purpose: Copy the run record into evidence/ai_runs/ and add a row to the
-             ledger there (creating it on the first run).
+             ledger there (creating it on the first run). given, produced
+             and gate are the row's text: what the agent was given, what it
+             produced, and what checks that.
     """
     ev = REPO / "verif_automation" / "evidence" / "ai_runs"
     ev.mkdir(parents=True, exist_ok=True)
@@ -331,12 +338,8 @@ def save_evidence(run, header, n_eq, n_un):
             "| Run | Date | Commit | Task | Given | Produced | Gate | Verdict |\n|---|---|---|---|---|---|---|---|\n")
     rows = sum(1 for line in ledger.read_text().splitlines() if line.startswith("| A"))
     with ledger.open("a") as f:
-        gate = "the designer's review of each verdict" if header["task"] == "judge_survivors" else \
-            "the mutation run's audit: every mutant judged equivalent that a test kills is a triage error"
         f.write(f"| A{rows + 1} | {header['date']} | {header['commit']} | {header['task']} (`{dest.name}/`) | "
-                f"read access to rtl-systemverilog/; {header['sent_to_triage']} mutants | verdicts for "
-                f"{header['judged']} ({n_eq} equivalent with high confidence, {n_un} untriaged) | {gate} | "
-                f"pending |\n")
+                f"{given} | {produced} | {gate} | pending |\n")
     print(f"evidence: {dest}, ledger {ledger}")
 
 
