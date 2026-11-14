@@ -279,6 +279,7 @@ wire [1:0]  strike_int     = u_dut.strike_level;
 wire        run_active_int = u_dut.run_active;
 wire        ss_active_int  = u_dut.ss_active;
 wire [7:0]  max_on_cnt_int = u_dut.max_on_counts;
+wire [5:0]  fcnt_ss_int    = u_dut.fault_count_ss;
 wire        osc_sync_int   = u_dut.Osc_sync;
 wire        otp_sync_int   = u_dut.OTP_sync;
 wire        otp_db_int     = u_dut.OTP_sync_db;
@@ -469,7 +470,11 @@ localparam integer C_RST_RUN    = 75, C_STRK_PERSIST = 76;
 localparam integer C_REG_TRIP_RUN = 77, C_REG_TRIP_SS = 78, C_REG_STRIKES = 79, C_REG_MAX_ON = 80;
 localparam integer C_REG_CYC    = 81, C_SPI_GLITCH = 82, C_SPI_WRAP   = 83, C_SPI_RST    = 84;
 localparam integer C_SPI_RO     = 85;
-localparam integer NB           = 86;
+// third pass: the rules and fixes made after the first submission
+localparam integer C_SCR_BADCRC = 86, C_REJ_PARTIAL = 87, C_REJ_ALL    = 88, C_REJ_KEEP   = 89;
+localparam integer C_WRITEBACK  = 90, C_AB_CMD     = 91, C_MAXON_NEXT = 92, C_STRK_LOWER = 93;
+localparam integer C_MAXON_RAMP = 94, C_ARB_GATE   = 95;
+localparam integer NB           = 96;
 
 reg  [NB-1:0] cov = {NB{1'b0}};
 integer       cov_hits [0:NB-1];
@@ -480,7 +485,7 @@ integer       cov_idx;
 // cov_applies: whether a bin exists in the build under test. Without telemetry
 //              there is no host disable, SPI protocol, register map,
 //              timestamp, fault log, bus-error counter, watchdog or PWM
-//              statistics: 32 of the 86 bins name hardware that is not built,
+//              statistics: 42 of the 96 bins name hardware that is not built,
 //              and they are reported "n/a".
 function cov_applies(input integer bin);
     begin
@@ -601,6 +606,16 @@ function [8*56:1] cov_name(input integer bin);
             C_SPI_WRAP:   cov_name = "spi   burst read wraps from 0x7F to 0x00";
             C_SPI_RST:    cov_name = "spi   reset mid-transaction, next one works";
             C_SPI_RO:     cov_name = "spi   write to a read-only register ignored";
+            C_SCR_BADCRC: cov_name = "reg   SCRATCH unchanged by a write with a bad CRC";
+            C_REJ_PARTIAL: cov_name = "reg   part of a 3-byte register: whole write refused";
+            C_REJ_ALL:    cov_name = "reg   all or nothing: refused write commits nothing";
+            C_REJ_KEEP:   cov_name = "reg   rejection flag kept until an accepted write";
+            C_WRITEBACK:  cov_name = "reg   bank written back while running: accepted";
+            C_AB_CMD:     cov_name = "spi   command cut short after a read: counted error";
+            C_MAXON_NEXT: cov_name = "reg   MAX_ON written in S_RUN: in force next ramp";
+            C_STRK_LOWER: cov_name = "strk  MAX_STRIKES lowered under count: next one latches";
+            C_MAXON_RAMP: cov_name = "ss    MAX_ON lowered under the ramp: ceiling clamps";
+            C_ARB_GATE:   cov_name = "flt   TRIP_SS lowered in S_RUN: no trip, nothing logged";
             default:      cov_name = "?";
         endcase
     end
@@ -937,7 +952,7 @@ integer pgood_not_run     = 0;     // clocks with PGOOD high outside S_RUN
 integer green_err         = 0;     // clocks Green_LED disagreed with running-and-no-fault
 integer red23_err         = 0;     // clocks Red_LED2 / Red_LED3 disagreed with OTP / UVLO
 integer ceiling_err       = 0;     // PWM_out pulses longer than the ceiling in force
-integer latch_wrong       = 0;     // latch_out set at a strike level other than MAX_STRIKES
+integer latch_wrong       = 0;     // latch_out set at a strike level short of MAX_STRIKES
 reg     green_exp = 1'b0, red2_exp = 1'b0, red3_exp = 1'b0;
 reg [7:0] ceil_at_rise    = 8'd0;
 
@@ -1000,12 +1015,14 @@ end
 /*
 Purpose:
 ---
-latch_out may only rise on the strike that reaches MAX_STRIKES (the register
-value with telemetry, the default without).
+latch_out may only rise on a strike that reaches MAX_STRIKES (the register
+value with telemetry, the default without) - or passes it, when the host has
+lowered MAX_STRIKES below the strikes already counted. It must never rise on
+a strike short of it.
 */
 always @(posedge latch_out) begin
     #(1.0);
-    if (strike_int !== rf_max_strikes[1:0]) latch_wrong = latch_wrong + 1;
+    if (!(strike_int >= rf_max_strikes[1:0])) latch_wrong = latch_wrong + 1;
 end
 
 
@@ -1150,22 +1167,33 @@ end
 // ============================================================
 /*
 A shadow of every writable register, updated from the bytes the testbench
-sends using the register map's documented rules - not from the DUT: the
-delay line that releases each data byte only when the next completes (so
-SCRATCH and the keys act before the CRC is known), keys that must share a
-transaction with what they unlock, CONTROL changes deferred to a good CRC, the
-S_OFF-only registers, the all-three-bytes rule, and the clamp ranges. The
-shadow is compared with the register file every clock between transactions,
-and with every byte read back over SPI.
+sends using the register map's documented rules - not from the DUT:
+  - the delay line that releases each data byte only when the next completes;
+  - SCRATCH and CONTROL are staged and take effect only on a good CRC;
+  - keys must share a transaction with what they unlock;
+  - a transaction's threshold writes commit all or nothing. They are all
+    refused if the bank is not unlocked, if one of the 3-byte registers is
+    only partly written, or if - outside S_OFF - the transaction would CHANGE
+    hiccup_base, cycles_per_step or clean_run_target (its raw byte differs
+    from the live value; writing back the present value is not a change);
+  - an accepted write is clamped into range as it commits;
+  - write_rejected is set by a refused threshold write, cleared by an accepted
+    one, and left alone by a transaction that wrote no threshold.
+The shadow is compared with the register file every clock between
+transactions, and with every byte read back over SPI.
 */
 reg [7:0]  sh_scratch, sh_trip_run, sh_trip_ss, sh_max_strikes, sh_max_on, sh_cyc_step;
 reg [23:0] sh_hiccup, sh_clean;
 reg        sh_spi_enable, sh_write_rej;
 reg        spi_busy = 1'b1;      // a transaction or reset in flight: compare paused
 reg        sh_last_locked;       // last commit rejected for want of the key
-reg        sh_last_offonly;      // last commit rejected an S_OFF-only register
+reg        sh_last_offonly;      // last commit rejected a change to an S_OFF-only register
+reg        sh_last_partial;      // last commit rejected a partly written 3-byte register
+reg        sh_last_held;         // last rejected commit held back a live threshold that would have changed
+reg        sh_last_writeback;    // last accepted commit wrote an S_OFF-only register back outside S_OFF
 reg        sh_last_clamped;      // last commit clamped a value
 reg [7:0]  sh_tmp [0:10];        // threshold temp registers, 0x50..0x5A
+integer    sh_idx;
 integer    rm_compares = 0, rm_mismatch = 0;
 integer    rd_compares = 0, rd_mismatch = 0;
 integer    outcome_mismatch = 0; // integrity/abort not as the protocol predicts
@@ -1182,6 +1210,7 @@ task shadow_reset;
         sh_clean      = CLEAN_DEF;
         sh_spi_enable = 1'b1;
         sh_write_rej  = 1'b0;
+        for (sh_idx = 0; sh_idx <= 10; sh_idx = sh_idx + 1) sh_tmp[sh_idx] = 8'h00;
     end
 endtask
 
@@ -1213,17 +1242,21 @@ task shadow_write(input [6:0] cmd_addr, input integer n_rel, input committed);
     reg [6:0]  a;
     reg [7:0]  b;
     reg [10:0] dirty;
-    reg        unlock, disarm, en_pend, en_val, off_ok;
-    reg [7:0]  clamped;
-    reg [23:0] clamped24;
+    reg        unlock, disarm, en_pend, en_val, off_ok, scr_pend;
+    reg        hic_any, hic_all, cln_any, cln_all, off_change, reject;
+    reg [7:0]  scr_val;
+    reg [7:0]  c_run, c_ss, c_strk, c_on, c_cyc;
+    reg [23:0] raw_hic, raw_cln, c_hic, c_cln;
     begin
         unlock = 1'b0; disarm = 1'b0; en_pend = 1'b0; en_val = 1'b0; dirty = 11'd0;
-        sh_last_locked = 1'b0; sh_last_offonly = 1'b0; sh_last_clamped = 1'b0;
+        scr_pend = 1'b0; scr_val = 8'h00;
+        sh_last_locked = 1'b0; sh_last_offonly = 1'b0; sh_last_partial = 1'b0;
+        sh_last_held = 1'b0; sh_last_writeback = 1'b0; sh_last_clamped = 1'b0;
         off_ok = (sm_state == ST_OFF);
         for (i = 0; i < n_rel; i = i + 1) begin
             a = cmd_addr + i;
             b = spi_tx[i];
-            if      (a == A_SCRATCH) sh_scratch = b;            // immediate, before the CRC
+            if      (a == A_SCRATCH) begin scr_pend = 1'b1; scr_val = b; end   // staged until the CRC
             else if (a == A_DISKEY)  disarm = (b == DISABLE_KEY);
             else if (a == A_WRKEY)   unlock = (b == WRITE_KEY);
             else if (a == A_CONTROL) begin
@@ -1236,58 +1269,45 @@ task shadow_write(input [6:0] cmd_addr, input integer n_rel, input committed);
             end
         end
         if (committed) begin
-            if (en_pend) sh_spi_enable = en_val;
+            if (en_pend)  sh_spi_enable = en_val;
+            if (scr_pend) sh_scratch    = scr_val;
             if (|dirty) begin
-                sh_write_rej = 1'b0;
-                if (!unlock) begin
-                    sh_write_rej   = 1'b1;
-                    sh_last_locked = 1'b1;
+                hic_any = |dirty[6:4];   hic_all = &dirty[6:4];
+                cln_any = |dirty[10:8];  cln_all = &dirty[10:8];
+                raw_hic = {sh_tmp[6], sh_tmp[5], sh_tmp[4]};
+                raw_cln = {sh_tmp[10], sh_tmp[9], sh_tmp[8]};
+                // a change is judged on the raw bytes, before any clamp
+                off_change = (dirty[7] && (sh_tmp[7] != sh_cyc_step)) ||
+                             (hic_any  && (raw_hic   != sh_hiccup))   ||
+                             (cln_any  && (raw_cln   != sh_clean));
+                sh_last_partial = (hic_any && !hic_all) || (cln_any && !cln_all);
+                reject = !unlock || sh_last_partial || ((off_change === 1'b1) && !off_ok);
+                c_run  = clamp8(sh_tmp[0], 1, WINDOW_RUN);
+                c_ss   = clamp8(sh_tmp[1], 1, WINDOW_SS);
+                c_strk = clamp8(sh_tmp[2], 1, MAX_STRIKES_DEF);
+                c_on   = clamp8(sh_tmp[3], MIN_ON_COUNTS, MAX_ON_COUNTS);
+                c_cyc  = clamp8(sh_tmp[7], 1, CYC_STEP_MAX);
+                c_hic  = clamp24(raw_hic, HICCUP_MIN, HICCUP_MAX);
+                c_cln  = clamp24(raw_cln, CLEAN_SHORT, CLEAN_MAX);
+                if (reject) begin
+                    sh_write_rej    = 1'b1;
+                    sh_last_locked  = !unlock;
+                    sh_last_offonly = unlock && !sh_last_partial && !off_ok;
+                    sh_last_held    = (dirty[0] && (c_run  != sh_trip_run))    ||
+                                      (dirty[1] && (c_ss   != sh_trip_ss))     ||
+                                      (dirty[2] && (c_strk != sh_max_strikes)) ||
+                                      (dirty[3] && (c_on   != sh_max_on));
                 end
                 else begin
-                    if (dirty[0]) begin
-                        clamped = clamp8(sh_tmp[0], 1, WINDOW_RUN);
-                        if (clamped != sh_tmp[0]) sh_last_clamped = 1'b1;
-                        sh_trip_run = clamped;
-                    end
-                    if (dirty[1]) begin
-                        clamped = clamp8(sh_tmp[1], 1, WINDOW_SS);
-                        if (clamped != sh_tmp[1]) sh_last_clamped = 1'b1;
-                        sh_trip_ss = clamped;
-                    end
-                    if (dirty[2]) begin
-                        clamped = clamp8(sh_tmp[2], 1, MAX_STRIKES_DEF);
-                        if (clamped != sh_tmp[2]) sh_last_clamped = 1'b1;
-                        sh_max_strikes = clamped;
-                    end
-                    if (dirty[3]) begin
-                        clamped = clamp8(sh_tmp[3], MIN_ON_COUNTS, MAX_ON_COUNTS);
-                        if (clamped != sh_tmp[3]) sh_last_clamped = 1'b1;
-                        sh_max_on = clamped;
-                    end
-                    if (dirty[7]) begin
-                        if (off_ok) begin
-                            clamped = clamp8(sh_tmp[7], 1, CYC_STEP_MAX);
-                            if (clamped != sh_tmp[7]) sh_last_clamped = 1'b1;
-                            sh_cyc_step = clamped;
-                        end
-                        else begin sh_write_rej = 1'b1; sh_last_offonly = 1'b1; end
-                    end
-                    if (|dirty[6:4]) begin
-                        if ((&dirty[6:4]) && off_ok) begin
-                            clamped24 = clamp24({sh_tmp[6], sh_tmp[5], sh_tmp[4]}, HICCUP_MIN, HICCUP_MAX);
-                            if (clamped24 != {sh_tmp[6], sh_tmp[5], sh_tmp[4]}) sh_last_clamped = 1'b1;
-                            sh_hiccup = clamped24;
-                        end
-                        else begin sh_write_rej = 1'b1; if (!off_ok) sh_last_offonly = 1'b1; end
-                    end
-                    if (|dirty[10:8]) begin
-                        if ((&dirty[10:8]) && off_ok) begin
-                            clamped24 = clamp24({sh_tmp[10], sh_tmp[9], sh_tmp[8]}, CLEAN_SHORT, CLEAN_MAX);
-                            if (clamped24 != {sh_tmp[10], sh_tmp[9], sh_tmp[8]}) sh_last_clamped = 1'b1;
-                            sh_clean = clamped24;
-                        end
-                        else begin sh_write_rej = 1'b1; if (!off_ok) sh_last_offonly = 1'b1; end
-                    end
+                    sh_write_rej = 1'b0;
+                    if (dirty[0]) begin if (c_run  != sh_tmp[0]) sh_last_clamped = 1'b1; sh_trip_run    = c_run;  end
+                    if (dirty[1]) begin if (c_ss   != sh_tmp[1]) sh_last_clamped = 1'b1; sh_trip_ss     = c_ss;   end
+                    if (dirty[2]) begin if (c_strk != sh_tmp[2]) sh_last_clamped = 1'b1; sh_max_strikes = c_strk; end
+                    if (dirty[3]) begin if (c_on   != sh_tmp[3]) sh_last_clamped = 1'b1; sh_max_on      = c_on;   end
+                    if (dirty[7]) begin if (c_cyc  != sh_tmp[7]) sh_last_clamped = 1'b1; sh_cyc_step    = c_cyc;  end
+                    if (hic_any)  begin if (c_hic  != raw_hic)   sh_last_clamped = 1'b1; sh_hiccup      = c_hic;  end
+                    if (cln_any)  begin if (c_cln  != raw_cln)   sh_last_clamped = 1'b1; sh_clean       = c_cln;  end
+                    sh_last_writeback = !off_ok && (dirty[7] || hic_any || cln_any);
                 end
             end
         end
@@ -2467,6 +2487,262 @@ task phase_spi_corners;
     end
 endtask
 
+// spi_cmd_cut: CS falls, nbits (under 8) of a command are clocked in, CS
+//              rises. No command was received, so nothing can commit; the
+//              slave must end it as a write error - txn_abort, counted in the
+//              bus-error counter - whatever the transaction before it was.
+task spi_cmd_cut(input [7:0] cmd, input integer nbits);
+    begin
+        spi_begin;
+        spi_send_bits(cmd, nbits);
+        spi_end;
+        shadow_write(7'h00, 0, 1'b0);
+        expect_outcome(1'b0, 1'b1);
+    end
+endtask
+
+// bank_frame: load spi_tx with the write key and the whole threshold bank as
+//             it stands (from the shadow), for a keyed write from 0x4F to 0x5A.
+//             The caller changes the bytes it means to, then sends it.
+task bank_frame;
+    begin
+        spi_tx[0]  = WRITE_KEY;
+        spi_tx[1]  = sh_trip_run;      spi_tx[2]  = sh_trip_ss;
+        spi_tx[3]  = sh_max_strikes;   spi_tx[4]  = sh_max_on;
+        spi_tx[5]  = sh_hiccup[7:0];   spi_tx[6]  = sh_hiccup[15:8];  spi_tx[7]  = sh_hiccup[23:16];
+        spi_tx[8]  = sh_cyc_step;
+        spi_tx[9]  = sh_clean[7:0];    spi_tx[10] = sh_clean[15:8];   spi_tx[11] = sh_clean[23:16];
+    end
+endtask
+
+/*
+Phase 21 (telemetry build): the register file's write rules as they stand now.
+A write is staged and commits only on a good CRC - SCRATCH included. A
+transaction's threshold writes commit all or nothing: one of them refused
+(no key, part of a 3-byte register, or a change to a register that may only
+change in S_OFF) and none commits, so the converter never runs on half a
+configuration. Writing a register back with the value it already holds is not
+a change, so firmware can rewrite the whole bank while the converter runs.
+The rejection flag (STATUS bit 7) stays until a threshold write is accepted.
+*/
+task phase_write_rules;
+    reg [7:0] old_run;
+    reg       kept;
+    integer   aborts0, buserr0;
+    begin
+        note("Phase 21: write rules - SCRATCH and the CRC, all or nothing, write-back while running, the rejection flag");
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("phase 21 starts in S_RUN (probe)", last_state, ST_RUN);
+
+        // SCRATCH is staged like everything else: a bad CRC leaves it alone
+        reg_write(A_SCRATCH, 8'h3C);
+        spi_tx[0] = 8'hC3;
+        spi_write(A_SCRATCH, 1, 1'b1);
+        reg_read(A_SCRATCH);
+        check_eq("SCRATCH write with a bad CRC: SCRATCH unchanged", rd_val, 8'h3C);
+        if (rd_val == 8'h3C) cover_bin(C_SCR_BADCRC);
+
+        // all or nothing: TRIP_RUN and CYCLES_PER_STEP changed in one keyed
+        // frame while running. CYCLES_PER_STEP may not change outside S_OFF,
+        // so TRIP_RUN must not commit either.
+        old_run = sh_trip_run;
+        bank_frame;
+        spi_tx[1] = (old_run == 8'd5) ? 8'd6 : 8'd5;
+        spi_tx[8] = (sh_cyc_step == 8'd8) ? 8'd9 : 8'd8;
+        spi_write(A_WRKEY, 9, 1'b0);
+        check_eq("all or nothing: TRIP_RUN not committed beside a refused CYCLES_PER_STEP", rf_trip_run, old_run);
+        check_eq("all or nothing: CYCLES_PER_STEP unchanged", rf_cyc_step, sh_cyc_step);
+        reg_read(A_STATUS);
+        check("all or nothing: STATUS write_rejected set", rd_val[7] === 1'b1);
+        check_eq("all or nothing: STATUS shows S_RUN in the same byte", rd_val[1:0], ST_RUN);
+        if ((rf_trip_run === old_run) && (rd_val[7] === 1'b1) && sh_last_held && sh_last_offonly) cover_bin(C_REJ_ALL);
+
+        // the flag is the host's evidence: a write that carries no threshold
+        // must not clear it
+        reg_write(A_SCRATCH, 8'h11);
+        reg_write(A_CONTROL, 8'h01);
+        reg_read(A_STATUS);
+        kept = (rd_val[7] === 1'b1);
+        check("rejection flag kept across SCRATCH and CONTROL writes", kept);
+        check("CONTROL enable while enabled: spi_enable still 1", rd_val[5] === 1'b1);
+
+        // write-back: the whole bank, 0x50 to 0x5A, with only TRIP_RUN new.
+        // The S_OFF-only registers carry their present values, so it is accepted.
+        bank_frame;
+        spi_tx[1] = (old_run == 8'd5) ? 8'd6 : 8'd5;
+        spi_write(A_WRKEY, 12, 1'b0);
+        check_eq("write-back while running: TRIP_RUN committed", rf_trip_run, (old_run == 8'd5) ? 8'd6 : 8'd5);
+        reg_read(A_STATUS);
+        check("write-back while running: accepted, write_rejected cleared", rd_val[7] === 1'b0);
+        check_eq("write-back while running: still S_RUN", rd_val[1:0], ST_RUN);
+        if ((rd_val[7] === 1'b0) && sh_last_writeback) cover_bin(C_WRITEBACK);
+        if (kept && (rd_val[7] === 1'b0)) cover_bin(C_REJ_KEEP);
+        read_thresholds;
+        check("write-back while running: the bank reads back as written",
+              (spi_rx[0] === sh_trip_run) && (spi_rx[7] === sh_cyc_step) &&
+              ({spi_rx[6], spi_rx[5], spi_rx[4]} === sh_hiccup) && ({spi_rx[10], spi_rx[9], spi_rx[8]} === sh_clean));
+
+        // a raw value that differs from the live one is a change even when the
+        // clamp would bring it back to the live value: the rule is "write back
+        // exactly what you read"
+        bank_frame;
+        spi_tx[8] = 8'd200;
+        spi_write(A_WRKEY, 12, 1'b0);
+        reg_read(A_STATUS);
+        check("out-of-range CYCLES_PER_STEP while running: refused, not clamped in", rd_val[7] === 1'b1);
+        write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS);
+        reg_read(A_STATUS);
+        check("run-time thresholds restored: write_rejected cleared", rd_val[7] === 1'b0);
+
+        // a command cut short straight after a read is still a write error
+        reg_read(A_ID);
+        aborts0 = n_abort;
+        buserr0 = rf_bus_err;
+        spi_cmd_cut({1'b1, A_ID}, 5);
+        check_eq("command cut short after a read: one abort", n_abort - aborts0, 1);
+        check_eq("command cut short after a read: bus-error count + 1", rf_bus_err - buserr0, 1);
+        reg_read(A_ID);
+        check_eq("command cut short: the next transaction works (PMIC_ID)", rd_val, 8'hB5);
+        if ((n_abort - aborts0 == 1) && (rf_bus_err - buserr0 == 1)) cover_bin(C_AB_CMD);
+
+        // part of a 3-byte register, in S_OFF where everything else would be
+        // allowed: the whole transaction is refused
+        do_reset;
+        #(300.0 * US);
+        check_eq("partial write: converter in S_OFF (probe)", sup_state, ST_OFF);
+        bank_frame;
+        spi_tx[1] = 8'd7;
+        spi_write(A_WRKEY, 7, 1'b0);                // key, four thresholds, two of HICCUP_BASE's three bytes
+        check_eq("partial HICCUP_BASE in S_OFF: TRIP_RUN not committed", rf_trip_run, TRIP_RUN_DEF);
+        check_eq("partial HICCUP_BASE in S_OFF: HICCUP_BASE unchanged", rf_hiccup, HICCUP_DEF);
+        reg_read(A_STATUS);
+        check("partial HICCUP_BASE in S_OFF: write_rejected set", rd_val[7] === 1'b1);
+        check_eq("partial HICCUP_BASE in S_OFF: STATUS shows S_OFF", rd_val[1:0], ST_OFF);
+        if ((rf_trip_run === TRIP_RUN_DEF[7:0]) && (rd_val[7] === 1'b1) && sh_last_partial) cover_bin(C_REJ_PARTIAL);
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
+                         HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
+        reg_read(A_STATUS);
+        check("full bank write in S_OFF: accepted, write_rejected cleared", rd_val[7] === 1'b0);
+        wait_en(1'b1, 21.0 * MS);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+    end
+endtask
+
+/*
+Phase 22 (telemetry build): limits changed under a running converter. Each of
+these was a fault found after the first submission.
+  - MAX_ON written in S_RUN is stored at once but reaches the gate at the next
+    soft start: the ceiling only ever moves through a ramp.
+  - MAX_STRIKES lowered below the strikes already counted: the next hiccup
+    must latch (the test was ==, and missed).
+  - MAX_ON lowered below a ceiling the ramp has already passed: the ceiling
+    must clamp down and the ramp end (the test was ==, and the ceiling ran on
+    to the top of its range).
+  - TRIP_SS lowered in S_RUN to below the soft-start count still held from the
+    ramp: no trip, and no overcurrent logged (the soft-start trip was not
+    confined to soft start).
+*/
+task phase_limits_live;
+    integer mo, mo2;
+    real    t0;
+    begin
+        note("Phase 22: limits changed under a running converter - MAX_ON, MAX_STRIKES, MAX_ON mid-ramp, TRIP_SS");
+        mo  = MIN_ON_COUNTS + 5;
+        mo2 = MIN_ON_COUNTS + 2;
+
+        // ---- MAX_ON written in S_RUN ----
+        osc_high_ns = 2000.0;
+        #(50.0 * US);
+        check_range("before the write: 90% commanded, PWM_out cut at MAX_ON+1 clocks (ns)", pwm_width_ns,
+                    (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, mo);
+        #(50.0 * US);
+        reg_read(A_MAX_ON);
+        check_eq("MAX_ON written in S_RUN: stored at once", rd_val, mo);
+        check_range("MAX_ON written in S_RUN: the running ceiling does not move (ns)", pwm_width_ns,
+                    (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS - 1.0, (MAX_ON_COUNTS + 1) * CLK_PERIOD_NS + 1.0);
+        check_eq("MAX_ON written in S_RUN: gate ceiling still the old one (probe)", max_on_cnt_int, MAX_ON_COUNTS);
+        osc_high_ns = SW_PERIOD_NS / 2.0;
+        repeat (4) @(posedge Osc_in);
+        oc_trip;                                    // strike 1: a hiccup, then a fresh ramp
+        wait_en(1'b1, 4.0 * hic_base_ns + 1.0 * MS);
+        osc_high_ns = 2000.0;
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        #(50.0 * US);
+        check_range("MAX_ON written in S_RUN: in force after the next soft start (ns)", pwm_width_ns,
+                    (mo + 1) * CLK_PERIOD_NS - 1.0, (mo + 1) * CLK_PERIOD_NS + 1.0);
+        if ((pwm_width_ns > (mo + 1) * CLK_PERIOD_NS - 1.0) && (pwm_width_ns < (mo + 1) * CLK_PERIOD_NS + 1.0))
+            cover_bin(C_MAXON_NEXT);
+
+        // ---- MAX_STRIKES lowered below the count ----
+        osc_high_ns = SW_PERIOD_NS / 2.0;
+        repeat (4) @(posedge Osc_in);
+        oc_trip;                                    // strike 2
+        wait_en(1'b1, 8.0 * hic_base_ns + 1.0 * MS);
+        wait_sup_state(ST_RUN, 15.0 * MS);
+        check_eq("two strikes outstanding (probe)", strike_int, 2);
+        write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, 8'd1, mo);
+        #(20.0 * US);
+        check_eq("MAX_STRIKES lowered to 1 with two strikes counted: stored", rf_max_strikes, 1);
+        check("MAX_STRIKES lowered: lowering it alone does not latch", (latch_out === 1'b0) && (En === 1'b1));
+        repeat (4) @(posedge Osc_in);
+        oc_trip;
+        #(10.0 * CLK_PERIOD_NS);
+        check("MAX_STRIKES lowered under the count: the next hiccup sets latch_out", latch_out === 1'b1);
+        if (latch_out === 1'b1) cover_bin(C_STRK_LOWER);
+        #(3.0 * MS);
+        check("MAX_STRIKES lowered under the count: no retry after the latch", En === 1'b0);
+
+        // ---- MAX_ON lowered below a ceiling the ramp has passed ----
+        do_reset;
+        #(300.0 * US);
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, MAX_ON_COUNTS,
+                         HICCUP_MIN, CYC_STEP_DEF, CLEAN_SHORT);
+        osc_high_ns = 2000.0;
+        wait_en(1'b1, 21.0 * MS);
+        t0 = $realtime;
+        while ((max_on_cnt_int < MIN_ON_COUNTS + 5) && ($realtime - t0 < 20.0 * MS)) @(posedge clk);
+        check("mid-ramp: the ceiling has climbed past the new limit, still in soft start (probe)",
+              (max_on_cnt_int >= MIN_ON_COUNTS + 5) && (sup_state === ST_SS));
+        write_run_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, mo2);
+        #(30.0 * US);
+        check_eq("MAX_ON lowered under the ramp: ceiling clamped down to it (probe)", max_on_cnt_int, mo2);
+        check_eq("MAX_ON lowered under the ramp: the ramp is over, S_RUN (probe)", sup_state, ST_RUN);
+        check_range("MAX_ON lowered under the ramp: PWM_out cut at the new MAX_ON+1 clocks (ns)", pwm_width_ns,
+                    (mo2 + 1) * CLK_PERIOD_NS - 1.0, (mo2 + 1) * CLK_PERIOD_NS + 1.0);
+        if ((max_on_cnt_int == mo2) && (sup_state === ST_RUN)) cover_bin(C_MAXON_RAMP);
+
+        // ---- TRIP_SS lowered in S_RUN below the held soft-start count ----
+        // A short ramp (two steps of 8 cycles) with three faulted samples at
+        // its start: all three are still inside the 32-cycle soft-start
+        // window when the ramp ends, and the count is held through S_RUN.
+        do_reset;
+        #(300.0 * US);
+        write_thresholds(TRIP_RUN_DEF, TRIP_SS_DEF, MAX_STRIKES_DEF, mo2,
+                         HICCUP_MIN, 8'd8, CLEAN_SHORT);
+        osc_high_ns = SW_PERIOD_NS / 2.0;
+        wait_en(1'b1, 21.0 * MS);
+        count_to_trip(3);
+        wait_sup_state(ST_RUN, 5.0 * MS);
+        #(100.0 * US);
+        check("three faulted samples in the ramp did not trip it: running", (sup_state === ST_RUN) && (En === 1'b1));
+        check_eq("soft-start fault count held through S_RUN (probe)", fcnt_ss_int, 3);
+        spi_read(A_FCAUSE, 4);                      // a full sweep empties the fault log
+        reg_read(A_FCAUSE);
+        check_eq("fault log empty before TRIP_SS is lowered", rd_val, 8'h00);
+        write_run_thresholds(TRIP_RUN_DEF, 8'd2, MAX_STRIKES_DEF, mo2);
+        #(500.0 * US);
+        check_eq("TRIP_SS lowered to 2 under a held count of 3: stored", rf_trip_ss, 2);
+        check("TRIP_SS lowered in S_RUN: no trip, still running", (sup_state === ST_RUN) && (En === 1'b1));
+        reg_read(A_FCAUSE);
+        check_eq("TRIP_SS lowered in S_RUN: no overcurrent logged", rd_val, 8'h00);
+        if ((sup_state === ST_RUN) && (rd_val == 8'h00) && (fcnt_ss_int >= 2)) cover_bin(C_ARB_GATE);
+
+        reset_and_config;
+        wait_sup_state(ST_RUN, 15.0 * MS);
+    end
+endtask
+
 // extra_phases: 14 onward, in order
 task extra_phases;
     begin
@@ -2479,6 +2755,8 @@ task extra_phases;
         if (TELEMETRY_EN) begin
             phase_register_effects;
             phase_spi_corners;
+            phase_write_rules;
+            phase_limits_live;
         end
     end
 endtask
@@ -3111,7 +3389,7 @@ initial begin
     check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
     check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
     check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
-    check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
+    check_eq("latch_out set at a strike level short of MAX_STRIKES", latch_wrong, 0);
 
     finish_run("normal end");
 end
@@ -3523,7 +3801,7 @@ initial begin
     check_eq("Green_LED disagreed with running-and-no-fault (clocks)", green_err, 0);
     check_eq("Red_LED2 / Red_LED3 disagreed with OTP / UVLO (clocks)", red23_err, 0);
     check_eq("PWM_out pulses longer than the ceiling in force", ceiling_err, 0);
-    check_eq("latch_out set at a strike level other than MAX_STRIKES", latch_wrong, 0);
+    check_eq("latch_out set at a strike level short of MAX_STRIKES", latch_wrong, 0);
 
     finish_run("normal end");
 end

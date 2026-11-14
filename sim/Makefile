@@ -76,4 +76,5 @@ include $(MK)/top.mk
 include $(MK)/lint.mk
 include $(MK)/syn.mk
 include $(MK)/verilog.mk
+include $(MK)/submission.mk
 include $(MK)/util.mk
