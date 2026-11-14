@@ -1,0 +1,42 @@
+{
+ "unit": "reset_sync",
+ "file": "rtl-systemverilog/clk_rst/reset_sync.sv",
+ "mutants": [
+  {
+   "key": 1,
+   "line": 26,
+   "category": "wrong_event",
+   "description": "The first stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so meta_ff is set at the moment of release rather than cleared at assertion.",
+   "reason": "meta_ff goes high asynchronously as rst_n_enter rises, so rst_n_exit releases on the first clock after release instead of the second, for every reset however long.",
+   "before": [
+    "logic meta_ff;",
+    "",
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "logic meta_ff;",
+    "",
+    "always_ff @(posedge clk or posedge rst_n_enter) begin"
+   ],
+   "run": "2026-11-14_write_mutants"
+  },
+  {
+   "key": 2,
+   "line": 49,
+   "category": "wrong_event",
+   "description": "The second stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so rst_n_exit no longer asserts the instant rst_n_enter falls - it waits for the next clk edge.",
+   "reason": "When rst_n_enter falls between clock edges (or while clk is stopped) rst_n_exit stays high until the next posedge clk, instead of going low with zero clock latency; a low pulse that fits between two clock edges never reaches rst_n_exit at all.",
+   "before": [
+    "end",
+    "",
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "end",
+    "",
+    "always_ff @(posedge clk or posedge rst_n_enter) begin"
+   ],
+   "run": "2026-11-14_write_mutants_2"
+  }
+ ]
+}

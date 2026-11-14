@@ -1,0 +1,34 @@
+[
+ {
+  "proposal": {
+   "line": 28,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The first stage's clear is synchronous: meta_ff is cleared only if a clk edge samples rst_n_enter low, instead of the instant rst_n_enter falls.",
+   "reason": "A reset pulse on rst_n_enter that falls and rises between two clk edges leaves meta_ff at 1, so rst_n_exit (still cleared asynchronously by the second stage) releases on the first clk edge after release instead of the second - the two-clock synchronised release is lost for short pulses."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: SYNCASYNCNET"
+ },
+ {
+  "proposal": {
+   "line": 51,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin"
+   ],
+   "category": "sequencing",
+   "description": "The second stage's clear is synchronous: rst_n_exit asserts only on a clk edge, not asynchronously with the fall of rst_n_enter.",
+   "reason": "When rst_n_enter falls, rst_n_exit stays high until the next rising clk edge (and never asserts while clk is stopped), instead of falling with zero clock latency; a reset pulse shorter than a clk period shows up at rst_n_exit one edge late, after rst_n_enter is already high again."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: SYNCASYNCNET"
+ }
+]

@@ -1,0 +1,12 @@
+# AI run ledger
+
+One row per run of the agent, oldest first. Each run's full record - the instructions sent, every
+raw response, the result - is in the folder named in its row.
+
+| Run | Date | Commit | Task | Given | Produced | Gate | Verdict |
+|---|---|---|---|---|---|---|---|
+| A1 | 2026-11-14 | 664452d | write_mutants (`2026-11-14_write_mutants/`) | read access to rtl-systemverilog/ and the documents; 1 modules, 6 mutants asked for | 3 mutants proposed; 1 accepted, 2 rejected | deterministic: the replaced lines exist at one place, the edit is small and changes the code, it is not a mechanical or an earlier mutant, and it is legal code that make lint accepts. Whether a test kills it is the mutation run | pending |
+| A2 | 2026-11-14 | 664452d | write_mutants (`2026-11-14_write_mutants_2/`) | read access to rtl-systemverilog/ and the documents; 1 modules, 6 mutants asked for | 2 mutants proposed; 1 accepted, 1 rejected | deterministic: the replaced lines exist at one place, the edit is small and changes the code, it is not a mechanical or an earlier mutant, and it is legal code that make lint accepts. Whether a test kills it is the mutation run | pending |
+| A3 | 2026-11-14 | 664452d | write_mutants (`2026-11-14_write_mutants_3/`) | read access to rtl-systemverilog/ and the documents; 1 modules, 15 mutants asked for | 13 mutants proposed; 13 accepted, 0 rejected | deterministic: the replaced lines exist at one place, the edit is small and changes the code, it is not a mechanical or an earlier mutant, and it is legal code that make lint accepts. Whether a test kills it is the mutation run | pending |
+| A4 | 2026-11-14 | 664452d | write_mutants (`2026-11-14_write_mutants_4/`) | read access to rtl-systemverilog/ and the documents; 1 modules, 15 mutants asked for | 10 mutants proposed; 10 accepted, 0 rejected | deterministic: the replaced lines exist at one place, the edit is small and changes the code, it is not a mechanical or an earlier mutant, and it is legal code that make lint accepts. Whether a test kills it is the mutation run | pending |
+| A5 | 2026-11-14 | 664452d | write_mutants (`2026-11-14_write_mutants_5/`) | read access to rtl-systemverilog/ and the documents; 1 modules, 15 mutants asked for | 2 mutants proposed; 0 accepted, 2 rejected | deterministic: the replaced lines exist at one place, the edit is small and changes the code, it is not a mechanical or an earlier mutant, and it is legal code that make lint accepts. Whether a test kills it is the mutation run | pending |

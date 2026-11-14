@@ -1,0 +1,51 @@
+[
+ {
+  "proposal": {
+   "line": 51,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The output stage loses its asynchronous clear: rst_n_exit is cleared by rst_n_enter only at a clock edge (a synchronous reset).",
+   "reason": "rst_n_exit no longer falls the instant rst_n_enter falls; it stays high until the next rising clk, and never falls if rst_n_enter pulses low between two clock edges or the clock is stopped."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: SYNCASYNCNET"
+ },
+ {
+  "proposal": {
+   "line": 28,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin"
+   ],
+   "category": "reset_init",
+   "description": "The first synchronizer stage is cleared only synchronously, so meta_ff survives a reset pulse that does not span a rising clock edge.",
+   "reason": "After a rst_n_enter low pulse shorter than a clock period, meta_ff is still 1, so rst_n_exit rises on the first clock after release instead of the second - the two-clock release is lost."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: SYNCASYNCNET"
+ },
+ {
+  "proposal": {
+   "line": 28,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk or posedge rst_n_enter) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The first stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so meta_ff is set at the moment of release rather than cleared at assertion.",
+   "reason": "meta_ff goes high asynchronously as rst_n_enter rises, so rst_n_exit releases on the first clock after release instead of the second, for every reset however long."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "reset_sync.28.AIM.1"
+ }
+]

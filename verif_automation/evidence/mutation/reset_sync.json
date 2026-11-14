@@ -1,0 +1,605 @@
+{
+ "module": "reset_sync",
+ "file": "rtl-systemverilog/clk_rst/reset_sync.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "14:35",
+   "commit": "664452d",
+   "uncommitted": false,
+   "asked": 6,
+   "proposed": 3,
+   "accepted": 1,
+   "rejected": [
+    {
+     "description": "The output stage loses its asynchronous clear: rst_n_exit is cleared by rst_n_enter only at a clock edge (a synchronous reset).",
+     "why": "make lint already catches it: make lint: SYNCASYNCNET"
+    },
+    {
+     "description": "The first synchronizer stage is cleared only synchronously, so meta_ff survives a reset pulse that does not span a rising clock edge.",
+     "why": "make lint already catches it: make lint: SYNCASYNCNET"
+    }
+   ],
+   "models": [
+    "claude-fable-5-2"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "14:36",
+   "commit": "664452d",
+   "uncommitted": false,
+   "asked": 6,
+   "proposed": 2,
+   "accepted": 1,
+   "rejected": [
+    {
+     "description": "The first stage clears synchronously only: meta_ff is not put back to 0 by a reset assertion that does not span a clk edge, so it keeps its 1 from before the reset.",
+     "why": "make lint already catches it: make lint: SYNCASYNCNET"
+    }
+   ],
+   "models": [
+    "claude-fable-5-2"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants_2"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-14",
+   "time": "14:44",
+   "commit": "664452d",
+   "uncommitted": false,
+   "asked": 15,
+   "proposed": 2,
+   "accepted": 0,
+   "rejected": [
+    {
+     "description": "The first stage's clear is synchronous: meta_ff is cleared only if a clk edge samples rst_n_enter low, instead of the instant rst_n_enter falls.",
+     "why": "make lint already catches it: make lint: SYNCASYNCNET"
+    },
+    {
+     "description": "The second stage's clear is synchronous: rst_n_exit asserts only on a clk edge, not asynchronously with the fall of rst_n_enter.",
+     "why": "make lint already catches it: make lint: SYNCASYNCNET"
+    }
+   ],
+   "models": [
+    "claude-fable-5-2"
+   ],
+   "run_record": "ai_runs/2026-11-14_write_mutants_5"
+  },
+  {
+   "n": 4,
+   "kind": "mutation",
+   "date": "2026-11-14",
+   "time": "14:51",
+   "commit": "664452d",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 22,
+   "counts": {
+    "killed": 17,
+    "lint": 5
+   },
+   "score": "100.0%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_reset_sync": 5.642944812774658
+   }
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.28.AIM.1",
+   "operator": "AIM",
+   "line": 28,
+   "description": "The first stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so meta_ff is set at the moment of release rather than cleared at assertion.",
+   "before": "always_ff @(posedge clk or negedge rst_n_enter) begin",
+   "after": "always_ff @(posedge clk or posedge rst_n_enter) begin",
+   "category": "wrong_event",
+   "reason": "meta_ff goes high asynchronously as rst_n_enter rises, so rst_n_exit releases on the first clock after release instead of the second, for every reset however long.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_exit_low_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_exit_low_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.51.AIM.2",
+   "operator": "AIM",
+   "line": 51,
+   "description": "The second stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so rst_n_exit no longer asserts the instant rst_n_enter falls - it waits for the next clk edge.",
+   "before": "always_ff @(posedge clk or negedge rst_n_enter) begin",
+   "after": "always_ff @(posedge clk or posedge rst_n_enter) begin",
+   "category": "wrong_event",
+   "reason": "When rst_n_enter falls between clock edges (or while clk is stopped) rst_n_exit stays high until the next posedge clk, instead of going low with zero clock latency; a low pulse that fits between two clock edges never reaches rst_n_exit at all.",
+   "written_in": 2
+  },
+  "bcf617bdf6#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.28.EDG.1",
+   "operator": "EDG",
+   "line": 28,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n_enter) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n_enter) begin"
+  },
+  "2c0f2dd558#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.38.CSK.1",
+   "operator": "CSK",
+   "line": 38,
+   "description": "if (!rst_n_enter) -> if (1'b0): never taken",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (1'b0) begin"
+  },
+  "b5e232c70d#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_release_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.38.CSK.2",
+   "operator": "CSK",
+   "line": 38,
+   "description": "if (!rst_n_enter) -> if (1'b1): always taken",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (1'b1) begin"
+  },
+  "e336e0cf81#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: SYNCASYNCNET"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.38.SIB.1",
+   "operator": "SIB",
+   "line": 38,
+   "description": "rst_n_enter -> rst_n_exit",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (!rst_n_exit) begin"
+  },
+  "0d9d7ef02b#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release +1",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release",
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.38.UOD.1",
+   "operator": "UOD",
+   "line": 38,
+   "description": "drop the '!' before rst_n_enter",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (rst_n_enter) begin"
+  },
+  "d1c24c8d70#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.40.CST.1",
+   "operator": "CST",
+   "line": 40,
+   "description": "1'b0 -> 1'b1",
+   "before": "meta_ff <= 1'b0;",
+   "after": "meta_ff <= 1'b1;"
+  },
+  "862e17dd84#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.40.SDL.1",
+   "operator": "SDL",
+   "line": 40,
+   "description": "delete 'meta_ff <= 1'b0;'",
+   "before": "meta_ff <= 1'b0;",
+   "after": ";"
+  },
+  "b21752b514#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_release_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.45.CST.1",
+   "operator": "CST",
+   "line": 45,
+   "description": "1'b1 -> 1'b0",
+   "before": "meta_ff <= 1'b1;",
+   "after": "meta_ff <= 1'b0;"
+  },
+  "1cd842f63f#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_release_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.45.SDL.1",
+   "operator": "SDL",
+   "line": 45,
+   "description": "delete 'meta_ff <= 1'b1;'",
+   "before": "meta_ff <= 1'b1;",
+   "after": ";"
+  },
+  "bcf617bdf6#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.51.EDG.1",
+   "operator": "EDG",
+   "line": 51,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n_enter) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n_enter) begin"
+  },
+  "2c0f2dd558#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_exit_low_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_exit_low_in_reset",
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.61.CSK.1",
+   "operator": "CSK",
+   "line": 61,
+   "description": "if (!rst_n_enter) -> if (1'b0): never taken",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (1'b0) begin"
+  },
+  "b5e232c70d#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_release_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.61.CSK.2",
+   "operator": "CSK",
+   "line": 61,
+   "description": "if (!rst_n_enter) -> if (1'b1): always taken",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (1'b1) begin"
+  },
+  "e336e0cf81#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: SYNCASYNCNET"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.61.SIB.1",
+   "operator": "SIB",
+   "line": 61,
+   "description": "rst_n_enter -> rst_n_exit",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (!rst_n_exit) begin"
+  },
+  "0d9d7ef02b#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_release_on_time +2",
+     "killed_by": {
+      "assertions": [
+       "a_release_on_time",
+       "a_exit_low_in_reset",
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.61.UOD.1",
+   "operator": "UOD",
+   "line": 61,
+   "description": "drop the '!' before rst_n_enter",
+   "before": "if (!rst_n_enter) begin",
+   "after": "if (rst_n_enter) begin"
+  },
+  "079be8495b#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_exit_low_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_exit_low_in_reset",
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.63.CST.1",
+   "operator": "CST",
+   "line": 63,
+   "description": "1'b0 -> 1'b1",
+   "before": "rst_n_exit <= 1'b0;",
+   "after": "rst_n_exit <= 1'b1;"
+  },
+  "8548999d02#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_exit_low_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_exit_low_in_reset",
+       "a_no_early_release"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.63.SDL.1",
+   "operator": "SDL",
+   "line": 63,
+   "description": "delete 'rst_n_exit <= 1'b0;'",
+   "before": "rst_n_exit <= 1'b0;",
+   "after": ";"
+  },
+  "a6dd06920a#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.68.SDL.1",
+   "operator": "SDL",
+   "line": 68,
+   "description": "delete 'rst_n_exit <= meta_ff;'",
+   "before": "rst_n_exit <= meta_ff;",
+   "after": ";"
+  },
+  "57415b67f4#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.68.STK.1",
+   "operator": "STK",
+   "line": 68,
+   "description": "rst_n_exit stuck at all-zeros (was 'meta_ff')",
+   "before": "rst_n_exit <= meta_ff;",
+   "after": "rst_n_exit <= '0;"
+  },
+  "6239c3bc4b#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.68.STK.2",
+   "operator": "STK",
+   "line": 68,
+   "description": "rst_n_exit stuck at all-ones (was 'meta_ff')",
+   "before": "rst_n_exit <= meta_ff;",
+   "after": "rst_n_exit <= '1;"
+  },
+  "f481fc5553#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_no_early_release +1",
+     "killed_by": {
+      "assertions": [
+       "a_no_early_release",
+       "a_release_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "reset_sync.68.VNG.1",
+   "operator": "VNG",
+   "line": 68,
+   "description": "rst_n_exit inverted (was 'meta_ff')",
+   "before": "rst_n_exit <= meta_ff;",
+   "after": "rst_n_exit <= ~(meta_ff);"
+  }
+ }
+}

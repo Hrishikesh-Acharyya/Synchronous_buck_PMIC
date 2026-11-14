@@ -1,0 +1,35 @@
+[
+ {
+  "proposal": {
+   "line": 51,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk or posedge rst_n_enter) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The second stage's asynchronous event is the rising edge of rst_n_enter instead of the falling edge, so rst_n_exit no longer asserts the instant rst_n_enter falls - it waits for the next clk edge.",
+   "reason": "When rst_n_enter falls between clock edges (or while clk is stopped) rst_n_exit stays high until the next posedge clk, instead of going low with zero clock latency; a low pulse that fits between two clock edges never reaches rst_n_exit at all."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "reset_sync.51.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 28,
+   "before": [
+    "always_ff @(posedge clk or negedge rst_n_enter) begin"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin"
+   ],
+   "category": "reset_init",
+   "description": "The first stage clears synchronously only: meta_ff is not put back to 0 by a reset assertion that does not span a clk edge, so it keeps its 1 from before the reset.",
+   "reason": "After a rst_n_enter low pulse shorter than a clock period (or any assertion with no clk edge inside it), rst_n_exit is cleared but meta_ff is still 1, so rst_n_exit releases on the first clock after release instead of the second - the two-clock synchronous release is lost."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: SYNCASYNCNET"
+ }
+]
