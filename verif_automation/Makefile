@@ -98,8 +98,8 @@ mutants:  ## list the mutants (MODULE=, OPERATORS=, SAMPLE=, SEED=)
 	@$(PYTHON) $(MUTATION) --list $(MUTATION_ARGS)
 
 # mutants_check: every mutant screened with make lint, none simulated - how
-#                many are legal code, how many lint already catches. About a
-#                minute for all of them; stillborn should read 0.
+#                many are legal code, how many lint already catches. A few
+#                minutes for all of them; stillborn should read 0.
 mutants_check:  ## health check of the mutant generator: lint-screen every mutant, no simulation
 	@$(PYTHON) $(MUTATION) --check $(MUTATION_ARGS)
 

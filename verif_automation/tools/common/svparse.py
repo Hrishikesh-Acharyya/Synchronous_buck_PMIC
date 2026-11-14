@@ -394,7 +394,8 @@ class Param:
 
     """
     Purpose: One parameter or localparam: kind, type text, name, default
-             value text, and its comment (as for Port).
+             value text, and its comment (as for Port). span is the (first,
+             last) token indices of the default value.
     """
 
     kind: str
@@ -403,6 +404,7 @@ class Param:
     default: str
     comment: str
     in_header: bool = True
+    span: tuple = None
 
 
 @dataclass
@@ -729,9 +731,11 @@ def _read_decls(toks, first, last, comments, raw_lines, code, what):
                 current_type = typ
                 out.append(Port(current_dir, typ, name, own or group))
             else:
+                base = j
                 if words[0] in ("parameter", "localparam"):
                     current_kind = words[0]
                     seg = seg[1:]
+                    base += 1
                 eq = next((n for n, t in enumerate(seg) if t.text == "="), None)
                 if eq is None:
                     j = k + 1
@@ -739,7 +743,8 @@ def _read_decls(toks, first, last, comments, raw_lines, code, what):
                 name = seg[eq - 1].text
                 typ = _span_text(code, seg[0], seg[eq - 2]) if eq >= 2 else ""
                 default = _span_text(code, seg[eq + 1], seg[-1])
-                out.append(Param(current_kind, typ, name, default, own or group))
+                out.append(Param(current_kind, typ, name, default, own or group,
+                                 span=(base + eq + 1, base + len(seg) - 1)))
         j = k + 1
     return out
 

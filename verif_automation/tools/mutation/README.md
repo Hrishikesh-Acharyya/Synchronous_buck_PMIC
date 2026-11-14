@@ -14,8 +14,8 @@ nothing.
 
 ## How a run works
 
-1. Every mutant of the selected modules is listed (1,647 across 17 modules
-   and the package at the time of writing, from 17 operators).
+1. Every mutant of the selected modules is listed (3,274 across 17 modules
+   and the package at the time of writing, from 26 operators).
 2. `make lint` and each `sim/` target the run will use are run once on the
    unmutated RTL. A failure there stops the run: mutation results on a
    failing baseline mean nothing.
@@ -23,7 +23,7 @@ nothing.
    - the RTL tree is copied to `build/mutation/<run>/work/<id>/` and the one
      edit made there - the real `rtl-systemverilog/` is never written;
    - `make lint` screens the copy, in a fraction of a second; a mutant it
-     rejects is caught already and is not simulated (about one in ten);
+     rejects is caught already and is not simulated (about one in seven);
    - the module's own testbench runs against the copy, through the existing
      `sim/` target with `SV_DIR=` pointing at it and its own build folder;
    - the outcome is read from the run's `result.tsv` and logs.
@@ -52,7 +52,7 @@ From `verif_automation/`:
 
 ```
 make mutants MODULE=input_debounce              # list, no simulation
-make mutants_check                              # lint-screen all, no simulation - a minute
+make mutants_check                              # lint-screen all, no simulation - a few minutes
 make mutate MODULE=input_debounce               # one module, a minute or two
 make mutate SAMPLE=50                           # a random 50 of all mutants
 make mutation_evidence                          # everything, saved as evidence - hours
@@ -63,7 +63,7 @@ make mutate IDS=reg_file.554.TRN.1 SIM_ARGS="HOSTIF_EVENTS=4000"
 `JOBS=` sets the parallel runs (default: every core). Each run builds its own
 Verilator model, so the first minutes are mostly compiling. The host_if suite
 takes about a minute per mutant and covers `reg_file` and `spi_slave`, which
-hold about half of all mutants - they dominate a full run.
+hold over half of all mutants (1,764 of 3,274) - they dominate a full run.
 
 ## With the AI
 
