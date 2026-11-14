@@ -24,7 +24,17 @@
 #                                make
 #                     stillborn  not a legal design (a hard compile error);
 #                                left out of the score
-#                   Score = (killed + lint + timeout) / (all - stillborn).
+#                     ai_equiv   judged equivalent by the triage (--triage)
+#                                and not simulated; left out of the score
+#                   Score = (killed + lint + timeout) / (all - stillborn -
+#                   ai_equiv).
+#
+#                   With --triage FILE (the output of the AI triage task),
+#                   a mutant judged "equivalent" with high confidence is not
+#                   a test target. --audit says how many of those are
+#                   simulated anyway: an equivalent mutant can never be
+#                   killed, so every one that is killed is a triage error,
+#                   and is reported as one. The default audits all of them.
 #
 #                   Every mutant is first screened with make lint (a fraction
 #                   of a second); only the ones it accepts are simulated.
@@ -40,6 +50,7 @@
 #                   Usage: run_mutation.py [--modules a,b] [--operators X,Y]
 #                                          [--sample N] [--seed S] [--jobs J]
 #                                          [--ids ID,ID] [--sim-args "V=1 ..."]
+#                                          [--triage FILE] [--audit all|N|0]
 #                                          [--list] [--check] [--evidence]
 #                     --seed      the seed for --sample and for the suites'
 #                                 random tests (default 1)
@@ -216,6 +227,8 @@ def report(results, header):
     """
     out = header + [""]
     cols = ["killed", "lint", "timeout", "survived", "stillborn"]
+    if any(r["status"] == "ai_equiv" for r in results):
+        cols.append("ai_equiv")
     if any(r["status"] == "clean" for r in results):
         cols = ["clean", "lint", "stillborn"]          # a --check run: nothing simulated
 
@@ -243,6 +256,21 @@ def report(results, header):
                    + (f"  [{r['detail']}]" if r["detail"] else ""))
         out.append(f"      before: {r['before']}")
         out.append(f"      after:  {r['after']}")
+        if r.get("triage"):
+            t = r["triage"]
+            out.append(f"      triage: {t['verdict']} ({t['confidence']}) - {t['reason']}")
+    judged = [r for r in results if r.get("triage")]
+    if judged:
+        eq = [r for r in judged if r["triage"]["verdict"] == "equivalent" and r["triage"]["confidence"] == "high"]
+        audited = [r for r in eq if r["status"] != "ai_equiv"]
+        wrong = [r for r in audited if r["status"] in ("killed", "timeout")]
+        out += ["", "AI TRIAGE", "",
+                f"  judged: {len(judged)}   plausible: {len(judged) - len(eq)}   equivalent (high confidence): {len(eq)}",
+                f"  audited by simulation: {len(audited)} of {len(eq)}   contradicted (judged equivalent, but "
+                f"killed): {len(wrong)}", ""]
+        for r in wrong:
+            out.append(f"  TRIAGE ERROR  {r['id']}  {r['file']}:{r['line']}  {r['operator']}  {r['description']}")
+            out.append(f"      the triage said: {r['triage']['reason']}")
     other = [r for r in results if r["status"] in ("stillborn", "timeout")]
     if other:
         out += ["", f"STILLBORN AND TIMEOUT ({len(other)})", ""]
@@ -253,7 +281,7 @@ def report(results, header):
 def _row(name, row, cols):
     """Purpose: one table row with the score."""
     n = sum(row.values())
-    live = n - row["stillborn"]
+    live = n - row["stillborn"] - row.get("ai_equiv", 0)
     if "clean" in cols:
         score = "-"
     else:
@@ -274,6 +302,8 @@ def main():
     ap.add_argument("--sample", type=int)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--sim-args", default="")
+    ap.add_argument("--triage")
+    ap.add_argument("--audit", default="all")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--timeout-factor", type=float, default=10.0)
     ap.add_argument("--list", action="store_true")
@@ -297,6 +327,15 @@ def main():
         ms = [m for m in ms if m.id in want]
     if args.sample and args.sample < len(ms):
         ms = sorted(random.Random(args.seed).sample(ms, args.sample), key=lambda m: (m.file, m.start))
+    # triage: which mutants were judged equivalent, and which of those to audit
+    triage, skip = {}, set()
+    if args.triage:
+        triage = json.loads(pathlib.Path(args.triage).read_text())["verdicts"]
+        eq = [m.id for m in ms if triage.get(m.id, {}).get("verdict") == "equivalent"
+              and triage[m.id].get("confidence") == "high"]
+        if args.audit != "all":
+            keep = set(random.Random(args.seed).sample(eq, min(int(args.audit), len(eq))))
+            skip = set(eq) - keep
     if args.list:
         for m in ms:
             print(f"{m.id:36s} {m.file}:{m.line:<5d} {m.operator}  {m.description}")
@@ -331,15 +370,19 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         futures = {pool.submit(run_one, m, work,
                                max(120.0, args.timeout_factor * baseline.get(target_of(m.unit)[0], 0)),
-                               args.keep, not args.check): m
+                               args.keep, not args.check and m.id not in skip): m
                    for m in ms}
         for fut in concurrent.futures.as_completed(futures):
             m = futures[fut]
             status, secs, detail = fut.result()
+            if status == "clean" and m.id in skip:
+                status, detail = "ai_equiv", "judged equivalent by the triage; not simulated"
             before, after = line_pair(m)
             results.append({"id": m.id, "file": m.file, "unit": m.unit, "line": m.line, "operator": m.operator,
                             "description": m.description, "status": status, "detail": detail,
                             "seconds": round(secs, 1), "before": before, "after": after})
+            if m.id in triage:
+                results[-1]["triage"] = triage[m.id]
             done += 1
             if not args.check or status != "clean":
                 print(f"[{done}/{len(ms)}] {status:9s} {m.id}  {m.description}"
@@ -357,8 +400,10 @@ def main():
               "cocotb suite; pmic_top: the integration testbench)",
               "baseline: make lint passes" + "".join(f", {t} passes ({s:.0f} s)" for t, s in sorted(baseline.items())),
               f"random tests: seed {args.seed}" + (f"; extra sim settings: {args.sim_args}" if args.sim_args else ""),
-              "score = (killed + lint + timeout) / (mutants - stillborn); a survivor is a gap or an "
-              "equivalent mutant - not judged here"]
+              *([f"triage: {args.triage}; audit of the mutants it judged equivalent: {args.audit}"]
+                if args.triage else []),
+              "score = (killed + lint + timeout) / (mutants - stillborn - ai_equiv); a survivor is a gap or an "
+              "equivalent mutant"]
     if args.check:
         header[2:] = ["check only: every mutant screened with make lint, none simulated",
                       "clean = legal and accepted by lint (would be simulated); lint = caught by make lint; "
@@ -386,12 +431,13 @@ def main():
                 "every mutant's outcome.\n\n| Report | Commit | Scope | Mutants | Killed | Lint | Timeout | "
                 "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n")
         n_of = {k: sum(r["status"] == k for r in results) for k in ("killed", "lint", "timeout", "survived", "stillborn")}
-        live = len(results) - n_of["stillborn"]
+        live = len(results) - n_of["stillborn"] - sum(r["status"] == "ai_equiv" for r in results)
         score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['timeout']) / live:.1f}%" if live else "-"
         what = (f"modules {args.modules}" if args.modules else "all modules") \
             + (f", operators {args.operators}" if args.operators else "") \
             + (f", sample {args.sample}" if args.sample else "") + (f", ids {args.ids}" if args.ids else "") \
-            + (f", {args.sim_args}" if args.sim_args else "")
+            + (f", {args.sim_args}" if args.sim_args else "") \
+            + (f", triage (audit {args.audit})" if args.triage else "")
         with index.open("a") as f:
             f.write(f"| `{stem}.txt` | {commit}{' (uncommitted changes)' if dirty else ''} | {what} | {len(results)} | "
                     f"{n_of['killed']} | {n_of['lint']} | {n_of['timeout']} | {n_of['survived']} | "

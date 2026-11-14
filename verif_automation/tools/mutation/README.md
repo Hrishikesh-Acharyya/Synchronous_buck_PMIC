@@ -65,6 +65,16 @@ Verilator model, so the first minutes are mostly compiling. The host_if suite
 takes about a minute per mutant and covers `reg_file` and `spi_slave`, which
 hold about half of all mutants - they dominate a full run.
 
+## With the AI triage
+
+`make triage` (see `../../ai/README.md`) has an AI agent judge each mutant
+before simulation: plausible or equivalent. `make mutate TRIAGE=build/mutation/triage.json`
+then uses those verdicts. With `AUDIT=all`, the default, every mutant is
+still simulated, and the report's AI TRIAGE section lists each mutant the
+agent called equivalent that a test killed - a triage error. With a smaller
+`AUDIT=`, the unaudited ones are not simulated and are left out of the score
+(`ai_equiv`). The agent's reason is printed beside every survivor.
+
 ## Reading the result
 
 A run gives a score and a list. The score is the share of mutants the
