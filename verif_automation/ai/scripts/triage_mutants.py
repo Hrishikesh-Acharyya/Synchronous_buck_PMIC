@@ -35,7 +35,7 @@
 #                   a test kills is reported as a triage error.
 #
 #                   Two ways to use it:
-#                     after the tests (recommended) - with --survivors, only
+#                     after the tests (recommended) - with --judge, only
 #                       the mutants that survived a mutation run are judged:
 #                       each is a real gap (plausible) or changes nothing
 #                       (equivalent). A hundred or so mutants, and exactly
@@ -46,18 +46,24 @@
 #                       times the requests, for little saving: the plausible
 #                       ones, which are most of them, are simulated anyway.
 #
-#                   Usage: triage_mutants.py [--survivors RESULTS.json]
-#                                            [--modules a,b] [--chunk N]
-#                                            [--model NAME] [--resume DIR]
-#                                            [--dry-run] [--evidence]
-#                     --survivors a mutation run's results.json: judge only
-#                                 the mutants that survived it
+#                   Usage: triage_mutants.py [--judge] [--modules a,b]
+#                                            [--chunk N] [--model NAME]
+#                                            [--resume DIR] [--dry-run]
+#                                            [--no-record]
+#                     --judge     after the tests: judge the survivors in
+#                                 the module records (evidence/mutation/)
+#                                 that the designer has not decided. Each
+#                                 judgement is added to its mutant's entry,
+#                                 beside any earlier one
 #                     --dry-run   write the prompts and the exact command,
 #                                 call nothing
 #                     --resume    continue a run that stopped (a usage limit,
 #                                 say): chunks already answered are kept
-#                     --evidence  also copy the run record to
-#                                 evidence/ai_runs/ and add it to the ledger
+#                     --no-record do not keep this run: by default the run
+#                                 record is copied to evidence/ai_runs/, a
+#                                 row added to the ledger there, and (with
+#                                 --judge) the judgements added to the
+#                                 module records
 #
 # Global variables: REPO, TASK, CLAUDE - see below
 
@@ -73,6 +79,7 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent.parent / "tools" / "mutation"))
+import record as REC  # noqa: E402
 import run_mutation as R  # noqa: E402
 
 # REPO: the repository root
@@ -191,15 +198,16 @@ def main():
              record.
     """
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--survivors")
+    ap.add_argument("--judge", action="store_true")
     ap.add_argument("--modules")
     ap.add_argument("--chunk", type=int, default=40)
     ap.add_argument("--model")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2, help="parallel lint screens")
     ap.add_argument("--resume")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--evidence", action="store_true")
+    ap.add_argument("--no-record", action="store_true")
     args = ap.parse_args()
+    args.survivors = args.judge
 
     ms = R.all_mutants()
     if args.modules:
@@ -210,17 +218,26 @@ def main():
     run = pathlib.Path(args.resume) if args.resume else REPO / "verif_automation" / "build" / "ai_runs" / f"{stamp}_{task}"
     (run / "chunks").mkdir(parents=True, exist_ok=True)
 
-    if args.survivors:
-        # after the tests: only the mutants that survived that run
-        survived = {r["id"] for r in json.loads(pathlib.Path(args.survivors).read_text())["results"]
-                    if r["status"] == "survived"}
-        clean = [m for m in ms if m.id in survived]
-        missing = survived - {m.id for m in clean}
-        if missing and not args.modules:
-            sys.exit(f"{len(missing)} survivors of that run are not mutants of the RTL as it is now "
-                     f"(for example {sorted(missing)[0]}) - the RTL has changed since; run the mutation again")
+    key_of = {}
+    if args.judge:
+        # after the tests: the survivors in the module records the designer has not decided
+        units = sorted({m.unit for m in ms} & {p.stem for p in REC.DIR.glob("*.json")})
+        if not units:
+            sys.exit("no mutation record for " + (args.modules or "any module") + " - run make mutate first")
+        clean, gone = [], 0
+        for unit in units:
+            waiting = REC.survivors(unit)
+            keys = REC.keys_of(R.describe([m for m in ms if m.unit == unit]))
+            here = [m for m in ms if m.unit == unit and keys[m.id] in waiting]
+            key_of.update({m.id: keys[m.id] for m in here})
+            gone += len(waiting) - len(here)
+            clean += here
         ms = clean
-        print(f"{len(clean)} survivors of {args.survivors} go to judgement")
+        print(f"{len(clean)} undecided survivors in the records of {', '.join(units)} go to judgement"
+              + (f"; {gone} more are of lines that have changed since - run make mutate again for those" if gone
+                 else ""))
+        if not clean:
+            return
     else:
         # before the tests: lint screen - only the mutants lint accepts need a judgement
         print(f"screening {len(ms)} mutants with make lint ...", flush=True)
@@ -296,7 +313,7 @@ def main():
     n_eq = sum(v["verdict"] == "equivalent" and v["confidence"] == "high" for v in verdicts.values())
     n_un = sum(bool(v.get("untriaged")) for v in verdicts.values())
     header = {"date": datetime.date.today().isoformat(), "commit": commit, "task": task,
-              "survivors_of": args.survivors or "",
+              "survivors_of": "the module records" if args.judge else "",
               "agent": "Claude Code (claude -p), read-only", "models": sorted(models),
               "mutants_listed": len(ms), "sent_to_triage": len(clean), "judged": len(verdicts) - n_un,
               "equivalent_high_confidence": n_eq, "untriaged": n_un, "complete": not stopped and not args.dry_run}
@@ -328,28 +345,44 @@ def main():
     print(f"run record: {run}")
     if stopped:
         print(stopped)
-    if args.evidence and not args.dry_run:
-        gate = "the designer's review of each verdict" if task == "judge_survivors" else \
+    if not args.no_record and not args.dry_run:
+        gate = "the designer's decision on each survivor (make decide)" if args.judge else \
             "the mutation run's audit: every mutant judged equivalent that a test kills is a triage error"
-        save_evidence(run, header, f"read access to rtl-systemverilog/; {len(clean)} mutants",
-                      f"verdicts for {header['judged']} ({n_eq} equivalent with high confidence, {n_un} untriaged)",
-                      gate)
+        dest = save_evidence(run, header, f"read access to rtl-systemverilog/; {len(clean)} mutants",
+                             f"verdicts for {header['judged']} ({n_eq} equivalent with high confidence, {n_un} "
+                             f"untriaged)", gate)
+        if args.judge:
+            # each judgement added to its mutant in the module's record
+            by_unit = {}
+            for m in clean:
+                v = verdicts.get(m.id)
+                if v and not v.get("untriaged"):
+                    by_unit.setdefault(m.unit, {})[key_of[m.id]] = v
+            for unit, vs in by_unit.items():
+                print(f"recorded in: {REC.add_judgements(unit, vs, 'judge', sorted(models), f'ai_runs/{dest.name}')}")
 
 
-def save_evidence(run, header, given, produced, gate):
+def evidence_dest(task):
+    """Purpose: the folder in evidence/ai_runs/ the next run of a task will be kept in."""
+    ev = REPO / "verif_automation" / "evidence" / "ai_runs"
+    name, n = f"{datetime.date.today().isoformat()}_{task}", 1
+    while (ev / (name if n == 1 else f"{name}_{n}")).exists():
+        n += 1
+    return ev / (name if n == 1 else f"{name}_{n}")
+
+
+def save_evidence(run, header, given, produced, gate, dest=None):
 
     """
     Purpose: Copy the run record into evidence/ai_runs/ and add a row to the
              ledger there (creating it on the first run). given, produced
              and gate are the row's text: what the agent was given, what it
-             produced, and what checks that.
+             produced, and what checks that. Returns the folder it was
+             copied to (dest, or the next free one).
     """
     ev = REPO / "verif_automation" / "evidence" / "ai_runs"
     ev.mkdir(parents=True, exist_ok=True)
-    name, n = f"{header['date']}_{header['task']}", 1
-    while (ev / (name if n == 1 else f"{name}_{n}")).exists():
-        n += 1
-    dest = ev / (name if n == 1 else f"{name}_{n}")
+    dest = dest or evidence_dest(header["task"])
     shutil.copytree(run, dest, ignore=shutil.ignore_patterns("work"))
     ledger = ev / "ledger.md"
     if not ledger.exists():
@@ -362,6 +395,7 @@ def save_evidence(run, header, given, produced, gate):
         f.write(f"| A{rows + 1} | {header['date']} | {header['commit']} | {header['task']} (`{dest.name}/`) | "
                 f"{given} | {produced} | {gate} | pending |\n")
     print(f"evidence: {dest}, ledger {ledger}")
+    return dest
 
 
 if __name__ == "__main__":

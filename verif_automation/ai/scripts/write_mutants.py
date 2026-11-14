@@ -38,14 +38,19 @@
 #
 #                   Usage: write_mutants.py [--modules a,b] [--count N]
 #                                           [--model NAME] [--jobs N]
-#                                           [--dry-run] [--evidence]
+#                                           [--dry-run] [--no-record]
 #                     --modules   the modules to write for (default: all)
 #                     --count     mutants asked for per module (default:
 #                                 COUNTS - more for the large modules)
 #                     --dry-run   write the prompts and the exact command,
 #                                 call nothing
-#                     --evidence  also copy the run record to
-#                                 evidence/ai_runs/ and add it to the ledger
+#                     --no-record do not keep this run as evidence (a trial
+#                                 of the tool). By default the run record is
+#                                 copied to evidence/ai_runs/, a row added to
+#                                 the ledger there, and the run - its
+#                                 accepted mutants and every rejected
+#                                 proposal - added to each module's record
+#                                 in evidence/mutation/
 #
 # Global variables: REPO, TASK, STORE, COUNTS, DEFAULT_COUNT, MAX_BEFORE,
 #                   MAX_AFTER, MAX_CHANGED, MAX_CONTEXT, PER_REQUEST, NUMBERED
@@ -68,6 +73,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent / "tools" / "mutation"))
 sys.path.insert(0, str(HERE.parent.parent / "tools" / "common"))
 import mutants as M  # noqa: E402
+import record as REC  # noqa: E402
 import run_mutation as R  # noqa: E402
 import svparse  # noqa: E402
 import triage_mutants as T  # noqa: E402
@@ -227,8 +233,10 @@ def main():
     ap.add_argument("--model")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2, help="parallel lint screens")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--evidence", action="store_true")
+    ap.add_argument("--no-record", action="store_true")
     args = ap.parse_args()
+    keep = not args.no_record and not args.dry_run
+    kept_in = T.evidence_dest("write_mutants") if keep else None
 
     mechanical = R.mechanical_mutants()
     modules, _ = M.design_info(REPO / "rtl-systemverilog")
@@ -261,6 +269,7 @@ def main():
         # the code of every mutant already made: no proposal may repeat one
         taken = {M.code_key(m.apply(text)): m.id for m in mech} if not args.dry_run else {}
 
+        unit_asked, unit_new, unit_rejected, unit_models = 0, [], [], set()
         # a module asked for more than PER_REQUEST gets several requests,
         # each shown what the earlier ones produced
         for part, want in enumerate([PER_REQUEST] * (count // PER_REQUEST) + [count % PER_REQUEST] * bool(
@@ -288,7 +297,9 @@ def main():
                     problem = "no answer within an hour"
                     continue
                 (run / "chunks" / f"{tag}_response.json").write_text(p.stdout)
-                props, problem = proposals_of(T.read_response(p.stdout))
+                answer = T.read_response(p.stdout)
+                unit_models |= set(((answer or {}).get("modelUsage") or {}).keys())
+                props, problem = proposals_of(answer)
                 out_text = (p.stdout + p.stderr).lower()
                 if problem and any(w in out_text for w in ("usage limit", "rate limit", "limit reached",
                                                            "not logged in", "authentication")):
@@ -323,24 +334,31 @@ def main():
                         status, "could not be screened") + f": {detail[:160]}"
                     continue
                 entry["key"], next_key = next_key, next_key + 1
-                entry["run"] = run.name
+                entry["run"] = kept_in.name if kept_in else run.name
                 checked[k].update(accepted=True, why=None, id=f"{unit}.{m.line}.{M.AI_OPERATOR}.{entry['key']}")
                 new.append(entry)
+                unit_new.append({**entry, "id": checked[k]["id"]})
             (run / "chunks" / f"{tag}_checked.json").write_text(json.dumps(checked, indent=1) + "\n")
             if new:
                 store_file.write_text(json.dumps({"unit": unit, "file": rel, "mutants": stored + new}, indent=1)
                                       + "\n")
             proposed += len(props)
             accepted_n += len(new)
+            unit_asked += want
             for c in checked:
                 if not c["accepted"]:
-                    rejected_all.append((unit, " ".join(str(c["proposal"].get("description", "")).split())[:90],
-                                         c["why"]))
+                    what = " ".join(str(c["proposal"].get("description", "")).split())
+                    rejected_all.append((unit, what[:90], c["why"]))
+                    unit_rejected.append({"description": what, "why": c["why"]})
             log.append((tag, want, "ok",
                         f"{len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", ""))
             print(f"    {len(props)} proposed, {len(new)} accepted, {len(props) - len(new)} rejected", flush=True)
             if not props:
                 break               # the agent has no more to offer for this module
+        if keep and (unit_new or unit_rejected):
+            # this run added to the module's record: its accepted mutants and every rejected proposal
+            REC.add_written(unit, rel, unit_new, unit_rejected, unit_asked, sorted(unit_models),
+                            f"ai_runs/{kept_in.name}")
         if stopped:
             break
 
@@ -370,14 +388,16 @@ def main():
         print(stopped)
     if not args.dry_run:
         print(f"stored in: {STORE}   list them: make mutants OPERATORS={M.AI_OPERATOR}")
-    if args.evidence and not args.dry_run:
+    if keep:
+        print("recorded in: " + ", ".join(str(REC.DIR / f"{u}.md") for u in units
+                                          if (REC.DIR / f"{u}.json").exists()))
         T.save_evidence(run, header,
                         f"read access to rtl-systemverilog/ and the documents; {len(units)} modules, "
                         f"{asked} mutants asked for",
                         f"{proposed} mutants proposed; {accepted_n} accepted, {proposed - accepted_n} rejected",
                         "deterministic: the replaced lines exist at one place, the edit is small and changes the "
                         "code, it is not a mechanical or an earlier mutant, and it is legal code that make lint "
-                        "accepts. Whether a test kills it is the mutation run")
+                        "accepts. Whether a test kills it is the mutation run", kept_in)
 
 
 if __name__ == "__main__":

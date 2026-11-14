@@ -10,6 +10,7 @@ nothing.
 |---|---|
 | `mutants.py` | Finds the mutation sites and makes the mutants. The operators are in `OPERATORS.md`. |
 | `run_mutation.py` | Runs the mutants and writes the report. |
+| `record.py` | Keeps each module's mutation record: every step run on it, every mutant's outcome in every run. |
 | `OPERATORS.md` | The operators, where they apply, and what each outcome means. |
 
 ## How a run works
@@ -35,9 +36,55 @@ nothing.
      cocotb tests that failed, the testbench checks that failed;
    - the outcome is appended to `build/mutation/<run>/progress.jsonl` at
      once, so nothing finished is ever lost.
-4. `report.txt` and `results.json` are written to `build/mutation/<run>/`;
-   with `make mutation_evidence`, copied to `evidence/mutation/` and the run
-   added as a row to `evidence/mutation/README.md`.
+4. `report.txt` and `results.json` are written to `build/mutation/<run>/`,
+   and the run is added to the record of every module it touched (below).
+
+## One module at a time, one record per module
+
+The work goes module by module, and each module has one record that
+everything is added to: `evidence/mutation/<module>.json`, with
+`<module>.md` beside it - the same record written out to be read. Nothing in
+a record is ever replaced:
+
+- `make ai_mutants MODULE=m` adds the mutants the agent wrote, and every
+  proposal the gate rejected with the check it failed. Run it again and the
+  second run's are added beside the first's;
+- `make mutate MODULE=m` adds each mutant's outcome. Run it again - after a
+  checker is strengthened, say - and each mutant has two outcomes, oldest
+  first;
+- `make judge MODULE=m` adds the agent's judgement to each survivor you have
+  not decided. Run again, it adds a second judgement;
+- `make decide` adds your own decision on a survivor, with its reason.
+
+The record's **Now** section is the present state - each mutant's newest
+outcome, and the score over those. Its **History** lists every step in
+order, with its date, commit and result, so every earlier score is there
+too. A mutant is known by what it is (its operator and the line before and
+after), not by its line number, so its history follows it when lines above
+it move. If the RTL changes so that a mutant is no longer made, it is kept
+and marked retired, out of the present score.
+
+```
+make ai_check                            # once: the agent is installed, logged in, read-only
+make ai_mutants MODULE=fault_cause       # the agent writes design-aware mutants; again for more
+make mutants_check MODULE=fault_cause    # every mutant is legal code
+make mutate MODULE=fault_cause           # run them
+make status MODULE=fault_cause           # the score, and the survivors still open
+make judge MODULE=fault_cause            # the agent's opinion on each open survivor
+make decide IDS=fault_cause.88.CTD.1 AS=equivalent WHY="the term is implied by the state"
+make decide IDS=fault_cause.92.SDL.1 AS=gap WHY="the clear on re-entry is not checked"
+#   ... add the property or test that closes the gap, then:
+make mutate IDS=fault_cause.92.SDL.1     # killed now - added to that mutant's history
+```
+
+`AS=` is `equivalent` (the edit changes nothing that can be observed),
+`accepted` (a real difference left open on purpose) or `gap` (real, still to
+be closed). `evidence/mutation/README.md` shows every module's present state
+in one table. Commit the records as you go.
+
+`RECORD=0` on any of these leaves a run out of the records - for trying the
+tools, not for testing the design. A run that is stopped is recorded when it
+is continued and finishes.
 
 ## A run of hours
 
@@ -91,7 +138,6 @@ make mutants MODULE=input_debounce              # list, no simulation
 make mutants_check                              # lint-screen all, no simulation - a few minutes
 make mutate MODULE=input_debounce               # one module, a minute or two
 make mutate SAMPLE=50                           # a random 50 of all mutants
-make mutation_evidence                          # everything, saved as evidence - hours
 make mutate RESUME=build/mutation/<run>         # continue a run that was stopped
 make mutate IDS=reg_file.554.TRN.1 SIM_ARGS="HOSTIF_EVENTS=4000"
                                                 # re-run survivors against a longer random walk
@@ -101,6 +147,15 @@ make mutate IDS=reg_file.554.TRN.1 SIM_ARGS="HOSTIF_EVENTS=4000"
 Verilator model, so the first minutes are mostly compiling. The host_if suite
 takes about a minute per mutant and covers `reg_file` and `spi_slave`, which
 hold over half of all mutants (1,764 of 3,274) - they dominate a full run.
+
+## What survives on purpose
+
+One class of survivor comes from the simulator, not from the checkers:
+Verilator is a two-state simulator and starts every register at 0. A mutant
+that removes a reset to 0, or never takes the reset branch, behaves the same
+unless the reset is applied again later with the register away from 0.
+Decide each as `gap` and add a mid-run reset to the testbench, or as
+`accepted` with that reason.
 
 ## With the AI
 
@@ -115,9 +170,10 @@ changed, the mutant can no longer be placed: it is left out, and the list and
 the report say so by name.
 
 After a run, `make judge` (see `../../ai/README.md`) has an AI agent judge
-each survivor: a real gap, or an edit that changes nothing. This is the
-recommended order - the agent sees only the hundred or so mutants that need
-a judgement.
+each survivor in the records that you have not decided: a real gap, or an
+edit that changes nothing. This is the recommended order - the agent sees
+only the mutants that need a judgement. Its judgement is an opinion added to
+the record; the decision is yours (`make decide`).
 
 The other order is possible too. `make triage` has the agent judge every
 mutant before simulation, and `make mutate TRIAGE=build/mutation/triage.json`

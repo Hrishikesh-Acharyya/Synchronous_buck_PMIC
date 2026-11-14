@@ -10,8 +10,8 @@
 #
 # Global variables: PYTHON, SV_LINT, CONTRACT, MUTATION, EVIDENCE, RULES, FILES,
 #                   MODULE, OPERATORS, SAMPLE, SEED, JOBS, IDS, SIM_ARGS,
-#                   TRIAGE, AUDIT, CHUNK, MODEL, RESUME, DRY, COUNT, RESULTS -
-#                   see below
+#                   TRIAGE, AUDIT, CHUNK, MODEL, RESUME, DRY, COUNT, RECORD, AS,
+#                   WHY - see below
 
 # PYTHON: the interpreter for the tools (standard library only)
 PYTHON   ?= python3
@@ -58,27 +58,35 @@ DRY       ?=
 # COUNT: optional - how many mutants make ai_mutants asks for per module
 #        (default: 40 for reg_file, 30 for spi_slave, fewer for the rest)
 COUNT     ?=
-# RESULTS: the mutation run whose survivors make judge works on (default:
-#          the newest run in build/mutation/)
-RESULTS   ?= $(lastword $(sort $(wildcard build/mutation/*/results.json)))
+# RECORD: every finished make ai_mutants, make mutate and make judge is added
+#         to the record of each module it touched (evidence/mutation/
+#         <module>.json and .md). RECORD=0 leaves a run out - for a trial of
+#         the tools, not of the design
+RECORD    ?= 1
+# AS / WHY: for make decide - the decision (equivalent, accepted or gap) and
+#           its reason
+AS        ?=
+WHY       ?=
+# NO_RECORD: the option that leaves a run out of the records
+NO_RECORD = $(if $(filter 0,$(RECORD)),--no-record)
 
 # MUTATION_ARGS: the selectors as runner options
 MUTATION_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(OPERATORS),--operators $(OPERATORS)) \
                 $(if $(SAMPLE),--sample $(SAMPLE)) --seed $(SEED) $(if $(JOBS),--jobs $(JOBS)) \
                 $(if $(IDS),--ids $(IDS)) $(if $(SIM_ARGS),--sim-args "$(SIM_ARGS)") \
-                $(if $(TRIAGE),--triage $(TRIAGE) --audit $(AUDIT)) $(if $(RESUME),--resume $(RESUME))
+                $(if $(TRIAGE),--triage $(TRIAGE) --audit $(AUDIT)) $(if $(RESUME),--resume $(RESUME)) $(NO_RECORD)
 
 # TRIAGE_ARGS: the triage settings as script options
 TRIAGE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(CHUNK),--chunk $(CHUNK)) $(if $(MODEL),--model $(MODEL)) \
-              $(if $(RESUME),--resume $(RESUME)) $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS))
+              $(if $(RESUME),--resume $(RESUME)) $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS)) $(NO_RECORD)
 
 .DEFAULT_GOAL := help
 # WRITE_ARGS: the ai_mutants settings as script options
 WRITE_ARGS = $(if $(MODULE),--modules $(MODULE)) $(if $(COUNT),--count $(COUNT)) $(if $(MODEL),--model $(MODEL)) \
-             $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS))
+             $(if $(DRY),--dry-run) $(if $(JOBS),--jobs $(JOBS)) $(NO_RECORD)
 
-.PHONY: help lint lint_report lint_evidence contract mutants mutants_check ai_mutants ai_mutants_evidence \
-        triage triage_evidence judge judge_evidence mutate mutation_evidence setup_check check_scripts
+.PHONY: help lint lint_report lint_evidence contract mutants mutants_check ai_check ai_mutants triage judge \
+        mutate decide status setup_check check_scripts
 
 help:  ## list the commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z_]+:.*## / {printf "  %-21s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -126,30 +134,39 @@ mutants_check:  ## health check of the mutant generator: lint-screen every mutan
 ai_mutants:  ## AI-written, design-aware mutants, gated and stored in ai/mutants/ (MODULE=, COUNT=, MODEL=, DRY=1)
 	@$(PYTHON) ai/scripts/write_mutants.py $(WRITE_ARGS)
 
-ai_mutants_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
-	@$(PYTHON) ai/scripts/write_mutants.py --evidence $(WRITE_ARGS)
+# ai_check: is the agent ready? One small request with the same command, tools
+#           and permission settings as the real tasks: checks the login, that
+#           the answer comes back as structured data, that the RTL can be read
+#           and that the testbenches cannot. Costs a few thousand tokens.
+ai_check:  ## check that Claude Code is installed, logged in and held to read-only by the settings (MODEL=)
+	@$(PYTHON) ai/scripts/check_agent.py $(if $(MODEL),--model $(MODEL))
 
 # triage: the AI step, before any simulation. Claude Code, run on this
 #         machine read-only, judges each mutant that passes lint: can the edit
 #         change the module's behaviour (plausible) or not (equivalent)? Writes
 #         build/mutation/triage.json; nothing is taken on trust - see AUDIT.
 #         Uses your Claude Code login; DRY=1 shows what would be sent.
-triage:  ## AI triage of the mutants, read-only (MODULE=, CHUNK=, MODEL=, RESUME=, DRY=1)
+triage:  ## AI triage of the mutants before the tests, read-only (MODULE=, CHUNK=, MODEL=, RESUME=, DRY=1)
 	@$(PYTHON) ai/scripts/triage_mutants.py $(TRIAGE_ARGS)
 
-triage_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
-	@$(PYTHON) ai/scripts/triage_mutants.py --evidence $(TRIAGE_ARGS)
+# judge: the AI step after the tests (the recommended order). The survivors
+#        in the module records that the designer has not decided are judged:
+#        a real gap, or an edit that changes nothing. Each judgement is added
+#        to its mutant in the record, beside any earlier one.
+judge:  ## AI judgement of the surviving mutants in the records, read-only (MODULE=, MODEL=, RESUME=, DRY=1)
+	@$(PYTHON) ai/scripts/triage_mutants.py --judge $(TRIAGE_ARGS)
 
-# judge: the AI step after the tests (the recommended order). Only the
-#        mutants that survived a mutation run are judged: a real gap, or an
-#        edit that changes nothing. Writes build/mutation/survivors_judged.json.
-judge:  ## AI judgement of a run's surviving mutants, read-only (RESULTS=, MODULE=, MODEL=, RESUME=, DRY=1)
-	@test -n "$(RESULTS)" || { echo "no mutation run found - run make mutate first, or give RESULTS="; exit 1; }
-	@$(PYTHON) ai/scripts/triage_mutants.py --survivors $(RESULTS) $(TRIAGE_ARGS)
+# decide: the designer's decision on survivors, added to the record with its
+#         reason: equivalent (changes nothing that can be observed), accepted
+#         (a real difference left open on purpose), or gap (real, still to be
+#         closed by a property or test).
+decide:  ## record your decision on survivors: IDS=<id>,<id> AS=equivalent|accepted|gap WHY="the reason"
+	@$(PYTHON) tools/mutation/record.py decide --ids "$(IDS)" $(if $(AS),--as $(AS)) --why "$(WHY)"
 
-judge_evidence:  ## the same, the run record saved to evidence/ai_runs/ and the ledger
-	@test -n "$(RESULTS)" || { echo "no mutation run found - run make mutate first, or give RESULTS="; exit 1; }
-	@$(PYTHON) ai/scripts/triage_mutants.py --survivors $(RESULTS) --evidence $(TRIAGE_ARGS)
+# status: each module's record in a few lines - the score, and the survivors
+#         still to be decided or closed
+status:  ## the present state of each module's mutation record (MODULE=)
+	@$(PYTHON) tools/mutation/record.py show $(if $(MODULE),--modules $(MODULE))
 
 # setup_check: is everything these commands need installed? Reads only.
 setup_check:  ## check that the tools these commands need are installed
@@ -157,14 +174,11 @@ setup_check:  ## check that the tools these commands need are installed
 
 # mutate: mutation testing - each mutant in a scratch copy of the RTL against
 #         its module's own testbench. All 17 modules take hours: run it on
-#         your machine. The report lands in build/mutation/<run>/.
+#         your machine, a module at a time if you like. The report lands in
+#         build/mutation/<run>/, and each mutant's outcome is added to its
+#         module's record in evidence/mutation/.
 mutate:  ## run mutation testing (MODULE=, OPERATORS=, SAMPLE=, SEED=, JOBS=, IDS=, SIM_ARGS=, RESUME=) - hours for all
 	@$(PYTHON) $(MUTATION) $(MUTATION_ARGS)
-
-# mutation_evidence: the same, the report and results also saved as
-#                    evidence/mutation/<date>_mutation.txt and .json
-mutation_evidence:  ## run mutation testing and save the report to evidence/mutation/
-	@$(PYTHON) $(MUTATION) --evidence $(MUTATION_ARGS)
 
 check_scripts:  ## syntax-check every script in this folder
 	@rc=0; \

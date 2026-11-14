@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "rtl_line": {"type": "string"},
+    "tb_read": {"type": "boolean"},
+    "tb_search": {"type": "boolean"},
+    "note": {"type": "string"}
+  },
+  "required": ["rtl_line", "tb_read", "tb_search", "note"],
+  "additionalProperties": false
+}

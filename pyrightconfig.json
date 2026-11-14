@@ -1,0 +1,7 @@
+{
+  "extraPaths": [
+    "verif_automation/tools/common",
+    "verif_automation/tools/mutation",
+    "verif_automation/ai/scripts"
+  ]
+}

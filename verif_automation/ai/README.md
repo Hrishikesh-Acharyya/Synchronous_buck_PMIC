@@ -47,10 +47,17 @@ count.
 | 1. write the design-aware mutants | `make ai_mutants` | the agent proposes; a deterministic gate decides what is kept |
 | 2. check every mutant is legal code | `make mutants_check` | the tools, no AI |
 | 3. simulate every mutant | `make mutate` | the tools, no AI |
-| 4. judge the survivors | `make judge` | the agent gives a first opinion; the designer decides |
+| 4. judge the survivors | `make judge` | the agent gives a first opinion |
+| 5. decide each survivor | `make decide` | the designer |
 
 Nothing in steps 1 or 4 writes a checker or a test, and nothing the agent
 says changes a score: the score comes from step 3 alone.
+
+Every step is run a module at a time (`MODULE=`) and added to that module's
+record, `evidence/mutation/<module>.json` and `.md` - the mutants the agent
+wrote and the proposals the gate rejected, each mutant's outcome in every
+run, each judgement, each decision. Running a step again adds to the record;
+nothing in it is replaced (`../tools/mutation/README.md`).
 
 ## Writing mutants
 
@@ -129,8 +136,8 @@ AI. Then have the agent judge only the survivors: each is a real gap in the
 verification (plausible) or harmless (equivalent).
 
 ```
-make mutate                 simulate every mutant - hours, no AI
-make judge                  the agent judges the survivors of that run
+make mutate MODULE=m        simulate the module's mutants - no AI
+make judge MODULE=m         the agent judges its undecided survivors
 ```
 
 **Before the tests.** The agent judges every mutant that passes lint, and the
@@ -163,7 +170,8 @@ What keeps either order honest:
   mutant can never be killed, so `make mutate TRIAGE=...` simulates the ones
   the agent called equivalent too (`AUDIT=all`, the default) and reports each
   one a test kills as a **triage error**, with the agent's reason beside it.
-  A verdict given after the tests is reviewed by the designer.
+  A verdict given after the tests is an opinion in the module's record; the
+  designer's decision is recorded beside it (`make decide`).
 - **The record is complete.** Each run's folder holds the exact command, every
   prompt sent and every raw response.
 
@@ -185,10 +193,29 @@ curl -fsSL https://claude.ai/install.sh | bash
 
 Open a new terminal, then `claude --version` should print a version. Run
 `claude` once in the repository and follow the browser prompt to log in with
-the subscription account; a Pro plan or higher is needed, and no API key.
-`claude doctor` reports on the installation if something is off.
+the subscription account; a Pro plan or higher is needed, and no API key
+(`echo $ANTHROPIC_API_KEY` should print nothing - with a key set, requests
+are billed to it instead of the plan). `claude doctor` reports on the
+installation if something is off.
 
-Then, before the first real run, see exactly what would be sent:
+If `claude` stops with "Unable to connect to Anthropic services", the machine
+cannot reach `api.anthropic.com` or `platform.claude.com`. Test from the same
+terminal with `curl -I https://api.anthropic.com`; under WSL the usual causes
+are a VPN, a proxy that needs `HTTPS_PROXY` set, or a DNS server in
+`/etc/resolv.conf` that does not answer.
+
+Then check that the agent is ready for these tasks:
+
+```
+make ai_check
+```
+
+It sends one small request with the same command and permission settings as
+the real tasks, and checks that the answer comes back in the tasks' form,
+that the RTL can be read, and that the testbenches can be neither opened nor
+searched. Every line should read `ok`.
+
+Before the first real run, see exactly what would be sent:
 
 ```
 make ai_mutants DRY=1       writes the prompts and the command, calls nothing
@@ -229,15 +256,18 @@ more real gaps "equivalent"; the second is the costly mistake.
 | `tasks/write_mutants/schema.json` | the shape of a proposed mutant |
 | `scripts/write_mutants.py` | asks for mutants a module at a time through `claude -p`, gates every proposal, stores what passes, writes the run record |
 | `mutants/<module>.json` | the accepted AI-written mutants - committed, and what `make mutate` runs |
+| `tasks/check_agent/` | the small request `make ai_check` sends |
+| `scripts/check_agent.py` | the readiness check |
 | `tasks/triage_mutants/TASK.md` | the instructions for judging mutants |
 | `tasks/triage_mutants/schema.json` | the shape its answer must have |
 | `scripts/triage_mutants.py` | the runner for both orders: selects the mutants, sends them a module chunk at a time through `claude -p`, checks each answer, writes the verdicts and the run record |
 | `scripts/settings_readonly.json` | the permission settings for a read-only task |
 
-A run's record is written to `build/ai_runs/<date>_<time>_<task>/` (not
-committed). `make ai_mutants_evidence`, `make judge_evidence` and
-`make triage_evidence` also copy it to `evidence/ai_runs/` and add a row to
-the ledger there.
+A run's record is written to `build/ai_runs/<date>_<time>_<task>/`. Every
+real run is also kept as evidence: its record is copied to
+`evidence/ai_runs/`, a row is added to the ledger there, and what it produced
+is added to the module records in `evidence/mutation/`. `RECORD=0` leaves a
+run out of all three - for trying the tools.
 
 ## Running it
 
@@ -248,9 +278,9 @@ make ai_mutants                          write and gate the design-aware mutants
 make mutants_check                       every mutant, mechanical and AI-written, is legal
 make mutate                              simulate them all - no AI
 make judge DRY=1                         write the prompts, call nothing
-make judge                               the newest mutation run's survivors
-make judge RESULTS=build/mutation/<run>/results.json
+make judge MODULE=supervisor             the module's undecided survivors
 make judge RESUME=build/ai_runs/<run>    continue a run a usage limit stopped
+make decide IDS=<id> AS=equivalent WHY="the reason"
 make triage MODULE=supervisor            the before-the-tests order, one module
 ```
 

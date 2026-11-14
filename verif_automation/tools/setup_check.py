@@ -27,7 +27,7 @@ CHECKS = [
      "see the repository README - the version the sim/ Makefile was written for is 5.x"),
     ("cocotb", [sys.executable, "-c", "import cocotb; print('cocotb', cocotb.__version__)"],
      "mutation testing of reg_file and spi_slave (the host_if suite)", "pip install cocotb cocotb-coverage"),
-    ("claude", ["claude", "--version"], "the AI steps: make triage, make judge",
+    ("claude", ["claude", "--version"], "the AI steps: make ai_mutants, make judge",
      "curl -fsSL https://claude.ai/install.sh | bash   (then open a new terminal and run: claude)"),
 ]
 
@@ -58,7 +58,8 @@ def main():
             print(f"  MISSING {name:10s}needed by {needed_by}\n          to install: {how}")
     if shutil.which("claude"):
         print("\n  claude is installed. Whether it is logged in cannot be checked without making a request:\n"
-              "  run 'claude' once and follow the browser prompt if it asks you to log in.")
+              "  run 'claude' once and follow the browser prompt if it asks you to log in, then run\n"
+              "  make ai_check - it sends one small request and checks the login and the read-only settings.")
     print(f"\n{'everything needed is installed' if not missing else f'{missing} missing'}")
     sys.exit(1 if missing else 0)
 

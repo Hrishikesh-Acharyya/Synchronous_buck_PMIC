@@ -4,9 +4,8 @@ The results of `tools/` and `ai/`, kept as a dated record. Soak evidence for
 the handwritten suites stays beside each suite (for example
 `tb/top/pmic_top/soak/`).
 
-So far: the lint reports and the RTL change requests. The agent runs and the
-other tools are still being set up; their files appear when the first real
-result does.
+So far: the lint reports and the RTL change requests. The mutation records
+and the agent runs appear with the first real run of each.
 
 ## Naming
 
@@ -21,10 +20,12 @@ find the run. Two runs of the same thing on one day get a suffix:
 | Path | What it will hold |
 |---|---|
 | `lint/` | `sv_lint` reports (`make lint_evidence`), with a summary of each in `lint/README.md` |
-| `mutation/` | mutation reports (`make mutation_evidence`): every mutant's outcome, the score per module and operator, and each survivor with its line before and after. The tool is ready; the first report comes with the first full run |
+| `mutation/<module>.json` | the mutation record of one module, added to by every step run on it and never cut: the AI writing mutants, each mutation run, the AI judging survivors, the designer's decisions. Every mutant keeps the outcome of every run it was in |
+| `mutation/<module>.md` | the same record written out to be read: the present score, each survivor with its judgements and decision, the history of steps, the AI-written mutants and the rejected proposals, every mutant |
+| `mutation/README.md` | every module's present state in one table, rewritten from the records |
 | `ai_runs/ledger.md` | one row per agent run (format below) |
 | `ai_runs/findings.md` | everything an agent run found or got wrong (format below) |
-| `ai_runs/<date>_<task>/` | the full record of one run: instructions sent, diff produced, gate output |
+| `ai_runs/<date>_<task>/` | the full record of one run of the agent: the command, every prompt sent, every raw response, what the gate did with it |
 | `rtl_change_requests.md` | RTL changes proposed by a tool or by the agent, each waiting for the designer's decision (format below) |
 | `traceability/` | the contract-to-property-to-test matrix |
 

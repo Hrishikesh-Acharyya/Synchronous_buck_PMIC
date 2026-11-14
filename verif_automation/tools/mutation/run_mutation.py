@@ -74,7 +74,8 @@
 #                                          [--sample N] [--seed S] [--jobs J]
 #                                          [--ids ID,ID] [--sim-args "V=1 ..."]
 #                                          [--triage FILE] [--audit all|N|0]
-#                                          [--list] [--check] [--evidence]
+#                                          [--list] [--check] [--no-record]
+#                                          [--resume DIR]
 #                     --seed      the seed for --sample and for the suites'
 #                                 random tests (default 1)
 #                     --sim-args  extra make variables for the sim/ target,
@@ -86,11 +87,13 @@
 #                     --check     screen every mutant with make lint and stop:
 #                                 how many are legal, how many lint catches -
 #                                 a health check of the mutant generator
-#                     --evidence  also save the report and results under
-#                                 evidence/mutation/<date>_mutation.{txt,json}
-#                                 and add the run to evidence/mutation/README.md
+#                     --no-record do not add this run to the module records
+#                                 (a trial of the tool, not of the design)
 #                   Output: verif_automation/build/mutation/<run>/report.txt
-#                   and results.json.
+#                   and results.json; and every finished run is added to the
+#                   record of each module it touched, evidence/mutation/
+#                   <module>.json and .md (record.py) - each mutant's outcome
+#                   beside its outcomes from earlier runs.
 #
 # Global variables: REPO, TARGETS, DEFAULT_TARGET, AI_STORE, SCRATCH, RUN,
 #                   ACTIVE - see below
@@ -113,6 +116,7 @@ import xml.etree.ElementTree
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import mutants as M  # noqa: E402
+import record as REC  # noqa: E402
 
 # REPO: the repository root
 REPO = pathlib.Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
@@ -359,6 +363,20 @@ def repeats(ms):
     return out
 
 
+def describe(ms):
+
+    """
+    Purpose: Mutants as the dicts the module records keep: id, where it is,
+             the operator, the description, and the line before and after.
+    """
+    out = []
+    for m in ms:
+        before, after = line_pair(m)
+        out.append({"id": m.id, "file": m.file, "unit": m.unit, "line": m.line, "operator": m.operator,
+                    "description": m.description, "before": before, "after": after})
+    return out
+
+
 def line_pair(m):
 
     """
@@ -495,7 +513,7 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--keep", action="store_true", help="keep each mutant's scratch folder")
-    ap.add_argument("--evidence", action="store_true")
+    ap.add_argument("--no-record", action="store_true")
     ap.add_argument("--resume")
     args = ap.parse_args()
 
@@ -513,7 +531,7 @@ def main():
 
     RUN["seed"] = args.seed
     RUN["sim_args"] = args.sim_args.split()
-    ms = all_mutants()
+    ms = every = all_mutants()
     total_found = len(ms)
     if args.modules:
         want = set(args.modules.split(","))
@@ -666,38 +684,14 @@ def main():
     (out / "results.json").write_text(json.dumps({"header": header, "results": results}, indent=1) + "\n")
     print(text)
     print(f"report: {out / 'report.txt'}")
-    if args.evidence and not args.check:
-        ev = REPO / "verif_automation" / "evidence" / "mutation"
-        ev.mkdir(parents=True, exist_ok=True)
-        stem = f"{datetime.date.today().isoformat()}_mutation"
-        n = 1
-        while (ev / f"{stem}{'' if n == 1 else f'_{n}'}.txt").exists():
-            n += 1
-        stem = f"{stem}{'' if n == 1 else f'_{n}'}"
-        shutil.copy(out / "report.txt", ev / f"{stem}.txt")
-        shutil.copy(out / "results.json", ev / f"{stem}.json")
-        index = ev / "README.md"
-        if not index.exists():
-            index.write_text(
-                "# Mutation runs\n\nOne row per run saved with `make mutation_evidence`, oldest first. Each "
-                "report lists every\nsurvivor with its line before and after; the `.json` beside it holds "
-                "every mutant's outcome.\n\n| Report | Commit | Scope | Mutants | Killed | Lint | Covers | Timeout | "
-                "Survived | Stillborn | Score |\n|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
-        n_of = {k: sum(r["status"] == k for r in results)
-                for k in ("killed", "lint", "covers", "timeout", "survived", "stillborn")}
-        live = len(results) - n_of["stillborn"] - sum(r["status"] in ("ai_equiv", "error") for r in results)
-        score = f"{100 * (n_of['killed'] + n_of['lint'] + n_of['covers'] + n_of['timeout']) / live:.1f}%" if live else "-"
-        what = (f"modules {args.modules}" if args.modules else "all modules") \
-            + (f", operators {args.operators}" if args.operators else "") \
-            + (f", sample {args.sample}" if args.sample else "") + (f", ids {args.ids}" if args.ids else "") \
-            + (f", {args.sim_args}" if args.sim_args else "") \
-            + (f", triage (audit {args.audit})" if args.triage else "")
-        with index.open("a") as f:
-            f.write(f"| `{stem}.txt` | {commit}{' (uncommitted changes)' if dirty else ''} | {what} | {len(results)} | "
-                    f"{n_of['killed']} | {n_of['lint']} | {n_of['covers']} | {n_of['timeout']} | {n_of['survived']} | "
-                    f"{n_of['stillborn']} | {score} |\n")
-        print(f"evidence: {ev / stem}.txt / .json, indexed in {index}")
-
+    if not args.no_record and not args.check:
+        # the module records: this run added to the history of every module it touched
+        narrowed = [f"{k} {v}" for k, v in (("operators", args.operators), ("ids", args.ids), ("sample", args.sample),
+                                           ("triage audit", args.audit if args.triage else None)) if v]
+        units = {r["unit"] for r in results}
+        paths = REC.add_mutation(results, describe([m for m in every if m.unit in units]),
+                                 ", ".join(narrowed) or None, baseline, args.seed, RUN["sim_args"])
+        print("recorded in: " + ", ".join(str(p) for p in paths))
 
 if __name__ == "__main__":
     main()
