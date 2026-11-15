@@ -1,0 +1,1538 @@
+{
+ "module": "hiccup_timer",
+ "file": "rtl-systemverilog/protect/hiccup_timer.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:20",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 6,
+   "accepted": 5,
+   "rejected": [
+    {
+     "description": "The interval-reached check is given priority over the leave-S_HICCUP clear, so a finished cool-down is never re-armed",
+     "why": "too large: replaces 13 lines with 13"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_4"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:22",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 3,
+   "accepted": 2,
+   "rejected": [
+    {
+     "description": "hiccup_done is made a one-clock pulse: on reaching the target the counter re-arms to zero and the counting branch clears the flag, so done is not held until the supervisor leaves S_HICCUP",
+     "why": "changes 7 lines; at most 6"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_5"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:24",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 1,
+   "accepted": 1,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_6"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:26",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 3,
+   "accepted": 2,
+   "rejected": [
+    {
+     "description": "The per-strike escalation is left out: every cool-down uses base_clks whatever the strike level",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_7"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:29",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 2,
+   "accepted": 1,
+   "rejected": [
+    {
+     "description": "The counter and hiccup_done are re-armed when the cool-down finishes instead of when the supervisor leaves S_HICCUP",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_8"
+  },
+  {
+   "n": 6,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:31",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 2,
+   "accepted": 1,
+   "rejected": [
+    {
+     "description": "hiccup_done is cleared on the next entry into S_HICCUP (first active clock with the counter re-armed) instead of on leaving S_HICCUP",
+     "why": "changes 7 lines; at most 6"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_9"
+  },
+  {
+   "n": 7,
+   "kind": "mutation",
+   "date": "2026-11-15",
+   "time": "14:38",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 55,
+   "counts": {
+    "killed": 38,
+    "lint": 11,
+    "survived": 6
+   },
+   "score": "89.1%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_hiccup_timer": 5.839112043380737
+   }
+  },
+  {
+   "n": 8,
+   "kind": "judge",
+   "date": "2026-11-15",
+   "time": "14:38",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "judged": 6,
+   "equivalent_high_confidence": 4,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_judge_survivors_2"
+  },
+  {
+   "n": 9,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:42",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "line 99 runs only as hiccup_done is set; hiccup_done then stays 1 until reset or leaving S_HICCUP, both of which also clear cool_counter; cool_counter is not a port, so its held value never reaches an output",
+   "mutants": [
+    "hiccup_timer.99.SDL.1",
+    "hiccup_timer.99.STK.1",
+    "hiccup_timer.99.STK.2",
+    "hiccup_timer.99.VNG.1"
+   ]
+  },
+  {
+   "n": 10,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:42",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "a size cast evaluates its operand in an assignment context of the cast width (IEEE 1800 6.24.1), so the shift is TIMER_W wide either way; sv2v renders the cast as a function with a TIMER_W input, same result",
+   "mutants": [
+    "hiccup_timer.56.AIM.1"
+   ]
+  },
+  {
+   "n": 11,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:42",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "hiccup_done reset untested: the testbench resets only at time zero, where a two-state simulator already holds 0; needs a reset applied while hiccup_done is 1",
+   "mutants": [
+    "hiccup_timer.85.SDL.1"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Moving the cast inside the shift on line 56 can change how wide the shift is evaluated. Depending on the tool's sizing rules, the top bits of base_clks<<strike_level can be lost at HICCUP_BASE_W, which gives a smaller cool_down_target and changes when line 96 matches and hiccup_done rises."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "a size cast evaluates its operand in an assignment context of the cast width (IEEE 1800 6.24.1), so the shift is TIMER_W wide either way; sv2v renders the cast as a function with a TIMER_W input, same result"
+    }
+   ],
+   "id": "hiccup_timer.56.AIM.1",
+   "operator": "AIM",
+   "line": 56,
+   "description": "The cast to TIMER_W is applied after the shift, so base_clks << strike_level is evaluated at HICCUP_BASE_W width and its top bits are lost before widening",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks<<strike_level);",
+   "category": "boundary",
+   "reason": "At strike level 1 or above with a base_clks whose upper bits are set (e.g. near HICCUP_BASE_MAX_CLKS), the target is truncated and hiccup_done asserts far earlier than base_clks*2^strike_level clocks.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.AIM.2",
+   "operator": "AIM",
+   "line": 56,
+   "description": "Strike numbering misremembered as 1-based: the interval is base_clks doubled once even at strike level 0",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks)<<(strike_level + 1'b1);",
+   "category": "boundary",
+   "reason": "Every cool-down lasts twice as long as specified; at strike level 0 hiccup_done asserts after 2*base_clks clocks instead of base_clks.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.AIM.3",
+   "operator": "AIM",
+   "line": 56,
+   "description": "Escalation made linear (base * (level+1)) instead of doubling per strike",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks) * (strike_level + 1'b1);",
+   "category": "other",
+   "reason": "At strike levels 0 and 1 the interval is unchanged, but at strike level 2 hiccup_done asserts after 3*base_clks clocks instead of 4*base_clks.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early",
+       "a_done_cleared_outside"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.AIM.4",
+   "operator": "AIM",
+   "line": 89,
+   "description": "The counter and flag are cleared on leaving S_HICCUP only if the cool-down had finished; an early exit (g_en low, UVLO, OTP) leaves the counter running",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (!hiccup_active && hiccup_done) begin",
+   "category": "reset_init",
+   "reason": "If the supervisor leaves S_HICCUP before the interval elapses, cool_counter keeps counting outside S_HICCUP and hiccup_done asserts while hiccup_active is low and stays set, so the next hiccup entry ends immediately.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.AIM.5",
+   "operator": "AIM",
+   "line": 96,
+   "description": "hiccup_done is raised when the counter is about to reach the target instead of when it has reached it",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (cool_counter + 1'b1 == cool_down_target) begin",
+   "category": "sequencing",
+   "reason": "In every cool-down hiccup_done asserts one clock earlier than base_clks<<strike_level clocks after entry, shortening each hiccup by one clock.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.AIM.6",
+   "operator": "AIM",
+   "line": 56,
+   "description": "The shift subtracts one strike to make up for strike_counter incrementing on entry, so a cool-down at strike level L lasts base_clks<<(L-1): the first hiccup gets the base interval and every later one gets half its intended length",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks)<<(strike_level - 1'b1);",
+   "category": "other",
+   "reason": "In every hiccup, once strike_level has stepped up on entry (level 1 or 2), hiccup_done is raised after half the intended number of clocks. So the supervisor goes back to S_SS early, and on the first strike it waits only base_clks instead of 2*base_clks.",
+   "written_in": 2
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.92.AIM.7",
+   "operator": "AIM",
+   "line": 92,
+   "description": "Outside S_HICCUP the counter is parked at the live target instead of being cleared to zero (a misreading of 'held at target rather than reset'), so every cool-down starts already finished",
+   "before": "cool_counter <= 0;",
+   "after": "cool_counter <= cool_down_target;",
+   "category": "reset_init",
+   "reason": "On any entry to S_HICCUP after reset, the counter already equals the target on the first active clock (strike_level has not yet stepped up), so hiccup_done rises one clock after hiccup_active instead of after base_clks<<level clocks. The cool-down is skipped completely.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.AIM.8",
+   "operator": "AIM",
+   "line": 96,
+   "description": "The cool-down is treated as finished only once the counter has gone past the target instead of reaching it, so the counter runs on to target+1 and hiccup_done is raised one clock late",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (cool_counter > cool_down_target) begin",
+   "category": "sequencing",
+   "reason": "In every S_HICCUP visit, hiccup_done goes high one clk later than base_clks<<strike_level clocks after entry, so the supervisor leaves S_HICCUP for S_SS one clock late. This is the late counterpart of the existing 'raised one clock early' mutant.",
+   "written_in": 3
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.AIM.9",
+   "operator": "AIM",
+   "line": 56,
+   "description": "The escalation is capped one strike early: the shift saturates at MAX_STRIKES_DEFAULT-2 instead of following strike_level up to the level the timer was sized for",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks)<<((strike_level > STRIKE_W'(pmic_types_pkg::MAX_STRIKES_DEFAULT-2)) ? STRIKE_W'(pmic_types_pkg::MAX_STRIKES_DEFAULT-2) : strike_level);",
+   "category": "boundary",
+   "reason": "At strike_level 2 or more (a second hiccup before a clean run), hiccup_done goes high after base_clks<<1 clocks instead of base_clks<<strike_level, so the later cool-downs stop growing. Levels 0 and 1 are unchanged.",
+   "written_in": 4
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_cleared_outside",
+     "killed_by": {
+      "assertions": [
+       "a_done_cleared_outside"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.AIM.10",
+   "operator": "AIM",
+   "line": 89,
+   "description": "The interval-reached test wins over the leave-S_HICCUP clear, so a cool-down that finished is not re-armed when the supervisor leaves S_HICCUP",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (!hiccup_active && (cool_counter != cool_down_target)) begin",
+   "category": "priority",
+   "reason": "After a completed cool-down, hiccup_done stays high in S_SS and S_RUN while strike_level is unchanged. The next entry into S_HICCUP then sees the stale flag and exits at once without any cool-down.",
+   "written_in": 4
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.AIM.11",
+   "operator": "AIM",
+   "line": 56,
+   "description": "'Doubles each strike' misread as a shift of two per strike, so the cool-down quadruples with each strike instead of doubling",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks)<<(2*strike_level);",
+   "category": "boundary",
+   "reason": "At strike level 1 or higher (every hiccup, since strike_counter increments on entry), hiccup_done comes after base_clks<<(2*level) clocks instead of base_clks<<level. For example, it comes after 4*base instead of 2*base at level 1.",
+   "written_in": 5
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_cleared_outside",
+     "killed_by": {
+      "assertions": [
+       "a_done_cleared_outside"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.91.AIM.12",
+   "operator": "AIM",
+   "line": 91,
+   "description": "On leaving S_HICCUP, hiccup_done is cleared only once the counter has already been re-armed to zero, so the flag is dropped one clock after the counter instead of together with it",
+   "before": "hiccup_done <= 1'b0;",
+   "after": "if (cool_counter == '0) hiccup_done <= 1'b0;",
+   "category": "sequencing",
+   "reason": "When the supervisor leaves S_HICCUP after a finished cool-down, the counter is at its nonzero target. hiccup_done therefore stays high for one clock while hiccup_active is low, instead of falling on the first clock outside the state.",
+   "written_in": 6
+  },
+  "389748c749#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN, UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.SDL.1",
+   "operator": "SDL",
+   "line": 56,
+   "description": "delete 'cool_down_target = TIMER_W'(base_clks)<<strike_level;'",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": ";"
+  },
+  "596f009919#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early",
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.SHF.1",
+   "operator": "SHF",
+   "line": 56,
+   "description": "<< -> >>",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = TIMER_W'(base_clks)>>strike_level;"
+  },
+  "11004ff0fb#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.SIB.1",
+   "operator": "SIB",
+   "line": 56,
+   "description": "TIMER_W -> STRIKE_W",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = STRIKE_W'(base_clks)<<strike_level;"
+  },
+  "bdd64ef4cd#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.STK.1",
+   "operator": "STK",
+   "line": 56,
+   "description": "cool_down_target stuck at all-zeros (was 'TIMER_W'(base_clks)<<strike_level')",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = '0;"
+  },
+  "3d98ea2ebd#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.STK.2",
+   "operator": "STK",
+   "line": 56,
+   "description": "cool_down_target stuck at all-ones (was 'TIMER_W'(base_clks)<<strike_level')",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = '1;"
+  },
+  "8dc0a54241#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.56.VNG.1",
+   "operator": "VNG",
+   "line": 56,
+   "description": "cool_down_target inverted (was 'TIMER_W'(base_clks)<<strike_level')",
+   "before": "cool_down_target = TIMER_W'(base_clks)<<strike_level;",
+   "after": "cool_down_target = ~(TIMER_W'(base_clks)<<strike_level);"
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early",
+       "a_done_held"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.61.EDG.1",
+   "operator": "EDG",
+   "line": 61,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "d6b553b466#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.82.BDL.1",
+   "operator": "BDL",
+   "line": 82,
+   "description": "empty the 2-statement body of the if at line 82",
+   "before": "if(!rst_n) begin",
+   "after": "if(!rst_n) begin end"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.82.CSK.1",
+   "operator": "CSK",
+   "line": 82,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.82.CSK.2",
+   "operator": "CSK",
+   "line": 82,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.82.UOD.1",
+   "operator": "UOD",
+   "line": 82,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "3fa73d070b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.84.CST.1",
+   "operator": "CST",
+   "line": 84,
+   "description": "0 -> 1",
+   "before": "cool_counter <= 0;",
+   "after": "cool_counter <= 1;"
+  },
+  "2b8c8e826d#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.84.SDL.1",
+   "operator": "SDL",
+   "line": 84,
+   "description": "delete 'cool_counter <= 0;'",
+   "before": "cool_counter <= 0;",
+   "after": ";"
+  },
+  "07017d26ea#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_reset_done_low",
+     "killed_by": {
+      "assertions": [
+       "a_reset_done_low"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.85.CST.1",
+   "operator": "CST",
+   "line": 85,
+   "description": "0 -> 1",
+   "before": "hiccup_done <= 0;",
+   "after": "hiccup_done <= 1;"
+  },
+  "3a7ef95826#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 85, the asynchronous reset no longer clears hiccup_done. At power-up it stays X, and a reset that arrives while it is 1 leaves it at 1, which shows on the output port."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "hiccup_done reset untested: the testbench resets only at time zero, where a two-state simulator already holds 0; needs a reset applied while hiccup_done is 1"
+    }
+   ],
+   "id": "hiccup_timer.85.SDL.1",
+   "operator": "SDL",
+   "line": 85,
+   "description": "delete 'hiccup_done <= 0;'",
+   "before": "hiccup_done <= 0;",
+   "after": ";"
+  },
+  "785f43933e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_cleared_outside +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_cleared_outside",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.BDL.1",
+   "operator": "BDL",
+   "line": 89,
+   "description": "empty the 2-statement body of the if at line 89",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (!hiccup_active) begin end"
+  },
+  "43d38a56a4#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.CSK.1",
+   "operator": "CSK",
+   "line": 89,
+   "description": "if (!hiccup_active) -> if (1'b0): never taken",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "bb5d9b3efe#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.CSK.2",
+   "operator": "CSK",
+   "line": 89,
+   "description": "if (!hiccup_active) -> if (1'b1): always taken",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "23905f8c45#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.EDL.1",
+   "operator": "EDL",
+   "line": 89,
+   "description": "delete the else branch at line 89",
+   "before": "else if (!hiccup_active) begin",
+   "after": ""
+  },
+  "731d6eb6dc#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.SIB.1",
+   "operator": "SIB",
+   "line": 89,
+   "description": "hiccup_active -> hiccup_done",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (!hiccup_done) begin"
+  },
+  "8ecd6a7e68#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +3",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_cleared_outside",
+       "a_done_not_early",
+       "a_done_held"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.89.UOD.1",
+   "operator": "UOD",
+   "line": 89,
+   "description": "drop the '!' before hiccup_active",
+   "before": "else if (!hiccup_active) begin",
+   "after": "else if (hiccup_active) begin"
+  },
+  "bea954dd1b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_cleared_outside +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_cleared_outside",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.91.CST.1",
+   "operator": "CST",
+   "line": 91,
+   "description": "1'b0 -> 1'b1",
+   "before": "hiccup_done <= 1'b0;",
+   "after": "hiccup_done <= 1'b1;"
+  },
+  "f50338b91d#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_cleared_outside",
+     "killed_by": {
+      "assertions": [
+       "a_done_cleared_outside"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.91.SDL.1",
+   "operator": "SDL",
+   "line": 91,
+   "description": "delete 'hiccup_done <= 1'b0;'",
+   "before": "hiccup_done <= 1'b0;",
+   "after": ";"
+  },
+  "3fa73d070b#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.92.CST.1",
+   "operator": "CST",
+   "line": 92,
+   "description": "0 -> 1",
+   "before": "cool_counter <= 0;",
+   "after": "cool_counter <= 1;"
+  },
+  "2b8c8e826d#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early",
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.92.SDL.1",
+   "operator": "SDL",
+   "line": 92,
+   "description": "delete 'cool_counter <= 0;'",
+   "before": "cool_counter <= 0;",
+   "after": ";"
+  },
+  "36d4e7ebe4#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.BDL.1",
+   "operator": "BDL",
+   "line": 96,
+   "description": "empty the 2-statement body of the if at line 96",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (cool_counter == cool_down_target) begin end"
+  },
+  "ea03a34f79#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.CSK.1",
+   "operator": "CSK",
+   "line": 96,
+   "description": "if (cool_counter == cool_down_target) -> if (1'b0): never taken",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "5625d857f6#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.CSK.2",
+   "operator": "CSK",
+   "line": 96,
+   "description": "if (cool_counter == cool_down_target) -> if (1'b1): always taken",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "994e44cc6e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.EDL.1",
+   "operator": "EDL",
+   "line": 96,
+   "description": "delete the else branch at line 96",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": ""
+  },
+  "693e793389#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_not_early",
+     "killed_by": {
+      "assertions": [
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.96.ROR.1",
+   "operator": "ROR",
+   "line": 96,
+   "description": "== -> !=",
+   "before": "else if (cool_counter == cool_down_target) begin",
+   "after": "else if (cool_counter != cool_down_target) begin"
+  },
+  "2fe65690bd#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.98.CST.1",
+   "operator": "CST",
+   "line": 98,
+   "description": "1'b1 -> 1'b0",
+   "before": "hiccup_done  <= 1'b1;",
+   "after": "hiccup_done  <= 1'b0;"
+  },
+  "aa48c63aa6#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.98.SDL.1",
+   "operator": "SDL",
+   "line": 98,
+   "description": "delete 'hiccup_done <= 1'b1;'",
+   "before": "hiccup_done  <= 1'b1;",
+   "after": ";"
+  },
+  "88501d0d4c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "Line 99 assigns cool_counter to itself inside an always_ff. Removing it leaves cool_counter unassigned on that path, so the flop keeps its value anyway and nothing changes."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "line 99 runs only as hiccup_done is set; hiccup_done then stays 1 until reset or leaving S_HICCUP, both of which also clear cool_counter; cool_counter is not a port, so its held value never reaches an output"
+    }
+   ],
+   "id": "hiccup_timer.99.SDL.1",
+   "operator": "SDL",
+   "line": 99,
+   "description": "delete 'cool_counter <= cool_counter;'",
+   "before": "cool_counter <= cool_counter;   // hold",
+   "after": ";   // hold"
+  },
+  "03cfaee313#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "Line 99 only runs in the same branch where line 98 sets hiccup_done to 1, so the first match happens at the same time as before. After that, hiccup_done can only be cleared by reset or !hiccup_active (lines 85 and 91), and both also clear cool_counter (lines 84 and 92). cool_counter is not a port, so the different value it holds until then is never seen, and hiccup_done is the only output."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "line 99 runs only as hiccup_done is set; hiccup_done then stays 1 until reset or leaving S_HICCUP, both of which also clear cool_counter; cool_counter is not a port, so its held value never reaches an output"
+    }
+   ],
+   "id": "hiccup_timer.99.STK.1",
+   "operator": "STK",
+   "line": 99,
+   "description": "cool_counter stuck at all-zeros (was 'cool_counter')",
+   "before": "cool_counter <= cool_counter;   // hold",
+   "after": "cool_counter <= '0;   // hold"
+  },
+  "42addadbf6#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "Line 99 only runs as hiccup_done is set to 1 on line 98, and hiccup_done stays 1 until reset or !hiccup_active, which also clear cool_counter (lines 84 and 92). Setting the internal counter to all-ones in between, or letting it wrap from there, never changes hiccup_done, the only output."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "line 99 runs only as hiccup_done is set; hiccup_done then stays 1 until reset or leaving S_HICCUP, both of which also clear cool_counter; cool_counter is not a port, so its held value never reaches an output"
+    }
+   ],
+   "id": "hiccup_timer.99.STK.2",
+   "operator": "STK",
+   "line": 99,
+   "description": "cool_counter stuck at all-ones (was 'cool_counter')",
+   "before": "cool_counter <= cool_counter;   // hold",
+   "after": "cool_counter <= '1;   // hold"
+  },
+  "574ff7b650#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "The inverted counter on line 99 is written only once hiccup_done has been set to 1 (line 98). hiccup_done cannot drop until reset or !hiccup_active (lines 82-92), and those branches also set cool_counter to 0, so the changed counter never reaches the output."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "line 99 runs only as hiccup_done is set; hiccup_done then stays 1 until reset or leaving S_HICCUP, both of which also clear cool_counter; cool_counter is not a port, so its held value never reaches an output"
+    }
+   ],
+   "id": "hiccup_timer.99.VNG.1",
+   "operator": "VNG",
+   "line": 99,
+   "description": "cool_counter inverted (was 'cool_counter')",
+   "before": "cool_counter <= cool_counter;   // hold",
+   "after": "cool_counter <= ~(cool_counter);   // hold"
+  },
+  "efe13c1815#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.AOR.1",
+   "operator": "AOR",
+   "line": 104,
+   "description": "+ -> -",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= cool_counter - 1;"
+  },
+  "8ab88d2a92#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.CST.1",
+   "operator": "CST",
+   "line": 104,
+   "description": "1 -> 0",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= cool_counter + 0;"
+  },
+  "514f18100e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.CST.2",
+   "operator": "CST",
+   "line": 104,
+   "description": "1 -> 2",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= cool_counter + 2;"
+  },
+  "52784227a1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.SDL.1",
+   "operator": "SDL",
+   "line": 104,
+   "description": "delete 'cool_counter <= cool_counter + 1;'",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else ;"
+  },
+  "1449cba30b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.STK.1",
+   "operator": "STK",
+   "line": 104,
+   "description": "cool_counter stuck at all-zeros (was 'cool_counter + 1')",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= '0;"
+  },
+  "40f17d9c16#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time",
+       "a_done_not_early"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.STK.2",
+   "operator": "STK",
+   "line": 104,
+   "description": "cool_counter stuck at all-ones (was 'cool_counter + 1')",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= '1;"
+  },
+  "35ab0189ea#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_done_on_time",
+     "killed_by": {
+      "assertions": [
+       "a_done_on_time"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "hiccup_timer.104.VNG.1",
+   "operator": "VNG",
+   "line": 104,
+   "description": "cool_counter inverted (was 'cool_counter + 1')",
+   "before": "else cool_counter <= cool_counter + 1;",
+   "after": "else cool_counter <= ~(cool_counter + 1);"
+  }
+ }
+}

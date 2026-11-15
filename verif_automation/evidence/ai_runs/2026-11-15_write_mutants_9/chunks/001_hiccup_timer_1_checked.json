@@ -1,0 +1,50 @@
+[
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  else if (!hiccup_active) begin",
+    "",
+    "    hiccup_done <= 1'b0;",
+    "    cool_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (!hiccup_active) begin",
+    "",
+    "    cool_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_done && cool_counter == '0) begin",
+    "",
+    "    hiccup_done <= 1'b0;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "hiccup_done is cleared on the next entry into S_HICCUP (first active clock with the counter re-armed) instead of on leaving S_HICCUP",
+   "reason": "After a finished cool-down, hiccup_done stays high once hiccup_active falls, through S_SS and S_RUN. On the next entry it is still high on the first active clock, so the supervisor leaves S_HICCUP at once and the escalated cool-down is skipped."
+  },
+  "accepted": false,
+  "why": "changes 7 lines; at most 6"
+ },
+ {
+  "proposal": {
+   "line": 91,
+   "before": [
+    "    hiccup_done <= 1'b0;"
+   ],
+   "after": [
+    "    if (cool_counter == '0) hiccup_done <= 1'b0;"
+   ],
+   "category": "sequencing",
+   "description": "On leaving S_HICCUP, hiccup_done is cleared only once the counter has already been re-armed to zero, so the flag is dropped one clock after the counter instead of together with it",
+   "reason": "When the supervisor leaves S_HICCUP after a finished cool-down, the counter is at its nonzero target. hiccup_done therefore stays high for one clock while hiccup_active is low, instead of falling on the first clock outside the state."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.91.AIM.12"
+ }
+]

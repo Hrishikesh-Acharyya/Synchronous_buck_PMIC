@@ -1,0 +1,73 @@
+[
+ {
+  "proposal": {
+   "line": 56,
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(strike_level - 1'b1);"
+   ],
+   "category": "other",
+   "description": "The shift subtracts one strike to make up for strike_counter incrementing on entry, so a cool-down at strike level L lasts base_clks<<(L-1): the first hiccup gets the base interval and every later one gets half its intended length",
+   "reason": "In every hiccup, once strike_level has stepped up on entry (level 1 or 2), hiccup_done is raised after half the intended number of clocks. So the supervisor goes back to S_SS early, and on the first strike it waits only base_clks instead of 2*base_clks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.56.AIM.6"
+ },
+ {
+  "proposal": {
+   "line": 92,
+   "before": [
+    "    cool_counter <= 0;"
+   ],
+   "after": [
+    "    cool_counter <= cool_down_target;"
+   ],
+   "category": "reset_init",
+   "description": "Outside S_HICCUP the counter is parked at the live target instead of being cleared to zero (a misreading of 'held at target rather than reset'), so every cool-down starts already finished",
+   "reason": "On any entry to S_HICCUP after reset, the counter already equals the target on the first active clock (strike_level has not yet stepped up), so hiccup_done rises one clock after hiccup_active instead of after base_clks<<level clocks. The cool-down is skipped completely."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.92.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 96,
+   "before": [
+    "  else if (cool_counter == cool_down_target) begin",
+    "",
+    "    hiccup_done  <= 1'b1;",
+    "    cool_counter <= cool_counter;   // hold",
+    "",
+    "  end",
+    "",
+    "",
+    "  else cool_counter <= cool_counter + 1;"
+   ],
+   "after": [
+    "  else if (cool_counter == cool_down_target) begin",
+    "",
+    "    hiccup_done  <= 1'b1;",
+    "    cool_counter <= 0;   // re-arm",
+    "",
+    "  end",
+    "",
+    "",
+    "  else begin",
+    "",
+    "    hiccup_done  <= 1'b0;",
+    "    cool_counter <= cool_counter + 1;",
+    "",
+    "  end"
+   ],
+   "category": "sequencing",
+   "description": "hiccup_done is made a one-clock pulse: on reaching the target the counter re-arms to zero and the counting branch clears the flag, so done is not held until the supervisor leaves S_HICCUP",
+   "reason": "When the interval elapses, hiccup_done drops on the very next clock while hiccup_active is still high. In the original it stays high until the clock after hiccup_active falls, so the done output is one clock shorter and low inside S_HICCUP."
+  },
+  "accepted": false,
+  "why": "changes 7 lines; at most 6"
+ }
+]

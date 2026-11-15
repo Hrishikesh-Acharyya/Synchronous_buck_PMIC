@@ -1,0 +1,127 @@
+[
+ {
+  "proposal": {
+   "line": 56,
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks<<strike_level);"
+   ],
+   "category": "boundary",
+   "description": "The cast to TIMER_W is applied after the shift, so base_clks << strike_level is evaluated at HICCUP_BASE_W width and its top bits are lost before widening",
+   "reason": "At strike level 1 or above with a base_clks whose upper bits are set (e.g. near HICCUP_BASE_MAX_CLKS), the target is truncated and hiccup_done asserts far earlier than base_clks*2^strike_level clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.56.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 56,
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(strike_level + 1'b1);"
+   ],
+   "category": "boundary",
+   "description": "Strike numbering misremembered as 1-based: the interval is base_clks doubled once even at strike level 0",
+   "reason": "Every cool-down lasts twice as long as specified; at strike level 0 hiccup_done asserts after 2*base_clks clocks instead of base_clks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.56.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 56,
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks) * (strike_level + 1'b1);"
+   ],
+   "category": "other",
+   "description": "Escalation made linear (base * (level+1)) instead of doubling per strike",
+   "reason": "At strike levels 0 and 1 the interval is unchanged, but at strike level 2 hiccup_done asserts after 3*base_clks clocks instead of 4*base_clks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.56.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  else if (!hiccup_active) begin",
+    "",
+    "    hiccup_done <= 1'b0;",
+    "    cool_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if (cool_counter == cool_down_target) begin",
+    "",
+    "    hiccup_done  <= 1'b1;",
+    "    cool_counter <= cool_counter;   // hold",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (cool_counter == cool_down_target) begin",
+    "",
+    "    hiccup_done  <= 1'b1;",
+    "    cool_counter <= cool_counter;   // hold",
+    "",
+    "  end",
+    "",
+    "  else if (!hiccup_active) begin",
+    "",
+    "    hiccup_done <= 1'b0;",
+    "    cool_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "category": "priority",
+   "description": "The interval-reached check is given priority over the leave-S_HICCUP clear, so a finished cool-down is never re-armed",
+   "reason": "After the first cool-down completes, hiccup_done stays high through S_SS and S_RUN, so the next entry into S_HICCUP sees hiccup_done already asserted and exits without any cool-down."
+  },
+  "accepted": false,
+  "why": "too large: replaces 13 lines with 13"
+ },
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  else if (!hiccup_active) begin"
+   ],
+   "after": [
+    "  else if (!hiccup_active && hiccup_done) begin"
+   ],
+   "category": "reset_init",
+   "description": "The counter and flag are cleared on leaving S_HICCUP only if the cool-down had finished; an early exit (g_en low, UVLO, OTP) leaves the counter running",
+   "reason": "If the supervisor leaves S_HICCUP before the interval elapses, cool_counter keeps counting outside S_HICCUP and hiccup_done asserts while hiccup_active is low and stays set, so the next hiccup entry ends immediately."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.89.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 96,
+   "before": [
+    "  else if (cool_counter == cool_down_target) begin"
+   ],
+   "after": [
+    "  else if (cool_counter + 1'b1 == cool_down_target) begin"
+   ],
+   "category": "sequencing",
+   "description": "hiccup_done is raised when the counter is about to reach the target instead of when it has reached it",
+   "reason": "In every cool-down hiccup_done asserts one clock earlier than base_clks<<strike_level clocks after entry, shortening each hiccup by one clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.96.AIM.5"
+ }
+]

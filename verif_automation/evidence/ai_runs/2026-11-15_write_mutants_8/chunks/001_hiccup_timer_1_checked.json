@@ -1,0 +1,35 @@
+[
+ {
+  "proposal": {
+   "line": 56,
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(2*strike_level);"
+   ],
+   "category": "boundary",
+   "description": "'Doubles each strike' misread as a shift of two per strike, so the cool-down quadruples with each strike instead of doubling",
+   "reason": "At strike level 1 or higher (every hiccup, since strike_counter increments on entry), hiccup_done comes after base_clks<<(2*level) clocks instead of base_clks<<level. For example, it comes after 4*base instead of 2*base at level 1."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.56.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  else if (!hiccup_active) begin"
+   ],
+   "after": [
+    "  else if (hiccup_done) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The counter and hiccup_done are re-armed when the cool-down finishes instead of when the supervisor leaves S_HICCUP",
+   "reason": "hiccup_done becomes a one-clock pulse. Outside S_HICCUP the counter keeps running, so hiccup_done is raised while hiccup_active is low. A later entry into S_HICCUP starts partway through a count, so the cool-down it gets is shorter than base_clks<<strike_level and its length depends on timing."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ }
+]

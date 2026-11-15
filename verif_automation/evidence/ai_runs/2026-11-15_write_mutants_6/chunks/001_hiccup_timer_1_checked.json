@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 96,
+   "before": [
+    "  else if (cool_counter == cool_down_target) begin"
+   ],
+   "after": [
+    "  else if (cool_counter > cool_down_target) begin"
+   ],
+   "category": "sequencing",
+   "description": "The cool-down is treated as finished only once the counter has gone past the target instead of reaching it, so the counter runs on to target+1 and hiccup_done is raised one clock late",
+   "reason": "In every S_HICCUP visit, hiccup_done goes high one clk later than base_clks<<strike_level clocks after entry, so the supervisor leaves S_HICCUP for S_SS one clock late. This is the late counterpart of the existing 'raised one clock early' mutant."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "hiccup_timer.96.AIM.8"
+ }
+]

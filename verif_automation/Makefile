@@ -58,7 +58,7 @@ AUDIT     ?= all
 #                  defaults
 CHUNK     ?=
 MODEL     ?= opus
-EFFORT    ?= medium
+EFFORT    ?= high
 # AGENT_ARGS: the model and effort as script options
 AGENT_ARGS = $(if $(MODEL),--model $(MODEL)) $(if $(EFFORT),--effort $(EFFORT))
 RESUME    ?=

@@ -1,0 +1,177 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 56,
+   "category": "boundary",
+   "description": "The cast to TIMER_W is applied after the shift, so base_clks << strike_level is evaluated at HICCUP_BASE_W width and its top bits are lost before widening",
+   "reason": "At strike level 1 or above with a base_clks whose upper bits are set (e.g. near HICCUP_BASE_MAX_CLKS), the target is truncated and hiccup_done asserts far earlier than base_clks*2^strike_level clocks.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks<<strike_level);"
+   ],
+   "run": "2026-11-15_write_mutants_4"
+  },
+  {
+   "key": 2,
+   "line": 56,
+   "category": "boundary",
+   "description": "Strike numbering misremembered as 1-based: the interval is base_clks doubled once even at strike level 0",
+   "reason": "Every cool-down lasts twice as long as specified; at strike level 0 hiccup_done asserts after 2*base_clks clocks instead of base_clks.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(strike_level + 1'b1);"
+   ],
+   "run": "2026-11-15_write_mutants_4"
+  },
+  {
+   "key": 3,
+   "line": 56,
+   "category": "other",
+   "description": "Escalation made linear (base * (level+1)) instead of doubling per strike",
+   "reason": "At strike levels 0 and 1 the interval is unchanged, but at strike level 2 hiccup_done asserts after 3*base_clks clocks instead of 4*base_clks.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks) * (strike_level + 1'b1);"
+   ],
+   "run": "2026-11-15_write_mutants_4"
+  },
+  {
+   "key": 4,
+   "line": 89,
+   "category": "reset_init",
+   "description": "The counter and flag are cleared on leaving S_HICCUP only if the cool-down had finished; an early exit (g_en low, UVLO, OTP) leaves the counter running",
+   "reason": "If the supervisor leaves S_HICCUP before the interval elapses, cool_counter keeps counting outside S_HICCUP and hiccup_done asserts while hiccup_active is low and stays set, so the next hiccup entry ends immediately.",
+   "before": [
+    "  else if (!hiccup_active) begin"
+   ],
+   "after": [
+    "  else if (!hiccup_active && hiccup_done) begin"
+   ],
+   "run": "2026-11-15_write_mutants_4"
+  },
+  {
+   "key": 5,
+   "line": 96,
+   "category": "sequencing",
+   "description": "hiccup_done is raised when the counter is about to reach the target instead of when it has reached it",
+   "reason": "In every cool-down hiccup_done asserts one clock earlier than base_clks<<strike_level clocks after entry, shortening each hiccup by one clock.",
+   "before": [
+    "  else if (cool_counter == cool_down_target) begin"
+   ],
+   "after": [
+    "  else if (cool_counter + 1'b1 == cool_down_target) begin"
+   ],
+   "run": "2026-11-15_write_mutants_4"
+  },
+  {
+   "key": 6,
+   "line": 56,
+   "category": "other",
+   "description": "The shift subtracts one strike to make up for strike_counter incrementing on entry, so a cool-down at strike level L lasts base_clks<<(L-1): the first hiccup gets the base interval and every later one gets half its intended length",
+   "reason": "In every hiccup, once strike_level has stepped up on entry (level 1 or 2), hiccup_done is raised after half the intended number of clocks. So the supervisor goes back to S_SS early, and on the first strike it waits only base_clks instead of 2*base_clks.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(strike_level - 1'b1);"
+   ],
+   "run": "2026-11-15_write_mutants_5"
+  },
+  {
+   "key": 7,
+   "line": 91,
+   "category": "reset_init",
+   "description": "Outside S_HICCUP the counter is parked at the live target instead of being cleared to zero (a misreading of 'held at target rather than reset'), so every cool-down starts already finished",
+   "reason": "On any entry to S_HICCUP after reset, the counter already equals the target on the first active clock (strike_level has not yet stepped up), so hiccup_done rises one clock after hiccup_active instead of after base_clks<<level clocks. The cool-down is skipped completely.",
+   "before": [
+    "    hiccup_done <= 1'b0;",
+    "    cool_counter <= 0;"
+   ],
+   "after": [
+    "    hiccup_done <= 1'b0;",
+    "    cool_counter <= cool_down_target;"
+   ],
+   "run": "2026-11-15_write_mutants_5"
+  },
+  {
+   "key": 8,
+   "line": 96,
+   "category": "sequencing",
+   "description": "The cool-down is treated as finished only once the counter has gone past the target instead of reaching it, so the counter runs on to target+1 and hiccup_done is raised one clock late",
+   "reason": "In every S_HICCUP visit, hiccup_done goes high one clk later than base_clks<<strike_level clocks after entry, so the supervisor leaves S_HICCUP for S_SS one clock late. This is the late counterpart of the existing 'raised one clock early' mutant.",
+   "before": [
+    "  else if (cool_counter == cool_down_target) begin"
+   ],
+   "after": [
+    "  else if (cool_counter > cool_down_target) begin"
+   ],
+   "run": "2026-11-15_write_mutants_6"
+  },
+  {
+   "key": 9,
+   "line": 56,
+   "category": "boundary",
+   "description": "The escalation is capped one strike early: the shift saturates at MAX_STRIKES_DEFAULT-2 instead of following strike_level up to the level the timer was sized for",
+   "reason": "At strike_level 2 or more (a second hiccup before a clean run), hiccup_done goes high after base_clks<<1 clocks instead of base_clks<<strike_level, so the later cool-downs stop growing. Levels 0 and 1 are unchanged.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<((strike_level > STRIKE_W'(pmic_types_pkg::MAX_STRIKES_DEFAULT-2)) ? STRIKE_W'(pmic_types_pkg::MAX_STRIKES_DEFAULT-2) : strike_level);"
+   ],
+   "run": "2026-11-15_write_mutants_7"
+  },
+  {
+   "key": 10,
+   "line": 89,
+   "category": "priority",
+   "description": "The interval-reached test wins over the leave-S_HICCUP clear, so a cool-down that finished is not re-armed when the supervisor leaves S_HICCUP",
+   "reason": "After a completed cool-down, hiccup_done stays high in S_SS and S_RUN while strike_level is unchanged. The next entry into S_HICCUP then sees the stale flag and exits at once without any cool-down.",
+   "before": [
+    "  else if (!hiccup_active) begin"
+   ],
+   "after": [
+    "  else if (!hiccup_active && (cool_counter != cool_down_target)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_7"
+  },
+  {
+   "key": 11,
+   "line": 56,
+   "category": "boundary",
+   "description": "'Doubles each strike' misread as a shift of two per strike, so the cool-down quadruples with each strike instead of doubling",
+   "reason": "At strike level 1 or higher (every hiccup, since strike_counter increments on entry), hiccup_done comes after base_clks<<(2*level) clocks instead of base_clks<<level. For example, it comes after 4*base instead of 2*base at level 1.",
+   "before": [
+    "  cool_down_target = TIMER_W'(base_clks)<<strike_level;"
+   ],
+   "after": [
+    "  cool_down_target = TIMER_W'(base_clks)<<(2*strike_level);"
+   ],
+   "run": "2026-11-15_write_mutants_8"
+  },
+  {
+   "key": 12,
+   "line": 91,
+   "category": "sequencing",
+   "description": "On leaving S_HICCUP, hiccup_done is cleared only once the counter has already been re-armed to zero, so the flag is dropped one clock after the counter instead of together with it",
+   "reason": "When the supervisor leaves S_HICCUP after a finished cool-down, the counter is at its nonzero target. hiccup_done therefore stays high for one clock while hiccup_active is low, instead of falling on the first clock outside the state.",
+   "before": [
+    "    hiccup_done <= 1'b0;"
+   ],
+   "after": [
+    "    if (cool_counter == '0) hiccup_done <= 1'b0;"
+   ],
+   "run": "2026-11-15_write_mutants_9"
+  }
+ ],
+ "unit": "hiccup_timer",
+ "file": "rtl-systemverilog/protect/hiccup_timer.sv",
+ "last_key": 12
+}
