@@ -1,0 +1,48 @@
+[
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "          else begin",
+    "",
+    "              run_counter <= run_counter;",
+    "              pulse_allowed <= 0;",
+    "",
+    "          end"
+   ],
+   "after": [
+    "          else begin",
+    "",
+    "              run_counter <= run_counter;",
+    "              if(run_counter == max_on_counts) begin",
+    "                  pulse_allowed <= 0;",
+    "              end",
+    "",
+    "          end"
+   ],
+   "category": "missing_case",
+   "description": "The envelope is closed only when the elapsed count equals the ceiling, so the case of a ceiling that has dropped below the elapsed count leaves pulse_allowed open",
+   "reason": "When max_on_counts falls below run_counter during a pulse (soft_start reloads MIN_ON_CNT on restart, or clamps to max_on_limit), the counter correctly stops but pulse_allowed stays 1, so pwm_out keeps following pwm_sync for the rest of the pulse instead of going low one clock later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.85.AIM.10"
+ },
+ {
+  "proposal": {
+   "line": 125,
+   "before": [
+    "    pwm_out <= pwm_sync & pulse_allowed;"
+   ],
+   "after": [
+    "    pwm_out <= (run_counter != 0) & pulse_allowed;"
+   ],
+   "category": "wrong_event",
+   "description": "The output takes 'pulse in progress' from run_counter being non-zero instead of from pwm_sync, so it follows the counter's one-clock-late view of the pulse",
+   "reason": "Every untruncated pulse at pwm_out starts and ends one clock later than with pwm_sync gating. A truncated pulse comes out one clock shorter. With a ceiling of 0 the counter never leaves zero, so pwm_out never goes high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.125.AIM.11"
+ }
+]

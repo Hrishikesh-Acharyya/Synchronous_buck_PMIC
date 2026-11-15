@@ -1,0 +1,251 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`pwm_mask`, in `rtl-systemverilog/protect/pwm_mask.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "pwm_mask.65.CSK.1",
+  "line": 65,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "pwm_mask.65.BDL.1",
+  "line": 65,
+  "operator": "BDL",
+  "description": "empty the 2-statement body of the if at line 65",
+  "before": "if(!rst_n) begin",
+  "after": "if(!rst_n) begin end"
+ },
+ {
+  "id": "pwm_mask.67.SDL.1",
+  "line": 67,
+  "operator": "SDL",
+  "description": "delete 'run_counter <= 0;'",
+  "before": "run_counter <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "pwm_mask.67.CST.1",
+  "line": 67,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "run_counter <= 0;",
+  "after": "run_counter <= 1;"
+ },
+ {
+  "id": "pwm_mask.68.SDL.1",
+  "line": 68,
+  "operator": "SDL",
+  "description": "delete 'pulse_allowed <= 1;'",
+  "before": "pulse_allowed <= 1;",
+  "after": ";"
+ },
+ {
+  "id": "pwm_mask.68.CST.1",
+  "line": 68,
+  "operator": "CST",
+  "description": "1 -> 0",
+  "before": "pulse_allowed <= 1;",
+  "after": "pulse_allowed <= 0;"
+ },
+ {
+  "id": "pwm_mask.76.AIM.4",
+  "line": 76,
+  "operator": "AIM",
+  "description": "The ceiling test is equality instead of less-than, so a ceiling lowered below the running count is missed",
+  "before": "if(run_counter < max_on_counts) begin",
+  "after": "if(run_counter != max_on_counts) begin"
+ },
+ {
+  "id": "pwm_mask.76.AIM.9",
+  "line": 76,
+  "operator": "AIM",
+  "description": "A zero on-time ceiling is treated as 'no limit', so pulses are passed through untruncated instead of being cut to one clock",
+  "before": "if(run_counter < max_on_counts) begin",
+  "after": "if(run_counter < max_on_counts || max_on_counts == 0) begin"
+ },
+ {
+  "id": "pwm_mask.78.STK.2",
+  "line": 78,
+  "operator": "STK",
+  "description": "run_counter stuck at all-ones (was 'run_counter + 1')",
+  "before": "run_counter <= run_counter + 1;",
+  "after": "run_counter <= '1;"
+ },
+ {
+  "id": "pwm_mask.78.VNG.1",
+  "line": 78,
+  "operator": "VNG",
+  "description": "run_counter inverted (was 'run_counter + 1')",
+  "before": "run_counter <= run_counter + 1;",
+  "after": "run_counter <= ~(run_counter + 1);"
+ },
+ {
+  "id": "pwm_mask.78.AOR.1",
+  "line": 78,
+  "operator": "AOR",
+  "description": "+ -> -",
+  "before": "run_counter <= run_counter + 1;",
+  "after": "run_counter <= run_counter - 1;"
+ },
+ {
+  "id": "pwm_mask.78.CST.2",
+  "line": 78,
+  "operator": "CST",
+  "description": "1 -> 2",
+  "before": "run_counter <= run_counter + 1;",
+  "after": "run_counter <= run_counter + 2;"
+ },
+ {
+  "id": "pwm_mask.79.SDL.1",
+  "line": 79,
+  "operator": "SDL",
+  "description": "delete 'pulse_allowed <= 1;'",
+  "before": "pulse_allowed <= 1;",
+  "after": ";"
+ },
+ {
+  "id": "pwm_mask.85.AIM.10",
+  "line": 85,
+  "operator": "AIM",
+  "description": "The envelope is closed only when the elapsed count equals the ceiling, so the case of a ceiling that has dropped below the elapsed count leaves pulse_allowed open",
+  "before": "pulse_allowed <= 0;",
+  "after": "if(run_counter == max_on_counts) begin / pulse_allowed <= 0; / end"
+ },
+ {
+  "id": "pwm_mask.84.AIM.1",
+  "line": 84,
+  "operator": "AIM",
+  "description": "run_counter keeps counting past max_on_counts and wraps instead of saturating at the ceiling",
+  "before": "run_counter <= run_counter;",
+  "after": "run_counter <= run_counter + 1;"
+ },
+ {
+  "id": "pwm_mask.84.AIM.8",
+  "line": 84,
+  "operator": "AIM",
+  "description": "The saturation branch clamps run_counter to the present ceiling instead of holding it, so a ceiling lowered mid-pulse pulls the elapsed count down to it",
+  "before": "run_counter <= run_counter;",
+  "after": "run_counter <= max_on_counts;"
+ },
+ {
+  "id": "pwm_mask.84.SDL.1",
+  "line": 84,
+  "operator": "SDL",
+  "description": "delete 'run_counter <= run_counter;'",
+  "before": "run_counter <= run_counter;",
+  "after": ";"
+ },
+ {
+  "id": "pwm_mask.84.STK.2",
+  "line": 84,
+  "operator": "STK",
+  "description": "run_counter stuck at all-ones (was 'run_counter')",
+  "before": "run_counter <= run_counter;",
+  "after": "run_counter <= '1;"
+ },
+ {
+  "id": "pwm_mask.84.VNG.1",
+  "line": 84,
+  "operator": "VNG",
+  "description": "run_counter inverted (was 'run_counter')",
+  "before": "run_counter <= run_counter;",
+  "after": "run_counter <= ~(run_counter);"
+ },
+ {
+  "id": "pwm_mask.94.AIM.6",
+  "line": 94,
+  "operator": "AIM",
+  "description": "The envelope is re-armed only once run_counter has already been cleared, one clock into the low phase, not on its first clock",
+  "before": "pulse_allowed <= 1;",
+  "after": "pulse_allowed <= (run_counter == 0);"
+ },
+ {
+  "id": "pwm_mask.118.CSK.1",
+  "line": 118,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "pwm_mask.120.SDL.1",
+  "line": 120,
+  "operator": "SDL",
+  "description": "delete 'pwm_out <= 0;'",
+  "before": "pwm_out <= 0;",
+  "after": ";"
+ }
+]
+```

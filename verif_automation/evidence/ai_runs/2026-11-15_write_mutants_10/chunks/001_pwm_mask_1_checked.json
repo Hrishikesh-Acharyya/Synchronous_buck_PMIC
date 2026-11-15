@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 84,
+   "before": [
+    "              run_counter <= run_counter;"
+   ],
+   "after": [
+    "              run_counter <= run_counter + 1;"
+   ],
+   "category": "boundary",
+   "description": "run_counter keeps counting past max_on_counts and wraps instead of saturating at the ceiling",
+   "reason": "If pwm_sync stays high, run_counter wraps to 0 after 2^ON_TIME_W - max_on_counts clocks. It then reads below the ceiling again, so pulse_allowed comes back on and pwm_out goes high again in the middle of the same stuck-high pulse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.84.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 74,
+   "before": [
+    "      if(pwm_sync) begin"
+   ],
+   "after": [
+    "      if(pwm_sync && pulse_allowed) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The envelope is re-armed whenever the gated pulse ends, not only when pwm_sync goes low, so a truncated pulse re-arms while pwm_sync is still high",
+   "reason": "When pwm_sync stays high for more than max_on_counts+1 clocks, pulse_allowed clears and the next clock takes the low-phase branch, which clears the counter and sets pulse_allowed again. pwm_out drops for one clock and then goes high again, giving the gate driver repeated pulses within one cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.74.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 74,
+   "before": [
+    "      if(pwm_sync) begin"
+   ],
+   "after": [
+    "      if(pwm_sync || (run_counter >= max_on_counts)) begin"
+   ],
+   "category": "priority",
+   "description": "The saturated-hold branch wins over the low-phase re-arm, so a counter at the ceiling is never cleared",
+   "reason": "Once one pulse reaches the ceiling, run_counter stays at max_on_counts through the low phase and pulse_allowed stays 0. pwm_out then stays low for every later pulse until max_on_counts goes up."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.74.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 76,
+   "before": [
+    "          if(run_counter < max_on_counts) begin"
+   ],
+   "after": [
+    "          if(run_counter != max_on_counts) begin"
+   ],
+   "category": "boundary",
+   "description": "The ceiling test is equality instead of less-than, so a ceiling lowered below the running count is missed",
+   "reason": "If max_on_counts drops below run_counter while pwm_sync is high (soft_start resetting to the floor, or clamping to a lowered max_on_limit), the counter climbs on to wrap-around with pulse_allowed held at 1. pwm_out then follows pwm_sync far past the new ceiling."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.76.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 76,
+   "before": [
+    "          if(run_counter < max_on_counts) begin"
+   ],
+   "after": [
+    "          if(run_counter + 1 < max_on_counts) begin"
+   ],
+   "category": "sequencing",
+   "description": "pulse_allowed is decided from the post-increment count instead of the pre-edge run_counter, which removes the documented +1 clk offset",
+   "reason": "For any max_on_counts of 1 or more, a pulse longer than the ceiling is cut after max_on_counts clocks instead of max_on_counts+1, so pwm_out's enforced on-time is one clock short."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.76.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 94,
+   "before": [
+    "          pulse_allowed <= 1;"
+   ],
+   "after": [
+    "          pulse_allowed <= (run_counter == 0);"
+   ],
+   "category": "sequencing",
+   "description": "The envelope is re-armed only once run_counter has already been cleared, one clock into the low phase, not on its first clock",
+   "reason": "On the first low clock after a pulse, pulse_allowed goes to 0 while run_counter is still nonzero. If the low phase lasts only one clock (high duty), the next pulse starts with the gate closed, and pwm_out loses that pulse's first clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_mask.94.AIM.6"
+ }
+]

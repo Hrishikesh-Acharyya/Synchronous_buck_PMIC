@@ -1,0 +1,2129 @@
+{
+ "module": "pwm_mask",
+ "file": "rtl-systemverilog/protect/pwm_mask.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:46",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 6,
+   "accepted": 6,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_10"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:49",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_11"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:51",
+   "commit": "a1dc229",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_12"
+  },
+  {
+   "n": 4,
+   "kind": "mutation",
+   "date": "2026-11-15",
+   "time": "14:59",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 71,
+   "counts": {
+    "killed": 32,
+    "lint": 10,
+    "covers": 7,
+    "survived": 22
+   },
+   "score": "69.0%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_pwm_mask": 5.2887163162231445
+   }
+  },
+  {
+   "n": 5,
+   "kind": "judge",
+   "date": "2026-11-15",
+   "time": "15:00",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "judged": 22,
+   "equivalent_high_confidence": 1,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_judge_survivors_3"
+  },
+  {
+   "n": 6,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "deleting the self-assignment leaves the register holding its value, as before",
+   "mutants": [
+    "pwm_mask.84.SDL.1"
+   ]
+  },
+  {
+   "n": 7,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high",
+   "mutants": [
+    "pwm_mask.65.BDL.1",
+    "pwm_mask.65.CSK.1",
+    "pwm_mask.67.CST.1",
+    "pwm_mask.67.SDL.1",
+    "pwm_mask.68.CST.1",
+    "pwm_mask.68.SDL.1",
+    "pwm_mask.118.CSK.1",
+    "pwm_mask.120.SDL.1"
+   ]
+  },
+  {
+   "n": 8,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole",
+   "mutants": [
+    "pwm_mask.78.AOR.1",
+    "pwm_mask.78.CST.2",
+    "pwm_mask.78.STK.2",
+    "pwm_mask.78.VNG.1"
+   ]
+  },
+  {
+   "n": 9,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start",
+   "mutants": [
+    "pwm_mask.76.AIM.4",
+    "pwm_mask.85.AIM.10"
+   ]
+  },
+  {
+   "n": 10,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "deleting the self-assignment leaves the register holding its value, as before",
+   "mutants": [
+    "pwm_mask.84.SDL.1"
+   ]
+  },
+  {
+   "n": 11,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high",
+   "mutants": [
+    "pwm_mask.65.BDL.1",
+    "pwm_mask.65.CSK.1",
+    "pwm_mask.67.CST.1",
+    "pwm_mask.67.SDL.1",
+    "pwm_mask.68.CST.1",
+    "pwm_mask.68.SDL.1",
+    "pwm_mask.118.CSK.1",
+    "pwm_mask.120.SDL.1"
+   ]
+  },
+  {
+   "n": 12,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole",
+   "mutants": [
+    "pwm_mask.78.AOR.1",
+    "pwm_mask.78.CST.2",
+    "pwm_mask.78.STK.2",
+    "pwm_mask.78.VNG.1"
+   ]
+  },
+  {
+   "n": 13,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:05",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start",
+   "mutants": [
+    "pwm_mask.76.AIM.4",
+    "pwm_mask.85.AIM.10"
+   ]
+  },
+  {
+   "n": 14,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:06",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "pwm_sync never held high long after truncation; needs a stuck-high input longer than the counter range, with a ceiling above half the range",
+   "mutants": [
+    "pwm_mask.84.AIM.1",
+    "pwm_mask.84.VNG.1"
+   ]
+  },
+  {
+   "n": 15,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:06",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differ only if max_on_counts rises during a pulse; soft_start raises it only at pwm_fall, between pulses",
+   "mutants": [
+    "pwm_mask.79.SDL.1",
+    "pwm_mask.84.STK.2",
+    "pwm_mask.84.AIM.8"
+   ]
+  },
+  {
+   "n": 16,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:06",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differs only for a one-clock low phase; the 70% analog duty clamp keeps every low phase above 6 clocks",
+   "mutants": [
+    "pwm_mask.94.AIM.6"
+   ]
+  },
+  {
+   "n": 17,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "15:06",
+   "commit": "e6d9ec9",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differs only at a ceiling of 0; the floor is MIN_ON_COUNTS and reg_file clamps MAX_ON to it",
+   "mutants": [
+    "pwm_mask.76.AIM.9"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pwm_sync stuck high, run_counter keeps counting in the saturation branch and eventually wraps below max_on_counts. Line 76 then re-opens the envelope, which the original prevents."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "pwm_sync never held high long after truncation; needs a stuck-high input longer than the counter range, with a ceiling above half the range"
+    }
+   ],
+   "id": "pwm_mask.84.AIM.1",
+   "operator": "AIM",
+   "line": 84,
+   "description": "run_counter keeps counting past max_on_counts and wraps instead of saturating at the ceiling",
+   "before": "run_counter <= run_counter;",
+   "after": "run_counter <= run_counter + 1;",
+   "category": "boundary",
+   "reason": "If pwm_sync stays high, run_counter wraps to 0 after 2^ON_TIME_W - max_on_counts clocks. It then reads below the ceiling again, so pulse_allowed comes back on and pwm_out goes high again in the middle of the same stuck-high pulse.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_long_pulses_truncated +1",
+     "killed_by": {
+      "assertions": [
+       "a_long_pulses_truncated",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.AIM.2",
+   "operator": "AIM",
+   "line": 74,
+   "description": "The envelope is re-armed whenever the gated pulse ends, not only when pwm_sync goes low, so a truncated pulse re-arms while pwm_sync is still high",
+   "before": "if(pwm_sync) begin",
+   "after": "if(pwm_sync && pulse_allowed) begin",
+   "category": "wrong_event",
+   "reason": "When pwm_sync stays high for more than max_on_counts+1 clocks, pulse_allowed clears and the next clock takes the low-phase branch, which clears the counter and sets pulse_allowed again. pwm_out drops for one clock and then goes high again, giving the gate driver repeated pulses within one cycle.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.AIM.3",
+   "operator": "AIM",
+   "line": 74,
+   "description": "The saturated-hold branch wins over the low-phase re-arm, so a counter at the ceiling is never cleared",
+   "before": "if(pwm_sync) begin",
+   "after": "if(pwm_sync || (run_counter >= max_on_counts)) begin",
+   "category": "priority",
+   "reason": "Once one pulse reaches the ceiling, run_counter stays at max_on_counts through the low phase and pulse_allowed stays 0. pwm_out then stays low for every later pulse until max_on_counts goes up.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If max_on_counts is lowered below run_counter mid-pulse, != stays true, so line 78 keeps counting and pulse_allowed stays 1. The original closes the envelope there."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start"
+    },
+    {
+     "run": 13,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start"
+    }
+   ],
+   "id": "pwm_mask.76.AIM.4",
+   "operator": "AIM",
+   "line": 76,
+   "description": "The ceiling test is equality instead of less-than, so a ceiling lowered below the running count is missed",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter != max_on_counts) begin",
+   "category": "boundary",
+   "reason": "If max_on_counts drops below run_counter while pwm_sync is high (soft_start resetting to the floor, or clamping to a lowered max_on_limit), the counter climbs on to wrap-around with pulse_allowed held at 1. pwm_out then follows pwm_sync far past the new ceiling.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.AIM.5",
+   "operator": "AIM",
+   "line": 76,
+   "description": "pulse_allowed is decided from the post-increment count instead of the pre-edge run_counter, which removes the documented +1 clk offset",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter + 1 < max_on_counts) begin",
+   "category": "sequencing",
+   "reason": "For any max_on_counts of 1 or more, a pulse longer than the ceiling is cut after max_on_counts clocks instead of max_on_counts+1, so pwm_out's enforced on-time is one clock short.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "On the first low clock after a pulse, run_counter is still nonzero, so pulse_allowed becomes 0. If pwm_sync goes high again after a one-clock low gap, line 125 outputs 0 instead of 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "differs only for a one-clock low phase; the 70% analog duty clamp keeps every low phase above 6 clocks"
+    }
+   ],
+   "id": "pwm_mask.94.AIM.6",
+   "operator": "AIM",
+   "line": 94,
+   "description": "The envelope is re-armed only once run_counter has already been cleared, one clock into the low phase, not on its first clock",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= (run_counter == 0);",
+   "category": "sequencing",
+   "reason": "On the first low clock after a pulse, pulse_allowed goes to 0 while run_counter is still nonzero. If the low phase lasts only one clock (high duty), the next pulse starts with the gate closed, and pwm_out loses that pulse's first clock.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.93.AIM.7",
+   "operator": "AIM",
+   "line": 93,
+   "description": "run_counter is cleared on the low phase only after a pulse that was truncated, so the on-time of a pulse that ended under the ceiling carries over into the next pulse",
+   "before": "run_counter <= 0;",
+   "after": "if(!pulse_allowed) begin / run_counter <= 0; / end",
+   "category": "reset_init",
+   "reason": "After a pwm_sync pulse shorter than max_on_counts, the next pulse starts counting from the previous width, so pwm_out is cut after max_on_counts - W + 1 clocks instead of max_on_counts + 1 (or not cut at all).",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If max is lowered below run_counter, the mutant clamps run_counter down to it. If max is then raised but stays below the original held count, the mutant re-opens at lines 76/79 while the original stays closed."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "differ only if max_on_counts rises during a pulse; soft_start raises it only at pwm_fall, between pulses"
+    }
+   ],
+   "id": "pwm_mask.84.AIM.8",
+   "operator": "AIM",
+   "line": 84,
+   "description": "The saturation branch clamps run_counter to the present ceiling instead of holding it, so a ceiling lowered mid-pulse pulls the elapsed count down to it",
+   "before": "run_counter <= run_counter;",
+   "after": "run_counter <= max_on_counts;",
+   "category": "boundary",
+   "reason": "If max_on_counts drops below the running count during a high phase and then rises again within the same pulse (still at or below the true elapsed count), the mutant sees run_counter < max_on_counts and re-opens pulse_allowed, so pwm_out gives a second pulse in that cycle. The original keeps the envelope closed.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With max_on_counts==0 the original takes the else branch (pulse_allowed<=0), but the mutant counts and keeps pulse_allowed=1. The pulse passes through untruncated."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "differs only at a ceiling of 0; the floor is MIN_ON_COUNTS and reg_file clamps MAX_ON to it"
+    }
+   ],
+   "id": "pwm_mask.76.AIM.9",
+   "operator": "AIM",
+   "line": 76,
+   "description": "A zero on-time ceiling is treated as 'no limit', so pulses are passed through untruncated instead of being cut to one clock",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter < max_on_counts || max_on_counts == 0) begin",
+   "category": "boundary",
+   "reason": "With max_on_counts = 0 and pwm_sync high for several clocks, the original pwm_out is high for one clock only (max_on_counts + 1). The mutant passes the whole pulse to pwm_out.",
+   "written_in": 2
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If max_on_counts drops below run_counter mid-pulse, run_counter != max_on_counts, so pulse_allowed is not cleared and pwm_out stays high where the original truncates."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start"
+    },
+    {
+     "run": 13,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "ceiling lowered below the elapsed count mid-pulse never tested; reachable in the design via a MAX_ON write during soft start"
+    }
+   ],
+   "id": "pwm_mask.85.AIM.10",
+   "operator": "AIM",
+   "line": 85,
+   "description": "The envelope is closed only when the elapsed count equals the ceiling, so the case of a ceiling that has dropped below the elapsed count leaves pulse_allowed open",
+   "before": "pulse_allowed <= 0;",
+   "after": "if(run_counter == max_on_counts) begin / pulse_allowed <= 0; / end",
+   "category": "missing_case",
+   "reason": "When max_on_counts falls below run_counter during a pulse (soft_start reloads MIN_ON_CNT on restart, or clamps to max_on_limit), the counter correctly stops but pulse_allowed stays 1, so pwm_out keeps following pwm_sync for the rest of the pulse instead of going low one clock later.",
+   "written_in": 3
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass +2",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass",
+       "a_pwm_out_cannot_go_back_up_once_truncated",
+       "a_mask_doesnt_produce_pwm"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.AIM.11",
+   "operator": "AIM",
+   "line": 125,
+   "description": "The output takes 'pulse in progress' from run_counter being non-zero instead of from pwm_sync, so it follows the counter's one-clock-late view of the pulse",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= (run_counter != 0) & pulse_allowed;",
+   "category": "wrong_event",
+   "reason": "Every untruncated pulse at pwm_out starts and ends one clock later than with pwm_sync gating. A truncated pulse comes out one clock shorter. With a ceiling of 0 the counter never leaves zero, so pwm_out never goes high.",
+   "written_in": 3
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.41.EDG.1",
+   "operator": "EDG",
+   "line": 41,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "d6b553b466#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Emptying the reset body means lines 67-68 never run, so run_counter and pulse_allowed are undefined or stale after reset. If pwm_sync is high right after reset, pwm_out (line 125) and the truncation point change."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.65.BDL.1",
+   "operator": "BDL",
+   "line": 65,
+   "description": "empty the 2-statement body of the if at line 65",
+   "before": "if(!rst_n) begin",
+   "after": "if(!rst_n) begin end"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the reset branch at line 65, run_counter and pulse_allowed are never initialised and keep updating during reset. pwm_out after reset (line 125) then depends on unknown or old state."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.65.CSK.1",
+   "operator": "CSK",
+   "line": 65,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.65.CSK.2",
+   "operator": "CSK",
+   "line": 65,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.65.UOD.1",
+   "operator": "UOD",
+   "line": 65,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "441567bfae#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Resetting run_counter to 1 means a pulse that is already high at reset release reaches max_on_counts at line 76 one clock earlier. With max_on_counts=0 it also takes a different path."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.67.CST.1",
+   "operator": "CST",
+   "line": 67,
+   "description": "0 -> 1",
+   "before": "run_counter <= 0;",
+   "after": "run_counter <= 1;"
+  },
+  "cdce1b145c#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "run_counter is no longer cleared by reset. If pwm_sync is high when reset is released, counting starts from a stale or unknown value, which changes when line 76 closes the envelope."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.67.SDL.1",
+   "operator": "SDL",
+   "line": 67,
+   "description": "delete 'run_counter <= 0;'",
+   "before": "run_counter <= 0;",
+   "after": ";"
+  },
+  "eb837133fd#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pwm_sync high on the first edge after reset, line 125 registers pwm_out=0 instead of 1, cutting one clock off the pulse."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.68.CST.1",
+   "operator": "CST",
+   "line": 68,
+   "description": "1 -> 0",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 0;"
+  },
+  "fd664eb19d#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.68.CST.2",
+   "operator": "CST",
+   "line": 68,
+   "description": "1 -> 2",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 2;"
+  },
+  "1dff5ae146#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pulse_allowed is not set by reset, so on the first clock after release pwm_out = pwm_sync & pulse_allowed (line 125) uses an unknown or stale value instead of 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.68.SDL.1",
+   "operator": "SDL",
+   "line": 68,
+   "description": "delete 'pulse_allowed <= 1;'",
+   "before": "pulse_allowed <= 1;",
+   "after": ";"
+  },
+  "f75b3b93d3#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.72.EDL.1",
+   "operator": "EDL",
+   "line": 72,
+   "description": "delete the else branch at line 72",
+   "before": "else begin",
+   "after": ""
+  },
+  "d330ce7fd6#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.CND.1",
+   "operator": "CND",
+   "line": 74,
+   "description": "if (pwm_sync) -> if (!(...))",
+   "before": "if(pwm_sync) begin",
+   "after": "if(!(pwm_sync)) begin"
+  },
+  "c837b8f92b#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.CSK.1",
+   "operator": "CSK",
+   "line": 74,
+   "description": "if (pwm_sync) -> if (1'b0): never taken",
+   "before": "if(pwm_sync) begin",
+   "after": "if(1'b0) begin"
+  },
+  "ff086e2c74#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.CSK.2",
+   "operator": "CSK",
+   "line": 74,
+   "description": "if (pwm_sync) -> if (1'b1): always taken",
+   "before": "if(pwm_sync) begin",
+   "after": "if(1'b1) begin"
+  },
+  "e8ba13bfce#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase",
+       "a_long_pulses_truncated",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.74.SIB.1",
+   "operator": "SIB",
+   "line": 74,
+   "description": "pwm_sync -> pwm_out",
+   "before": "if(pwm_sync) begin",
+   "after": "if(pwm_out) begin"
+  },
+  "4a28502200#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.BDL.1",
+   "operator": "BDL",
+   "line": 76,
+   "description": "empty the 2-statement body of the if at line 76",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter < max_on_counts) begin end"
+  },
+  "5f3ba49d12#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.CND.1",
+   "operator": "CND",
+   "line": 76,
+   "description": "if (run_counter < max_on_counts) -> if (!(...))",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(!(run_counter < max_on_counts)) begin"
+  },
+  "49f45d939e#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.CSK.1",
+   "operator": "CSK",
+   "line": 76,
+   "description": "if (run_counter < max_on_counts) -> if (1'b0): never taken",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(1'b0) begin"
+  },
+  "89f60063c2#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.CSK.2",
+   "operator": "CSK",
+   "line": 76,
+   "description": "if (run_counter < max_on_counts) -> if (1'b1): always taken",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(1'b1) begin"
+  },
+  "0658cda6c4#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_long_pulses_truncated",
+     "killed_by": {
+      "assertions": [
+       "a_long_pulses_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.ROR.1",
+   "operator": "ROR",
+   "line": 76,
+   "description": "< -> <=",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter <= max_on_counts) begin"
+  },
+  "5de7138d2f#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.76.ROR.2",
+   "operator": "ROR",
+   "line": 76,
+   "description": "< -> >",
+   "before": "if(run_counter < max_on_counts) begin",
+   "after": "if(run_counter > max_on_counts) begin"
+  },
+  "446d265641#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Decrementing from 0 wraps to all-ones, so the ceiling compare at line 76 fails after one clock and pulses are truncated early."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    },
+    {
+     "run": 12,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    }
+   ],
+   "id": "pwm_mask.78.AOR.1",
+   "operator": "AOR",
+   "line": 78,
+   "description": "+ -> -",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= run_counter - 1;"
+  },
+  "43f4327666#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.78.CST.1",
+   "operator": "CST",
+   "line": 78,
+   "description": "1 -> 0",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= run_counter + 0;"
+  },
+  "038eb1d1cb#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Counting by 2 reaches max_on_counts in about half the clocks, which shortens the enforced on-time."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    },
+    {
+     "run": 12,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    }
+   ],
+   "id": "pwm_mask.78.CST.2",
+   "operator": "CST",
+   "line": 78,
+   "description": "1 -> 2",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= run_counter + 2;"
+  },
+  "018b9c299e#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.78.SDL.1",
+   "operator": "SDL",
+   "line": 78,
+   "description": "delete 'run_counter <= run_counter + 1;'",
+   "before": "run_counter <= run_counter + 1;",
+   "after": ";"
+  },
+  "80379ba9c1#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.78.STK.1",
+   "operator": "STK",
+   "line": 78,
+   "description": "run_counter stuck at all-zeros (was 'run_counter + 1')",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= '0;"
+  },
+  "a25df88c00#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "run_counter jumps straight to all-ones on the first high clock, so line 76 fails on the next clock and the pulse is cut almost immediately instead of after max_on_counts clocks."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    },
+    {
+     "run": 12,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    }
+   ],
+   "id": "pwm_mask.78.STK.2",
+   "operator": "STK",
+   "line": 78,
+   "description": "run_counter stuck at all-ones (was 'run_counter + 1')",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= '1;"
+  },
+  "6ae8ed8c45#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "The inverted increment makes run_counter jump to a large value, which changes when line 76 fails and therefore the truncated pulse width."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    },
+    {
+     "run": 12,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "truncation point checked only as an upper bound; needs a check that a pulse longer than the ceiling is cut at exactly max_on_counts+1 clocks and one shorter passes whole"
+    }
+   ],
+   "id": "pwm_mask.78.VNG.1",
+   "operator": "VNG",
+   "line": 78,
+   "description": "run_counter inverted (was 'run_counter + 1')",
+   "before": "run_counter <= run_counter + 1;",
+   "after": "run_counter <= ~(run_counter + 1);"
+  },
+  "eb837133fd#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.79.CST.1",
+   "operator": "CST",
+   "line": 79,
+   "description": "1 -> 0",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 0;"
+  },
+  "fd664eb19d#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.79.CST.2",
+   "operator": "CST",
+   "line": 79,
+   "description": "1 -> 2",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 2;"
+  },
+  "1dff5ae146#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pulse_allowed can be 0 while pwm_sync is high and run_counter < max_on_counts if max_on_counts rises after line 85 has fired. The original re-opens at line 79; the mutant stays closed."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "differ only if max_on_counts rises during a pulse; soft_start raises it only at pwm_fall, between pulses"
+    }
+   ],
+   "id": "pwm_mask.79.SDL.1",
+   "operator": "SDL",
+   "line": 79,
+   "description": "delete 'pulse_allowed <= 1;'",
+   "before": "pulse_allowed <= 1;",
+   "after": ";"
+  },
+  "f75b3b93d3#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_long_pulses_truncated",
+     "killed_by": {
+      "assertions": [
+       "a_long_pulses_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.82.EDL.1",
+   "operator": "EDL",
+   "line": 82,
+   "description": "delete the else branch at line 82",
+   "before": "else begin",
+   "after": ""
+  },
+  "8c54a6c73d#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "In an always_ff, a register that is not assigned keeps its value. Deleting the self-assignment 'run_counter <= run_counter' at line 84 therefore leaves the same hold behaviour."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 6,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "deleting the self-assignment leaves the register holding its value, as before"
+    },
+    {
+     "run": 10,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "deleting the self-assignment leaves the register holding its value, as before"
+    }
+   ],
+   "id": "pwm_mask.84.SDL.1",
+   "operator": "SDL",
+   "line": 84,
+   "description": "delete 'run_counter <= run_counter;'",
+   "before": "run_counter <= run_counter;",
+   "after": ";"
+  },
+  "458d9f9db6#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass +1",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.84.STK.1",
+   "operator": "STK",
+   "line": 84,
+   "description": "run_counter stuck at all-zeros (was 'run_counter')",
+   "before": "run_counter <= run_counter;",
+   "after": "run_counter <= '0;"
+  },
+  "77d5e95848#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Once saturated, run_counter becomes all-ones instead of holding. If max_on_counts is later raised above the held count but stays below all-ones, the original re-opens via line 76 and the mutant does not."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "differ only if max_on_counts rises during a pulse; soft_start raises it only at pwm_fall, between pulses"
+    }
+   ],
+   "id": "pwm_mask.84.STK.2",
+   "operator": "STK",
+   "line": 84,
+   "description": "run_counter stuck at all-ones (was 'run_counter')",
+   "before": "run_counter <= run_counter;",
+   "after": "run_counter <= '1;"
+  },
+  "fdb2bdc62e#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Inverting run_counter in the saturation branch can drop it below max_on_counts (e.g. ~max when max is large). Line 76 then re-opens the envelope mid-pulse, giving a double pulse."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "pwm_sync never held high long after truncation; needs a stuck-high input longer than the counter range, with a ceiling above half the range"
+    }
+   ],
+   "id": "pwm_mask.84.VNG.1",
+   "operator": "VNG",
+   "line": 84,
+   "description": "run_counter inverted (was 'run_counter')",
+   "before": "run_counter <= run_counter;",
+   "after": "run_counter <= ~(run_counter);"
+  },
+  "3938ae23ba#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_long_pulses_truncated",
+     "killed_by": {
+      "assertions": [
+       "a_long_pulses_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.85.CST.1",
+   "operator": "CST",
+   "line": 85,
+   "description": "0 -> 1",
+   "before": "pulse_allowed <= 0;",
+   "after": "pulse_allowed <= 1;"
+  },
+  "443cd44c1e#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_long_pulses_truncated",
+     "killed_by": {
+      "assertions": [
+       "a_long_pulses_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.85.SDL.1",
+   "operator": "SDL",
+   "line": 85,
+   "description": "delete 'pulse_allowed <= 0;'",
+   "before": "pulse_allowed <= 0;",
+   "after": ";"
+  },
+  "f75b3b93d3#3": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.91.EDL.1",
+   "operator": "EDL",
+   "line": 91,
+   "description": "delete the else branch at line 91",
+   "before": "else begin",
+   "after": ""
+  },
+  "441567bfae#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.93.CST.1",
+   "operator": "CST",
+   "line": 93,
+   "description": "0 -> 1",
+   "before": "run_counter <= 0;",
+   "after": "run_counter <= 1;"
+  },
+  "cdce1b145c#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_counter_0_in_low_phase",
+     "killed_by": {
+      "assertions": [
+       "a_counter_0_in_low_phase"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.93.SDL.1",
+   "operator": "SDL",
+   "line": 93,
+   "description": "delete 'run_counter <= 0;'",
+   "before": "run_counter <= 0;",
+   "after": ";"
+  },
+  "eb837133fd#3": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass +1",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.94.CST.1",
+   "operator": "CST",
+   "line": 94,
+   "description": "1 -> 0",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 0;"
+  },
+  "fd664eb19d#3": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.94.CST.2",
+   "operator": "CST",
+   "line": 94,
+   "description": "1 -> 2",
+   "before": "pulse_allowed <= 1;",
+   "after": "pulse_allowed <= 2;"
+  },
+  "1dff5ae146#3": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass +1",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.94.SDL.1",
+   "operator": "SDL",
+   "line": 94,
+   "description": "delete 'pulse_allowed <= 1;'",
+   "before": "pulse_allowed <= 1;",
+   "after": ";"
+  },
+  "73448571c2#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_mask_doesnt_produce_pwm +1",
+     "killed_by": {
+      "assertions": [
+       "a_mask_doesnt_produce_pwm",
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.103.EDG.1",
+   "operator": "EDG",
+   "line": 103,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the reset branch, pwm_out is not forced to 0 during reset. It keeps following pwm_sync & pulse_allowed or stays undefined."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.118.CSK.1",
+   "operator": "CSK",
+   "line": 118,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.118.CSK.2",
+   "operator": "CSK",
+   "line": 118,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.118.UOD.1",
+   "operator": "UOD",
+   "line": 118,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "ab8c63a755#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_pwm_out_low_on_reset",
+     "killed_by": {
+      "assertions": [
+       "a_pwm_out_low_on_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.120.CST.1",
+   "operator": "CST",
+   "line": 120,
+   "description": "0 -> 1",
+   "before": "pwm_out <= 0;",
+   "after": "pwm_out <= 1;"
+  },
+  "52afdab91a#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 5,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_out is no longer cleared by reset. If reset is asserted while pwm_out is high, it stays 1 through reset, and it is undefined at power-up."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    },
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero with pwm_sync low; needs a reset applied mid-pulse and released with pwm_sync high"
+    }
+   ],
+   "id": "pwm_mask.120.SDL.1",
+   "operator": "SDL",
+   "line": 120,
+   "description": "delete 'pwm_out <= 0;'",
+   "before": "pwm_out <= 0;",
+   "after": ";"
+  },
+  "0ca150cc23#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_mask_doesnt_produce_pwm",
+     "killed_by": {
+      "assertions": [
+       "a_mask_doesnt_produce_pwm"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.CTD.1",
+   "operator": "CTD",
+   "line": 125,
+   "description": "drop the term 'pwm_sync'",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= pulse_allowed;"
+  },
+  "1039ade9a4#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.CTD.2",
+   "operator": "CTD",
+   "line": 125,
+   "description": "drop the term 'pulse_allowed'",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= pwm_sync;"
+  },
+  "d094a602bc#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_mask_doesnt_produce_pwm +1",
+     "killed_by": {
+      "assertions": [
+       "a_mask_doesnt_produce_pwm",
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.CTN.1",
+   "operator": "CTN",
+   "line": 125,
+   "description": "negate the term 'pwm_sync'",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= ~(pwm_sync) & pulse_allowed;"
+  },
+  "db562de417#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass +2",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass",
+       "a_long_pulses_truncated",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.CTN.2",
+   "operator": "CTN",
+   "line": 125,
+   "description": "negate the term 'pulse_allowed'",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= pwm_sync & ~(pulse_allowed);"
+  },
+  "6aaf5ba299#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_mask_doesnt_produce_pwm +1",
+     "killed_by": {
+      "assertions": [
+       "a_mask_doesnt_produce_pwm",
+       "a_long_pulses_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.LCR.1",
+   "operator": "LCR",
+   "line": 125,
+   "description": "& -> |",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= pwm_sync | pulse_allowed;"
+  },
+  "f574457d83#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.SDL.1",
+   "operator": "SDL",
+   "line": 125,
+   "description": "delete 'pwm_out <= pwm_sync & pulse_allowed;'",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": ";"
+  },
+  "fd51858516#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_short_pulses_pass",
+     "killed_by": {
+      "assertions": [
+       "a_short_pulses_pass"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.SIB.1",
+   "operator": "SIB",
+   "line": 125,
+   "description": "pwm_sync -> pwm_out",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= pwm_out & pulse_allowed;"
+  },
+  "649c591731#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.STK.1",
+   "operator": "STK",
+   "line": 125,
+   "description": "pwm_out stuck at all-zeros (was 'pwm_sync & pulse_allowed')",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= '0;"
+  },
+  "597aa6f209#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.STK.2",
+   "operator": "STK",
+   "line": 125,
+   "description": "pwm_out stuck at all-ones (was 'pwm_sync & pulse_allowed')",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= '1;"
+  },
+  "7b502d448e#1": {
+   "outcomes": [
+    {
+     "run": 4,
+     "status": "killed",
+     "detail": "assertion a_mask_doesnt_produce_pwm +3",
+     "killed_by": {
+      "assertions": [
+       "a_mask_doesnt_produce_pwm",
+       "a_short_pulses_pass",
+       "a_long_pulses_truncated",
+       "a_pwm_out_cannot_go_back_up_once_truncated"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_mask.125.VNG.1",
+   "operator": "VNG",
+   "line": 125,
+   "description": "pwm_out inverted (was 'pwm_sync & pulse_allowed')",
+   "before": "pwm_out <= pwm_sync & pulse_allowed;",
+   "after": "pwm_out <= ~(pwm_sync & pulse_allowed);"
+  }
+ }
+}

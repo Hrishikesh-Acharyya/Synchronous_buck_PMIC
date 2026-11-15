@@ -5,7 +5,9 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | Module | Mutants | AI-written | Killed | Lint | Covers | Timeout | Survived | Not run | Score | Survivors not decided | Score, explained survivors out | Steps: AI wrote / mutation / AI judged | Last step |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
 | [`fault_cause`](fault_cause.md) | 23 | 23 | 0 | 0 | 0 | 0 | 0 | 23 | - | 0 | - | 2 / 0 / 0 | 2026-11-14 664452d |
+| [`hiccup_timer`](hiccup_timer.md) | 55 | 12 | 38 | 11 | 0 | 0 | 6 | 0 | 89.1% | 0 | 98.0% | 6 / 1 / 1 | 2026-11-15 a1dc229 |
 | [`input_sync`](input_sync.md) | 27 | 5 | 20 | 7 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 217b430 |
+| [`pwm_mask`](pwm_mask.md) | 71 | 11 | 32 | 10 | 7 | 0 | 22 | 0 | 69.0% | 0 | 75.4% | 3 / 1 / 1 | 2026-11-15 e6d9ec9 |
 | [`reset_sync`](reset_sync.md) | 22 | 2 | 17 | 5 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 664452d |
 | [`timestamp`](timestamp.md) | 46 | 5 | 42 | 0 | 0 | 0 | 4 | 0 | 91.3% | 0 | 97.7% | 2 / 1 / 1 | 2026-11-15 05405e5 |
 
