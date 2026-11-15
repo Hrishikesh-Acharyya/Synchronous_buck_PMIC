@@ -3,7 +3,8 @@
 Every change made on this branch, newest at the bottom, with a UTC timestamp,
 the files touched, why, and how to undo it. `main` is never touched.
 
-Branch: the Silicluster v3 submission branch, cut from `main` at `a70e4a9`.
+Branch: the Silicluster v3 submission branch, cut from `main` at `a70e4a9`. `main` was merged in
+again on 2026-11-14 (entry 34) for the resubmission.
 
 ## How to undo a change
 
@@ -14,7 +15,7 @@ others:
 git revert <commit>
 ```
 
-Then rerun the gate (`cd sim && make lint && make -B convert && make -j4 equiv_all`)
+Then rerun the gate (`cd sim && make lint_all && make -B convert && make verilog_check && make -j4 equiv_all && make signoff`)
 because the RTL entries regenerate `Build/pmic_full.v`, and a revert of an RTL
 commit restores the previous converted file along with it. Entries that depend
 on an earlier one say so - revert the later one first.
@@ -943,6 +944,109 @@ cannot contain its own hash, so the table is filled in by a later commit.
 
 ---
 
+## 34. 2026-11-14 16:05 UTC - merge: `main` as of 2026-11-11 into this branch
+
+- Why: the deadline moved to 15 November 2026, and `main` had moved on since
+  the first submission: a testbench and bound checker for every block, and
+  the design faults they found, fixed. The resubmission carries them.
+- What: `git merge origin/main` (`a30307d`). The tree takes `main`'s layout -
+  the source in `rtl-systemverilog/` (was `rtl/`), its Verilog in
+  `rtl-verilog/`, the Makefile split into `sim/mk/`. Conflicts were resolved
+  to `main` everywhere except what is this branch's own:
+  - `rtl-systemverilog/pkg/pmic_types_pkg.sv`: `CLK_HZ = 10_000_000` and
+    `CYCLES_PER_STEP_DEFAULT = 64` (entries 3 and 6), which `main` does not
+    have - it builds for 50 MHz - and the comments that state times at 10 MHz
+    there, in `pmic_top.sv` and in `reg_file.sv`;
+  - `pnr/`, `submissions_full/`, `submissions_trimmed/`, `docs/`, `README.md`.
+  Every other source line is `main`'s: checked file by file after the merge.
+- RTL that changed with it (all from `main`): `fault_arbiter` (each window
+  trip confined to its state), `strike_counter` and `soft_start` (>= tests,
+  clamp), `reg_file` (all-or-nothing threshold commit, write-back of the
+  S_OFF-only registers, SCRATCH staged), `spi_slave` (a truncated command is
+  always a write error; `abort` renamed `txn_abort`), `supervisor`
+  (reformatted, no logic change).
+- Not taken: the `input_debounce` fix on the `AI_assisted_verification_addition`
+  branch (count cleared on the clock the output changes). It is not on `main`.
+  The package README lists the behaviour under "Known limitations".
+- Undo: `git reset --hard 66a3730` (the merge and everything after it).
+
+## 35. 2026-11-14 20:15 UTC - 10 MHz build: Verilog regenerated, testbench set to it, 50 MHz suites dropped
+
+- Files: `rtl-verilog/*` (10), `Build/pmic_full.v`, `tb/pmic_top_tb.v`,
+  `sim/Makefile`, `sim/mk/sources.mk`, `sim/mk/tb.mk`, `.github/workflows/`;
+  removed `tb/telemetry/host_if/`, `tb/top/pmic_top/`, `docs/verification/`,
+  `sim/mk/cocotb.mk`, `sim/scripts/run_cocotb.sh`, `soak_run.sh`,
+  `soak_verdict.sh`, `run_package.sh`.
+- What: `make verilog` at `CLK_HZ` = 10 MHz - only constants changed, 17 of 17
+  files code-identical to a fresh sv2v conversion. `tb/pmic_top_tb.v` defaults
+  to `CLK_HZ = 10_000_000` and `CYC_STEP_DEF = 64`.
+- Why the cocotb suites go: the host-interface and whole-supervisor suites on
+  `main` are written for 50 MHz - clock period, SCK rate and the constants of
+  their Python models - and fail here by construction (11 host_if tests). They
+  stay on `main`, where they verify this same logic; their soak evidence is of
+  the 50 MHz build and would be misleading beside this one.
+- Gate: at 10 MHz, 14 module testbenches pass on the source and on the
+  converted Verilog with every cover hit (175); the integration testbench
+  passes in six flows (86/86 and 54/54 bins); `lint_all`, `check_scripts`,
+  `verilog_check`.
+- Undo: `git revert <hash>`.
+
+## 36. 2026-11-14 23:40 UTC - tb: the integration testbench covers the fixes made since the first submission
+
+- Files: `tb/pmic_top_tb.v`, `sim/Makefile`, `sim/mk/submission.mk` (new),
+  `sim/scripts/replace_tree.py`, `zip_package.py` (new), `COMMANDS.md`.
+- Why: after the merge the testbench still passed unchanged - which showed it
+  did not reach any of the behaviour that had changed. Its register-map model
+  still held the old write rules; its traffic never met the difference.
+- What:
+  - the register-map model holds the rules as they stand: SCRATCH and CONTROL
+    staged until a good CRC; threshold writes all or nothing (no key, part of
+    a 3-byte register, or a change to an S_OFF-only register outside S_OFF
+    refuses them all); a write-back of an S_OFF-only register accepted in any
+    state; the rejection flag untouched by a write that carries no threshold;
+  - phase 21, the write rules: bad-CRC SCRATCH; TRIP_RUN beside a refused
+    CYCLES_PER_STEP; the flag kept across SCRATCH and CONTROL writes; the
+    whole bank written back while running; an out-of-range value refused, not
+    clamped in; a command cut short after a read; part of HICCUP_BASE in S_OFF;
+  - phase 22, limits changed under a running converter: MAX_ON written in
+    S_RUN (stored at once, in force at the next ramp); MAX_STRIKES lowered
+    below two strikes (the next hiccup latches); MAX_ON lowered below the
+    ramp (the ceiling clamps, the ramp ends); TRIP_SS lowered below the held
+    soft-start count (no trip, nothing logged);
+  - ten coverage bins, one per item; the latch monitor allows a latch at or
+    past MAX_STRIKES;
+  - `make submissions`, `submissions_check`, `signoff`, `zip` replace the
+    old `package`, `trimmed`, `package_check` targets, on top of `main`'s
+    `verilog_check` and `verilog_notel`.
+- Result: 320 checks and 96 bins on the full build (277 and 86), 173 and 54 on
+  the reduced build, in Verilator and Icarus on source and Verilog.
+- The testbench tested: against the Verilog of the first submission
+  (`git archive silicluster-v3-submission submissions_full/rtl`) the same
+  testbench fails 14 checks and misses 9 of the 10 new bins - SCRATCH, all or
+  nothing, the write-back, the cut command, the partial write, the strike
+  latch, the ramp clamp, the logged overcurrent, and the scoreboard itself.
+- Undo: `git revert <hash>`.
+
+## 37. 2026-11-15 01:30 UTC - package: both packages regenerated; READMEs, area log and this changelog
+
+- Files: `submissions_full/`, `submissions_trimmed/` (rtl, tb, README),
+  `rtl-verilog/` (comments), `README.md`, `docs/silicluster_area.md`, this file.
+- What: `make submissions` writes both packages from `rtl-verilog/` and
+  `tb/pmic_top_tb.v`. Comments in `rtl-verilog/` that still stated times at
+  50 MHz (13 places: the clock pin, the SPI filter, the arm timeout, the
+  minimum on-time, the cycles-per-step default, the clocks-per-cycle figure)
+  now state them at 10 MHz; no code token changed. Both package READMEs gain
+  "Changes since the first submission" and the new figures; the claim of a
+  50 MHz run is dropped, since none was made on this build.
+- Area: full build 703 flops, 2,287 cells, 31,811 um^2 (694 / 2,119 / 30,737);
+  reduced build 252 / 707 / 10,453 (252 / 705 / 10,523). Rows added to
+  `docs/silicluster_area.md`.
+- Gate: `make submissions_check` (17 of 17 in both packages, two lines apart)
+  and `make signoff` (each package from its own files, Verilator and Icarus).
+- Undo: `git revert <hash>`, then `make submissions`.
+
+---
+
 ## Commit table
 
 Every entry above is exactly one commit on this branch. To undo one, revert its
@@ -987,8 +1091,12 @@ its commit.
 | 30 | `f47bf1d` | 2026-10-31 23:31 | rtl: correct two comments that still named the 50 MHz clock |
 | 31 | `7f3c034` | 2026-10-31 23:33 | tb: second pass of the integration testbench; package and testbench move to submissions_full/ |
 | 32 | `48ccce2` | 2026-10-31 23:35 | package: a trimmed package beside the full one; make trimmed, zip, signoff |
+| 33 | `66a3730` | 2026-10-31 23:44 | rtl: drop the leftover workflow-test line from reset_sync's header |
+| 34 | `bbff4ab` | 2026-11-14 16:05 | merge: `main` as of 2026-11-11 into this branch |
+| 35 | `75f3e7d` | 2026-11-14 20:15 | 10 MHz build: Verilog regenerated, testbench set to it, 50 MHz suites dropped |
+| 36 | `2af47ae` | 2026-11-14 23:40 | tb: the integration testbench covers the fixes made since the first submission |
 
 The merge `e7eb661` of the remote's `6726511` (the user's comment fix) is
-not an entry. Entry 33 is the newest commit touching this file, so its own
-hash is:
-`git log -1 --format=%h -- docs/CHANGELOG_silicluster_v3.md`.
+not an entry. Entries 37 and later are the newest commits touching this
+file; find their hashes with
+`git log --format='%h %s' -- docs/CHANGELOG_silicluster_v3.md`.

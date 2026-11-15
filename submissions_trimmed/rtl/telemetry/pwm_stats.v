@@ -38,7 +38,7 @@
 #                   Telemetry only. Drives no control path and takes no part
 #                   in any protection timing.
 
-#                   Verilog-2005, converted from rtl/telemetry/pwm_stats.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/telemetry/pwm_stats.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

@@ -67,8 +67,8 @@ module reg_file (
 	parameter [7:0] DISABLE_KEY_ID = 8'hd1;
 	// WRITE_ACCESS_KEY_ID: magic byte unlocking the threshold bank
 	parameter [7:0] WRITE_ACCESS_KEY_ID = 8'ha7;
-	// ARM_TIMEOUT_W: width of the arm expiry counter. At 50 MHz, 16 bits is about
-	//                1.3 ms - far longer than any legal transaction, far shorter
+	// ARM_TIMEOUT_W: width of the arm expiry counter. At 10 MHz, 16 bits is about
+	//                6.5 ms - far longer than any legal transaction, far shorter
 	//                than a human notices.
 	parameter signed [31:0] ARM_TIMEOUT_W = 16;
 	input wire clk;
@@ -121,7 +121,7 @@ module reg_file (
 	// CONVERTOR_HZ: switching frequency of the analog modulator
 	localparam signed [31:0] pmic_types_pkg_CONVERTOR_HZ = 450000;
 	// CLKS_PER_SW: clk ticks in one switching period. The true ratio is
-	//              111.1, a non-integer: every counter in the
+	//              22.2 at 10 MHz, a non-integer: every counter in the
 	//              design re-references to pwm_fall each cycle, so the
 	//              fractional part never accumulates.
 	localparam signed [31:0] pmic_types_pkg_CLKS_PER_SW = pmic_types_pkg_CLK_HZ / pmic_types_pkg_CONVERTOR_HZ;
@@ -539,8 +539,8 @@ module reg_file (
 	// MIN_ON_COUNTS: soft-start on-time floor. Commanded on-time must cover
 	//                the driver shrinkage before any of it reaches the gate,
 	//                so the floor is the sum of the two figures above, rounded
-	//                up to whole clocks: 12 clocks (240 ns) at 50 MHz, about
-	//                10.8% commanded duty.
+	//                up to whole clocks: 3 clocks (300 ns) at 10 MHz, about
+	//                13.5% commanded duty.
 	localparam signed [31:0] pmic_types_pkg_MIN_ON_COUNTS = pmic_types_pkg_ns_to_clks(pmic_types_pkg_LM5106_SHRINK_NS + pmic_types_pkg_MIN_GATE_ON_NS);
 	function automatic signed [pmic_types_pkg_ON_TIME_W - 1:0] sv2v_cast_D6A01_signed;
 		input reg signed [pmic_types_pkg_ON_TIME_W - 1:0] inp;
@@ -906,7 +906,11 @@ module reg_file (
 		threshold_reject = ((!unlock_armed || (off_change && !off_ok)) || (hiccup_any && !hiccup_all)) || (clean_any && !clean_all);
 	end
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
-	//                          the reset value of the writable register
+	//                          the reset value of the writable register.
+	//                          At 10 MHz the ramp has only 13 steps (MIN_ON 3 to
+	//                          MAX_ON 16, against 71 at 50 MHz), so the default
+	//                          sits at the CYCLES_PER_STEP_MAX ceiling: 13 x 64 =
+	//                          832 cycles, 1.85 ms.
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles

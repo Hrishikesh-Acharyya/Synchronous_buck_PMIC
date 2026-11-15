@@ -30,7 +30,7 @@
 #                    the host never writes. The Silicluster submission is the
 #                    enabled build; the disabled build only costs the telemetry.
 
-#                   Verilog-2005, converted from rtl/pmic_top.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/pmic_top.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None
@@ -257,13 +257,13 @@ module pmic_top (
 	// carry IDENTICAL parameters - a retune of the fault-flag instances must not
 	// be copied here.
 	//
-	// 8 clocks is 800 ns at 10 MHz: far longer than the tens of ns a switch-node
-	// edge couples in, and longer than a 1 MHz SCK half-period. A read bit leaves
-	// the slave about 12 clocks (1.2 us) after the master's falling edge, so the
-	// host must hold each SCK phase well above that: 250 kHz SCK, a 2 us
-	// half-period, is the verified rate. Noise lasting longer than the window is
-	// not a glitch and is not this layer's job - CRC-8 in spi_slave catches it
-	// and the transaction is discarded.
+	// 8 clocks is 800 ns at 10 MHz (160 ns at 50 MHz): far longer than the tens of ns a
+	// switch-node edge couples in. At 10 MHz it is LONGER than a 1 MHz SCK half-period,
+	// and a read bit leaves the slave about 12 clocks (1.2 us) after the master's falling
+	// edge, so the host must hold each SCK phase well above that: 250 kHz SCK, a 2 us
+	// half-period, is the verified rate (tb/pmic_top_tb.v). Noise lasting
+	// longer than the window is not a glitch and is not this layer's job - CRC-8 in
+	// spi_slave catches it and the transaction is discarded.
 	generate
 		if (TELEMETRY_EN) begin : g_spi_filt
 			input_debounce #(
@@ -526,14 +526,9 @@ module pmic_top (
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
 	//                          the reset value of the writable register.
 	//                          At 10 MHz the ramp has only 13 steps (MIN_ON 3 to
-	//                          MAX_ON 16, against 71 at 50 MHz), so the old 16
-	//                          would finish in 208 cycles, 0.46 ms, five times
-	//                          sooner. Restoring the 50 MHz ramp of 71 x 16 =
-	//                          1136 cycles needs 87 per step, above the
-	//                          CYCLES_PER_STEP_MAX ceiling below, so the default
-	//                          sits AT the ceiling: 13 x 64 = 832 cycles, 1.85 ms,
-	//                          73% of the original ramp. The host can still
-	//                          shorten it, never lengthen it.
+	//                          MAX_ON 16, against 71 at 50 MHz), so the default
+	//                          sits at the CYCLES_PER_STEP_MAX ceiling: 13 x 64 =
+	//                          832 cycles, 1.85 ms.
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles
@@ -598,7 +593,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_ok(spi_integrity_ok),
-				.abort(spi_abort)
+				.txn_abort(spi_abort)
 			);
 			reg_file u_reg_file(
 				.clk(clk),
@@ -610,7 +605,7 @@ module pmic_top (
 				.rd_first(spi_rd_first),
 				.rd_byte_done(spi_rd_byte_done),
 				.integrity_OK(spi_integrity_ok),
-				.abort(spi_abort),
+				.txn_abort(spi_abort),
 				.sup_state(sup_state),
 				.pgood(PGOOD),
 				.latch_state(latch_stat_sync_db),

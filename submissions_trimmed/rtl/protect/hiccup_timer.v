@@ -9,7 +9,7 @@
 #                   hiccup_done when the interval has elapsed, which is what
 #                   releases the supervisor from S_HICCUP back to S_SS.
 
-#                   Verilog-2005, converted from rtl/protect/hiccup_timer.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/protect/hiccup_timer.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

@@ -6,7 +6,7 @@
 #                   byte-addressable view of supervisor status to a host, and holds the
 #                   writable control bits and protection thresholds..
 
-#                   Verilog-2005, converted from rtl/telemetry/reg_file.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/telemetry/reg_file.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None
@@ -24,7 +24,7 @@ module reg_file (
 	rd_first,
 	rd_byte_done,
 	integrity_OK,
-	abort,
+	txn_abort,
 	sup_state,
 	pgood,
 	latch_state,
@@ -87,10 +87,12 @@ module reg_file (
 	input wire rd_byte_done;
 	// integrity_OK   : write transaction passed length check and CRC
 	input wire integrity_OK;
-	// abort    : transaction ended unvalidated -> discard temporary flop data.
-	input wire abort;
-	// sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base and
-	//            cycles_per_step writes - those are only accepted in S_OFF
+	// txn_abort    : transaction ended unvalidated -> discard temporary flop data.
+	input wire txn_abort;
+	// sup_state: supervisor FSM state. Telemetry, and ALSO the gate on hiccup_base,
+	//            cycles_per_step and clean_run_target - those never change
+	//            outside S_OFF (writing back their present value is allowed
+	//            in any state)
 	// encoding (state_t in the source): 2'b00 S_OFF, 2'b01 S_SS, 2'b10 S_RUN,
 	// 2'b11 S_HICCUP
 	input wire [1:0] sup_state;
@@ -209,7 +211,7 @@ module reg_file (
 	output reg [pmic_types_pkg_CLEAN_RUN_W - 1:0] clean_run_target;
 	//fault_reg_read_done: Indicated that the fault_register was read
 	output reg fault_reg_read_done;
-	reg write_rejected;  // set when a threshold write is refused (locked, or not in S_OFF)
+	reg write_rejected;  // set when a transaction's threshold writes are refused - all or nothing
 	// ---- 0x00-0x0F : identity ----
 	localparam [6:0] ADDR_PMIC_ID = 7'h00;
 	localparam [6:0] ADDR_VERSION = 7'h01;
@@ -265,11 +267,24 @@ module reg_file (
 	//WD_TIMEOUT_MS: host silence tolerated before the SPI enable veto is released.
 	//               Long enough that any sane polling rate never trips it, short
 	//               enough that an unattended board recovers in a useful time.
+	//               Firmware requirement: while holding the veto (spi_enable = 0)
+	//               the host must complete a valid WRITE at least this often -
+	//               e.g. to SCRATCH. Reads do not count as proof of life. Since
+	//               SCRATCH commits only on integrity_OK, such a heartbeat proves
+	//               the whole write path, CRC included, not just that SCK runs.
 	localparam signed [31:0] WD_TIMEOUT_MS = 5000;
 	// scratch_r: read-write byte with no effect on anything. The host writes a
 	//            pattern and reads it back to prove both bus directions work
-	//            before trusting any real register.
+	//            before trusting any real register. Commits on integrity_OK like
+	//            every other writable register, so the check exercises the same
+	//            CRC gate a real write must pass.
 	reg [7:0] scratch_r;
+	// scratch_temp: a SCRATCH write lands here first; copied to scratch_r only
+	//               on integrity_OK
+	reg [7:0] scratch_temp;
+	// scratch_pending: scratch_temp holds a write from the current transaction,
+	//                  cleared at its end whether committed or aborted
+	reg scratch_pending;
 	// disable_armed: a valid DISABLE_KEY has been written; the next CONTROL write
 	//                clearing bit 0 will be honoured
 	reg disable_armed;
@@ -374,7 +389,10 @@ module reg_file (
 
 	Re-marked continuously while spi_enable is high, so the timeout always starts
 	from the instant the veto is applied rather than from some earlier transaction.
-	While the veto is held it is re-marked only on integrity_OK.
+	While the veto is held it is re-marked only on integrity_OK: a write with a
+	valid CRC, whatever it wrote (a rejected threshold write still counts, since
+	the host proved it is alive). Reads produce no integrity_OK and so never feed
+	the watchdog - holding the veto requires writing.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
@@ -409,7 +427,7 @@ module reg_file (
 	Purpose:
 	---
 	Count failed host transactions. spi_slave already distinguishes a good write
-	from a bad one and reduces every failure mode to abort, so nothing new has to
+	from a bad one and reduces every failure mode to txn_abort, so nothing new has to
 	be detected here - this block only keeps the tally.
 
 	Saturating, not wrapping. A wrapped counter reading 3 could mean three errors
@@ -419,14 +437,14 @@ module reg_file (
 	clear-on-read would need its own address edge-detect and buys nothing a
 	subtraction does not already give.
 
-	LIMITATION: abort is raised only for WRITE transactions - spi_slave gates it on
+	LIMITATION: txn_abort is raised only for WRITE transactions - spi_slave gates it on
 	cs_rise && !rw, because a read carries no CRC and has nothing to validate. A
 	read that times out or ends misaligned is therefore not counted.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n)
 			bus_err_count <= 1'sb0;
-		else if (abort && !(&bus_err_count))
+		else if (txn_abort && !(&bus_err_count))
 			bus_err_count <= bus_err_count + 1'b1;
 	// Thresholds differ by state because elevated current during soft start
 	// is expected as the output capacitor charges from zero in FCCM, whereas
@@ -533,6 +551,16 @@ module reg_file (
 	default would stop the LM5106 bootstrap capacitor recharging during low-side
 	conduction, collapsing high-side gate drive and destroying the FET. A single
 	register write must never be able to do that.
+
+	WHEN IT TAKES EFFECT. max_on_limit changes on the commit, but soft_start
+	copies it into the gate ceiling only while ramping. Written in S_OFF or
+	S_SS it governs the present ramp; written in S_RUN it reaches the gate at
+	the next soft start (a hiccup retry or any restart), and until then the
+	gate keeps the ceiling the last ramp reached - which passed this same
+	clamp, so it is never above the safe maximum. The deferral is deliberate:
+	the duty ceiling only ever moves through a ramp, never under a loop that
+	is regulating. The MAX_ON readback is therefore the limit the next ramp
+	will use; in S_RUN it can differ from the ceiling on the gate.
 	*/
 	function automatic [pmic_types_pkg_ON_TIME_W - 1:0] clamp_max_on;
 		input reg [7:0] input_max_on;
@@ -664,7 +692,7 @@ module reg_file (
 	not here, so the gating lives in exactly one place - and so a host that writes
 	the threshold before the key still fails cleanly rather than half-succeeding.
 
-	The dirty bits are cleared on BOTH transaction boundaries: discarded on abort,
+	The dirty bits are cleared on BOTH transaction boundaries: discarded on txn_abort,
 	consumed on integrity_OK. Either way no temp survives into the next
 	transaction, so a value written in one transaction cannot be committed by a
 	later unrelated one.
@@ -684,7 +712,7 @@ module reg_file (
 			temp_clean_1 <= 1'sb0;
 			temp_clean_2 <= 1'sb0;
 		end
-		else if (abort || integrity_OK)
+		else if (txn_abort || integrity_OK)
 			temp_dirty <= 0;
 		else if (wr_en)
 			case (addr)
@@ -810,33 +838,79 @@ module reg_file (
 			;
 		clean_any = |temp_dirty[10:8];
 	end
-	// off_ok: the three registers compared against FREE-RUNNING counters are
-	//         accepted only in S_OFF, when neither counter is live. A live change
+	// off_ok: the three registers compared against FREE-RUNNING counters change
+	//         only in S_OFF, when neither counter is live. A live change
 	//         landing below the current count would expire that counter instantly.
 	reg off_ok;
 	/*
 	Purpose:
 	---
 	S_OFF-only gate. hiccup_base, cycles_per_step and clean_run_target are
-	compared against free-running counters, so a change is accepted only in
-	S_OFF, when neither counter is live.
+	compared against free-running counters, so they change only in S_OFF, when
+	neither counter is live.
 	*/
 	always @(*) begin
 		if (_sv2v_0)
 			;
 		off_ok = sup_state == 2'b00;  // S_OFF
 	end
+	// off_change: this transaction would CHANGE an S_OFF-only register - its
+	//             staged raw value differs from the live one. Writing back the
+	//             present value is not a change, so firmware can rewrite the
+	//             whole bank in any state.
+	reg off_change;
+	function automatic [23:0] sv2v_cast_24;
+		input reg [23:0] inp;
+		sv2v_cast_24 = inp;
+	endfunction
+	/*
+	Purpose:
+	---
+	Tell a change to an S_OFF-only register from a write-back of its present
+	value. The key lives for one transaction and addresses only increment, so
+	reaching any threshold means writing every register below it; firmware does
+	that as a read-modify-write of the bank. Without this test a running
+	converter would refuse the whole frame for passing through hiccup_base,
+	cycles_per_step and clean_run_target with their own values, leaving only the
+	four live thresholds below 0x54 writable.
+
+	The comparison is RAW (pre-clamp) staged value against the live register.
+	Readback is post-clamp, so a value read back equals the live one exactly and
+	a read-modify-write passes. A raw value that would only clamp TO the live
+	value is still a change and is refused outside S_OFF: the rule stays "write
+	back exactly what you read", with no clamp arithmetic in the decision.
+	For a partly written multi-byte register the comparison reads stale temp
+	bytes, but the partial rule below rejects that transaction regardless.
+	*/
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		off_change = ((temp_dirty[7] && (temp_cyc_step != sv2v_cast_8(cycles_per_step))) || (hiccup_any && (temp_hiccup_full != sv2v_cast_24(hiccup_base)))) || (clean_any && (temp_clean_full != sv2v_cast_24(clean_run_target)));
+	end
+	// threshold_reject: some threshold write in this transaction cannot be
+	//                   honoured - no key, a change to an S_OFF-only register
+	//                   outside S_OFF, or a partial multi-byte write. Any one
+	//                   of them rejects every threshold write in the transaction.
+	reg threshold_reject;
+	/*
+	Purpose:
+	---
+	Decide, before anything commits, whether the transaction's threshold writes
+	can be honoured as a whole. Evaluated only where temp_dirty is non-zero; a
+	transaction that wrote no threshold is never a rejection. The partial
+	multi-byte rule holds in every state, whatever the value.
+	*/
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		threshold_reject = ((!unlock_armed || (off_change && !off_ok)) || (hiccup_any && !hiccup_all)) || (clean_any && !clean_all);
+	end
 	// CYCLES_PER_STEP_DEFAULT: switching cycles per soft-start ramp step, and
 	//                          the reset value of the writable register.
 	//                          At 10 MHz the ramp has only 13 steps (MIN_ON 3 to
-	//                          MAX_ON 16, against 71 at 50 MHz), so the old 16
-	//                          would finish in 208 cycles, 0.46 ms, five times
-	//                          sooner. Restoring the 50 MHz ramp of 71 x 16 =
-	//                          1136 cycles needs 87 per step, above the
-	//                          CYCLES_PER_STEP_MAX ceiling below, so the default
-	//                          sits AT the ceiling: 13 x 64 = 832 cycles, 1.85 ms,
-	//                          73% of the original ramp. The host can still
-	//                          shorten it, never lengthen it.
+	//                          MAX_ON 16, against 71 at 50 MHz), so the default
+	//                          sits at the CYCLES_PER_STEP_MAX ceiling: 13 x 64 =
+	//                          832 cycles, 1.85 ms.
 	localparam signed [31:0] pmic_types_pkg_CYCLES_PER_STEP_DEFAULT = 64;
 	// HICCUP_BASE_MS: cool-down for strike level 0, the RESET DEFAULT of the
 	//                 host-writable hiccup_base register. Each strike doubles
@@ -856,20 +930,21 @@ module reg_file (
 	way IN rather than on the way out. Clamping on write means the register always
 	holds a legal value, so a host readback shows what is actually in effect.
 
-	Three gates, all checked here so the policy lives in one place:
-	  unlock_armed - the threshold bank is locked without a valid key
-	  off_ok       - hiccup_base, cycles_per_step and clean_run_target are compared
-	                 against free-running counters, so they are accepted only in
-	                 S_OFF. trip_run, trip_ss, max_strikes and max_on_limit are
-	                 compared against bounded accumulators that re-reference every
-	                 switching cycle, so a mid-run change is safe: lowering one
-	                 below the current count trips immediately, which is correct.
-	  hiccup_all / clean_all - strict multi-byte rule, see above.
+	Gating is decided once, in threshold_reject: no key, a change to an
+	S_OFF-only register outside S_OFF, or a partial multi-byte write rejects every
+	threshold write in the transaction. An accepted write-back of an S_OFF-only
+	register commits its clamped value, which is the value it already holds. All or nothing, the strict multi-byte rule extended to the
+	whole transaction, so the converter never runs a half-applied configuration.
+	(hiccup_base, cycles_per_step and clean_run_target are S_OFF-only because they
+	are compared against free-running counters; trip_run, trip_ss, max_strikes and
+	max_on_limit are compared against bounded accumulators that re-reference every
+	switching cycle, so a mid-run change to them is safe.)
 
-	write_rejected is set or cleared by every commit, so it always describes the
-	most recent write attempt and never goes stale. It is reported in STATUS bit 7;
-	the host reads sup_state in the same byte to tell a locked bank from a running
-	converter.
+	write_rejected is set by a rejected commit and cleared by an accepted one; a
+	transaction that wrote no threshold leaves it alone, so a control-only write
+	cannot clear a rejection the host has not read yet. It is reported in STATUS
+	bit 7; the host reads sup_state in the same byte to tell a locked bank from a
+	running converter.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
@@ -882,39 +957,28 @@ module reg_file (
 			clean_run_target <= sv2v_cast_DC11B_signed(pmic_types_pkg_CLEAN_RUN_CYCLES);
 			write_rejected <= 1'b0;
 		end
-		else if (integrity_OK) begin
-			if (|temp_dirty) begin
+		else if (integrity_OK && |temp_dirty) begin
+			// All or nothing: one refused write rejects the whole set, so the
+			// converter never runs a half-applied configuration. A transaction
+			// that wrote no threshold leaves write_rejected alone.
+			if (threshold_reject)
+				write_rejected <= 1'b1;
+			else begin
 				write_rejected <= 1'b0;
-				if (!unlock_armed)
-					write_rejected <= 1'b1;
-				else begin
-					if (temp_dirty[0])
-						trip_run <= clamp_trip_run(temp_trip_run);
-					if (temp_dirty[1])
-						trip_ss <= clamp_trip_ss(temp_trip_ss);
-					if (temp_dirty[2])
-						max_strikes <= clamp_max_strikes(temp_max_strk);
-					if (temp_dirty[3])
-						max_on_limit <= clamp_max_on(temp_max_on);
-					if (temp_dirty[7]) begin
-						if (off_ok)
-							cycles_per_step <= clamp_cyc_step(temp_cyc_step);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (hiccup_any) begin
-						if (hiccup_all && off_ok)
-							hiccup_base <= clamp_hiccup(temp_hiccup_full);
-						else
-							write_rejected <= 1'b1;
-					end
-					if (clean_any) begin
-						if (clean_all && off_ok)
-							clean_run_target <= clamp_clean_run(temp_clean_full);
-						else
-							write_rejected <= 1'b1;
-					end
-				end
+				if (temp_dirty[0])
+					trip_run <= clamp_trip_run(temp_trip_run);
+				if (temp_dirty[1])
+					trip_ss <= clamp_trip_ss(temp_trip_ss);
+				if (temp_dirty[2])
+					max_strikes <= clamp_max_strikes(temp_max_strk);
+				if (temp_dirty[3])
+					max_on_limit <= clamp_max_on(temp_max_on);
+				if (temp_dirty[7])
+					cycles_per_step <= clamp_cyc_step(temp_cyc_step);
+				if (hiccup_any)
+					hiccup_base <= clamp_hiccup(temp_hiccup_full);
+				if (clean_any)
+					clean_run_target <= clamp_clean_run(temp_clean_full);
 			end
 		end
 	/*
@@ -923,14 +987,18 @@ module reg_file (
 	Hold the control bits and manage the two key-protected operations. The enable path
 	is asymmetric: enabling takes one write, disabling needs a key first, because a
 	spurious enable only removes a veto while a spurious disable stops a working
-	supply. latch_clear is a one-clock pulse, not a held value. en_switch_rise is
-	applied last so the physical switch wins any same-cycle collision.
+	supply. en_switch_rise is applied last so the physical switch wins any
+	same-cycle collision.
+	SCRATCH is staged like CONTROL: held in scratch_temp and committed only
+	on integrity_OK, so a bad-CRC write leaves it unchanged.
 	*/
 	always @(posedge clk or negedge rst_n)
 		if (!rst_n) begin
 			arm_timer <= 1'sb0;
 			spi_enable <= 1'b1;
 			scratch_r <= 8'h00;
+			scratch_temp <= 8'h00;
+			scratch_pending <= 1'b0;
 			disable_armed <= 1'b0;
 			unlock_armed <= 1'b0;
 			en_pending <= 1'b0;
@@ -949,7 +1017,10 @@ module reg_file (
 				arm_timer <= 1'sb0;
 			if (wr_en)
 				case (addr)
-					ADDR_SCRATCH: scratch_r <= wdata;
+					ADDR_SCRATCH: begin
+						scratch_temp <= wdata;
+						scratch_pending <= 1'b1;  // committed on integrity_OK, dropped on txn_abort
+					end
 					ADDR_DISABLE_KEY: disable_armed <= wdata == DISABLE_KEY_ID;
 					ADDR_WRITE_KEY: unlock_armed <= wdata == WRITE_ACCESS_KEY_ID;
 					ADDR_CONTROL:
@@ -969,12 +1040,15 @@ module reg_file (
 			if (integrity_OK) begin
 				if (en_pending)
 					spi_enable <= en_pending_val;
+				if (scratch_pending)
+					scratch_r <= scratch_temp;
 			end
-			if (abort || integrity_OK) begin
+			if (txn_abort || integrity_OK) begin
 				disable_armed <= 1'b0;
 				unlock_armed <= 1'b0;
 				en_pending <= 1'b0;
 				en_pending_val <= 1'b0;
+				scratch_pending <= 1'b0;
 			end
 			if (wd_expired) begin
 				spi_enable <= 1'b1;

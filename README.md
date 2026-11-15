@@ -7,7 +7,8 @@ telemetry. The supervisor is verified, synthesised, and placed and routed in
 **SkyWater SKY130**, and is prepared for fabrication on the
 **Silicluster v3** multi-project chip.
 
-> **This branch, `silicluster-v3`, is the tapeout candidate.** Two Verilog
+> **This branch, `silicluster-v3`, is the tapeout candidate**, updated on
+> 15 November 2026 with the fixes made since the first submission. Two Verilog
 > packages are submitted: the full chip, [`submissions_full/`](submissions_full/)
 > ([README](submissions_full/SILICLUSTER_README.md)), and the protection-only
 > chip that fits a single slot, [`submissions_trimmed/`](submissions_trimmed/)
@@ -108,9 +109,10 @@ Control System Designer sessions and the plotting script in
 
 ## The supervisor chip
 
-SystemVerilog source in [`rtl/`](rtl/), converted to Verilog-2005 for the
-Silicluster flow: one file per module, comments restored by hand and proved
-code-identical to the converter's output (`make package_check`).
+SystemVerilog source in [`rtl-systemverilog/`](rtl-systemverilog/), converted
+to Verilog-2005 for the Silicluster flow ([`rtl-verilog/`](rtl-verilog/)): one
+file per module, comments restored by hand and proved code-identical to the
+converter's output (`make verilog_check`, `make submissions_check`).
 
 | Block | Behaviour |
 |---|---|
@@ -129,7 +131,7 @@ the same testbench verifies both.
 
 | | `TELEMETRY_EN = 1` (default) | `TELEMETRY_EN = 0` |
 |---|---|---|
-| Flops / cells / cell area | 694 / 2,119 / 30,737 µm² | 252 / 705 / 10,523 µm² |
+| Flops / cells / cell area | 703 / 2,287 / 31,811 µm² | 252 / 707 / 10,453 µm² |
 | Routes in | 2.5–3× the standard slot | one 180 × 115 µm slot |
 | Thresholds | defaults, writable over SPI | fixed at the defaults |
 | Observability | full register map over SPI | pins and LEDs |
@@ -146,25 +148,35 @@ if any is missed.
 
 | Build | Checks | Coverage | Simulated | Scoreboard comparisons |
 |---|---|---|---|---|
-| `TELEMETRY_EN = 1` | 277, 0 failed | 86 / 86 | 0.79 s | 7.9 M clocks |
+| `TELEMETRY_EN = 1` | 320, 0 failed | 96 / 96 | 0.89 s | 8.9 M clocks |
 | `TELEMETRY_EN = 0` | 173, 0 failed | 54 / 54 | 1.43 s, default timers | 14.3 M clocks |
 
 - Both builds pass on **Icarus Verilog and Verilator**, against the
-  **SystemVerilog source and the submitted Verilog**, at 10 and 50 MHz, with
-  identical check lines.
+  **SystemVerilog source and the submitted Verilog**, and each package passes
+  from its own files alone (`make signoff`).
 - Beyond the directed phases: every fault cause crossed with every state it
   can arrive in, the overcurrent window's exact threshold, strike escalation
   and the clean-run window restarting, glitch and chatter rejection,
   overlapping faults, reset while running, programmed thresholds reaching the
-  protection, and SPI corner cases.
-- Module level: **8 testbenches with 52 bound SVA assertions and 53 cover
-  properties**, run against both the source and the converted Verilog.
+  protection, SPI corner cases, the register file's all-or-nothing write
+  rules, and limits changed under a running converter.
+- The testbench is tested too: run against the Verilog of the first
+  submission it fails 14 checks, one group for each fault fixed since.
+- Module level: **14 testbenches** with bound SVA checkers - 122 assertions
+  and 175 cover properties, every cover hit - run against both the source and
+  the converted Verilog. The two cocotb suites that verify the host interface
+  and the whole supervisor against Python models are written for the 50 MHz
+  build and live on `main`, where they exercise this same logic.
 - CI (GitHub Actions) lints the RTL and runs the full regression in both
   flows, and tracks synthesis cell counts on pull requests.
 - Verification earned its keep before silicon: it caught wrong data on SPI
   reads, an off-by-one in write addressing, a fault-log clear that could fire
   on the wrong byte, and a tri-state that synthesis silently removed — the
-  reason the SPI uses separate MOSI and MISO pins.
+  reason the SPI uses separate MOSI and MISO pins. Since the first
+  submission, the module-level work found a strike latch and a soft-start
+  ramp that both missed a limit lowered beneath them, a soft-start
+  overcurrent trip that leaked into run, and a register write that could
+  half-apply.
 
 ## Physical design
 
@@ -195,9 +207,10 @@ integration flow. Flow, scripts and every run's reports:
 ## Repository map
 
 ```
-rtl/            supervisor chip, SystemVerilog (17 modules + package)
-tb/, sva/       module testbenches (SystemVerilog) + bound SVA
-sim/            Makefile: lint, convert, equiv_all, top_both, syn_both, package
+rtl-systemverilog/    supervisor chip, SystemVerilog (17 modules + package)
+rtl-verilog/          its Verilog-2005 conversion, one file per module
+tb/, sva/       module testbenches (SystemVerilog) + bound SVA; tb/pmic_top_tb.v
+sim/            Makefile: lint, verilog, equiv_all, top_both, syn_both, submissions, signoff
 submissions_full/     Silicluster v3 package, full chip: Verilog-2005 rtl/, tb/, README
 submissions_trimmed/  the same, TELEMETRY_EN = 0: protection only, one slot
 Build/          converted single-file Verilog, synthesis summaries
@@ -217,6 +230,8 @@ make lint                # strict Verilator lint of the RTL
 make -j4 equiv_all       # every testbench, SystemVerilog and converted Verilog, both builds
 make top_both            # integration testbench, both builds, Verilator and Icarus
 make syn_both            # sky130 area of both builds
+make verilog             # regenerate rtl-verilog/ from the source
+make submissions         # write both packages from rtl-verilog/ and the testbench
 make signoff             # ship check of both packages, ends in SIGNOFF OK
 make zip                 # one zip per package
 ```

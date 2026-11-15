@@ -10,7 +10,7 @@
 #                   immediately, without waiting for a first clock edge that
 #                   may be arbitrarily far away after power-on.
 
-#                   Verilog-2005, converted from rtl/inputs/input_sync.sv by sv2v,
+#                   Verilog-2005, converted from rtl-systemverilog/inputs/input_sync.sv by sv2v,
 #                   with the comments restored by hand from the source.
 
 # Global variables: None

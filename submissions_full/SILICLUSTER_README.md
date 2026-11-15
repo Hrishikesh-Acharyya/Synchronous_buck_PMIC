@@ -10,6 +10,51 @@ Testbench top: **`pmic_top_tb`** (`tb/pmic_top_tb.v`).
 > 180 x 115 um slot; the two are the same files except for the `TELEMETRY_EN`
 > default in `rtl/pmic_top.v` and in `tb/pmic_top_tb.v`.
 
+## Changes since the first submission
+
+This package replaces the one sent on 31 October 2026. The pins, the 10 MHz
+clock, the `TELEMETRY_EN` parameter and the file list are the same. What
+changed is the result of the module-level verification written since: each
+block now has its own SystemVerilog testbench and bound assertions (14
+testbenches), and the faults they found are fixed.
+
+Design changes:
+
+- **Overcurrent windows** (`fault_arbiter.v`): each window's trip is confined
+  to its own state. The soft-start count is kept through run for telemetry, so
+  a soft-start threshold lowered while running (or a count reaching it on the
+  clock soft start ended) used to hold the soft-start trip high for the whole
+  run. The supervisor ignores that trip while running, so the converter was
+  unaffected, but the fault log recorded an overcurrent that had not happened.
+- **Strike counter** (`strike_counter.v`): the latch test is "at or past the
+  limit". With `MAX_STRIKES` lowered below the strikes already counted, the
+  next hiccup used to miss the latch and the count wrapped.
+- **Soft start** (`soft_start.v`): the ramp ends "at or past the limit" and
+  clamps down to it. With `MAX_ON` lowered below a ceiling the ramp had already
+  passed, the ceiling used to climb on to the top of its range.
+- **Register file** (`reg_file.v`): a transaction's threshold writes commit
+  all or nothing, so the converter never runs on half a configuration. The
+  three registers that may change only while off can be written back with
+  their present values in any state, so firmware can rewrite the whole bank
+  while running. SCRATCH is staged until the CRC like every other write.
+- **SPI slave** (`spi_slave.v`): a command byte cut short is always counted
+  as a bus error, whatever the transaction before it was. Nothing could commit
+  either way; only the counting changes.
+- **Supervisor** (`supervisor.v`): rewritten in the layout of the other
+  modules. No logic change.
+
+None of the first four can occur in the reduced build, whose thresholds are
+fixed: they need a threshold changed over SPI while the converter runs.
+
+Verification changes: the testbench in this package has two more phases and
+ten more coverage bins, one for each rule and fix above, and its register-map
+model holds the new write rules (320 checks and 96 bins, from 277 and 86). Run
+against the Verilog of the first submission, it fails 14 checks.
+
+Area: the full build grew by 3.5% (703 flops, 31,811 um^2 of cells, from 694
+and 30,737); the reduced build is unchanged (252 flops, 10,453 um^2). Both
+were placed and routed again - see "Area".
+
 ## What the design is
 
 The digital supervisor of a 450 kHz synchronous buck converter (10.8-22 V in).
@@ -125,7 +170,7 @@ two builds, both verified by the same testbench:
 | Protection thresholds | defaults, writable over SPI | fixed at the defaults |
 | `SCK`, `CS_n`, `MOSI` | used | unused inputs |
 | `MISO` | read data during a read, low otherwise | always low |
-| Area (below) | about 2.6x the standard slot | about 0.9x the standard slot |
+| Area (below) | about 2.7x the standard slot | about 0.9x the standard slot |
 
 The protection itself - supervisor, soft start, overcurrent windows, hiccup,
 strikes and latch, OTP, UVLO, PGOOD, LEDs - is the same logic in both. The
@@ -158,8 +203,11 @@ With `TELEMETRY_EN = 1`:
   0x18-0x1A millisecond timestamp, 0x1B/0x1C bus error count, 0x1D-0x20 fault
   log (cleared by reading 0x20), 0x40/0x41 disable key and control, 0x4F write
   key, 0x50-0x5A thresholds (writable after the key 0xA7 at 0x4F in the same
-  transaction; out-of-range values are clamped; hiccup base, ramp rate and
-  clean-run window only while off).
+  transaction; out-of-range values are clamped). A transaction's threshold
+  writes commit all or nothing: hiccup base, ramp rate and clean-run window
+  change only while off - they may be written back with their present values
+  in any state - and a 3-byte register must be written whole. STATUS bit 7
+  reports a refused write until the next accepted one.
 
 ## Running the testbench
 
@@ -202,7 +250,7 @@ behavioural models around it: an asynchronous 450 kHz modulator, the SCR latch,
 comparator levels, the enable switch, and an SPI master with CRC-8. With
 `TELEMETRY_EN = 1` every configuration is written over SPI into the register
 map, as a host would; no timer in the design was shortened for simulation. The
-run covers about 790 ms of simulated time in 20 phases: reset and defaults; the
+run covers about 890 ms of simulated time in 22 phases: reset and defaults; the
 SPI protocol and register map (single and burst reads and writes, CRC, length
 and alignment aborts, the locked bank, clamping, CS dropped mid-read, the SCK
 timeout); start-up through the 20 ms switch debounce and the soft-start ramp;
@@ -215,13 +263,18 @@ overcurrent window's exact threshold (11 faulted cycles in every 16 hold, the
 12th consecutive one trips); a second strike inside the clean-run window (the
 cool-down doubles, the window restarts); UVLO and latch-readback glitches,
 enable-switch chatter and overlapping faults; programmed thresholds reaching
-the protection (TRIP_SS, TRIP_RUN, MAX_ON, CYCLES_PER_STEP, MAX_STRIKES); and
-SPI corners (read-only and unmapped addresses, the address wrap, glitches under
-the input filter).
+the protection (TRIP_SS, TRIP_RUN, MAX_ON, CYCLES_PER_STEP, MAX_STRIKES); SPI
+corners (read-only and unmapped addresses, the address wrap, glitches under
+the input filter); the register file's write rules (a bad CRC leaves SCRATCH
+alone, threshold writes commit all or nothing, the whole bank written back
+while running, part of a 3-byte register refused, a command cut short); and
+limits changed under a running converter (MAX_ON in run and under the ramp,
+MAX_STRIKES below the strikes counted, TRIP_SS below the held soft-start
+count).
 
 It checks in four layers:
 
-- **directed checks** - 254, each printing PASS or FAIL;
+- **directed checks** - 297, each printing PASS or FAIL;
 - **monitors** sampled every clock - `MISO` carrying read data exactly while
   the SPI slave is in its read state and low at every other time, the first read
   bit valid on `MISO` at the start of read data, `switch_supply` equal to
@@ -229,19 +282,21 @@ It checks in four layers:
   `PGOOD` without `En` and never outside run, no `PWM_out` pulse longer than the
   ceiling in force (the soft-start level, the programmed limit, or the minimum
   while off), the LEDs matching the state and the debounced faults, `latch_out`
-  set only on the strike that reaches the limit and never falling without a
-  reset;
+  set only on a strike that reaches the limit (or passes a limit lowered
+  beneath it) and never falling without a reset;
 - **two scoreboards** compared with the design every clock - a reference model
   of the supervisor FSM (state and `En`), and a shadow of the register map
-  built from the bytes sent and the documented rules (keys, deferred enable,
-  off-only registers, multi-byte rule, clamps), also checked against every byte
+  built from the bytes sent and the documented rules (keys, writes staged
+  until the CRC, all-or-nothing threshold writes, write-back of the off-only
+  registers, the multi-byte rule, clamps), also checked against every byte
   read back;
-- **a coverage table** of 86 bins: every supervisor transition, every fault
+- **a coverage table** of 96 bins: every supervisor transition, every fault
   entry and exit path, every fault cause crossed with the state it arrives in,
   hiccup retry and escalation, strike levels and latch, the strike clear and
   its restart, soft-start completion, PGOOD qualification and both ways it
-  drops, every SPI read, write, abort and rejection path, and each programmed
-  threshold taking effect. A bin is set only when a monitor sees the design
+  drops, every SPI read, write, abort and rejection path, each programmed
+  threshold taking effect, and each rule and fix made since the first
+  submission. A bin is set only when a monitor sees the design
   reach the condition; any bin left unhit fails the run.
 
 The unavoidable 100 ms clean-run window runs concurrently with 32 seeded
@@ -257,11 +312,10 @@ what they compare. The source repository also has module-level SystemVerilog
 testbenches with bound SVA assertions, which pass against these same Verilog
 files; they are SystemVerilog, so they are not part of this submission.
 
-Results: PASS, 277 checks with 0 failures (the 254 directed checks and 23
-end-of-run monitor and scoreboard verdicts) and all 86 bins, on Icarus Verilog
+Results: PASS, 320 checks with 0 failures (the 297 directed checks and 23
+end-of-run monitor and scoreboard verdicts) and all 96 bins, on Icarus Verilog
 12 and on Verilator 5.052, against these files and against the SystemVerilog
-source, with identical check lines between them; also at 50 MHz (Verilator,
-package clock rebuilt).
+source.
 
 ### With `TELEMETRY_EN = 0`
 
@@ -285,15 +339,14 @@ the full sequence writes (a 1 ms hiccup base, a 100 ms clean-run window) is
 sent as a valid keyed SPI frame, and the hiccup and the window are then timed
 at their defaults; keyed disables are sent while running and `En` must never
 fall; every bit read back on `MISO` must be 0. The FSM scoreboard and the
-monitors run underneath as before. Of the 86 coverage bins, 32 name hardware
+monitors run underneath as before. Of the 96 coverage bins, 42 name hardware
 this build does not have (host disable, SPI protocol, register map, timestamp,
 fault log, bus-error counter, watchdog, PWM statistics) and are reported "n/a";
 the other 54 must all be hit.
 
 Results: PASS, 173 checks with 0 failures and all 54 applicable bins, on
 Icarus Verilog 12 and on Verilator 5.052, against these files and against the
-SystemVerilog source, with identical check lines between them; also at 50 MHz
-(Verilator, package clock rebuilt).
+SystemVerilog source.
 
 ## Area
 
@@ -302,8 +355,8 @@ Synthesised with Yosys 0.70 and the sky130_fd_sc_hd typical library
 
 | Build | Flops | Comb cells | Cell area | Die at 57% utilisation | vs 180 x 115 um slot |
 |-------|-------|------------|-----------|------------------------|----------------------|
-| `TELEMETRY_EN = 1` (default) | 694 | 2,119 | 30,737 um^2 | ~53,900 um^2 | 2.6x |
-| `TELEMETRY_EN = 0` (reduced) | 252 | 705 | 10,523 um^2 | ~18,500 um^2 | 0.9x |
+| `TELEMETRY_EN = 1` (default) | 703 | 2,287 | 31,811 um^2 | ~55,800 um^2 | 2.7x |
+| `TELEMETRY_EN = 0` (reduced) | 252 | 707 | 10,453 um^2 | ~18,300 um^2 | 0.9x |
 
 These are synthesis estimates, not a layout. Cell area is the sum of the
 standard cells' own areas; a placed and routed block also needs room for
@@ -312,7 +365,7 @@ wiring, power straps and tap cells, so the die figure assumes the cells fill
 it is not a figure from the call or from a place-and-route run - and place and
 route sets the real number. For scale: the reduced build fits the standard
 slot if the layout reaches at least 51% utilisation; the full build needs about
-2.6x the slot at 57% and 3x at 50%.
+2.7x the slot at 57% and 3.1x at 50%.
 
 Placed and routed to check (OpenROAD, sky130_fd_sc_hd, typical corner, a
 met1/met4/met5 power grid, clock tree, timing repair, detailed routing; the
@@ -346,6 +399,14 @@ standard slot (see "Configuration").
 - The fault log's latch bit cannot be set: the strike latch trips in the hiccup
   state, where the fault log does not record. The latch itself, the status bit
   and the LED work.
+- `MAX_ON` written while the converter runs is stored at once but reaches the
+  gate at the next soft start: the on-time ceiling only moves through a ramp.
+- The debouncers (`input_debounce.v`) do not restart their count on the clock
+  an output changes. An input that reverses on the clock straight after a
+  qualified change is therefore taken early: a fault that asserts and drops
+  at once is released after one clock instead of 200 us, and one that releases
+  and reasserts at once is taken after 0.8 ms instead of 1 ms. The supervisor
+  has already stopped the converter on the first assertion in both cases.
 - Reading 0x20 clears the fault log even in a one-byte read; read 0x1D-0x20 as
   one burst to get the whole record first.
 - `MISO` is always driven, low when idle, so sharing the MISO line with other

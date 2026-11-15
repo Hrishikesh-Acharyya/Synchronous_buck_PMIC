@@ -35,6 +35,8 @@ an old row; the trend is the useful part.
 | 2026-10-31 18:38 | chg 11: fix reg_file clear | 10 MHz | 1           | 693   | 2,086      | 30,522           | 53,547          | 2.59x         | addr_d removed (-7 flops); reg_file 1,093 -> 1,071 cells, spi_slave 308 -> 306 cells (+36 um^2) |
 | 2026-10-31 18:42 | chg 12: sdio_oe aligned   | 10 MHz | 1            | 693   | 2,113      | 30,644           | 53,762          | 2.60x         | spi_slave 306 -> 307 cells, 3,360 -> 3,353 um^2; flattened +122 um^2 is ABC variation |
 | 2026-10-31 20:01 | chg 17: SDIO -> MOSI/MISO | 10 MHz | 1            | 694   | 2,119      | 30,737           | 53,925          | 2.61x         | +1 flop is sdio_oe, which yosys had dropped with the tri-state; spi_slave unchanged |
+| 2026-11-15 00:10 | merge of `main` (chg 34-35) | 10 MHz | 1            | 703   | 2,287      | 31,811           | 55,808          | 2.70x         | resubmission build: +9 flops, +168 cells, +3.5% area from the fixes since 31 October (staged SCRATCH, all-or-nothing commit, gated window trips, >= tests) |
+| 2026-11-15 00:10 | merge of `main` (chg 34-35) | 10 MHz | 0            | 252   | 707        | 10,453           | 18,338          | 0.89x         | resubmission build, reduced: flops unchanged, +2 cells, -0.7% area |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.
@@ -80,3 +82,20 @@ Commit hashes for each changelog entry are in the table at the end of
   (180 x 288 um, 72%, only after 41 router passes) and comfortably at 3x
   (180 x 345 um, 61%). Excluding the don't-use lpflow cells the earlier syn_area
   runs had mapped (63 full, 21 reduced) changes cell area by under 0.2%.
+- **2026-11-15, the resubmission build.** `main` was merged into this branch
+  (changelog entry 34) with the 10 MHz package kept. Same tool and method as
+  the rows above (Yosys 0.70, `make syn_both`). The full build grew by 9 flops
+  and 3.5% of cell area: the register file now stages SCRATCH and decides a
+  transaction's threshold writes as a whole, and the window trips, the strike
+  latch and the soft-start ramp carry the tests that fixed them. The reduced
+  build has the same 252 flops and 0.7% less cell area; none of the register
+  logic is in it. Method note: the "Input" line above now reads
+  `rtl-systemverilog/` for `rtl/`.
+- **2026-11-15, placed and routed again.** The same OpenROAD flow on the new
+  netlists (`pnr/`). Reduced build: routed with 0 DRC violations in the
+  180 x 115 um slot at 66% utilisation, with 5 um and 10 um reserved all
+  round (72%, 84%), in 180 x 100 um (75%), 180 x 90 um (84%) and - new this
+  time - 180 x 80 um (96%, 0.70x the slot). Full build: routed with 0 DRC
+  violations at 3x the slot (180 x 345 um, 63%); does not route at 2x (90%
+  before routing, global routing fails) and does not place in one slot. The
+  2.5x result is in `pnr/README.md`.
