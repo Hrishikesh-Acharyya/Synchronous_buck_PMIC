@@ -24,7 +24,7 @@ telemetry. The supervisor is verified, synthesised, and placed and routed in
 | **Chip interface** | 10 inputs, 11 outputs, `clk` and `rst` (of 14 / 14 available), 10 MHz, 1.8 V |
 | **Verification** | Plain Verilog-2005 integration testbench: 277 checks, 86 coverage bins including every fault crossed with every state, two scoreboards checked every clock; 8 module testbenches with 52 SVA assertions; identical results on Icarus and Verilator, on the SystemVerilog source and the submitted Verilog |
 | **Physical design** | Yosys + OpenROAD on `sky130_fd_sc_hd`: routed with 0 router DRC violations; 10 MHz timing met with ~95 ns of slack |
-| **Scalable area** | One parameter, `TELEMETRY_EN`: the full chip routes in 2.5–3× the standard slot; the protection-only chip routes in a single 180 × 115 µm slot |
+| **Scalable area** | One parameter, `TELEMETRY_EN`: the full chip routes in 3× the standard slot; the protection-only chip routes in a single 180 × 115 µm slot |
 
 ## System architecture
 
@@ -132,7 +132,7 @@ the same testbench verifies both.
 | | `TELEMETRY_EN = 1` (default) | `TELEMETRY_EN = 0` |
 |---|---|---|
 | Flops / cells / cell area | 703 / 2,287 / 31,811 µm² | 252 / 707 / 10,453 µm² |
-| Routes in | 2.5–3× the standard slot | one 180 × 115 µm slot |
+| Routes in | 3× the standard slot | one 180 × 115 µm slot |
 | Thresholds | defaults, writable over SPI | fixed at the defaults |
 | Observability | full register map over SPI | pins and LEDs |
 
@@ -189,10 +189,10 @@ wires for timing.
 |---|---|---|---|---|
 | `TELEMETRY_EN = 0` | 180 × 115 µm | 1.0× | 66 % | routed, 0 DRC violations |
 | `TELEMETRY_EN = 0` | 180 × 115 µm, 10 µm reserved all round | 1.0× | 84 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 0` | 180 × 90 µm | 0.78× | 84 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 1` | 180 × 230 µm | 2.0× | 90 % | does not route |
-| `TELEMETRY_EN = 1` | 180 × 288 µm | 2.5× | 72 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 1` | 180 × 345 µm | 3.0× | 61 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 × 80 µm | 0.70× | 96 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 1` | 180 × 230 µm | 2.0× | 94 % | does not route |
+| `TELEMETRY_EN = 1` | 180 × 288 µm | 2.5× | 75 % | not routed within two hours |
+| `TELEMETRY_EN = 1` | 180 × 345 µm | 3.0× | 63 % | routed, 0 DRC violations |
 
 | Protection-only chip in the standard slot (180 × 115 µm) | Full chip at 3× the slot (180 × 345 µm) |
 |---|---|

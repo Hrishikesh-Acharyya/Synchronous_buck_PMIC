@@ -44,7 +44,7 @@ vias in the standard slot, almost all on met1 and met2. Power about 225 uW
 |---|---|---|---|---|---|
 | 180 x 115 | 1.0x | 2 um | 168% | cells do not fit | - |
 | 180 x 230 | 2.0x | 2 um | 94% | global routing fails (congestion) | - |
-| 180 x 288 | 2.5x | 2 um | 75% | detailed routing still running when this was committed - see the next commit | - |
+| 180 x 288 | 2.5x | 2 um | 75% | detailed routing stopped after two hours with 104 violations left (the first submission's netlist routed here in 41 passes) | - |
 | 180 x 345 | 3.0x | 2 um | 63% | routed, 0 DRC violations, 14 router passes | +94.3 / +0.34 ns |
 
 3x the slot routes comfortably. About 94 mm of wire and 25,000 vias; power
@@ -69,7 +69,7 @@ in `results/images/`.
 | Reduced build in the slot, 2 um margin | 66%, routed | 66%, routed |
 | Reduced build, smallest die routed | 180 x 90 um (180 x 80 failed in global routing) | 180 x 80 um |
 | Full build at 3x | 61%, routed, 14 router passes | 63%, routed, 14 router passes |
-| Full build at 2.5x | 72%, routed, 41 router passes | 75%, result in the next commit |
+| Full build at 2.5x | 72%, routed, 41 router passes | 75%, not routed within two hours (104 violations left) |
 
 ## Reproducing
 
