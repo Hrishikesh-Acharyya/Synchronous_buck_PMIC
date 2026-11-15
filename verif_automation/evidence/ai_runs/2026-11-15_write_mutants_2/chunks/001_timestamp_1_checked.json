@@ -1,0 +1,58 @@
+[
+ {
+  "proposal": {
+   "line": 72,
+   "before": [
+    "    prescalar <= '0;"
+   ],
+   "after": [
+    "    prescalar <= PRESCALAR_W'(PRESCALE_VAL-1);"
+   ],
+   "category": "reset_init",
+   "description": "The prescaler resets to its terminal count instead of 0, so the first millisecond tick comes on the first clock after reset instead of after a full PRESCALE_VAL period",
+   "reason": "After rst_n is released, timestamp_ms becomes 1 on the first clock instead of after PRESCALE_VAL clocks. Every later value is reached PRESCALE_VAL-1 clocks early, so each fault-log timestamp reads one millisecond high for most of each period."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "timestamp.72.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 107,
+   "before": [
+    "    timestamp_ms <= '0;"
+   ],
+   "after": [
+    "    timestamp_ms <= TIMESTAMP_W'(1);"
+   ],
+   "category": "reset_init",
+   "description": "The millisecond counter resets to 1, as if the first millisecond were numbered 1, instead of 0",
+   "reason": "timestamp_ms reads 1 during reset and right after it, not 0, and every later value is one higher than elapsed milliseconds. It wraps to 0 one tick early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "timestamp.107.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 113,
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "after": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+    "",
+    "      if(timestamp_ms == ({TIMESTAMP_W{1'b1}} - 1'b1)) timestamp_ms <= '0;",
+    "",
+    "      else timestamp_ms <= timestamp_ms + 1'b1;",
+    "",
+    "    end"
+   ],
+   "category": "boundary",
+   "description": "An explicit wrap of the millisecond counter compares against all-ones minus one, so it wraps from 2**TIMESTAMP_W-2 back to 0 and never shows all-ones",
+   "reason": "At the tick after timestamp_ms reaches 2**TIMESTAMP_W-2, the output goes to 0 instead of all-ones. The wrap period is one millisecond short of 2**TIMESTAMP_W, and the all-ones value never appears."
+  },
+  "accepted": false,
+  "why": "changes 7 lines; at most 6"
+ }
+]

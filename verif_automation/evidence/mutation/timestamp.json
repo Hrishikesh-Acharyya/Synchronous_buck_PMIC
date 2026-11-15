@@ -1,0 +1,1277 @@
+{
+ "module": "timestamp",
+ "file": "rtl-systemverilog/status/timestamp.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "13:59",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "asked": 6,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "14:00",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 3,
+   "accepted": 2,
+   "rejected": [
+    {
+     "description": "An explicit wrap of the millisecond counter compares against all-ones minus one, so it wraps from 2**TIMESTAMP_W-2 back to 0 and never shows all-ones",
+     "why": "changes 7 lines; at most 6"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_2"
+  },
+  {
+   "n": 3,
+   "kind": "mutation",
+   "date": "2026-11-15",
+   "time": "14:05",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 46,
+   "counts": {
+    "killed": 42,
+    "survived": 4
+   },
+   "score": "91.3%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_timestamp": 5.539791107177734
+   }
+  },
+  {
+   "n": 4,
+   "kind": "judge",
+   "date": "2026-11-15",
+   "time": "14:07",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "judged": 4,
+   "equivalent_high_confidence": 0,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_judge_survivors"
+  },
+  {
+   "n": 5,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:14",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "tick moves half a clock earlier relative to reset; period unchanged; a 50 ns shift on a 1 ms fault-log timestamp has no consumer",
+   "mutants": [
+    "timestamp.62.EDG.1"
+   ]
+  },
+  {
+   "n": 6,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:16",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "prescaler reset value untested: the testbench resets only at time zero, where a two-state simulator already holds 0; needs a mid-run reset with the prescaler non-zero",
+   "mutants": [
+    "timestamp.72.SDL.1"
+   ]
+  },
+  {
+   "n": 7,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "14:16",
+   "commit": "05405e5",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "PRESCALE_VAL-1 fits in both widths in every configuration (design 16 vs 24 bits, testbench 3 vs 4), so the cast never changes the compared value",
+   "mutants": [
+    "timestamp.78.SIB.1",
+    "timestamp.113.SIB.1"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap +1",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap",
+       "a_timestamp_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.AIM.1",
+   "operator": "AIM",
+   "line": 113,
+   "description": "The millisecond tick is taken when the prescaler starts a period (count 0) and not when it reaches terminal count",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == '0) timestamp_ms <= timestamp_ms + 1'b1;",
+   "category": "wrong_event",
+   "reason": "After rst_n is released, timestamp_ms goes to 1 on the first clock instead of after PRESCALE_VAL clocks, so every later increment comes PRESCALE_VAL-1 clocks early compared with the prescaler wrap.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.AIM.2",
+   "operator": "AIM",
+   "line": 113,
+   "description": "The millisecond counter saturates at all-ones and does not wrap at 2**TIMESTAMP_W as the header requires",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if((prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) && (timestamp_ms != '1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "category": "boundary",
+   "reason": "When the timestamp is run long enough to reach all-ones (reachable with the reduced TIMESTAMP_W used in simulation), timestamp_ms stays at all-ones and does not wrap to 0 on the next tick.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_wraps_to_zero",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_wraps_to_zero"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.80.AIM.3",
+   "operator": "AIM",
+   "line": 80,
+   "description": "The prescaler reloads to 1 on terminal count, as if it counted 1..N, so every period after the first is one clock short",
+   "before": "prescalar <= '0;",
+   "after": "prescalar <= PRESCALAR_W'(1);",
+   "category": "boundary",
+   "reason": "The first millisecond tick still comes PRESCALE_VAL clocks after reset, but every later timestamp_ms increment comes PRESCALE_VAL-1 clocks after the one before it, so the timestamp runs fast.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.72.AIM.4",
+   "operator": "AIM",
+   "line": 72,
+   "description": "The prescaler resets to its terminal count instead of 0, so the first millisecond tick comes on the first clock after reset instead of after a full PRESCALE_VAL period",
+   "before": "prescalar <= '0;",
+   "after": "prescalar <= PRESCALAR_W'(PRESCALE_VAL-1);",
+   "category": "reset_init",
+   "reason": "After rst_n is released, timestamp_ms becomes 1 on the first clock instead of after PRESCALE_VAL clocks. Every later value is reached PRESCALE_VAL-1 clocks early, so each fault-log timestamp reads one millisecond high for most of each period.",
+   "written_in": 2
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.107.AIM.5",
+   "operator": "AIM",
+   "line": 107,
+   "description": "The millisecond counter resets to 1, as if the first millisecond were numbered 1, instead of 0",
+   "before": "timestamp_ms <= '0;",
+   "after": "timestamp_ms <= TIMESTAMP_W'(1);",
+   "category": "reset_init",
+   "reason": "timestamp_ms reads 1 during reset and right after it, not 0, and every later value is one higher than elapsed milliseconds. It wraps to 0 one tick early.",
+   "written_in": 2
+  },
+  "495af01178#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 4,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Line 62 moves the prescaler update to the falling clock edge, while the timestamp_ms block (line 94) still runs on the rising edge. This shifts when line 113 sees the terminal count, so timestamp_ms increments on different clock edges."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 5,
+     "date": "2026-11-15",
+     "decision": "accepted",
+     "reason": "tick moves half a clock earlier relative to reset; period unchanged; a 50 ns shift on a 1 ms fault-log timestamp has no consumer"
+    }
+   ],
+   "id": "timestamp.62.EDG.1",
+   "operator": "EDG",
+   "line": 62,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.70.CSK.1",
+   "operator": "CSK",
+   "line": 70,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.70.CSK.2",
+   "operator": "CSK",
+   "line": 70,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.70.UOD.1",
+   "operator": "UOD",
+   "line": 70,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "d24affd375#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset",
+       "a_prescalar_in_range"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.72.CST.1",
+   "operator": "CST",
+   "line": 72,
+   "description": "'0 -> '1",
+   "before": "prescalar <= '0;",
+   "after": "prescalar <= '1;"
+  },
+  "57f9cf1063#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 4,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 72, reset leaves prescalar uninitialised (X in simulation, an arbitrary value in hardware). In simulation the compares on lines 78 and 113 and the add on line 86 then keep it X, so timestamp_ms never increments correctly; in hardware the first tick comes at a different time."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 6,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "prescaler reset value untested: the testbench resets only at time zero, where a two-state simulator already holds 0; needs a mid-run reset with the prescaler non-zero"
+    }
+   ],
+   "id": "timestamp.72.SDL.1",
+   "operator": "SDL",
+   "line": 72,
+   "description": "delete 'prescalar <= '0;'",
+   "before": "prescalar <= '0;",
+   "after": ";"
+  },
+  "f75b3b93d3#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.76.EDL.1",
+   "operator": "EDL",
+   "line": 76,
+   "description": "delete the else branch at line 76",
+   "before": "else begin",
+   "after": ""
+  },
+  "dbc7c63131#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +2",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_wraps_to_zero",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.AOR.1",
+   "operator": "AOR",
+   "line": 78,
+   "description": "- -> +",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL+1)) begin"
+  },
+  "1dffd94f0d#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_wraps_to_zero"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.CSK.1",
+   "operator": "CSK",
+   "line": 78,
+   "description": "if (prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) -> if (1'b0): never taken",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(1'b0) begin"
+  },
+  "c66fa403f5#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.CSK.2",
+   "operator": "CSK",
+   "line": 78,
+   "description": "if (prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) -> if (1'b1): always taken",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5e7772af9b#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +2",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_wraps_to_zero",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.CST.1",
+   "operator": "CST",
+   "line": 78,
+   "description": "1 -> 0",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-0)) begin"
+  },
+  "3d0d631333#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.CST.2",
+   "operator": "CST",
+   "line": 78,
+   "description": "1 -> 2",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-2)) begin"
+  },
+  "d7204aae4c#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.78.ROR.1",
+   "operator": "ROR",
+   "line": 78,
+   "description": "== -> !=",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(prescalar != PRESCALAR_W'(PRESCALE_VAL-1)) begin"
+  },
+  "dc52806d00#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 4,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "With the defaults (PRESCALE_VAL=50000, PRESCALAR_W=16, TIMESTAMP_W=24), casting 49999 to 24 bits instead of 16 gives the same value, and the compare widens the 16-bit prescalar with zeros, so line 78 behaves the same. Confidence is only medium: the header (lines 34-45) says the testbench overrides both parameters, and if TIMESTAMP_W < PRESCALAR_W the cast cuts off high bits and changes the terminal count."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "PRESCALE_VAL-1 fits in both widths in every configuration (design 16 vs 24 bits, testbench 3 vs 4), so the cast never changes the compared value"
+    }
+   ],
+   "id": "timestamp.78.SIB.1",
+   "operator": "SIB",
+   "line": 78,
+   "description": "PRESCALAR_W -> TIMESTAMP_W",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+   "after": "if(prescalar == TIMESTAMP_W'(PRESCALE_VAL-1)) begin"
+  },
+  "d24affd375#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_wraps_to_zero"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.80.CST.1",
+   "operator": "CST",
+   "line": 80,
+   "description": "'0 -> '1",
+   "before": "prescalar <= '0;",
+   "after": "prescalar <= '1;"
+  },
+  "57f9cf1063#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_wraps_to_zero",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_wraps_to_zero"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.80.SDL.1",
+   "operator": "SDL",
+   "line": 80,
+   "description": "delete 'prescalar <= '0;'",
+   "before": "prescalar <= '0;",
+   "after": ";"
+  },
+  "f643da1feb#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.AOR.1",
+   "operator": "AOR",
+   "line": 86,
+   "description": "+ -> -",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": "prescalar <= prescalar - 1'b1;"
+  },
+  "1276bb6151#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.CST.1",
+   "operator": "CST",
+   "line": 86,
+   "description": "1'b1 -> 1'b0",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": "prescalar <= prescalar + 1'b0;"
+  },
+  "726952d081#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.SDL.1",
+   "operator": "SDL",
+   "line": 86,
+   "description": "delete 'prescalar <= prescalar + 1'b1;'",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": ";"
+  },
+  "e88d2e5f7b#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_advances_by_one",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.STK.1",
+   "operator": "STK",
+   "line": 86,
+   "description": "prescalar stuck at all-zeros (was 'prescalar + 1'b1')",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": "prescalar <= '0;"
+  },
+  "7dfd833c78#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.STK.2",
+   "operator": "STK",
+   "line": 86,
+   "description": "prescalar stuck at all-ones (was 'prescalar + 1'b1')",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": "prescalar <= '1;"
+  },
+  "212f67982b#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_prescalar_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_prescalar_in_range",
+       "a_prescalar_advances_by_one"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.86.VNG.1",
+   "operator": "VNG",
+   "line": 86,
+   "description": "prescalar inverted (was 'prescalar + 1'b1')",
+   "before": "prescalar <= prescalar + 1'b1;",
+   "after": "prescalar <= ~(prescalar + 1'b1);"
+  },
+  "495af01178#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_stable_otherwise",
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.94.EDG.1",
+   "operator": "EDG",
+   "line": 94,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.105.CSK.1",
+   "operator": "CSK",
+   "line": 105,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.105.CSK.2",
+   "operator": "CSK",
+   "line": 105,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.105.UOD.1",
+   "operator": "UOD",
+   "line": 105,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "9ad935b997#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.107.CST.1",
+   "operator": "CST",
+   "line": 107,
+   "description": "'0 -> '1",
+   "before": "timestamp_ms <= '0;",
+   "after": "timestamp_ms <= '1;"
+  },
+  "67a5ccc1a9#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_counters_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_counters_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.107.SDL.1",
+   "operator": "SDL",
+   "line": 107,
+   "description": "delete 'timestamp_ms <= '0;'",
+   "before": "timestamp_ms <= '0;",
+   "after": ";"
+  },
+  "f75b3b93d3#2": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.111.EDL.1",
+   "operator": "EDL",
+   "line": 111,
+   "description": "delete the else branch at line 111",
+   "before": "else begin",
+   "after": ""
+  },
+  "2485fb86da#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.AOR.1",
+   "operator": "AOR",
+   "line": 113,
+   "description": "- -> +",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL+1)) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "20193328a2#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.AOR.2",
+   "operator": "AOR",
+   "line": 113,
+   "description": "+ -> -",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms - 1'b1;"
+  },
+  "585fdc0bca#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.CSK.1",
+   "operator": "CSK",
+   "line": 113,
+   "description": "if (prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) -> if (1'b1): always taken",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(1'b1) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "5056671440#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.CST.1",
+   "operator": "CST",
+   "line": 113,
+   "description": "1 -> 0",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-0)) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "23d83ffc07#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_stable_otherwise",
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.CST.2",
+   "operator": "CST",
+   "line": 113,
+   "description": "1 -> 2",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-2)) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "1cfe81d51c#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.CST.3",
+   "operator": "CST",
+   "line": 113,
+   "description": "1'b1 -> 1'b0",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b0;"
+  },
+  "0b373d596f#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_stable_otherwise",
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.ROR.1",
+   "operator": "ROR",
+   "line": 113,
+   "description": "== -> !=",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar != PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "c3f3f18ca6#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.SDL.1",
+   "operator": "SDL",
+   "line": 113,
+   "description": "delete 'timestamp_ms <= timestamp_ms + 1'b1;'",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) ;"
+  },
+  "1477f1e3d7#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 4,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "With the defaults (PRESCALAR_W=16, TIMESTAMP_W=24), TIMESTAMP_W'(49999) equals PRESCALAR_W'(49999), and the 16-bit prescalar is widened with zeros for the compare, so the increment condition on line 113 does not change. Confidence is only medium: with a simulation override where TIMESTAMP_W < $clog2(PRESCALE_VAL+1), the cast cuts off high bits and the tick condition differs."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 7,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "PRESCALE_VAL-1 fits in both widths in every configuration (design 16 vs 24 bits, testbench 3 vs 4), so the cast never changes the compared value"
+    }
+   ],
+   "id": "timestamp.113.SIB.1",
+   "operator": "SIB",
+   "line": 113,
+   "description": "PRESCALAR_W -> TIMESTAMP_W",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == TIMESTAMP_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+  },
+  "2802893b7b#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.STK.1",
+   "operator": "STK",
+   "line": 113,
+   "description": "timestamp_ms stuck at all-zeros (was 'timestamp_ms + 1'b1')",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= '0;"
+  },
+  "45153cd8be#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.STK.2",
+   "operator": "STK",
+   "line": 113,
+   "description": "timestamp_ms stuck at all-ones (was 'timestamp_ms + 1'b1')",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= '1;"
+  },
+  "88b626f409#1": {
+   "outcomes": [
+    {
+     "run": 3,
+     "status": "killed",
+     "detail": "assertion a_timestamp_increments_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_timestamp_increments_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "timestamp.113.VNG.1",
+   "operator": "VNG",
+   "line": 113,
+   "description": "timestamp_ms inverted (was 'timestamp_ms + 1'b1')",
+   "before": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;",
+   "after": "if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= ~(timestamp_ms + 1'b1);"
+  }
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 113,
+   "category": "wrong_event",
+   "description": "The millisecond tick is taken when the prescaler starts a period (count 0) and not when it reaches terminal count",
+   "reason": "After rst_n is released, timestamp_ms goes to 1 on the first clock instead of after PRESCALE_VAL clocks, so every later increment comes PRESCALE_VAL-1 clocks early compared with the prescaler wrap.",
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "after": [
+    "    if(prescalar == '0) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "run": "2026-11-15_write_mutants"
+  },
+  {
+   "key": 2,
+   "line": 113,
+   "category": "boundary",
+   "description": "The millisecond counter saturates at all-ones and does not wrap at 2**TIMESTAMP_W as the header requires",
+   "reason": "When the timestamp is run long enough to reach all-ones (reachable with the reduced TIMESTAMP_W used in simulation), timestamp_ms stays at all-ones and does not wrap to 0 on the next tick.",
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "after": [
+    "    if((prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) && (timestamp_ms != '1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "run": "2026-11-15_write_mutants"
+  },
+  {
+   "key": 3,
+   "line": 78,
+   "category": "boundary",
+   "description": "The prescaler reloads to 1 on terminal count, as if it counted 1..N, so every period after the first is one clock short",
+   "reason": "The first millisecond tick still comes PRESCALE_VAL clocks after reset, but every later timestamp_ms increment comes PRESCALE_VAL-1 clocks after the one before it, so the timestamp runs fast.",
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+    "",
+    "        prescalar <= '0;"
+   ],
+   "after": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) begin",
+    "",
+    "        prescalar <= PRESCALAR_W'(1);"
+   ],
+   "run": "2026-11-15_write_mutants"
+  },
+  {
+   "key": 4,
+   "line": 70,
+   "category": "reset_init",
+   "description": "The prescaler resets to its terminal count instead of 0, so the first millisecond tick comes on the first clock after reset instead of after a full PRESCALE_VAL period",
+   "reason": "After rst_n is released, timestamp_ms becomes 1 on the first clock instead of after PRESCALE_VAL clocks. Every later value is reached PRESCALE_VAL-1 clocks early, so each fault-log timestamp reads one millisecond high for most of each period.",
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    prescalar <= '0;"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    prescalar <= PRESCALAR_W'(PRESCALE_VAL-1);"
+   ],
+   "run": "2026-11-15_write_mutants_2"
+  },
+  {
+   "key": 5,
+   "line": 107,
+   "category": "reset_init",
+   "description": "The millisecond counter resets to 1, as if the first millisecond were numbered 1, instead of 0",
+   "reason": "timestamp_ms reads 1 during reset and right after it, not 0, and every later value is one higher than elapsed milliseconds. It wraps to 0 one tick early.",
+   "before": [
+    "    timestamp_ms <= '0;"
+   ],
+   "after": [
+    "    timestamp_ms <= TIMESTAMP_W'(1);"
+   ],
+   "run": "2026-11-15_write_mutants_2"
+  }
+ ],
+ "unit": "timestamp",
+ "file": "rtl-systemverilog/status/timestamp.sv",
+ "last_key": 5
+}

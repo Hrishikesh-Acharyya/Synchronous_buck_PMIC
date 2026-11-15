@@ -7,5 +7,6 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | [`fault_cause`](fault_cause.md) | 23 | 23 | 0 | 0 | 0 | 0 | 0 | 23 | - | 0 | - | 2 / 0 / 0 | 2026-11-14 664452d |
 | [`input_sync`](input_sync.md) | 27 | 5 | 20 | 7 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 217b430 |
 | [`reset_sync`](reset_sync.md) | 22 | 2 | 17 | 5 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 664452d |
+| [`timestamp`](timestamp.md) | 46 | 5 | 42 | 0 | 0 | 0 | 4 | 0 | 91.3% | 0 | 97.7% | 2 / 1 / 1 | 2026-11-15 05405e5 |
 
 Score = (killed + lint + covers + timeout) / (those + survived), over each mutant's newest outcome. The aim is no undecided survivor, not 100% - see `tools/mutation/README.md`.

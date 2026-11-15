@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 113,
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "after": [
+    "    if(prescalar == '0) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "The millisecond tick is taken when the prescaler starts a period (count 0) and not when it reaches terminal count",
+   "reason": "After rst_n is released, timestamp_ms goes to 1 on the first clock instead of after PRESCALE_VAL clocks, so every later increment comes PRESCALE_VAL-1 clocks early compared with the prescaler wrap."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "timestamp.113.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 113,
+   "before": [
+    "    if(prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "after": [
+    "    if((prescalar == PRESCALAR_W'(PRESCALE_VAL-1)) && (timestamp_ms != '1)) timestamp_ms <= timestamp_ms + 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "The millisecond counter saturates at all-ones and does not wrap at 2**TIMESTAMP_W as the header requires",
+   "reason": "When the timestamp is run long enough to reach all-ones (reachable with the reduced TIMESTAMP_W used in simulation), timestamp_ms stays at all-ones and does not wrap to 0 on the next tick."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "timestamp.113.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 80,
+   "before": [
+    "        prescalar <= '0;"
+   ],
+   "after": [
+    "        prescalar <= PRESCALAR_W'(1);"
+   ],
+   "category": "boundary",
+   "description": "The prescaler reloads to 1 on terminal count, as if it counted 1..N, so every period after the first is one clock short",
+   "reason": "The first millisecond tick still comes PRESCALE_VAL clocks after reset, but every later timestamp_ms increment comes PRESCALE_VAL-1 clocks after the one before it, so the timestamp runs fast."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "timestamp.80.AIM.3"
+ }
+]
