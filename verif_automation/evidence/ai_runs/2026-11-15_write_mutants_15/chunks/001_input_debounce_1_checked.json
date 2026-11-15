@@ -1,0 +1,78 @@
+[
+ {
+  "proposal": {
+   "line": 137,
+   "before": [
+    "    else begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    else if (!flag_in) begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "category": "reset_init",
+   "description": "The clear-on-qualify restart only happens when a release qualifies; on the edge an assert qualifies the disagreement count is left at ASSERT_CLKS-1",
+   "reason": "Suppose an assert qualifies and flag_in drops on the very next clock. The leftover count is already at or past RELEASE_CLKS-1, so flag_out releases after one low clock instead of RELEASE_CLKS clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.137.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(RELEASE_CLKS) - 1'b1)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The flag_out flip compares the disagreement count against the release time for both directions, so the longer assert qualification is forgotten",
+   "reason": "When flag_in goes high and stays high while flag_out is low, flag_out asserts after RELEASE_CLKS clocks (200 us) instead of ASSERT_CLKS (1 ms). An assert-going pulse between those two lengths now gets through."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.176.AIM.6"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "    if (disagree_counter < target_clks - 1'b1) begin"
+   ],
+   "after": [
+    "    if (disagree_counter < CNT_W'(RELEASE_CLKS) - 1'b1) begin"
+   ],
+   "category": "boundary",
+   "description": "The counter's clear-on-qualify limit is hard-coded to the release time, so during an assert attempt the count restarts every RELEASE_CLKS clocks and never reaches the assert target",
+   "reason": "Once flag_out has released, a flag_in that holds high for any length of time never makes flag_out assert again, because the count is cleared at RELEASE_CLKS-1 before it reaches ASSERT_CLKS-1. Releases still qualify normally."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.132.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in && !flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The flip rule is written for the assert direction only (flag_in high while flag_out low), so a qualified release never updates flag_out",
+   "reason": "With RESET_VALUE=1, flag_out comes out of reset high and stays high however long flag_in holds low. The supervisor therefore never sees the fault clear."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.176.AIM.8"
+ }
+]

@@ -1,0 +1,78 @@
+[
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(CNT_MAX) - 1'b1)) begin"
+   ],
+   "category": "missing_case",
+   "description": "flag_out flip compares the disagreement count against the counter's sizing limit CNT_MAX (the assert time) instead of the target for the pending direction, so the release direction is forgotten",
+   "reason": "With the default parameters (ASSERT > RELEASE), a release attempt clears the counter at RELEASE_CLKS-1 and never reaches ASSERT_CLKS-1. Once flag_out is high, it never goes low again, even when flag_in stays low indefinitely."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.176.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "    if (disagree_counter < target_clks - 1'b1) begin"
+   ],
+   "after": [
+    "    if (disagree_counter < CNT_W'(CNT_MAX) - 1'b1) begin"
+   ],
+   "category": "boundary",
+   "description": "The disagreement counter's clear-on-qualify limit uses CNT_MAX instead of the selected target, so the count is not restarted on the edge a release qualifies",
+   "reason": "When flag_out releases and flag_in goes high again on the very next clock, the counter keeps counting up from RELEASE_CLKS. flag_out then asserts after only ASSERT_CLKS-RELEASE_CLKS clocks of high input instead of ASSERT_CLKS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.132.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "  else begin",
+    "",
+    "    disagree_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (flag_in) begin",
+    "",
+    "    disagree_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "The restart on agreement is applied only when flag_in is high, so an aborted assert attempt (flag_in back low while flag_out is low) leaves its partial count in place",
+   "reason": "While flag_out is low, short high glitches on flag_in now add up across gaps instead of each restarting from zero. flag_out asserts once the glitches total ASSERT_CLKS clocks, even though no single pulse was that long: a false fault from switching-node pickup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.145.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 103,
+   "before": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+   ],
+   "after": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS - 1) : CNT_W'(RELEASE_CLKS - 1);"
+   ],
+   "category": "sequencing",
+   "description": "target_clks is written as a terminal count (qualification time minus one), while both compares still subtract one again, so every transition qualifies one clock early",
+   "reason": "In both directions, flag_out now follows a steady new level of flag_in after ASSERT_CLKS-1 or RELEASE_CLKS-1 clocks of disagreement instead of ASSERT_CLKS or RELEASE_CLKS. The edge reaches the supervisor one clock early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.103.AIM.4"
+ }
+]

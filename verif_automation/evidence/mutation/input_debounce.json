@@ -1,0 +1,2305 @@
+{
+ "module": "input_debounce",
+ "file": "rtl-systemverilog/inputs/input_debounce.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "15:33",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 4,
+   "accepted": 4,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_14"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "15:37",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 4,
+   "accepted": 4,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_15"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "15:40",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_16"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-15",
+   "time": "15:45",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 7,
+   "accepted": 7,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_write_mutants_17"
+  },
+  {
+   "n": 5,
+   "kind": "withdrawn",
+   "date": "2026-11-15",
+   "time": "15:59",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "reason": "same fault as AIM.17: the count is not restarted on the edge a release qualifies; the next qualification differs by one clock",
+   "mutants": [
+    "input_debounce.132.AIM.2"
+   ],
+   "descriptions": [
+    "The disagreement counter's clear-on-qualify limit uses CNT_MAX instead of the selected target, so the count is not restarted on the edge a release qualifies"
+   ]
+  },
+  {
+   "n": 6,
+   "kind": "mutation",
+   "date": "2026-11-15",
+   "time": "16:02",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 85,
+   "counts": {
+    "killed": 73,
+    "lint": 3,
+    "covers": 2,
+    "survived": 7
+   },
+   "score": "91.8%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_input_debounce": 4.6334497928619385
+   }
+  },
+  {
+   "n": 7,
+   "kind": "judge",
+   "date": "2026-11-15",
+   "time": "16:03",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "judged": 7,
+   "equivalent_high_confidence": 3,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-15_judge_survivors_4"
+  },
+  {
+   "n": 8,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "16:05",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "CNT_W changes only for a power-of-two CNT_MAX (+0) or CNT_MAX+1 (+2); the only case is the SPI filter (8), where target_clks-1 wraps to 7 in the 3-bit compare, the same count",
+   "mutants": [
+    "input_debounce.84.CST.1",
+    "input_debounce.84.CST.2"
+   ]
+  },
+  {
+   "n": 9,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "16:05",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "the extra case is flag_in == flag_out, where flag_out <= flag_in assigns the value it already holds",
+   "mutants": [
+    "input_debounce.176.CTD.1"
+   ]
+  },
+  {
+   "n": 10,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "16:05",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "counter reset value untested: reset only at time zero, where a two-state simulator holds 0; and the first qualification after reset is not timed to the clock",
+   "mutants": [
+    "input_debounce.124.CSK.1",
+    "input_debounce.126.SDL.1",
+    "input_debounce.126.CST.1"
+   ]
+  },
+  {
+   "n": 11,
+   "kind": "decision",
+   "date": "2026-11-15",
+   "time": "16:05",
+   "commit": "f71cb1f",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "a reversal on the clock after a flip may qualify one clock early: the checker starts its hold count at 1 on the flip, so its lower bound is one clock loose in that case",
+   "mutants": [
+    "input_debounce.139.CST.1"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AIM.1",
+   "operator": "AIM",
+   "line": 176,
+   "description": "flag_out flip compares the disagreement count against the counter's sizing limit CNT_MAX (the assert time) instead of the target for the pending direction, so the release direction is forgotten",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(CNT_MAX) - 1'b1)) begin",
+   "category": "missing_case",
+   "reason": "With the default parameters (ASSERT > RELEASE), a release attempt clears the counter at RELEASE_CLKS-1 and never reaches ASSERT_CLKS-1. Once flag_out is high, it never goes low again, even when flag_in stays low indefinitely.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.AIM.2",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The disagreement counter's clear-on-qualify limit uses CNT_MAX instead of the selected target, so the count is not restarted on the edge a release qualifies",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter < CNT_W'(CNT_MAX) - 1'b1) begin",
+   "category": "boundary",
+   "reason": "When flag_out releases and flag_in goes high again on the very next clock, the counter keeps counting up from RELEASE_CLKS. flag_out then asserts after only ASSERT_CLKS-RELEASE_CLKS clocks of high input instead of ASSERT_CLKS.",
+   "written_in": 1,
+   "retired": 5,
+   "withdrawn": "same fault as AIM.17: the count is not restarted on the edge a release qualifies; the next qualification differs by one clock"
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.145.AIM.3",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The restart on agreement is applied only when flag_in is high, so an aborted assert attempt (flag_in back low while flag_out is low) leaves its partial count in place",
+   "before": "else begin",
+   "after": "else if (flag_in) begin",
+   "category": "missing_case",
+   "reason": "While flag_out is low, short high glitches on flag_in now add up across gaps instead of each restarting from zero. flag_out asserts once the glitches total ASSERT_CLKS clocks, even though no single pulse was that long: a false fault from switching-node pickup.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.AIM.4",
+   "operator": "AIM",
+   "line": 103,
+   "description": "target_clks is written as a terminal count (qualification time minus one), while both compares still subtract one again, so every transition qualifies one clock early",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS - 1) : CNT_W'(RELEASE_CLKS - 1);",
+   "category": "sequencing",
+   "reason": "In both directions, flag_out now follows a steady new level of flag_in after ASSERT_CLKS-1 or RELEASE_CLKS-1 clocks of disagreement instead of ASSERT_CLKS or RELEASE_CLKS. The edge reaches the supervisor one clock early.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.137.AIM.5",
+   "operator": "AIM",
+   "line": 137,
+   "description": "The clear-on-qualify restart only happens when a release qualifies; on the edge an assert qualifies the disagreement count is left at ASSERT_CLKS-1",
+   "before": "else begin",
+   "after": "else if (!flag_in) begin",
+   "category": "reset_init",
+   "reason": "Suppose an assert qualifies and flag_in drops on the very next clock. The leftover count is already at or past RELEASE_CLKS-1, so flag_out releases after one low clock instead of RELEASE_CLKS clocks.",
+   "written_in": 2
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AIM.6",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The flag_out flip compares the disagreement count against the release time for both directions, so the longer assert qualification is forgotten",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(RELEASE_CLKS) - 1'b1)) begin",
+   "category": "missing_case",
+   "reason": "When flag_in goes high and stays high while flag_out is low, flag_out asserts after RELEASE_CLKS clocks (200 us) instead of ASSERT_CLKS (1 ms). An assert-going pulse between those two lengths now gets through.",
+   "written_in": 2
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.AIM.7",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The counter's clear-on-qualify limit is hard-coded to the release time, so during an assert attempt the count restarts every RELEASE_CLKS clocks and never reaches the assert target",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter < CNT_W'(RELEASE_CLKS) - 1'b1) begin",
+   "category": "boundary",
+   "reason": "Once flag_out has released, a flag_in that holds high for any length of time never makes flag_out assert again, because the count is cleared at RELEASE_CLKS-1 before it reaches ASSERT_CLKS-1. Releases still qualify normally.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AIM.8",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The flip rule is written for the assert direction only (flag_in high while flag_out low), so a qualified release never updates flag_out",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in && !flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "category": "missing_case",
+   "reason": "With RESET_VALUE=1, flag_out comes out of reset high and stays high however long flag_in holds low. The supervisor therefore never sees the fault clear.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.145.AIM.9",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The restart on agreement is applied only when flag_in is low, so an aborted release attempt (flag_in dips low while flag_out is high, then returns high) leaves its partial count in the disagreement counter",
+   "before": "else begin",
+   "after": "else if (!flag_in) begin",
+   "category": "reset_init",
+   "reason": "With flag_out high, a low glitch on flag_in shorter than RELEASE_CLKS leaves the counter at the glitch length. A later low pulse then releases flag_out early, once the two together reach RELEASE_CLKS, instead of after RELEASE_CLKS continuous low clocks. Aborted asserts are still restarted correctly.",
+   "written_in": 3
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AIM.10",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The flip compare adds a one-clock lookahead (counter+1) to make up for flag_out being registered, so flag_out flips one clock before the counter reaches its target and restarts",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter + 1'b1 >= target_clks - 1'b1)) begin",
+   "category": "sequencing",
+   "reason": "Every transition with a target of 2 or more clocks shows up at flag_out one clock early. Because the counter only restarts on the next edge, an immediate reversal after an assert starts with the counter at ASSERT_CLKS-1, which is already past the release target, so flag_out flips straight back after one clock instead of waiting RELEASE_CLKS.",
+   "written_in": 3
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work +1",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work",
+       "a_window_abandoned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.AIM.11",
+   "operator": "AIM",
+   "line": 130,
+   "description": "The disagreement counter measures flag_in against the fail-safe reset level RESET_VALUE instead of the believed state flag_out, so it counts time away from reset rather than time disagreeing with flag_out",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (flag_in != RESET_VALUE) begin",
+   "category": "wrong_event",
+   "reason": "With the default RESET_VALUE=1, a low flag_in still qualifies and releases flag_out after RELEASE_CLKS. After that, a high flag_in clears the counter every clock instead of counting, so a real fault that holds flag_in high for any length of time never re-asserts flag_out.",
+   "written_in": 4
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "covers",
+     "detail": "hit 5 SVA covers, the unmutated run 6"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.AIM.12",
+   "operator": "AIM",
+   "line": 103,
+   "description": "The release qualification time is written as a terminal count (RELEASE_CLKS-1), but the assert time is not, so only a release qualifies one clock early",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS - 1);",
+   "category": "boundary",
+   "reason": "After flag_in goes low and stays low while flag_out is high, flag_out falls after RELEASE_CLKS-1 clocks instead of RELEASE_CLKS. The assert timing does not change.",
+   "written_in": 4
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.AIM.13",
+   "operator": "AIM",
+   "line": 130,
+   "description": "The disagreement counter only counts the release direction (flag_in low while flag_out is high), the move away from the high reset state, so an assert attempt never builds a count",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (!flag_in && flag_out) begin",
+   "category": "missing_case",
+   "reason": "Once flag_out has released, flag_in going high and staying high leaves the counter at 0. The flip compare against ASSERT_CLKS-1 never passes, so flag_out never re-asserts.",
+   "written_in": 4
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.126.AIM.14",
+   "operator": "AIM",
+   "line": 126,
+   "description": "The disagreement counter is preloaded to a full count in reset, so the first input level seen after reset is accepted without debouncing",
+   "before": "disagree_counter <= 0;",
+   "after": "disagree_counter <= CNT_W'(CNT_MAX - 1);",
+   "category": "reset_init",
+   "reason": "With flag_in low when rst_n is released, flag_out (reset high) falls on the first clock instead of after RELEASE_CLKS clocks of stable low. A glitch at that moment is passed straight through.",
+   "written_in": 4
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.AIM.15",
+   "operator": "AIM",
+   "line": 130,
+   "description": "The disagreement counter only counts an assert attempt (flag_in high while flag_out is low), so the release direction never builds a count",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (flag_in && !flag_out) begin",
+   "category": "missing_case",
+   "reason": "With the default fail-safe RESET_VALUE of 1, flag_out comes out of reset high and a healthy (low) flag_in never builds a count, so flag_out stays asserted forever and the supervisor never sees the fault clear.",
+   "written_in": 4
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AIM.16",
+   "operator": "AIM",
+   "line": 176,
+   "description": "flag_out is only allowed to flip when flag_in moves away from the fail-safe RESET_VALUE, so a return to the reset level (a re-asserted fault, with the default RESET_VALUE of 1) never updates flag_out",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != RESET_VALUE) && (flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "category": "missing_case",
+   "reason": "After the first qualified release, flag_out is low. A real fault that holds flag_in high for ASSERT_CLKS clocks or more lets the counter reach its target and restart, but flag_out never asserts again.",
+   "written_in": 4
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.137.AIM.17",
+   "operator": "AIM",
+   "line": 137,
+   "description": "The clear-on-qualify restart only happens when an assert qualifies. On the edge a release qualifies, the disagreement count is left at RELEASE_CLKS-1",
+   "before": "else begin",
+   "after": "else if (flag_in) begin",
+   "category": "reset_init",
+   "reason": "If flag_in goes back high on the clock straight after a release flips flag_out low, the assert window starts from RELEASE_CLKS-1 instead of zero. flag_out then re-asserts after about ASSERT_CLKS-RELEASE_CLKS clocks instead of the full ASSERT_CLKS.",
+   "written_in": 4
+  },
+  "54bff2c448#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "With defaults CNT_MAX=max(50000,10000)=50000 (CLK_HZ=50e6, pkg lines 258/261), and $clog2(50000)=$clog2(50001)=16, so CNT_W and every signal width are unchanged. (Also holds for pmic_top overrides: 1e6 gives 20 either way; for 8 the width drops to 3 but target_clks-1'b1 wraps 0-1 to 7 in 3-bit context on lines 132/176, identical to the original 7.)"
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "CNT_W changes only for a power-of-two CNT_MAX (+0) or CNT_MAX+1 (+2); the only case is the SPI filter (8), where target_clks-1 wraps to 7 in the 3-bit compare, the same count"
+    }
+   ],
+   "id": "input_debounce.84.CST.1",
+   "operator": "CST",
+   "line": 84,
+   "description": "localparam CNT_W: 1 -> 0",
+   "before": "localparam int CNT_W = $clog2(CNT_MAX+1);",
+   "after": "localparam int CNT_W = $clog2(CNT_MAX+0);"
+  },
+  "38a008cf42#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "$clog2(50002)=$clog2(50001)=16 for the default CNT_MAX=50000, so CNT_W on line 84 is unchanged; a wider counter would in any case only zero-extend values that never exceed CNT_MAX-1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 8,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "CNT_W changes only for a power-of-two CNT_MAX (+0) or CNT_MAX+1 (+2); the only case is the SPI filter (8), where target_clks-1 wraps to 7 in the 3-bit compare, the same count"
+    }
+   ],
+   "id": "input_debounce.84.CST.2",
+   "operator": "CST",
+   "line": 84,
+   "description": "localparam CNT_W: 1 -> 2",
+   "before": "localparam int CNT_W = $clog2(CNT_MAX+1);",
+   "after": "localparam int CNT_W = $clog2(CNT_MAX+2);"
+  },
+  "3d55094ae5#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SDL.1",
+   "operator": "SDL",
+   "line": 103,
+   "description": "delete 'target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_'",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": ";"
+  },
+  "a0350418bb#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work +1",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SIB.1",
+   "operator": "SIB",
+   "line": 103,
+   "description": "flag_in -> flag_out",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_out ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+  },
+  "bef03ee6f6#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SIB.2",
+   "operator": "SIB",
+   "line": 103,
+   "description": "CNT_W -> CNT_MAX",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_MAX'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+  },
+  "41ffd1f37b#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SIB.3",
+   "operator": "SIB",
+   "line": 103,
+   "description": "ASSERT_CLKS -> RELEASE_CLKS",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(RELEASE_CLKS) : CNT_W'(RELEASE_CLKS);"
+  },
+  "b5b328d7ec#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SIB.4",
+   "operator": "SIB",
+   "line": 103,
+   "description": "CNT_W -> CNT_MAX",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_MAX'(RELEASE_CLKS);"
+  },
+  "fdb8311187#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.SIB.5",
+   "operator": "SIB",
+   "line": 103,
+   "description": "RELEASE_CLKS -> ASSERT_CLKS",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(ASSERT_CLKS);"
+  },
+  "abef3663f0#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.STK.1",
+   "operator": "STK",
+   "line": 103,
+   "description": "target_clks stuck at all-zeros (was 'flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RE')",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = '0;"
+  },
+  "06e4857c53#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.STK.2",
+   "operator": "STK",
+   "line": 103,
+   "description": "target_clks stuck at all-ones (was 'flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RE')",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = '1;"
+  },
+  "c4a42a2fff#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work +1",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.TRN.1",
+   "operator": "TRN",
+   "line": 103,
+   "description": "swap the branches of ?:",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = flag_in ?CNT_W'(RELEASE_CLKS) : CNT_W'(ASSERT_CLKS);"
+  },
+  "a41aeb210b#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work +1",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.103.VNG.1",
+   "operator": "VNG",
+   "line": 103,
+   "description": "target_clks inverted (was 'flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RE')",
+   "before": "target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);",
+   "after": "target_clks = ~(flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS));"
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.108.EDG.1",
+   "operator": "EDG",
+   "line": 108,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset branch at line 124 never taken, disagree_counter is not initialised (X out of power-up) and an asynchronous reset mid-operation no longer clears it, so the flag_out qualification on line 176 can differ after reset."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "counter reset value untested: reset only at time zero, where a two-state simulator holds 0; and the first qualification after reset is not timed to the clock"
+    }
+   ],
+   "id": "input_debounce.124.CSK.1",
+   "operator": "CSK",
+   "line": 124,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.124.CSK.2",
+   "operator": "CSK",
+   "line": 124,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.124.UOD.1",
+   "operator": "UOD",
+   "line": 124,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "1024e05c46#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Resetting disagree_counter to 1 means that if flag_in differs from RESET_VALUE right after reset, the line 176 compare is reached one clock early, so flag_out flips a cycle sooner."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "counter reset value untested: reset only at time zero, where a two-state simulator holds 0; and the first qualification after reset is not timed to the clock"
+    }
+   ],
+   "id": "input_debounce.126.CST.1",
+   "operator": "CST",
+   "line": 126,
+   "description": "0 -> 1",
+   "before": "disagree_counter <= 0;",
+   "after": "disagree_counter <= 1;"
+  },
+  "277c541c6a#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 126 the counter holds its stale or uninitialised value through reset, so after reset release flag_out (line 176) can flip earlier than the full qualification time, or go X."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "counter reset value untested: reset only at time zero, where a two-state simulator holds 0; and the first qualification after reset is not timed to the clock"
+    }
+   ],
+   "id": "input_debounce.126.SDL.1",
+   "operator": "SDL",
+   "line": 126,
+   "description": "delete 'disagree_counter <= 0;'",
+   "before": "disagree_counter <= 0;",
+   "after": ";"
+  },
+  "d2deb2d19d#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.CSK.1",
+   "operator": "CSK",
+   "line": 130,
+   "description": "if (flag_in != flag_out) -> if (1'b0): never taken",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "5b4937de51#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified +1",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified",
+       "a_window_abandoned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.CSK.2",
+   "operator": "CSK",
+   "line": 130,
+   "description": "if (flag_in != flag_out) -> if (1'b1): always taken",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "ea82f0b06b#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.EDL.1",
+   "operator": "EDL",
+   "line": 130,
+   "description": "delete the else branch at line 130",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": ""
+  },
+  "47722ffbaa#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned +2",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned",
+       "a_ASSERT_and_RELEASE_work",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.ROR.1",
+   "operator": "ROR",
+   "line": 130,
+   "description": "!= -> ==",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (flag_in == flag_out) begin"
+  },
+  "48e6de12e7#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.SIB.1",
+   "operator": "SIB",
+   "line": 130,
+   "description": "flag_in -> flag_out",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (flag_out != flag_out) begin"
+  },
+  "bebebc311f#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.130.SIB.2",
+   "operator": "SIB",
+   "line": 130,
+   "description": "flag_out -> flag_in",
+   "before": "else if (flag_in != flag_out) begin",
+   "after": "else if (flag_in != flag_in) begin"
+  },
+  "6d1df96a98#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.AOR.1",
+   "operator": "AOR",
+   "line": 132,
+   "description": "- -> +",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter < target_clks + 1'b1) begin"
+  },
+  "afc2af31bc#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.CND.1",
+   "operator": "CND",
+   "line": 132,
+   "description": "if (disagree_counter < target_clks - 1'b1) -> if (!(...))",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (!(disagree_counter < target_clks - 1'b1)) begin"
+  },
+  "b2bf07d4c6#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.CSK.1",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (disagree_counter < target_clks - 1'b1) -> if (1'b0): never taken",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (1'b0) begin"
+  },
+  "6c8fc7446c#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.CSK.2",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (disagree_counter < target_clks - 1'b1) -> if (1'b1): always taken",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (1'b1) begin"
+  },
+  "1120525455#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.CST.1",
+   "operator": "CST",
+   "line": 132,
+   "description": "1'b1 -> 1'b0",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter < target_clks - 1'b0) begin"
+  },
+  "eb3255257f#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.ROR.1",
+   "operator": "ROR",
+   "line": 132,
+   "description": "< -> <=",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter <= target_clks - 1'b1) begin"
+  },
+  "e5080be5d0#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.132.ROR.2",
+   "operator": "ROR",
+   "line": 132,
+   "description": "< -> >",
+   "before": "if (disagree_counter < target_clks - 1'b1) begin",
+   "after": "if (disagree_counter > target_clks - 1'b1) begin"
+  },
+  "c1d46f0798#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified +1",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified",
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.AOR.1",
+   "operator": "AOR",
+   "line": 134,
+   "description": "+ -> -",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= disagree_counter - 1;"
+  },
+  "1e4c88ef4c#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.CST.1",
+   "operator": "CST",
+   "line": 134,
+   "description": "1 -> 0",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= disagree_counter + 0;"
+  },
+  "2745337679#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.CST.2",
+   "operator": "CST",
+   "line": 134,
+   "description": "1 -> 2",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= disagree_counter + 2;"
+  },
+  "9bb1a17455#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.SDL.1",
+   "operator": "SDL",
+   "line": 134,
+   "description": "delete 'disagree_counter <= disagree_counter + 1;'",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": ";"
+  },
+  "63658b0132#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.STK.1",
+   "operator": "STK",
+   "line": 134,
+   "description": "disagree_counter stuck at all-zeros (was 'disagree_counter + 1')",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= '0;"
+  },
+  "9a0faed6e0#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified +1",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified",
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.STK.2",
+   "operator": "STK",
+   "line": 134,
+   "description": "disagree_counter stuck at all-ones (was 'disagree_counter + 1')",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= '1;"
+  },
+  "1a7ae50f72#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified +1",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified",
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.134.VNG.1",
+   "operator": "VNG",
+   "line": 134,
+   "description": "disagree_counter inverted (was 'disagree_counter + 1')",
+   "before": "disagree_counter <= disagree_counter + 1;",
+   "after": "disagree_counter <= ~(disagree_counter + 1);"
+  },
+  "1024e05c46#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "On the qualifying edge flag_out flips (line 178) and the counter gets 1 instead of 0; if flag_in reverses on the next clock, line 130 keeps counting from 1, so the reverse transition qualifies one clock early."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-15",
+     "decision": "gap",
+     "reason": "a reversal on the clock after a flip may qualify one clock early: the checker starts its hold count at 1 on the flip, so its lower bound is one clock loose in that case"
+    }
+   ],
+   "id": "input_debounce.139.CST.1",
+   "operator": "CST",
+   "line": 139,
+   "description": "0 -> 1",
+   "before": "disagree_counter <= 0;",
+   "after": "disagree_counter <= 1;"
+  },
+  "277c541c6a#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.139.SDL.1",
+   "operator": "SDL",
+   "line": 139,
+   "description": "delete 'disagree_counter <= 0;'",
+   "before": "disagree_counter <= 0;",
+   "after": ";"
+  },
+  "1024e05c46#3": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.147.CST.1",
+   "operator": "CST",
+   "line": 147,
+   "description": "0 -> 1",
+   "before": "disagree_counter <= 0;",
+   "after": "disagree_counter <= 1;"
+  },
+  "277c541c6a#3": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_window_abandoned +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_abandoned",
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.147.SDL.1",
+   "operator": "SDL",
+   "line": 147,
+   "description": "delete 'disagree_counter <= 0;'",
+   "before": "disagree_counter <= 0;",
+   "after": ";"
+  },
+  "73448571c2#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.154.EDG.1",
+   "operator": "EDG",
+   "line": 154,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.170.CSK.1",
+   "operator": "CSK",
+   "line": 170,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.170.CSK.2",
+   "operator": "CSK",
+   "line": 170,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET +2",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET",
+       "a_flag_out_qualified",
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.170.UOD.1",
+   "operator": "UOD",
+   "line": 170,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "58b772386f#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.172.SDL.1",
+   "operator": "SDL",
+   "line": 172,
+   "description": "delete 'flag_out <= RESET_VALUE;'",
+   "before": "flag_out <= RESET_VALUE;",
+   "after": ";"
+  },
+  "6c882e1de0#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.172.STK.1",
+   "operator": "STK",
+   "line": 172,
+   "description": "flag_out stuck at all-zeros (was 'RESET_VALUE')",
+   "before": "flag_out <= RESET_VALUE;",
+   "after": "flag_out <= '0;"
+  },
+  "eabdaff0ce#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.172.STK.2",
+   "operator": "STK",
+   "line": 172,
+   "description": "flag_out stuck at all-ones (was 'RESET_VALUE')",
+   "before": "flag_out <= RESET_VALUE;",
+   "after": "flag_out <= '1;"
+  },
+  "5556451140#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_takes_RESET",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_takes_RESET"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.172.VNG.1",
+   "operator": "VNG",
+   "line": 172,
+   "description": "flag_out inverted (was 'RESET_VALUE')",
+   "before": "flag_out <= RESET_VALUE;",
+   "after": "flag_out <= ~(RESET_VALUE);"
+  },
+  "6cfd9797ee#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.AOR.1",
+   "operator": "AOR",
+   "line": 176,
+   "description": "- -> +",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks + 1'b1)) begin"
+  },
+  "4274949f87#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CND.1",
+   "operator": "CND",
+   "line": 176,
+   "description": "if ((flag_in != flag_out) && (disagree_counter >= targ) -> if (!(...))",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if (!((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1))) begin"
+  },
+  "ec06960bde#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CSK.1",
+   "operator": "CSK",
+   "line": 176,
+   "description": "if ((flag_in != flag_out) && (disagree_counter >= targ) -> if (1'b1): always taken",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "38d36fdc46#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CST.1",
+   "operator": "CST",
+   "line": 176,
+   "description": "1'b1 -> 1'b0",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b0)) begin"
+  },
+  "c403cb5db0#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 7,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "The only extra case the mutant allows is flag_in == flag_out, where line 178 assigns flag_out <= flag_in, the value flag_out already holds, so the register never changes."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-15",
+     "decision": "equivalent",
+     "reason": "the extra case is flag_in == flag_out, where flag_out <= flag_in assigns the value it already holds"
+    }
+   ],
+   "id": "input_debounce.176.CTD.1",
+   "operator": "CTD",
+   "line": 176,
+   "description": "drop the term '(flag_in != flag_out)'",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "ea451ca1a6#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CTD.2",
+   "operator": "CTD",
+   "line": 176,
+   "description": "drop the term '(disagree_counter >= target_clks - 1'b1)'",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out)) begin"
+  },
+  "0756d75729#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CTN.1",
+   "operator": "CTN",
+   "line": 176,
+   "description": "negate the term '(flag_in != flag_out)'",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if (!((flag_in != flag_out)) && (disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "d067c65b67#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.CTN.2",
+   "operator": "CTN",
+   "line": 176,
+   "description": "negate the term '(disagree_counter >= target_clks - 1'b1)'",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && !((disagree_counter >= target_clks - 1'b1))) begin"
+  },
+  "d19734357d#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.EDL.1",
+   "operator": "EDL",
+   "line": 176,
+   "description": "delete the else branch at line 176",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": ""
+  },
+  "8cfecac199#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.LCR.1",
+   "operator": "LCR",
+   "line": 176,
+   "description": "&& -> ||",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) || (disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "3bf09ef19a#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.ROR.1",
+   "operator": "ROR",
+   "line": 176,
+   "description": "!= -> ==",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in == flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "fb356ac261#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_flag_out_qualified",
+     "killed_by": {
+      "assertions": [
+       "a_flag_out_qualified"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.ROR.2",
+   "operator": "ROR",
+   "line": 176,
+   "description": ">= -> <=",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter <= target_clks - 1'b1)) begin"
+  },
+  "51201e0588#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.ROR.3",
+   "operator": "ROR",
+   "line": 176,
+   "description": ">= -> >",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_out) && (disagree_counter > target_clks - 1'b1)) begin"
+  },
+  "103541972c#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.SIB.1",
+   "operator": "SIB",
+   "line": 176,
+   "description": "flag_in -> flag_out",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_out != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "650f876c5e#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.176.SIB.2",
+   "operator": "SIB",
+   "line": 176,
+   "description": "flag_out -> flag_in",
+   "before": "else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin",
+   "after": "else if ((flag_in != flag_in) && (disagree_counter >= target_clks - 1'b1)) begin"
+  },
+  "583e53aecd#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.178.SDL.1",
+   "operator": "SDL",
+   "line": 178,
+   "description": "delete 'flag_out <= flag_in;'",
+   "before": "flag_out <= flag_in;",
+   "after": ";"
+  },
+  "a6a99857f5#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.178.STK.1",
+   "operator": "STK",
+   "line": 178,
+   "description": "flag_out stuck at all-zeros (was 'flag_in')",
+   "before": "flag_out <= flag_in;",
+   "after": "flag_out <= '0;"
+  },
+  "dae8bbfe87#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.178.STK.2",
+   "operator": "STK",
+   "line": 178,
+   "description": "flag_out stuck at all-ones (was 'flag_in')",
+   "before": "flag_out <= flag_in;",
+   "after": "flag_out <= '1;"
+  },
+  "76baa831a5#1": {
+   "outcomes": [
+    {
+     "run": 6,
+     "status": "killed",
+     "detail": "assertion a_ASSERT_and_RELEASE_work",
+     "killed_by": {
+      "assertions": [
+       "a_ASSERT_and_RELEASE_work"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "input_debounce.178.VNG.1",
+   "operator": "VNG",
+   "line": 178,
+   "description": "flag_out inverted (was 'flag_in')",
+   "before": "flag_out <= flag_in;",
+   "after": "flag_out <= ~(flag_in);"
+  }
+ }
+}

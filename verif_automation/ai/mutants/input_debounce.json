@@ -1,0 +1,284 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 176,
+   "category": "missing_case",
+   "description": "flag_out flip compares the disagreement count against the counter's sizing limit CNT_MAX (the assert time) instead of the target for the pending direction, so the release direction is forgotten",
+   "reason": "With the default parameters (ASSERT > RELEASE), a release attempt clears the counter at RELEASE_CLKS-1 and never reaches ASSERT_CLKS-1. Once flag_out is high, it never goes low again, even when flag_in stays low indefinitely.",
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(CNT_MAX) - 1'b1)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_14"
+  },
+  {
+   "key": 3,
+   "line": 144,
+   "category": "missing_case",
+   "description": "The restart on agreement is applied only when flag_in is high, so an aborted assert attempt (flag_in back low while flag_out is low) leaves its partial count in place",
+   "reason": "While flag_out is low, short high glitches on flag_in now add up across gaps instead of each restarting from zero. flag_out asserts once the glitches total ASSERT_CLKS clocks, even though no single pulse was that long: a false fault from switching-node pickup.",
+   "before": [
+    "",
+    "  else begin",
+    "",
+    "    disagree_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "",
+    "  else if (flag_in) begin",
+    "",
+    "    disagree_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-15_write_mutants_14"
+  },
+  {
+   "key": 4,
+   "line": 103,
+   "category": "sequencing",
+   "description": "target_clks is written as a terminal count (qualification time minus one), while both compares still subtract one again, so every transition qualifies one clock early",
+   "reason": "In both directions, flag_out now follows a steady new level of flag_in after ASSERT_CLKS-1 or RELEASE_CLKS-1 clocks of disagreement instead of ASSERT_CLKS or RELEASE_CLKS. The edge reaches the supervisor one clock early.",
+   "before": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+   ],
+   "after": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS - 1) : CNT_W'(RELEASE_CLKS - 1);"
+   ],
+   "run": "2026-11-15_write_mutants_14"
+  },
+  {
+   "key": 5,
+   "line": 136,
+   "category": "reset_init",
+   "description": "The clear-on-qualify restart only happens when a release qualifies; on the edge an assert qualifies the disagreement count is left at ASSERT_CLKS-1",
+   "reason": "Suppose an assert qualifies and flag_in drops on the very next clock. The leftover count is already at or past RELEASE_CLKS-1, so flag_out releases after one low clock instead of RELEASE_CLKS clocks.",
+   "before": [
+    "    end",
+    "    else begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    end",
+    "    else if (!flag_in) begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "run": "2026-11-15_write_mutants_15"
+  },
+  {
+   "key": 6,
+   "line": 176,
+   "category": "missing_case",
+   "description": "The flag_out flip compares the disagreement count against the release time for both directions, so the longer assert qualification is forgotten",
+   "reason": "When flag_in goes high and stays high while flag_out is low, flag_out asserts after RELEASE_CLKS clocks (200 us) instead of ASSERT_CLKS (1 ms). An assert-going pulse between those two lengths now gets through.",
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= CNT_W'(RELEASE_CLKS) - 1'b1)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_15"
+  },
+  {
+   "key": 7,
+   "line": 132,
+   "category": "boundary",
+   "description": "The counter's clear-on-qualify limit is hard-coded to the release time, so during an assert attempt the count restarts every RELEASE_CLKS clocks and never reaches the assert target",
+   "reason": "Once flag_out has released, a flag_in that holds high for any length of time never makes flag_out assert again, because the count is cleared at RELEASE_CLKS-1 before it reaches ASSERT_CLKS-1. Releases still qualify normally.",
+   "before": [
+    "    if (disagree_counter < target_clks - 1'b1) begin"
+   ],
+   "after": [
+    "    if (disagree_counter < CNT_W'(RELEASE_CLKS) - 1'b1) begin"
+   ],
+   "run": "2026-11-15_write_mutants_15"
+  },
+  {
+   "key": 8,
+   "line": 176,
+   "category": "missing_case",
+   "description": "The flip rule is written for the assert direction only (flag_in high while flag_out low), so a qualified release never updates flag_out",
+   "reason": "With RESET_VALUE=1, flag_out comes out of reset high and stays high however long flag_in holds low. The supervisor therefore never sees the fault clear.",
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in && !flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_15"
+  },
+  {
+   "key": 9,
+   "line": 144,
+   "category": "reset_init",
+   "description": "The restart on agreement is applied only when flag_in is low, so an aborted release attempt (flag_in dips low while flag_out is high, then returns high) leaves its partial count in the disagreement counter",
+   "reason": "With flag_out high, a low glitch on flag_in shorter than RELEASE_CLKS leaves the counter at the glitch length. A later low pulse then releases flag_out early, once the two together reach RELEASE_CLKS, instead of after RELEASE_CLKS continuous low clocks. Aborted asserts are still restarted correctly.",
+   "before": [
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "",
+    "  else if (!flag_in) begin"
+   ],
+   "run": "2026-11-15_write_mutants_16"
+  },
+  {
+   "key": 10,
+   "line": 176,
+   "category": "sequencing",
+   "description": "The flip compare adds a one-clock lookahead (counter+1) to make up for flag_out being registered, so flag_out flips one clock before the counter reaches its target and restarts",
+   "reason": "Every transition with a target of 2 or more clocks shows up at flag_out one clock early. Because the counter only restarts on the next edge, an immediate reversal after an assert starts with the counter at ASSERT_CLKS-1, which is already past the release target, so flag_out flips straight back after one clock instead of waiting RELEASE_CLKS.",
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter + 1'b1 >= target_clks - 1'b1)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_16"
+  },
+  {
+   "key": 11,
+   "line": 130,
+   "category": "wrong_event",
+   "description": "The disagreement counter measures flag_in against the fail-safe reset level RESET_VALUE instead of the believed state flag_out, so it counts time away from reset rather than time disagreeing with flag_out",
+   "reason": "With the default RESET_VALUE=1, a low flag_in still qualifies and releases flag_out after RELEASE_CLKS. After that, a high flag_in clears the counter every clock instead of counting, so a real fault that holds flag_in high for any length of time never re-asserts flag_out.",
+   "before": [
+    "  else if (flag_in != flag_out) begin"
+   ],
+   "after": [
+    "  else if (flag_in != RESET_VALUE) begin"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 12,
+   "line": 103,
+   "category": "boundary",
+   "description": "The release qualification time is written as a terminal count (RELEASE_CLKS-1), but the assert time is not, so only a release qualifies one clock early",
+   "reason": "After flag_in goes low and stays low while flag_out is high, flag_out falls after RELEASE_CLKS-1 clocks instead of RELEASE_CLKS. The assert timing does not change.",
+   "before": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+   ],
+   "after": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS - 1);"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 13,
+   "line": 130,
+   "category": "missing_case",
+   "description": "The disagreement counter only counts the release direction (flag_in low while flag_out is high), the move away from the high reset state, so an assert attempt never builds a count",
+   "reason": "Once flag_out has released, flag_in going high and staying high leaves the counter at 0. The flip compare against ASSERT_CLKS-1 never passes, so flag_out never re-asserts.",
+   "before": [
+    "  else if (flag_in != flag_out) begin"
+   ],
+   "after": [
+    "  else if (!flag_in && flag_out) begin"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 14,
+   "line": 124,
+   "category": "reset_init",
+   "description": "The disagreement counter is preloaded to a full count in reset, so the first input level seen after reset is accepted without debouncing",
+   "reason": "With flag_in low when rst_n is released, flag_out (reset high) falls on the first clock instead of after RELEASE_CLKS clocks of stable low. A glitch at that moment is passed straight through.",
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    disagree_counter <= 0;"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    disagree_counter <= CNT_W'(CNT_MAX - 1);"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 15,
+   "line": 130,
+   "category": "missing_case",
+   "description": "The disagreement counter only counts an assert attempt (flag_in high while flag_out is low), so the release direction never builds a count",
+   "reason": "With the default fail-safe RESET_VALUE of 1, flag_out comes out of reset high and a healthy (low) flag_in never builds a count, so flag_out stays asserted forever and the supervisor never sees the fault clear.",
+   "before": [
+    "  else if (flag_in != flag_out) begin"
+   ],
+   "after": [
+    "  else if (flag_in && !flag_out) begin"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 16,
+   "line": 176,
+   "category": "missing_case",
+   "description": "flag_out is only allowed to flip when flag_in moves away from the fail-safe RESET_VALUE, so a return to the reset level (a re-asserted fault, with the default RESET_VALUE of 1) never updates flag_out",
+   "reason": "After the first qualified release, flag_out is low. A real fault that holds flag_in high for ASSERT_CLKS clocks or more lets the counter reach its target and restart, but flag_out never asserts again.",
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != RESET_VALUE) && (flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  },
+  {
+   "key": 17,
+   "line": 136,
+   "category": "reset_init",
+   "description": "The clear-on-qualify restart only happens when an assert qualifies. On the edge a release qualifies, the disagreement count is left at RELEASE_CLKS-1",
+   "reason": "If flag_in goes back high on the clock straight after a release flips flag_out low, the assert window starts from RELEASE_CLKS-1 instead of zero. flag_out then re-asserts after about ASSERT_CLKS-RELEASE_CLKS clocks instead of the full ASSERT_CLKS.",
+   "before": [
+    "    end",
+    "    else begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    end",
+    "    else if (flag_in) begin",
+    "",
+    "      disagree_counter <= 0;",
+    "",
+    "    end"
+   ],
+   "run": "2026-11-15_write_mutants_17"
+  }
+ ],
+ "unit": "input_debounce",
+ "file": "rtl-systemverilog/inputs/input_debounce.sv",
+ "last_key": 17,
+ "withdrawn": [
+  {
+   "key": 2,
+   "line": 132,
+   "category": "boundary",
+   "description": "The disagreement counter's clear-on-qualify limit uses CNT_MAX instead of the selected target, so the count is not restarted on the edge a release qualifies",
+   "reason": "When flag_out releases and flag_in goes high again on the very next clock, the counter keeps counting up from RELEASE_CLKS. flag_out then asserts after only ASSERT_CLKS-RELEASE_CLKS clocks of high input instead of ASSERT_CLKS.",
+   "before": [
+    "    if (disagree_counter < target_clks - 1'b1) begin"
+   ],
+   "after": [
+    "    if (disagree_counter < CNT_W'(CNT_MAX) - 1'b1) begin"
+   ],
+   "run": "2026-11-15_write_mutants_14",
+   "withdrawn": "same fault as AIM.17: the count is not restarted on the edge a release qualifies; the next qualification differs by one clock"
+  }
+ ]
+}

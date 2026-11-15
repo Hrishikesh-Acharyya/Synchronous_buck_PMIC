@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 130,
+   "before": [
+    "  else if (flag_in != flag_out) begin"
+   ],
+   "after": [
+    "  else if (flag_in != RESET_VALUE) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The disagreement counter measures flag_in against the fail-safe reset level RESET_VALUE instead of the believed state flag_out, so it counts time away from reset rather than time disagreeing with flag_out",
+   "reason": "With the default RESET_VALUE=1, a low flag_in still qualifies and releases flag_out after RELEASE_CLKS. After that, a high flag_in clears the counter every clock instead of counting, so a real fault that holds flag_in high for any length of time never re-asserts flag_out."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.130.AIM.11"
+ }
+]

@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 103,
+   "before": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS);"
+   ],
+   "after": [
+    "  target_clks = flag_in ?CNT_W'(ASSERT_CLKS) : CNT_W'(RELEASE_CLKS - 1);"
+   ],
+   "category": "boundary",
+   "description": "The release qualification time is written as a terminal count (RELEASE_CLKS-1), but the assert time is not, so only a release qualifies one clock early",
+   "reason": "After flag_in goes low and stays low while flag_out is high, flag_out falls after RELEASE_CLKS-1 clocks instead of RELEASE_CLKS. The assert timing does not change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.103.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 130,
+   "before": [
+    "  else if (flag_in != flag_out) begin"
+   ],
+   "after": [
+    "  else if (!flag_in && flag_out) begin"
+   ],
+   "category": "missing_case",
+   "description": "The disagreement counter only counts the release direction (flag_in low while flag_out is high), the move away from the high reset state, so an assert attempt never builds a count",
+   "reason": "Once flag_out has released, flag_in going high and staying high leaves the counter at 0. The flip compare against ASSERT_CLKS-1 never passes, so flag_out never re-asserts."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.130.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 126,
+   "before": [
+    "    disagree_counter <= 0;"
+   ],
+   "after": [
+    "    disagree_counter <= CNT_W'(CNT_MAX - 1);"
+   ],
+   "category": "reset_init",
+   "description": "The disagreement counter is preloaded to a full count in reset, so the first input level seen after reset is accepted without debouncing",
+   "reason": "With flag_in low when rst_n is released, flag_out (reset high) falls on the first clock instead of after RELEASE_CLKS clocks of stable low. A glitch at that moment is passed straight through."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.126.AIM.14"
+ }
+]

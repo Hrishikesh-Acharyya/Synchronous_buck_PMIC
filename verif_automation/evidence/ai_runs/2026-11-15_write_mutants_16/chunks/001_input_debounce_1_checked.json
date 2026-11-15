@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "  else begin"
+   ],
+   "after": [
+    "  else if (!flag_in) begin"
+   ],
+   "category": "reset_init",
+   "description": "The restart on agreement is applied only when flag_in is low, so an aborted release attempt (flag_in dips low while flag_out is high, then returns high) leaves its partial count in the disagreement counter",
+   "reason": "With flag_out high, a low glitch on flag_in shorter than RELEASE_CLKS leaves the counter at the glitch length. A later low pulse then releases flag_out early, once the two together reach RELEASE_CLKS, instead of after RELEASE_CLKS continuous low clocks. Aborted asserts are still restarted correctly."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.145.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if ((flag_in != flag_out) && (disagree_counter >= target_clks - 1'b1)) begin"
+   ],
+   "after": [
+    "  else if ((flag_in != flag_out) && (disagree_counter + 1'b1 >= target_clks - 1'b1)) begin"
+   ],
+   "category": "sequencing",
+   "description": "The flip compare adds a one-clock lookahead (counter+1) to make up for flag_out being registered, so flag_out flips one clock before the counter reaches its target and restarts",
+   "reason": "Every transition with a target of 2 or more clocks shows up at flag_out one clock early. Because the counter only restarts on the next edge, an immediate reversal after an assert starts with the counter at ASSERT_CLKS-1, which is already past the release target, so flag_out flips straight back after one clock instead of waiting RELEASE_CLKS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "input_debounce.176.AIM.10"
+ }
+]
