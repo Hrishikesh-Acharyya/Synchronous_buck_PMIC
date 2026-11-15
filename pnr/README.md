@@ -8,10 +8,10 @@ that with OpenROAD and the SkyWater sky130_fd_sc_hd library, for both
 
 ## Results (2026-11-15, the resubmission netlists)
 
-The design changed between the first submission and this one (see the package
-READMEs), so every run was made again on the new netlists: the reduced build
-is the same size as before (10,453 um^2 of cells), the full build 3.5% larger
-(31,811 um^2).
+Every run was made again on the final resubmission netlists (after the
+debouncer and overcurrent-lookback fixes): reduced build 10,187 um^2 of cells,
+full build 31,147 um^2. Two rows carry over from the netlists one step
+earlier, which were about 2% larger; they are marked.
 
 OpenROAD 2.0-12381-g01bba3695 (litex-hub conda build), sky130_fd_sc_hd typical
 corner. Every run: core inset from the die by the margin given, pins on the die
@@ -26,32 +26,32 @@ over core area.
 
 | Die (um) | vs slot | Margin | Utilisation | Result | Setup / hold slack |
 |---|---|---|---|---|---|
-| 180 x 115 | 1.00x | 2 um | 66% | routed, 0 DRC violations | +97.3 / +0.30 ns |
-| 180 x 115 | 1.00x | 5 um | 72% | routed, 0 DRC violations | +97.3 / +0.34 ns |
-| 180 x 115 | 1.00x | 10 um | 84% | routed, 0 DRC violations | +96.1 / +0.32 ns |
-| 180 x 100 | 0.87x | 2 um | 75% | routed, 0 DRC violations | +97.3 / +0.34 ns |
-| 180 x 90 | 0.78x | 2 um | 84% | routed, 0 DRC violations | +97.0 / +0.35 ns |
-| 180 x 80 | 0.70x | 2 um | 96% | routed, 0 DRC violations, after 21 router passes | +95.1 / +0.28 ns |
+| 180 x 115 | 1.00x | 2 um | 63% | routed, 0 DRC violations | +97.3 / +0.35 ns |
+| 180 x 115 | 1.00x | 5 um | 68% | routed, 0 DRC violations | +97.3 / +0.29 ns |
+| 180 x 115 | 1.00x | 10 um | 81% | routed, 0 DRC violations | +97.4 / +0.32 ns |
+| 180 x 100 | 0.87x | 2 um | 72% | routed, 0 DRC violations | +97.4 / +0.35 ns |
+| 180 x 90 | 0.78x | 2 um | 80% | routed, 0 DRC violations | +97.2 / +0.26 ns |
+| 180 x 80 | 0.70x | 2 um | 96% | routed, 0 DRC violations, 21 router passes (netlist 2% larger) | +95.1 / +0.28 ns |
 
 It fits the standard slot with margin to spare: with 10 um reserved all round,
-or in 70% of the slot (only just, at that size). About 20 mm of wire and 7,500
-vias in the standard slot, almost all on met1 and met2. Power about 225 uW
-(default switching activity, not a simulation).
+or in 70% of the slot. About 20 mm of wire and 7,500 vias in the standard slot,
+almost all on met1 and met2. Power about 225 uW (default switching activity,
+not a simulation).
 
 ### Full build, `TELEMETRY_EN = 1`
 
 | Die (um) | vs slot | Margin | Utilisation | Result | Setup / hold slack |
 |---|---|---|---|---|---|
-| 180 x 115 | 1.0x | 2 um | 168% | cells do not fit | - |
-| 180 x 230 | 2.0x | 2 um | 94% | global routing fails (congestion) | - |
-| 180 x 288 | 2.5x | 2 um | 75% | detailed routing stopped after two hours with 104 violations left (the first submission's netlist routed here in 41 passes) | - |
-| 180 x 345 | 3.0x | 2 um | 63% | routed, 0 DRC violations, 14 router passes | +94.3 / +0.34 ns |
+| 180 x 115 | 1.0x | 2 um | 165% | cells do not fit | - |
+| 180 x 230 | 2.0x | 2 um | 91% | global routing fails (congestion) | - |
+| 180 x 288 | 2.5x | 2 um | 75% | not routed within two hours, 104 violations left (netlist 2% larger) | - |
+| 180 x 345 | 3.0x | 2 um | 61% | routed, 0 DRC violations | +94.3 / +0.33 ns |
 
-3x the slot routes comfortably. About 94 mm of wire and 25,000 vias; power
-about 600 uW (default activity).
+3x the slot routes comfortably; 2.5x is at best marginal. About 94 mm of wire
+and 25,000 vias at 3x; power about 600 uW (default activity).
 
 Timing is no constraint at 10 MHz (100 ns): the longest register-to-register
-path is about 3 ns in the reduced build and 6 ns in the full build.
+path is about 2.2 ns in the reduced build and 2.6 ns in the full build.
 
 Caveat: Silicluster integrates with its own flow - pin positions, power grid,
 margins and settings may differ from these. The reduced build passes at every
@@ -59,17 +59,17 @@ margin tried, which is the reason to trust it.
 
 `results/` holds, per run, `metrics.txt` (every number), the timing, power,
 skew and DRC reports, the gzipped flow log, routed DEF and post-route netlist,
-and `results/summary.tsv`, one row per run. Pictures of five routed runs are
-in `results/images/`.
+and `results/summary.tsv`, one row per run made on the final netlists. Pictures
+of four routed runs are in `results/images/`.
 
 ### Against the first submission (2026-10-31)
 
 | | First submission | This one |
 |---|---|---|
-| Reduced build in the slot, 2 um margin | 66%, routed | 66%, routed |
+| Reduced build in the slot, 2 um margin | 66%, routed | 63%, routed |
 | Reduced build, smallest die routed | 180 x 90 um (180 x 80 failed in global routing) | 180 x 80 um |
-| Full build at 3x | 61%, routed, 14 router passes | 63%, routed, 14 router passes |
-| Full build at 2.5x | 72%, routed, 41 router passes | 75%, not routed within two hours (104 violations left) |
+| Full build at 3x | 61%, routed | 61%, routed |
+| Full build at 2.5x | 72%, routed after 41 router passes | not routed within two hours |
 
 ## Reproducing
 

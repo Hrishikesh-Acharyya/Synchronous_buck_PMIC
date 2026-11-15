@@ -1091,6 +1091,9 @@ against the analog side. The deadline had moved to 30 November 2026.
   `fault_arbiter_tb` now runs at the package value instead of a fixed 5.
 - Area: full build 697 flops / 2,182 cells / 31,147 um^2 (703 / 2,287 /
   31,811); reduced build 249 / 670 / 10,187 (252 / 707 / 10,453).
+- Place and route repeated on these netlists (`pnr/results/`): the reduced
+  build routes in the slot at 63% (2 um margin) to 81% (10 um); the full
+  build at 3x (61%); the READMEs' tables carry these figures.
 - Gate: `lint_all`; `verilog_check` 17/17; `equiv_all STRICT=1` - 15
   testbenches, source and converted, every cover; `top_both`; `make
   submissions` and `make signoff`.

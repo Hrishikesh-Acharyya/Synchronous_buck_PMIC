@@ -187,19 +187,19 @@ wires for timing.
 
 | Build | Die | vs slot | Utilisation | Result |
 |---|---|---|---|---|
-| `TELEMETRY_EN = 0` | 180 × 115 µm | 1.0× | 66 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 0` | 180 × 115 µm, 10 µm reserved all round | 1.0× | 84 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 0` | 180 × 80 µm | 0.70× | 96 % | routed, 0 DRC violations |
-| `TELEMETRY_EN = 1` | 180 × 230 µm | 2.0× | 94 % | does not route |
+| `TELEMETRY_EN = 0` | 180 × 115 µm | 1.0× | 63 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 × 115 µm, 10 µm reserved all round | 1.0× | 81 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 × 90 µm | 0.78× | 80 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 1` | 180 × 230 µm | 2.0× | 91 % | does not route |
 | `TELEMETRY_EN = 1` | 180 × 288 µm | 2.5× | 75 % | not routed within two hours |
-| `TELEMETRY_EN = 1` | 180 × 345 µm | 3.0× | 63 % | routed, 0 DRC violations |
+| `TELEMETRY_EN = 1` | 180 × 345 µm | 3.0× | 61 % | routed, 0 DRC violations |
 
 | Protection-only chip in the standard slot (180 × 115 µm) | Full chip at 3× the slot (180 × 345 µm) |
 |---|---|
 | <img src="pnr/results/images/reduced_180x115_border2um.png" width="430"> | <img src="pnr/results/images/full_180x345_border2um.png" width="190"> |
 
 Timing is met at 10 MHz with 94–97 ns of setup slack (typical corner); the
-longest register-to-register path is 2.8 ns (reduced) and 5.6 ns (full). DRC
+longest register-to-register path is about 2.2 ns (reduced) and 2.6 ns (full). DRC
 figures are the detailed router's; sign-off DRC and LVS belong to the
 integration flow. Flow, scripts and every run's reports:
 [`pnr/`](pnr/README.md).

@@ -101,3 +101,10 @@ Commit hashes for each changelog entry are in the table at the end of
   violations at 3x the slot (180 x 345 um, 63%); does not route at 2x (90%
   before routing, global routing fails) and does not place in one slot. The
   2.5x result is in `pnr/README.md`.
+- **2026-11-15, placed and routed on the final netlists** (after entry 39).
+  Reduced build: routed with 0 DRC violations in the 180 x 115 um slot at
+  63%, 68% and 81% utilisation (2, 5 and 10 um margins), in 180 x 100 um
+  (72%) and 180 x 90 um (80%). Full build: 0 DRC violations at 3x the slot
+  (61%); global routing fails at 2x; the cells do not fit one slot. 180 x 80
+  um (reduced) and 2.5x (full) were not repeated on these netlists; on the
+  ones 2% larger, the first routed and the second did not within two hours.

@@ -1,9 +1,9 @@
 die_um = 180x115
 die_area_um2 = 20700
 core_area_um2 = 19068
-instances_netlist = 3212
-cell_area_after_taps_um2 = 31998
-util_after_taps = 1.678
+instances_netlist = 3151
+cell_area_after_taps_um2 = 31445
+util_after_taps = 1.649
 gpl_density = 0.970
 result = FAIL global_placement: GPL-0301
-elapsed_s = 1
+elapsed_s = 0

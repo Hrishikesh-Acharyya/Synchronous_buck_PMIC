@@ -398,12 +398,12 @@ integration flow):
 
 | Build | Die | vs slot | Utilisation | Result |
 |-------|-----|---------|-------------|--------|
-| `TELEMETRY_EN = 0` | 180 x 115 um | 1.0x | 66% | routed, 0 DRC violations |
-| `TELEMETRY_EN = 0` | 180 x 115 um, 10 um reserved all round | 1.0x | 84% | routed, 0 DRC violations |
-| `TELEMETRY_EN = 0` | 180 x 80 um | 0.70x | 96% | routed, 0 DRC violations |
-| `TELEMETRY_EN = 1` | 180 x 230 um | 2.0x | 94% | does not route |
-| `TELEMETRY_EN = 1` | 180 x 288 um | 2.5x | 75% | not routed within two hours (it routed, only just, before this resubmission's 3.5% growth) |
-| `TELEMETRY_EN = 1` | 180 x 345 um | 3.0x | 63% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 x 115 um | 1.0x | 63% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 x 115 um, 10 um reserved all round | 1.0x | 81% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 0` | 180 x 90 um | 0.78x | 80% | routed, 0 DRC violations |
+| `TELEMETRY_EN = 1` | 180 x 230 um | 2.0x | 91% | does not route |
+| `TELEMETRY_EN = 1` | 180 x 288 um | 2.5x | 75% | not routed within two hours |
+| `TELEMETRY_EN = 1` | 180 x 345 um | 3.0x | 61% | routed, 0 DRC violations |
 
 Timing closes with large margin at 10 MHz in every routed case.
 
