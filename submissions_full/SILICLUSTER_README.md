@@ -42,18 +42,30 @@ Design changes:
   either way; only the counting changes.
 - **Supervisor** (`supervisor.v`): rewritten in the layout of the other
   modules. No logic change.
+- **Debouncers** (`input_debounce.v`): the count restarts on the clock the
+  output changes. An input that reversed straight after a qualified change
+  used to be taken early - a fault that asserted and dropped at once was
+  released after one clock instead of 200 us.
+- **Overcurrent sample timing** (`fault_arbiter.v`): the sample's lookback
+  before each switching cycle is now a time (100 ns, at least 2 clocks)
+  rather than a fixed 5 clocks. At 10 MHz the fixed count had become 500 ns:
+  at the duty ceiling the low-side conduction lasts only about 550 ns, so the
+  sample landed on the switching edge, where the current reading is not
+  valid. It is now 200 ns. This one was missed in the first submission.
 
-None of the first four can occur in the reduced build, whose thresholds are
-fixed: they need a threshold changed over SPI while the converter runs.
+The first four need a threshold changed over SPI while the converter runs, so
+they cannot occur in the reduced build, whose thresholds are fixed. The last
+two apply to both builds.
 
 Verification changes: the testbench in this package has two more phases and
 ten more coverage bins, one for each rule and fix above, and its register-map
 model holds the new write rules (320 checks and 96 bins, from 277 and 86). Run
 against the Verilog of the first submission, it fails 14 checks.
 
-Area: the full build grew by 3.5% (703 flops, 31,811 um^2 of cells, from 694
-and 30,737); the reduced build is unchanged (252 flops, 10,453 um^2). Both
-were placed and routed again - see "Area".
+Area: the full build is 1.3% larger than in the first submission (697 flops,
+31,147 um^2 of cells, from 694 and 30,737); the reduced build is 3% smaller
+(249 flops, 10,187 um^2, from 252 and 10,523). Both were placed and routed
+again - see "Area".
 
 ## What the design is
 
@@ -170,7 +182,7 @@ two builds, both verified by the same testbench:
 | Protection thresholds | defaults, writable over SPI | fixed at the defaults |
 | `SCK`, `CS_n`, `MOSI` | used | unused inputs |
 | `MISO` | read data during a read, low otherwise | always low |
-| Area (below) | about 2.7x the standard slot | about 0.9x the standard slot |
+| Area (below) | about 2.6x the standard slot | about 0.9x the standard slot |
 
 The protection itself - supervisor, soft start, overcurrent windows, hiccup,
 strikes and latch, OTP, UVLO, PGOOD, LEDs - is the same logic in both. The
@@ -355,8 +367,8 @@ Synthesised with Yosys 0.70 and the sky130_fd_sc_hd typical library
 
 | Build | Flops | Comb cells | Cell area | Die at 57% utilisation | vs 180 x 115 um slot |
 |-------|-------|------------|-----------|------------------------|----------------------|
-| `TELEMETRY_EN = 1` (default) | 703 | 2,287 | 31,811 um^2 | ~55,800 um^2 | 2.7x |
-| `TELEMETRY_EN = 0` (reduced) | 252 | 707 | 10,453 um^2 | ~18,300 um^2 | 0.9x |
+| `TELEMETRY_EN = 1` (default) | 697 | 2,182 | 31,147 um^2 | ~54,600 um^2 | 2.6x |
+| `TELEMETRY_EN = 0` (reduced) | 249 | 670 | 10,187 um^2 | ~17,900 um^2 | 0.9x |
 
 These are synthesis estimates, not a layout. Cell area is the sum of the
 standard cells' own areas; a placed and routed block also needs room for
@@ -364,8 +376,8 @@ wiring, power straps and tap cells, so the die figure assumes the cells fill
 57% of it. That 57% is an assumption carried over from an earlier estimate -
 it is not a figure from the call or from a place-and-route run - and place and
 route sets the real number. For scale: the reduced build fits the standard
-slot if the layout reaches at least 51% utilisation; the full build needs about
-2.7x the slot at 57% and 3.1x at 50%.
+slot if the layout reaches at least 50% utilisation; the full build needs about
+2.6x the slot at 57% and 3x at 50%.
 
 Placed and routed to check (OpenROAD, sky130_fd_sc_hd, typical corner, a
 met1/met4/met5 power grid, clock tree, timing repair, detailed routing; the
@@ -394,19 +406,14 @@ standard slot (see "Configuration").
 
 - At 10 MHz one clock of on-time is 4.5% duty, so the soft-start ramp has 13
   steps (it would have 71 at 50 MHz) and the minimum gate pulse is 400 ns.
-- The overcurrent sample is taken 5 clocks (500 ns) before each PWM rise; at
-  the 75% duty ceiling that is close to the start of low-side conduction.
+- The overcurrent sample is taken 2 clocks (200 ns) before each PWM rise, the
+  shortest lookback the sampler allows; 100 ns is intended, and is what it
+  gives at 50 MHz.
 - The fault log's latch bit cannot be set: the strike latch trips in the hiccup
   state, where the fault log does not record. The latch itself, the status bit
   and the LED work.
 - `MAX_ON` written while the converter runs is stored at once but reaches the
   gate at the next soft start: the on-time ceiling only moves through a ramp.
-- The debouncers (`input_debounce.v`) do not restart their count on the clock
-  an output changes. An input that reverses on the clock straight after a
-  qualified change is therefore taken early: a fault that asserts and drops
-  at once is released after one clock instead of 200 us, and one that releases
-  and reasserts at once is taken after 0.8 ms instead of 1 ms. The supervisor
-  has already stopped the converter on the first assertion in both cases.
 - Reading 0x20 clears the fault log even in a one-byte read; read 0x1D-0x20 as
   one burst to get the whole record first.
 - `MISO` is always driven, low when idle, so sharing the MISO line with other

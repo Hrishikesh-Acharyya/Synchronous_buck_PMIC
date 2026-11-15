@@ -131,7 +131,7 @@ the same testbench verifies both.
 
 | | `TELEMETRY_EN = 1` (default) | `TELEMETRY_EN = 0` |
 |---|---|---|
-| Flops / cells / cell area | 703 / 2,287 / 31,811 µm² | 252 / 707 / 10,453 µm² |
+| Flops / cells / cell area | 697 / 2,182 / 31,147 µm² | 249 / 670 / 10,187 µm² |
 | Routes in | 3× the standard slot | one 180 × 115 µm slot |
 | Thresholds | defaults, writable over SPI | fixed at the defaults |
 | Observability | full register map over SPI | pins and LEDs |

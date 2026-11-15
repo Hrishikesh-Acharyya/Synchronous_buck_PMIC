@@ -2081,7 +2081,7 @@ endtask
 
 // count_to_trip: put the comparator in fault from just after one rising edge
 //                of the modulator onward - the arbiter samples it about
-//                500 ns before each rise, so a level set just after a rise is
+//                200 ns before each rise, so a level set just after a rise is
 //                taken at the next one, at any duty - until En drops; k_trip
 //                is the number of faulted samples it took
 task count_to_trip(input integer limit);

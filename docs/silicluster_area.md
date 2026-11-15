@@ -37,6 +37,8 @@ an old row; the trend is the useful part.
 | 2026-10-31 20:01 | chg 17: SDIO -> MOSI/MISO | 10 MHz | 1            | 694   | 2,119      | 30,737           | 53,925          | 2.61x         | +1 flop is sdio_oe, which yosys had dropped with the tri-state; spi_slave unchanged |
 | 2026-11-15 00:10 | merge of `main` (chg 34-35) | 10 MHz | 1            | 703   | 2,287      | 31,811           | 55,808          | 2.70x         | resubmission build: +9 flops, +168 cells, +3.5% area from the fixes since 31 October (staged SCRATCH, all-or-nothing commit, gated window trips, >= tests) |
 | 2026-11-15 00:10 | merge of `main` (chg 34-35) | 10 MHz | 0            | 252   | 707        | 10,453           | 18,338          | 0.89x         | resubmission build, reduced: flops unchanged, +2 cells, -0.7% area |
+| 2026-11-15 10:30 | chg 39: debounce, OC lookback | 10 MHz | 1            | 697   | 2,182      | 31,147           | 54,645          | 2.64x         | -6 flops, -105 cells, -2.1%: the overcurrent lookback shift 5 -> 2 bits, and a smaller debounce counter compare |
+| 2026-11-15 10:30 | chg 39: debounce, OC lookback | 10 MHz | 0            | 249   | 670        | 10,187           | 17,872          | 0.86x         | -3 flops (the lookback), -2.5% |
 
 Commit hashes for each changelog entry are in the table at the end of
 `docs/CHANGELOG_silicluster_v3.md`.

@@ -1047,6 +1047,57 @@ cannot contain its own hash, so the table is filled in by a later commit.
 
 ---
 
+## 38. 2026-11-15 00:45 UTC - pnr: place and route again on the resubmission netlists
+
+- Files: `pnr/results/` (rebuilt), `pnr/collect.py` (new), `pnr/README.md`,
+  `Build/stat*`, the READMEs' place-and-route tables.
+- What: the runs of entry 28 repeated on the netlists of entry 37. Reduced
+  build routed in the slot at every margin and down to 180 x 80 um; full build
+  routed at 3x (180 x 345 um); 2x does not route. At 2.5x (180 x 288 um) the
+  detailed router was stopped after two hours with 104 violations left, so
+  the full build's request is 3x. `collect.py` rebuilds `results/` from the
+  scratch runs in `work/`.
+- Commits: `935d024`, then `1c14241` for the 2.5x outcome in the READMEs.
+- Undo: `git revert <hash>`.
+
+## 39. 2026-11-15 10:30 UTC - rtl: debouncer restarts on the flip; overcurrent lookback is a time
+
+Approved by the user on 2026-11-15, after the full pass over the constants
+against the analog side. The deadline had moved to 30 November 2026.
+
+- Files: `rtl-systemverilog/inputs/input_debounce.sv`,
+  `rtl-systemverilog/pkg/pmic_types_pkg.sv`,
+  `rtl-systemverilog/protect/fault_arbiter.sv`, their `rtl-verilog/` copies
+  (merged by hand: a new else branch and new constants - `make verilog`
+  refuses those by design), `Build/pmic_full.v`,
+  `sva/inputs/input_debounce_sva.sv`, `tb/inputs/input_debounce_tb.sv`,
+  `tb/protect/fault_arbiter_tb.sv`, `tb/pmic_top_tb.v` (a comment), both
+  packages, READMEs, area log.
+- input_debounce: `disagree_counter` clears on the clock `flag_out` flips. It
+  used to hold its saturated value, so an input reversing on the very next
+  clock qualified at once: a fault that asserted and dropped was released
+  after one clock instead of 200 us. Found on the verification branch
+  (`AI_assisted_verification_addition`, R1); its checker and testbench come
+  with it - the checker's hold count now restarts on the flip, and the
+  testbench's group 4 reverses the input on the clock after each flip. The
+  old RTL fails that group.
+- fault_arbiter: `BLANK_CLKS` was a fixed 5 clocks, 100 ns at 50 MHz but
+  500 ns at 10 MHz. With the 5.6 uH inductor and the duty ceiling at about
+  76%, the low-side conduction lasts about 550 ns, so the sample landed on
+  the switching edge, where the sensed current is not valid. It is now the
+  package's `OC_BLANK_CLKS`: 100 ns rounded up, at least 2 clocks - 2 (200 ns)
+  at 10 MHz, 5 at 50 MHz, so `main` is unaffected. Reported on 31 October
+  (entry 3) and left then as outside the permitted changes.
+  `fault_arbiter_tb` now runs at the package value instead of a fixed 5.
+- Area: full build 697 flops / 2,182 cells / 31,147 um^2 (703 / 2,287 /
+  31,811); reduced build 249 / 670 / 10,187 (252 / 707 / 10,453).
+- Gate: `lint_all`; `verilog_check` 17/17; `equiv_all STRICT=1` - 15
+  testbenches, source and converted, every cover; `top_both`; `make
+  submissions` and `make signoff`.
+- Undo: `git revert <hash>`, then `make submissions`.
+
+---
+
 ## Commit table
 
 Every entry above is exactly one commit on this branch. To undo one, revert its
@@ -1095,6 +1146,8 @@ its commit.
 | 34 | `bbff4ab` | 2026-11-14 16:05 | merge: `main` as of 2026-11-11 into this branch |
 | 35 | `75f3e7d` | 2026-11-14 20:15 | 10 MHz build: Verilog regenerated, testbench set to it, 50 MHz suites dropped |
 | 36 | `2af47ae` | 2026-11-14 23:40 | tb: the integration testbench covers the fixes made since the first submission |
+| 37 | `7520532` | 2026-11-15 00:40 | package: both packages regenerated; READMEs, area log and this changelog |
+| 38 | `935d024`, `1c14241` | 2026-11-15 00:45 | pnr: place and route again on the resubmission netlists |
 
 The merge `e7eb661` of the remote's `6726511` (the user's comment fix) is
 not an entry. Entries 37 and later are the newest commits touching this

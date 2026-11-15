@@ -81,7 +81,7 @@ localparam realtime SETTLE_NS       = 0.1;
 localparam int      WINDOW_RUN_TB   = WINDOW_RUN;
 localparam int      WINDOW_SS_TB    = WINDOW_SS;
 // BLANK_CLKS_TB: the DUT's blanking lookback, at the fault_arbiter module value
-localparam int      BLANK_CLKS_TB   = 5;
+localparam int      BLANK_CLKS_TB   = pmic_types_pkg::OC_BLANK_CLKS;
 /// PWM_LOW_CLKS / PWM_HIGH_CLKS: default switching-cycle shape for
 //                               pwm_cycle(). The low phase is two clocks
 //                               longer than the lookback, so a cp_sync value

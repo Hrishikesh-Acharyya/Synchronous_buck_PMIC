@@ -56,12 +56,23 @@ module fault_arbiter (
 	localparam signed [31:0] pmic_types_pkg_WINDOW_SS = 32;
 	// WINDOW_SS: trailing switching cycles examined while in S_SS
 	parameter signed [31:0] WINDOW_SS = pmic_types_pkg_WINDOW_SS;
+	// OC_BLANK_NS / OC_BLANK_CLKS: the overcurrent sample's lookback as a time,
+	//                100 ns, and in clocks: at least 2, so 2 (200 ns) at 10 MHz
+	//                (pmic_types_pkg)
+	localparam signed [31:0] pmic_types_pkg_OC_BLANK_NS = 100;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	// ns_to_clks: nanoseconds to whole clocks, rounded up (pmic_types_pkg)
+	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
+		input reg signed [31:0] ns;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_OC_BLANK_CLKS = (pmic_types_pkg_ns_to_clks(pmic_types_pkg_OC_BLANK_NS) < 2 ? 2 : pmic_types_pkg_ns_to_clks(pmic_types_pkg_OC_BLANK_NS));
 	// BLANK_CLKS: clocks of lookback applied to cp_sync, so the sample
 	//             taken at pwm_rise reads the comparator as it was before
 	//             high-side turn-on rather than during the switch-node slew.
 	//             Must be >= 2; the shift concatenation below is malformed
 	//             at 1.
-	parameter signed [31:0] BLANK_CLKS = 5;
+	parameter signed [31:0] BLANK_CLKS = pmic_types_pkg_OC_BLANK_CLKS;
 	input wire clk;
 	input wire rst_n;
 	input wire pwm_sync;  // synchronised raw PWM, for the cycle boundary

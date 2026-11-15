@@ -95,6 +95,8 @@ module input_debounce (
 		else if (flag_in != flag_out) begin
 			if (disagree_counter < (target_clks - 1'b1))
 				disagree_counter <= disagree_counter + 1;
+			else
+				disagree_counter <= 0;
 		end
 		else
 			disagree_counter <= 0;
@@ -268,7 +270,14 @@ module fault_arbiter (
 	parameter signed [31:0] WINDOW_RUN = pmic_types_pkg_WINDOW_RUN;
 	localparam signed [31:0] pmic_types_pkg_WINDOW_SS = 32;
 	parameter signed [31:0] WINDOW_SS = pmic_types_pkg_WINDOW_SS;
-	parameter signed [31:0] BLANK_CLKS = 5;
+	localparam signed [31:0] pmic_types_pkg_OC_BLANK_NS = 100;
+	localparam signed [31:0] pmic_types_pkg_CLK_HZ = 10000000;
+	function automatic signed [31:0] pmic_types_pkg_ns_to_clks;
+		input reg signed [31:0] ns;
+		pmic_types_pkg_ns_to_clks = ((10 * ns) + 999) / 1000;
+	endfunction
+	localparam signed [31:0] pmic_types_pkg_OC_BLANK_CLKS = (pmic_types_pkg_ns_to_clks(pmic_types_pkg_OC_BLANK_NS) < 2 ? 2 : pmic_types_pkg_ns_to_clks(pmic_types_pkg_OC_BLANK_NS));
+	parameter signed [31:0] BLANK_CLKS = pmic_types_pkg_OC_BLANK_CLKS;
 	input wire clk;
 	input wire rst_n;
 	input wire pwm_sync;

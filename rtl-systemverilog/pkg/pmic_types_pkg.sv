@@ -268,6 +268,17 @@ package pmic_types_pkg;
     // SPI_FILTER_CLKS: identical on all three lines. Unequal delay between SCK and
     //                  MOSI shifts the data relative to the clock it is sampled
     //                  against, which is worse than no filtering at all.
+    // OC_BLANK_NS / OC_BLANK_CLKS: how long before each switching-cycle
+    //                start the overcurrent sample is taken (fault_arbiter's
+    //                lookback). A time, so it holds at any clock: 100 ns is
+    //                5 clocks at 50 MHz. fault_arbiter's shift needs at least
+    //                2 clocks, so at 10 MHz it is 2 (200 ns), not 1. Held as
+    //                a clock count, it had become 500 ns at 10 MHz - at the
+    //                duty ceiling, the low-side conduction is only about
+    //                550 ns long, so the sample landed on the switching edge.
+    localparam int OC_BLANK_NS   = 100;
+    localparam int OC_BLANK_CLKS = (ns_to_clks(OC_BLANK_NS) < 2) ? 2 : ns_to_clks(OC_BLANK_NS);
+
     localparam int SPI_FILTER_CLKS = 8;     // 800 ns at 10 MHz (160 ns at 50 MHz)
 
 

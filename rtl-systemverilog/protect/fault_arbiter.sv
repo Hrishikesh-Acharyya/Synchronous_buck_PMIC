@@ -40,7 +40,7 @@ module fault_arbiter #(
     //             high-side turn-on rather than during the switch-node slew.
     //             Must be >= 2; the shift concatenation below is malformed
     //             at 1.
-    parameter int BLANK_CLKS = 5
+    parameter int BLANK_CLKS = pmic_types_pkg::OC_BLANK_CLKS
     
 ) (
     input  wire logic clk,
