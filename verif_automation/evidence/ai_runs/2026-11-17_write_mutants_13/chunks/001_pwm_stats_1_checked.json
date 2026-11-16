@@ -1,0 +1,48 @@
+[
+ {
+  "proposal": {
+   "line": 146,
+   "before": [
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;"
+   ],
+   "after": [
+    "    if (pwm_fall) duty_count <= {1'b0, period_counter[CNT_W-2:0]};",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= {1'b0, period_counter[CNT_W-2:0]};"
+   ],
+   "category": "field",
+   "description": "The duty snapshot is assumed never to exceed the nominal period (111 < 128), so the drift-headroom MSB of period_counter is dropped from duty_count and the high-phase length is exported modulo 2^(CNT_W-1).",
+   "reason": "When a stalled-high PWM finally falls with the counter saturated, duty_count reads 127 instead of the all-ones out-of-range marker 255. The same happens for any high phase of 129 or more clocks: duty_count reads short."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.146.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "    period_counter <= 0;"
+   ],
+   "after": [
+    "    if (period_counter != '1) period_counter <= 0;"
+   ],
+   "category": "reset_init",
+   "description": "The out-of-range marker is made sticky: a rising edge that ends a saturated period captures all-ones into prev_period but does not restart period_counter, so the counter stays saturated until reset.",
+   "reason": "After one stall (pwm_sync held high or low until period_counter reaches 255), the PWM can resume normally. prev_period then reads 255 at every later rising edge, and duty_count reads 255 at every later falling edge, until rst_n is asserted. It should show the real period and duty again."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.132.AIM.23"
+ }
+]

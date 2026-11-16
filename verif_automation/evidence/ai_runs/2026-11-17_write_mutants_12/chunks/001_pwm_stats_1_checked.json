@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin",
+    "",
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (period_counter == '1) begin",
+    "",
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "    prev_period <= period_counter;",
+    "",
+    "  end"
+   ],
+   "category": "sequencing",
+   "description": "The out-of-range marker is published to prev_period as soon as period_counter saturates, mid-period, instead of when the next rising edge closes the stalled period.",
+   "reason": "If pwm_sync stalls (high or low) long enough to saturate the counter, prev_period changes to all-ones during the stall instead of keeping the last complete period. In the original it changes only at the next rising edge, and never changes if no rising edge comes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.147.AIM.20"
+ },
+ {
+  "proposal": {
+   "line": 129,
+   "before": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    duty_count     <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "'Both captured from the same counter run' is misread as 'both captured at the same rising edge', so duty_count is also loaded with the full period count at every rising edge.",
+   "reason": "After each rising edge, duty_count equals prev_period (the whole switching period) until the next falling edge overwrites it. During the HS phase the host reads 100% duty, and if PWM stalls high it keeps reading that value."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.132.AIM.21"
+ }
+]

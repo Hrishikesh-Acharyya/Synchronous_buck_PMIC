@@ -1,0 +1,72 @@
+[
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter[CNT_W-1]) begin"
+   ],
+   "category": "boundary",
+   "description": "The saturation test reads the extra drift-headroom MSB as an overflow flag, so the period counter stops at 2^(CNT_W-1) (128) instead of the all-ones out-of-range marker.",
+   "reason": "If pwm_sync stalls high or low for more than 128 clocks, prev_period (and duty_count, if it stalled high) reads 128 instead of 255 after the stall. The host then sees a plausible long period, not the all-ones marker."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 150,
+   "before": [
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The prev_period snapshot is copied into the falling-edge branch too, so the period export is overwritten at the end of HS conduction as well as at the start of the cycle.",
+   "reason": "In the low phase of every switching cycle, prev_period equals duty_count (the high-phase length) instead of the previous full period. It is corrected only at the next rising edge, so a read during the LS phase gets a wrong switching period."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.153.AIM.15"
+ },
+ {
+  "proposal": {
+   "line": 157,
+   "before": [
+    "  else begin",
+    "",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    if (pwm_sync) period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "category": "other",
+   "description": "The period counter is gated by the PWM level, as if it were an on-time counter, so it stops during the LS phase and does not span the whole switching period.",
+   "reason": "In any cycle with a low phase longer than one clock, prev_period is captured at the next rise as roughly duty_count+1 rather than the full period. A stall with pwm_sync held low also never saturates to the all-ones marker."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.159.AIM.16"
+ }
+]

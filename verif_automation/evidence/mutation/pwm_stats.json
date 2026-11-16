@@ -1,0 +1,3266 @@
+{
+ "module": "pwm_stats",
+ "file": "rtl-systemverilog/telemetry/pwm_stats.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:33",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 6,
+   "accepted": 6,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_8"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:35",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 7,
+   "accepted": 7,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_9"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:37",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_10"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:40",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_11"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:41",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_12"
+  },
+  {
+   "n": 6,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:43",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_13"
+  },
+  {
+   "n": 7,
+   "kind": "mutation",
+   "date": "2026-11-17",
+   "time": "00:48",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 123,
+   "counts": {
+    "killed": 109,
+    "lint": 10,
+    "survived": 4
+   },
+   "score": "96.7%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_pwm_stats": 4.834413528442383
+   }
+  },
+  {
+   "n": 8,
+   "kind": "judge",
+   "date": "2026-11-17",
+   "time": "00:49",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "judged": 4,
+   "equivalent_high_confidence": 1,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_judge_survivors_2"
+  },
+  {
+   "n": 9,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:51",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "the branch runs only when period_counter == '1, the same width as duty_count, so '1 is the value it would copy",
+   "mutants": [
+    "pwm_stats.146.STK.2"
+   ]
+  },
+  {
+   "n": 10,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:51",
+   "commit": "58da85b",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "pwm_sync_d reset untested: reset only at time zero with pwm_sync low; needs a reset released with pwm_sync high, which makes the first period one clock off",
+   "mutants": [
+    "pwm_stats.84.CSK.1",
+    "pwm_stats.86.CST.1",
+    "pwm_stats.86.SDL.1"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_duty_within_period",
+       "a_prev_period_captures_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.AIM.1",
+   "operator": "AIM",
+   "line": 129,
+   "description": "The saturation hold takes precedence over pwm_rise, so a rising edge seen while period_counter is saturated neither captures prev_period nor restarts the counter.",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (pwm_rise && period_counter != '1) begin",
+   "category": "priority",
+   "reason": "After pwm_sync stalls for more than 255 clocks and then switches again, period_counter stays at all-ones for good and prev_period is never updated, where the original captures all-ones and starts measuring again on the first rise.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_holds_at_ceiling +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_holds_at_ceiling",
+       "a_counter_never_wraps",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.2",
+   "operator": "AIM",
+   "line": 144,
+   "description": "pwm_fall is handled before the saturation hold, so a falling edge on a saturated counter takes the normal fall branch and increments the counter past all-ones.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter == '1 && !pwm_fall) begin",
+   "category": "priority",
+   "reason": "When pwm_sync stalls high long enough to saturate and then falls, period_counter wraps to 0. The next rise then captures a short prev_period instead of the all-ones out-of-range marker.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_holds_at_ceiling +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_holds_at_ceiling",
+       "a_counter_never_wraps",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.3",
+   "operator": "AIM",
+   "line": 144,
+   "description": "Saturation applies only while PWM is high (the stall-high case named in the comment), and a stall with pwm_sync held low is forgotten.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter == '1 && pwm_sync_d) begin",
+   "category": "missing_case",
+   "reason": "If pwm_sync stays low for more than 255 clocks, period_counter wraps to 0 and the next rise captures a small prev_period instead of all-ones.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.4",
+   "operator": "AIM",
+   "line": 144,
+   "description": "The counter saturates at the nominal period CLKS_PER_SW (111) instead of the counter's all-ones limit, which forgets the drift headroom CNT_W was sized for.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter == CNT_W'(pmic_types_pkg::CLKS_PER_SW)) begin",
+   "category": "boundary",
+   "reason": "When the oscillator drifts slow enough that a period is longer than about 112 clocks, period_counter freezes at 111. prev_period (and duty_count, if the fall comes late) are clipped to 111 instead of showing the true count, and a stall reads 111 instead of all-ones.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.133.AIM.5",
+   "operator": "AIM",
+   "line": 133,
+   "description": "duty_count is cleared at the start of every switching period as if it were run state, but it is a held snapshot that should keep the last high-phase length.",
+   "before": "",
+   "after": "duty_count     <= 0; / ",
+   "category": "reset_init",
+   "reason": "In every period, duty_count reads 0 from the clock after pwm_rise until the next pwm_fall. During that window it no longer holds the last high time, and it is no longer consistent with prev_period.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_captures_on_rise +1",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.AIM.6",
+   "operator": "AIM",
+   "line": 131,
+   "description": "prev_period adds one for the rise clock, so the period is counted differently from duty_count, which is taken from the same counter run without the +1.",
+   "before": "prev_period    <= period_counter;",
+   "after": "prev_period    <= period_counter + 1;",
+   "category": "boundary",
+   "reason": "Every captured prev_period is one higher than the original. After a stall the saturated all-ones value wraps to 0, so a dead modulator reads as a zero-length period instead of the out-of-range marker.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +8",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_duty_within_period",
+       "a_duty_count_stable_otherwise",
+       "a_prev_period_captures_on_rise",
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.AIM.7",
+   "operator": "AIM",
+   "line": 104,
+   "description": "PWM polarity misremembered as active-low: the switching period is taken from falling edge to falling edge and the duty snapshot is taken on the rising edge, so duty_count measures the low (LS) phase instead of HS conduction.",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync; / always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_fall = ~pwm_sync_d & pwm_sync; / always_comb pwm_rise = pwm_sync_d & ~pwm_sync;",
+   "category": "other",
+   "reason": "For any running PWM with duty other than 50%, duty_count reports the low-phase length (period minus high time) instead of the high-phase length; prev_period stays about the same, so the host infers the wrong Vout.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +4",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall",
+       "a_counter_holds_at_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.AIM.8",
+   "operator": "AIM",
+   "line": 105,
+   "description": "The start-of-cycle detector fires on any PWM edge rather than only the rising edge, so the period counter is restarted at the end of HS conduction as well.",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = pwm_sync_d ^ pwm_sync;",
+   "category": "wrong_event",
+   "reason": "With a running PWM, prev_period alternately captures the high-phase and the low-phase length instead of the full period, and duty_count is never updated by a normal falling edge because the restart branch wins.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_within_period +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_within_period",
+       "a_prev_period_captures_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.AIM.9",
+   "operator": "AIM",
+   "line": 131,
+   "description": "A rising edge that ends a saturated (stalled) period is treated as invalid and does not update prev_period, so the all-ones out-of-range marker is never exported.",
+   "before": "prev_period    <= period_counter;",
+   "after": "if (period_counter != '1) prev_period <= period_counter;",
+   "category": "missing_case",
+   "reason": "After pwm_sync stalls long enough for period_counter to saturate and then resumes, prev_period keeps the last plausible period instead of reading all-ones, hiding the stall from the host.",
+   "written_in": 2
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.10",
+   "operator": "AIM",
+   "line": 144,
+   "description": "The saturation test looks ahead at the next count, so the period counter stops one short at all-ones minus one instead of reaching the all-ones out-of-range marker.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if ((period_counter + CNT_W'(1)) == '1) begin",
+   "category": "boundary",
+   "reason": "When pwm_sync stalls for more than 254 clocks, the following rising edge exports prev_period = 0xFE (and a fall exports duty_count = 0xFE) instead of the all-ones value the host recognises as out-of-range.",
+   "written_in": 2
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_holds_at_ceiling +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_holds_at_ceiling",
+       "a_counter_never_wraps",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.AIM.11",
+   "operator": "AIM",
+   "line": 146,
+   "description": "When a stalled-high PWM finally falls, the saturated period counter is restarted at the fall as if measurement had recovered, rather than held until the next rising edge.",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_fall) begin / duty_count     <= period_counter; / period_counter <= 0; / end",
+   "category": "wrong_event",
+   "reason": "After a stall-high long enough to saturate the counter, the next rising edge exports only the low-phase length as prev_period, a plausible short period, instead of the all-ones marker for the stalled cycle.",
+   "written_in": 2
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.AIM.12",
+   "operator": "AIM",
+   "line": 150,
+   "description": "The duty snapshot is taken on the PWM low level instead of on the falling edge, so duty_count keeps being overwritten throughout the low phase.",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (!pwm_sync) begin",
+   "category": "wrong_event",
+   "reason": "For a running PWM, duty_count follows period_counter during the whole low phase and ends near the full period length at the next rise, instead of holding the high-phase length captured at the fall.",
+   "written_in": 2
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.152.AIM.13",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The falling-edge clock is counted as part of HS conduction, so duty_count is one higher than the count taken from the same counter run for prev_period.",
+   "before": "duty_count     <= period_counter;",
+   "after": "duty_count     <= period_counter + 1;",
+   "category": "sequencing",
+   "reason": "For every normal period, duty_count reads one count higher than the high-phase length on the same basis as prev_period, so duty/period is biased high and reads 100% duty one count early.",
+   "written_in": 2
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.14",
+   "operator": "AIM",
+   "line": 144,
+   "description": "The saturation test reads the extra drift-headroom MSB as an overflow flag, so the period counter stops at 2^(CNT_W-1) (128) instead of the all-ones out-of-range marker.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter[CNT_W-1]) begin",
+   "category": "boundary",
+   "reason": "If pwm_sync stalls high or low for more than 128 clocks, prev_period (and duty_count, if it stalled high) reads 128 instead of 255 after the stall. The host then sees a plausible long period, not the all-ones marker.",
+   "written_in": 3
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.AIM.15",
+   "operator": "AIM",
+   "line": 153,
+   "description": "The prev_period snapshot is copied into the falling-edge branch too, so the period export is overwritten at the end of HS conduction as well as at the start of the cycle.",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "prev_period    <= period_counter; / period_counter <= period_counter + 1;",
+   "category": "wrong_event",
+   "reason": "In the low phase of every switching cycle, prev_period equals duty_count (the high-phase length) instead of the previous full period. It is corrected only at the next rising edge, so a read during the LS phase gets a wrong switching period.",
+   "written_in": 3
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.AIM.16",
+   "operator": "AIM",
+   "line": 159,
+   "description": "The period counter is gated by the PWM level, as if it were an on-time counter, so it stops during the LS phase and does not span the whole switching period.",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "if (pwm_sync) period_counter <= period_counter + 1;",
+   "category": "other",
+   "reason": "In any cycle with a low phase longer than one clock, prev_period is captured at the next rise as roughly duty_count+1 rather than the full period. A stall with pwm_sync held low also never saturates to the all-ones marker.",
+   "written_in": 3
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_within_period +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_within_period",
+       "a_prev_period_captures_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.AIM.17",
+   "operator": "AIM",
+   "line": 131,
+   "description": "The drift-headroom MSB of the period counter is treated as internal only and is dropped from the prev_period export, so the exported period is taken modulo 2^(CNT_W-1).",
+   "before": "prev_period    <= period_counter;",
+   "after": "prev_period    <= {1'b0, period_counter[CNT_W-2:0]};",
+   "category": "field",
+   "reason": "When pwm_sync stalls and the counter saturates, the next rising edge exports 127 instead of the all-ones out-of-range marker 255. Any slow period of 128 or more clocks also reads short, which looks like a higher switching frequency.",
+   "written_in": 4
+  },
+  "AIM.18": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_holds_at_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_holds_at_ceiling",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.AIM.18",
+   "operator": "AIM",
+   "line": 144,
+   "description": "The saturation hold is applied only to a stall with pwm_sync held low (a dead modulator taken to mean PWM low). The stalled-high case named in the comment is left out, so the counter wraps.",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter == '1 && !pwm_sync) begin",
+   "category": "missing_case",
+   "reason": "If pwm_sync stays high for more than 255 clocks, period_counter wraps through 0. The fall then captures a small duty_count and the next rise exports a short prev_period instead of all-ones.",
+   "written_in": 4
+  },
+  "AIM.19": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +7",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_within_period",
+       "a_duty_count_captures_on_fall",
+       "a_counter_holds_at_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.AIM.19",
+   "operator": "AIM",
+   "line": 105,
+   "description": "The start-of-cycle strobe pwm_rise is registered, unlike pwm_fall, so the period counter is restarted one clock after the rising edge while the duty snapshot still uses the combinational fall.",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_ff @(posedge clk or negedge rst_n) begin / if (!rst_n) pwm_rise <= 1'b0; / else        pwm_rise <= ~pwm_sync_d & pwm_sync; / end",
+   "category": "sequencing",
+   "reason": "In steady switching, duty_count reads one less than the HS high time measured from the same counter run, so it no longer matches prev_period. With a one-clock HS pulse, the delayed rise and the fall land on the same clock, the rise wins, and duty_count is not updated.",
+   "written_in": 4
+  },
+  "AIM.20": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.147.AIM.20",
+   "operator": "AIM",
+   "line": 147,
+   "description": "The out-of-range marker is published to prev_period as soon as period_counter saturates, mid-period, instead of when the next rising edge closes the stalled period.",
+   "before": "",
+   "after": "prev_period <= period_counter; / ",
+   "category": "sequencing",
+   "reason": "If pwm_sync stalls (high or low) long enough to saturate the counter, prev_period changes to all-ones during the stall instead of keeping the last complete period. In the original it changes only at the next rising edge, and never changes if no rising edge comes.",
+   "written_in": 5
+  },
+  "AIM.21": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.132.AIM.21",
+   "operator": "AIM",
+   "line": 132,
+   "description": "'Both captured from the same counter run' is misread as 'both captured at the same rising edge', so duty_count is also loaded with the full period count at every rising edge.",
+   "before": "period_counter <= 0;",
+   "after": "duty_count     <= period_counter; / period_counter <= 0;",
+   "category": "wrong_event",
+   "reason": "After each rising edge, duty_count equals prev_period (the whole switching period) until the next falling edge overwrites it. During the HS phase the host reads 100% duty, and if PWM stalls high it keeps reading that value.",
+   "written_in": 5
+  },
+  "AIM.22": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.AIM.22",
+   "operator": "AIM",
+   "line": 146,
+   "description": "The duty snapshot is assumed never to exceed the nominal period (111 < 128), so the drift-headroom MSB of period_counter is dropped from duty_count and the high-phase length is exported modulo 2^(CNT_W-1).",
+   "before": "if (pwm_fall) duty_count <= period_counter; /  / end /  / else if (pwm_fall) begin /  / duty_count     <= period_counter;",
+   "after": "if (pwm_fall) duty_count <= {1'b0, period_counter[CNT_W-2:0]}; /  / end /  / else if (pwm_fall) begin /  / duty_count     <= {1'b0, period_counter[CNT_W-2:0]};",
+   "category": "field",
+   "reason": "When a stalled-high PWM finally falls with the counter saturated, duty_count reads 127 instead of the all-ones out-of-range marker 255. The same happens for any high phase of 129 or more clocks: duty_count reads short.",
+   "written_in": 6
+  },
+  "AIM.23": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.132.AIM.23",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The out-of-range marker is made sticky: a rising edge that ends a saturated period captures all-ones into prev_period but does not restart period_counter, so the counter stays saturated until reset.",
+   "before": "period_counter <= 0;",
+   "after": "if (period_counter != '1) period_counter <= 0;",
+   "category": "reset_init",
+   "reason": "After one stall (pwm_sync held high or low until period_counter reaches 255), the PWM can resume normally. prev_period then reads 255 at every later rising edge, and duty_count reads 255 at every later falling edge, until rst_n is asserted. It should show the real period and duty again.",
+   "written_in": 6
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.75.EDG.1",
+   "operator": "EDG",
+   "line": 75,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset branch at line 84 never taken, pwm_sync_d is no longer cleared and keeps tracking pwm_sync, including on the negedge of rst_n. If pwm_sync is 1 when reset is released, the original sees a rise (pwm_sync_d=0) and holds period_counter at 0 (lines 129-132), while the mutant sees no rise and counts to 1, so the next prev_period/duty_count capture is off by one; pwm_sync_d is also X at power-up."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "pwm_sync_d reset untested: reset only at time zero with pwm_sync low; needs a reset released with pwm_sync high, which makes the first period one clock off"
+    }
+   ],
+   "id": "pwm_stats.84.CSK.1",
+   "operator": "CSK",
+   "line": 84,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.84.CSK.2",
+   "operator": "CSK",
+   "line": 84,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.84.UOD.1",
+   "operator": "UOD",
+   "line": 84,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "a12a9337ed#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pwm_sync_d reset to 1, a pwm_sync that is high at the first clock after reset no longer produces pwm_rise (line 105). period_counter then increments to 1 instead of being cleared to 0 at line 132, so the next captured duty_count/prev_period is off by one."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "pwm_sync_d reset untested: reset only at time zero with pwm_sync low; needs a reset released with pwm_sync high, which makes the first period one clock off"
+    }
+   ],
+   "id": "pwm_stats.86.CST.1",
+   "operator": "CST",
+   "line": 86,
+   "description": "0 -> 1",
+   "before": "pwm_sync_d <= 0;",
+   "after": "pwm_sync_d <= 1;"
+  },
+  "5ee073ca5f#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 86, pwm_sync_d keeps its pre-reset value (or X at power-up) through reset. If it was 1 and pwm_sync is 1 when reset is released, the pwm_rise at line 129 is missed and period_counter counts from 1 instead of 0. That changes the captured prev_period/duty_count values."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "pwm_sync_d reset untested: reset only at time zero with pwm_sync low; needs a reset released with pwm_sync high, which makes the first period one clock off"
+    }
+   ],
+   "id": "pwm_stats.86.SDL.1",
+   "operator": "SDL",
+   "line": 86,
+   "description": "delete 'pwm_sync_d <= 0;'",
+   "before": "pwm_sync_d <= 0;",
+   "after": ";"
+  },
+  "c1a719f43d#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.SDL.1",
+   "operator": "SDL",
+   "line": 92,
+   "description": "delete 'pwm_sync_d <= pwm_sync;'",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": ";"
+  },
+  "f16a0a1f05#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.SIB.1",
+   "operator": "SIB",
+   "line": 92,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= pwm_fall;"
+  },
+  "0c39a4b9c3#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +3",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.SIB.2",
+   "operator": "SIB",
+   "line": 92,
+   "description": "pwm_sync -> pwm_rise",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= pwm_rise;"
+  },
+  "96d8c300df#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.STK.1",
+   "operator": "STK",
+   "line": 92,
+   "description": "pwm_sync_d stuck at all-zeros (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '0;"
+  },
+  "429e889f08#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +3",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_counter_clears_on_rise",
+       "a_duty_within_period",
+       "a_prev_period_captures_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.STK.2",
+   "operator": "STK",
+   "line": 92,
+   "description": "pwm_sync_d stuck at all-ones (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '1;"
+  },
+  "56e3983858#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +7",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_counter_clears_on_rise",
+       "a_duty_within_period",
+       "a_prev_period_captures_on_rise",
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.92.VNG.1",
+   "operator": "VNG",
+   "line": 92,
+   "description": "pwm_sync_d inverted (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= ~(pwm_sync);"
+  },
+  "8b152f2615#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.CTD.1",
+   "operator": "CTD",
+   "line": 104,
+   "description": "drop the term 'pwm_sync_d'",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = ~pwm_sync;"
+  },
+  "20a580506b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.CTD.2",
+   "operator": "CTD",
+   "line": 104,
+   "description": "drop the term '~pwm_sync'",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d;"
+  },
+  "7c1663d03a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.CTN.1",
+   "operator": "CTN",
+   "line": 104,
+   "description": "negate the term 'pwm_sync_d'",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = ~(pwm_sync_d) & ~pwm_sync;"
+  },
+  "d6dde09464#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.DLY.1",
+   "operator": "DLY",
+   "line": 104,
+   "description": "pwm_sync_d -> pwm_sync",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync & ~pwm_sync;"
+  },
+  "c19ba5a9e3#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.DLY.2",
+   "operator": "DLY",
+   "line": 104,
+   "description": "pwm_sync -> pwm_sync_d",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync_d;"
+  },
+  "5564dd383c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.LCR.1",
+   "operator": "LCR",
+   "line": 104,
+   "description": "& -> |",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d | ~pwm_sync;"
+  },
+  "8ef8751bbc#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.SDL.1",
+   "operator": "SDL",
+   "line": 104,
+   "description": "delete 'pwm_fall = pwm_sync_d & ~pwm_sync;'",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb ;"
+  },
+  "2082869c46#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.SIB.1",
+   "operator": "SIB",
+   "line": 104,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d & ~pwm_fall;"
+  },
+  "7b15350755#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.SIB.2",
+   "operator": "SIB",
+   "line": 104,
+   "description": "pwm_sync -> pwm_rise",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d & ~pwm_rise;"
+  },
+  "56a0cef776#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.STK.1",
+   "operator": "STK",
+   "line": 104,
+   "description": "pwm_fall stuck at all-zeros (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = '0;"
+  },
+  "d463e60da9#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.STK.2",
+   "operator": "STK",
+   "line": 104,
+   "description": "pwm_fall stuck at all-ones (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = '1;"
+  },
+  "6461869db3#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.UOD.1",
+   "operator": "UOD",
+   "line": 104,
+   "description": "drop the '~' before pwm_sync",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = pwm_sync_d & pwm_sync;"
+  },
+  "3793895470#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.104.VNG.1",
+   "operator": "VNG",
+   "line": 104,
+   "description": "pwm_fall inverted (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_comb pwm_fall = ~(pwm_sync_d & ~pwm_sync);"
+  },
+  "c46fd708d9#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.CTD.1",
+   "operator": "CTD",
+   "line": 105,
+   "description": "drop the term '~pwm_sync_d'",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = pwm_sync;"
+  },
+  "f291af9374#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +4",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_never_wraps",
+       "a_prev_period_stable_otherwise",
+       "a_duty_within_period",
+       "a_counter_holds_at_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.CTD.2",
+   "operator": "CTD",
+   "line": 105,
+   "description": "drop the term 'pwm_sync'",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d;"
+  },
+  "b3c39ddd8e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +5",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_clears_on_rise",
+       "a_counter_never_wraps",
+       "a_prev_period_stable_otherwise",
+       "a_duty_within_period",
+       "a_counter_holds_at_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.CTN.1",
+   "operator": "CTN",
+   "line": 105,
+   "description": "negate the term 'pwm_sync'",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d & ~(pwm_sync);"
+  },
+  "73168e173a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.DLY.1",
+   "operator": "DLY",
+   "line": 105,
+   "description": "pwm_sync_d -> pwm_sync",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync & pwm_sync;"
+  },
+  "ddf33399c1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.DLY.2",
+   "operator": "DLY",
+   "line": 105,
+   "description": "pwm_sync -> pwm_sync_d",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync_d;"
+  },
+  "d48d6713ff#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_never_wraps",
+       "a_prev_period_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.LCR.1",
+   "operator": "LCR",
+   "line": 105,
+   "description": "& -> |",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d | pwm_sync;"
+  },
+  "39bc9f802e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.SDL.1",
+   "operator": "SDL",
+   "line": 105,
+   "description": "delete 'pwm_rise = ~pwm_sync_d & pwm_sync;'",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb ;"
+  },
+  "933b7205e0#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.SIB.1",
+   "operator": "SIB",
+   "line": 105,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d & pwm_fall;"
+  },
+  "5c47d21738#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.SIB.2",
+   "operator": "SIB",
+   "line": 105,
+   "description": "pwm_sync -> pwm_rise",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~pwm_sync_d & pwm_rise;"
+  },
+  "88eb8c12c1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.STK.1",
+   "operator": "STK",
+   "line": 105,
+   "description": "pwm_rise stuck at all-zeros (was '~pwm_sync_d & pwm_sync')",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = '0;"
+  },
+  "bd6dfddd8c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.STK.2",
+   "operator": "STK",
+   "line": 105,
+   "description": "pwm_rise stuck at all-ones (was '~pwm_sync_d & pwm_sync')",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = '1;"
+  },
+  "843e17530c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +5",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.UOD.1",
+   "operator": "UOD",
+   "line": 105,
+   "description": "drop the '~' before pwm_sync_d",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = pwm_sync_d & pwm_sync;"
+  },
+  "b038801dae#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +4",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_clears_on_rise",
+       "a_counter_never_wraps",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.105.VNG.1",
+   "operator": "VNG",
+   "line": 105,
+   "description": "pwm_rise inverted (was '~pwm_sync_d & pwm_sync')",
+   "before": "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;",
+   "after": "always_comb pwm_rise = ~(~pwm_sync_d & pwm_sync);"
+  },
+  "495af01178#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +8",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise",
+       "a_prev_period_stable_otherwise",
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period",
+       "a_duty_count_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.107.EDG.1",
+   "operator": "EDG",
+   "line": 107,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "f3b1d97880#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.121.BDL.1",
+   "operator": "BDL",
+   "line": 121,
+   "description": "empty the 3-statement body of the if at line 121",
+   "before": "if(!rst_n) begin",
+   "after": "if(!rst_n) begin end"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.121.CSK.1",
+   "operator": "CSK",
+   "line": 121,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.121.CSK.2",
+   "operator": "CSK",
+   "line": 121,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset +1",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset",
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.121.UOD.1",
+   "operator": "UOD",
+   "line": 121,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "806ef7faff#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.123.CST.1",
+   "operator": "CST",
+   "line": 123,
+   "description": "0 -> 1",
+   "before": "period_counter <= 0;",
+   "after": "period_counter <= 1;"
+  },
+  "93246562f8#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.123.SDL.1",
+   "operator": "SDL",
+   "line": 123,
+   "description": "delete 'period_counter <= 0;'",
+   "before": "period_counter <= 0;",
+   "after": ";"
+  },
+  "44549e653a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.124.CST.1",
+   "operator": "CST",
+   "line": 124,
+   "description": "0 -> 1",
+   "before": "duty_count     <= 0;",
+   "after": "duty_count     <= 1;"
+  },
+  "6f7e96572b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.124.SDL.1",
+   "operator": "SDL",
+   "line": 124,
+   "description": "delete 'duty_count <= 0;'",
+   "before": "duty_count     <= 0;",
+   "after": ";"
+  },
+  "42617b4e73#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.125.CST.1",
+   "operator": "CST",
+   "line": 125,
+   "description": "0 -> 1",
+   "before": "prev_period    <= 0;",
+   "after": "prev_period    <= 1;"
+  },
+  "6ef6d90d96#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_outputs_zero_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_outputs_zero_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.125.SDL.1",
+   "operator": "SDL",
+   "line": 125,
+   "description": "delete 'prev_period <= 0;'",
+   "before": "prev_period    <= 0;",
+   "after": ";"
+  },
+  "1459ba30f3#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise +2",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise",
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.BDL.1",
+   "operator": "BDL",
+   "line": 129,
+   "description": "empty the 2-statement body of the if at line 129",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (pwm_rise) begin end"
+  },
+  "5aceeae022#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +4",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_clears_on_rise",
+       "a_counter_never_wraps",
+       "a_prev_period_stable_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.CND.1",
+   "operator": "CND",
+   "line": 129,
+   "description": "if (pwm_rise) -> if (!(...))",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (!(pwm_rise)) begin"
+  },
+  "6ccb39e2b0#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.CSK.1",
+   "operator": "CSK",
+   "line": 129,
+   "description": "if (pwm_rise) -> if (1'b0): never taken",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "18e3538a18#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.CSK.2",
+   "operator": "CSK",
+   "line": 129,
+   "description": "if (pwm_rise) -> if (1'b1): always taken",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "e209587667#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.EDL.1",
+   "operator": "EDL",
+   "line": 129,
+   "description": "delete the else branch at line 129",
+   "before": "else if (pwm_rise) begin",
+   "after": ""
+  },
+  "fdc8993ed8#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.SIB.1",
+   "operator": "SIB",
+   "line": 129,
+   "description": "pwm_rise -> pwm_fall",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (pwm_fall) begin"
+  },
+  "8203000a0b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.129.SIB.2",
+   "operator": "SIB",
+   "line": 129,
+   "description": "pwm_rise -> pwm_sync",
+   "before": "else if (pwm_rise) begin",
+   "after": "else if (pwm_sync) begin"
+  },
+  "616de41e93#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_captures_on_rise +1",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.SDL.1",
+   "operator": "SDL",
+   "line": 131,
+   "description": "delete 'prev_period <= period_counter;'",
+   "before": "prev_period    <= period_counter;",
+   "after": ";"
+  },
+  "35ef5d1ff1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_captures_on_rise +1",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.STK.1",
+   "operator": "STK",
+   "line": 131,
+   "description": "prev_period stuck at all-zeros (was 'period_counter')",
+   "before": "prev_period    <= period_counter;",
+   "after": "prev_period    <= '0;"
+  },
+  "19855d104b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_captures_on_rise",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_captures_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.STK.2",
+   "operator": "STK",
+   "line": 131,
+   "description": "prev_period stuck at all-ones (was 'period_counter')",
+   "before": "prev_period    <= period_counter;",
+   "after": "prev_period    <= '1;"
+  },
+  "2a76bfe8c1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_prev_period_captures_on_rise +1",
+     "killed_by": {
+      "assertions": [
+       "a_prev_period_captures_on_rise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.131.VNG.1",
+   "operator": "VNG",
+   "line": 131,
+   "description": "prev_period inverted (was 'period_counter')",
+   "before": "prev_period    <= period_counter;",
+   "after": "prev_period    <= ~(period_counter);"
+  },
+  "806ef7faff#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.132.CST.1",
+   "operator": "CST",
+   "line": 132,
+   "description": "0 -> 1",
+   "before": "period_counter <= 0;",
+   "after": "period_counter <= 1;"
+  },
+  "93246562f8#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_clears_on_rise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_clears_on_rise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.132.SDL.1",
+   "operator": "SDL",
+   "line": 132,
+   "description": "delete 'period_counter <= 0;'",
+   "before": "period_counter <= 0;",
+   "after": ";"
+  },
+  "5ece08958e#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_holds_at_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_holds_at_ceiling",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.CSK.1",
+   "operator": "CSK",
+   "line": 144,
+   "description": "if (period_counter == '1) -> if (1'b0): never taken",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "9ff09ba160#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.CSK.2",
+   "operator": "CSK",
+   "line": 144,
+   "description": "if (period_counter == '1) -> if (1'b1): always taken",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "a1270f30d7#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.CST.1",
+   "operator": "CST",
+   "line": 144,
+   "description": "'1 -> '0",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter == '0) begin"
+  },
+  "3afb86b724#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.EDL.1",
+   "operator": "EDL",
+   "line": 144,
+   "description": "delete the else branch at line 144",
+   "before": "else if (period_counter == '1) begin",
+   "after": ""
+  },
+  "bc4b2bb7ac#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.144.ROR.1",
+   "operator": "ROR",
+   "line": 144,
+   "description": "== -> !=",
+   "before": "else if (period_counter == '1) begin",
+   "after": "else if (period_counter != '1) begin"
+  },
+  "1621a28e56#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_within_period +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_within_period",
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.CND.1",
+   "operator": "CND",
+   "line": 146,
+   "description": "if (pwm_fall) -> if (!(...))",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (!(pwm_fall)) duty_count <= period_counter;"
+  },
+  "747ffedf16#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_within_period +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_within_period",
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.CSK.1",
+   "operator": "CSK",
+   "line": 146,
+   "description": "if (pwm_fall) -> if (1'b1): always taken",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (1'b1) duty_count <= period_counter;"
+  },
+  "3b94327076#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.SDL.1",
+   "operator": "SDL",
+   "line": 146,
+   "description": "delete 'duty_count <= period_counter;'",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_fall) ;"
+  },
+  "890b5c5ee9#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.SIB.1",
+   "operator": "SIB",
+   "line": 146,
+   "description": "pwm_fall -> pwm_rise",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_rise) duty_count <= period_counter;"
+  },
+  "1488d36b7a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_within_period +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_within_period",
+       "a_duty_count_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.SIB.2",
+   "operator": "SIB",
+   "line": 146,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_sync) duty_count <= period_counter;"
+  },
+  "e3ede6b7c1#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.STK.1",
+   "operator": "STK",
+   "line": 146,
+   "description": "duty_count stuck at all-zeros (was 'period_counter')",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_fall) duty_count <= '0;"
+  },
+  "058f4bdc2c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 8,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "Line 146 only runs inside the branch guarded by `period_counter == '1` at line 144. There period_counter is exactly all-ones at the full width CNT_W, which is also duty_count's width, so assigning '1 writes the same value. If period_counter is X, the condition is not true and the branch does not run in either version."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 9,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "the branch runs only when period_counter == '1, the same width as duty_count, so '1 is the value it would copy"
+    }
+   ],
+   "id": "pwm_stats.146.STK.2",
+   "operator": "STK",
+   "line": 146,
+   "description": "duty_count stuck at all-ones (was 'period_counter')",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_fall) duty_count <= '1;"
+  },
+  "2fcbe47ec5#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.146.VNG.1",
+   "operator": "VNG",
+   "line": 146,
+   "description": "duty_count inverted (was 'period_counter')",
+   "before": "if (pwm_fall) duty_count <= period_counter;",
+   "after": "if (pwm_fall) duty_count <= ~(period_counter);"
+  },
+  "b4ec47acfc#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.BDL.1",
+   "operator": "BDL",
+   "line": 150,
+   "description": "empty the 2-statement body of the if at line 150",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (pwm_fall) begin end"
+  },
+  "a7cc175c94#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.CND.1",
+   "operator": "CND",
+   "line": 150,
+   "description": "if (pwm_fall) -> if (!(...))",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (!(pwm_fall)) begin"
+  },
+  "1892f5eaf8#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.CSK.1",
+   "operator": "CSK",
+   "line": 150,
+   "description": "if (pwm_fall) -> if (1'b0): never taken",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "b980f30166#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.CSK.2",
+   "operator": "CSK",
+   "line": 150,
+   "description": "if (pwm_fall) -> if (1'b1): always taken",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "ad3d1a797a#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.EDL.1",
+   "operator": "EDL",
+   "line": 150,
+   "description": "delete the else branch at line 150",
+   "before": "else if (pwm_fall) begin",
+   "after": ""
+  },
+  "6bf9c6fb10#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.SIB.1",
+   "operator": "SIB",
+   "line": 150,
+   "description": "pwm_fall -> pwm_rise",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (pwm_rise) begin"
+  },
+  "305100e59b#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_stable_otherwise +2",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_stable_otherwise",
+       "a_duty_within_period",
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.150.SIB.2",
+   "operator": "SIB",
+   "line": 150,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "else if (pwm_fall) begin",
+   "after": "else if (pwm_sync) begin"
+  },
+  "c829cd2bae#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.152.SDL.1",
+   "operator": "SDL",
+   "line": 152,
+   "description": "delete 'duty_count <= period_counter;'",
+   "before": "duty_count     <= period_counter;",
+   "after": ";"
+  },
+  "58acc5c7b9#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.152.STK.1",
+   "operator": "STK",
+   "line": 152,
+   "description": "duty_count stuck at all-zeros (was 'period_counter')",
+   "before": "duty_count     <= period_counter;",
+   "after": "duty_count     <= '0;"
+  },
+  "5a60a30213#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.152.STK.2",
+   "operator": "STK",
+   "line": 152,
+   "description": "duty_count stuck at all-ones (was 'period_counter')",
+   "before": "duty_count     <= period_counter;",
+   "after": "duty_count     <= '1;"
+  },
+  "afecef8030#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_duty_count_captures_on_fall +1",
+     "killed_by": {
+      "assertions": [
+       "a_duty_count_captures_on_fall",
+       "a_duty_within_period"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.152.VNG.1",
+   "operator": "VNG",
+   "line": 152,
+   "description": "duty_count inverted (was 'period_counter')",
+   "before": "duty_count     <= period_counter;",
+   "after": "duty_count     <= ~(period_counter);"
+  },
+  "0e9335b85c#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.AOR.1",
+   "operator": "AOR",
+   "line": 153,
+   "description": "+ -> -",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter - 1;"
+  },
+  "9f9c6f6b81#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.CST.1",
+   "operator": "CST",
+   "line": 153,
+   "description": "1 -> 0",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter + 0;"
+  },
+  "f541fe23e4#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.CST.2",
+   "operator": "CST",
+   "line": 153,
+   "description": "1 -> 2",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter + 2;"
+  },
+  "5d7f441dce#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.SDL.1",
+   "operator": "SDL",
+   "line": 153,
+   "description": "delete 'period_counter <= period_counter + 1;'",
+   "before": "period_counter <= period_counter + 1;",
+   "after": ";"
+  },
+  "22222bd8bb#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.STK.1",
+   "operator": "STK",
+   "line": 153,
+   "description": "period_counter stuck at all-zeros (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= '0;"
+  },
+  "5dfeca197f#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.STK.2",
+   "operator": "STK",
+   "line": 153,
+   "description": "period_counter stuck at all-ones (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= '1;"
+  },
+  "cae88ac2eb#1": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.153.VNG.1",
+   "operator": "VNG",
+   "line": 153,
+   "description": "period_counter inverted (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= ~(period_counter + 1);"
+  },
+  "0e9335b85c#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.AOR.1",
+   "operator": "AOR",
+   "line": 159,
+   "description": "+ -> -",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter - 1;"
+  },
+  "9f9c6f6b81#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.CST.1",
+   "operator": "CST",
+   "line": 159,
+   "description": "1 -> 0",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter + 0;"
+  },
+  "f541fe23e4#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.CST.2",
+   "operator": "CST",
+   "line": 159,
+   "description": "1 -> 2",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= period_counter + 2;"
+  },
+  "5d7f441dce#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.SDL.1",
+   "operator": "SDL",
+   "line": 159,
+   "description": "delete 'period_counter <= period_counter + 1;'",
+   "before": "period_counter <= period_counter + 1;",
+   "after": ";"
+  },
+  "22222bd8bb#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise",
+       "a_counter_never_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.STK.1",
+   "operator": "STK",
+   "line": 159,
+   "description": "period_counter stuck at all-zeros (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= '0;"
+  },
+  "5dfeca197f#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_advances_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.STK.2",
+   "operator": "STK",
+   "line": 159,
+   "description": "period_counter stuck at all-ones (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= '1;"
+  },
+  "cae88ac2eb#2": {
+   "outcomes": [
+    {
+     "run": 7,
+     "status": "killed",
+     "detail": "assertion a_counter_never_wraps +1",
+     "killed_by": {
+      "assertions": [
+       "a_counter_never_wraps",
+       "a_counter_advances_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pwm_stats.159.VNG.1",
+   "operator": "VNG",
+   "line": 159,
+   "description": "period_counter inverted (was 'period_counter + 1')",
+   "before": "period_counter <= period_counter + 1;",
+   "after": "period_counter <= ~(period_counter + 1);"
+  }
+ }
+}

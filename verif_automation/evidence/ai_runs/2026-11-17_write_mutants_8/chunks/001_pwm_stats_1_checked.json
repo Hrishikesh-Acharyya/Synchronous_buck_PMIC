@@ -1,0 +1,115 @@
+[
+ {
+  "proposal": {
+   "line": 129,
+   "before": [
+    "  else if (pwm_rise) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && period_counter != '1) begin"
+   ],
+   "category": "priority",
+   "description": "The saturation hold takes precedence over pwm_rise, so a rising edge seen while period_counter is saturated neither captures prev_period nor restarts the counter.",
+   "reason": "After pwm_sync stalls for more than 255 clocks and then switches again, period_counter stays at all-ones for good and prev_period is never updated, where the original captures all-ones and starts measuring again on the first rise."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.129.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && !pwm_fall) begin"
+   ],
+   "category": "priority",
+   "description": "pwm_fall is handled before the saturation hold, so a falling edge on a saturated counter takes the normal fall branch and increments the counter past all-ones.",
+   "reason": "When pwm_sync stalls high long enough to saturate and then falls, period_counter wraps to 0. The next rise then captures a short prev_period instead of the all-ones out-of-range marker."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && pwm_sync_d) begin"
+   ],
+   "category": "missing_case",
+   "description": "Saturation applies only while PWM is high (the stall-high case named in the comment), and a stall with pwm_sync held low is forgotten.",
+   "reason": "If pwm_sync stays low for more than 255 clocks, period_counter wraps to 0 and the next rise captures a small prev_period instead of all-ones."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == CNT_W'(pmic_types_pkg::CLKS_PER_SW)) begin"
+   ],
+   "category": "boundary",
+   "description": "The counter saturates at the nominal period CLKS_PER_SW (111) instead of the counter's all-ones limit, which forgets the drift headroom CNT_W was sized for.",
+   "reason": "When the oscillator drifts slow enough that a period is longer than about 112 clocks, period_counter freezes at 111. prev_period (and duty_count, if the fall comes late) are clipped to 111 instead of showing the true count, and a stall reads 111 instead of all-ones."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 129,
+   "before": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "    duty_count     <= 0;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "duty_count is cleared at the start of every switching period as if it were run state, but it is a held snapshot that should keep the last high-phase length.",
+   "reason": "In every period, duty_count reads 0 from the clock after pwm_rise until the next pwm_fall. During that window it no longer holds the last high time, and it is no longer consistent with prev_period."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.133.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 131,
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    prev_period    <= period_counter + 1;"
+   ],
+   "category": "boundary",
+   "description": "prev_period adds one for the rise clock, so the period is counted differently from duty_count, which is taken from the same counter run without the +1.",
+   "reason": "Every captured prev_period is one higher than the original. After a stall the saturated all-ones value wraps to 0, so a dead modulator reads as a zero-length period instead of the out-of-range marker."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.131.AIM.6"
+ }
+]

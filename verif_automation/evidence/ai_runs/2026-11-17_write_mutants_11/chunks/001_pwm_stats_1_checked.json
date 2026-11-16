@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 131,
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    prev_period    <= {1'b0, period_counter[CNT_W-2:0]};"
+   ],
+   "category": "field",
+   "description": "The drift-headroom MSB of the period counter is treated as internal only and is dropped from the prev_period export, so the exported period is taken modulo 2^(CNT_W-1).",
+   "reason": "When pwm_sync stalls and the counter saturates, the next rising edge exports 127 instead of the all-ones out-of-range marker 255. Any slow period of 128 or more clocks also reads short, which looks like a higher switching frequency."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.131.AIM.17"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && !pwm_sync) begin"
+   ],
+   "category": "missing_case",
+   "description": "The saturation hold is applied only to a stall with pwm_sync held low (a dead modulator taken to mean PWM low). The stalled-high case named in the comment is left out, so the counter wraps.",
+   "reason": "If pwm_sync stays high for more than 255 clocks, period_counter wraps through 0. The fall then captures a small duty_count and the next rise exports a short prev_period instead of all-ones."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 105,
+   "before": [
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) pwm_rise <= 1'b0;",
+    "  else        pwm_rise <= ~pwm_sync_d & pwm_sync;",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "The start-of-cycle strobe pwm_rise is registered, unlike pwm_fall, so the period counter is restarted one clock after the rising edge while the duty snapshot still uses the combinational fall.",
+   "reason": "In steady switching, duty_count reads one less than the HS high time measured from the same counter run, so it no longer matches prev_period. With a one-clock HS pulse, the delayed rise and the fall land on the same clock, the rise wins, and duty_count is not updated."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.105.AIM.19"
+ }
+]

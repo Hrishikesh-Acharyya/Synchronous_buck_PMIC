@@ -1,0 +1,126 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_comb pwm_fall = ~pwm_sync_d & pwm_sync;",
+    "always_comb pwm_rise = pwm_sync_d & ~pwm_sync;"
+   ],
+   "category": "other",
+   "description": "PWM polarity misremembered as active-low: the switching period is taken from falling edge to falling edge and the duty snapshot is taken on the rising edge, so duty_count measures the low (LS) phase instead of HS conduction.",
+   "reason": "For any running PWM with duty other than 50%, duty_count reports the low-phase length (period minus high time) instead of the high-phase length; prev_period stays about the same, so the host infers the wrong Vout."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.104.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 105,
+   "before": [
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_comb pwm_rise = pwm_sync_d ^ pwm_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The start-of-cycle detector fires on any PWM edge rather than only the rising edge, so the period counter is restarted at the end of HS conduction as well.",
+   "reason": "With a running PWM, prev_period alternately captures the high-phase and the low-phase length instead of the full period, and duty_count is never updated by a normal falling edge because the restart branch wins."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.105.AIM.8"
+ },
+ {
+  "proposal": {
+   "line": 131,
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    if (period_counter != '1) prev_period <= period_counter;"
+   ],
+   "category": "missing_case",
+   "description": "A rising edge that ends a saturated (stalled) period is treated as invalid and does not update prev_period, so the all-ones out-of-range marker is never exported.",
+   "reason": "After pwm_sync stalls long enough for period_counter to saturate and then resumes, prev_period keeps the last plausible period instead of reading all-ones, hiding the stall from the host."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.131.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if ((period_counter + CNT_W'(1)) == '1) begin"
+   ],
+   "category": "boundary",
+   "description": "The saturation test looks ahead at the next count, so the period counter stops one short at all-ones minus one instead of reaching the all-ones out-of-range marker.",
+   "reason": "When pwm_sync stalls for more than 254 clocks, the following rising edge exports prev_period = 0xFE (and a fall exports duty_count = 0xFE) instead of the all-ones value the host recognises as out-of-range."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.144.AIM.10"
+ },
+ {
+  "proposal": {
+   "line": 146,
+   "before": [
+    "    if (pwm_fall) duty_count <= period_counter;"
+   ],
+   "after": [
+    "    if (pwm_fall) begin",
+    "      duty_count     <= period_counter;",
+    "      period_counter <= 0;",
+    "    end"
+   ],
+   "category": "wrong_event",
+   "description": "When a stalled-high PWM finally falls, the saturated period counter is restarted at the fall as if measurement had recovered, rather than held until the next rising edge.",
+   "reason": "After a stall-high long enough to saturate the counter, the next rising edge exports only the low-phase length as prev_period, a plausible short period, instead of the all-ones marker for the stalled cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.146.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 150,
+   "before": [
+    "  else if (pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!pwm_sync) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The duty snapshot is taken on the PWM low level instead of on the falling edge, so duty_count keeps being overwritten throughout the low phase.",
+   "reason": "For a running PWM, duty_count follows period_counter during the whole low phase and ends near the full period length at the next rise, instead of holding the high-phase length captured at the fall."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.150.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    duty_count     <= period_counter;"
+   ],
+   "after": [
+    "    duty_count     <= period_counter + 1;"
+   ],
+   "category": "sequencing",
+   "description": "The falling-edge clock is counted as part of HS conduction, so duty_count is one higher than the count taken from the same counter run for prev_period.",
+   "reason": "For every normal period, duty_count reads one count higher than the high-phase length on the same basis as prev_period, so duty/period is biased high and reads 100% duty one count early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pwm_stats.152.AIM.13"
+ }
+]

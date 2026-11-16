@@ -1,0 +1,401 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 129,
+   "category": "priority",
+   "description": "The saturation hold takes precedence over pwm_rise, so a rising edge seen while period_counter is saturated neither captures prev_period nor restarts the counter.",
+   "reason": "After pwm_sync stalls for more than 255 clocks and then switches again, period_counter stays at all-ones for good and prev_period is never updated, where the original captures all-ones and starts measuring again on the first rise.",
+   "before": [
+    "  else if (pwm_rise) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && period_counter != '1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 2,
+   "line": 144,
+   "category": "priority",
+   "description": "pwm_fall is handled before the saturation hold, so a falling edge on a saturated counter takes the normal fall branch and increments the counter past all-ones.",
+   "reason": "When pwm_sync stalls high long enough to saturate and then falls, period_counter wraps to 0. The next rise then captures a short prev_period instead of the all-ones out-of-range marker.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && !pwm_fall) begin"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 3,
+   "line": 144,
+   "category": "missing_case",
+   "description": "Saturation applies only while PWM is high (the stall-high case named in the comment), and a stall with pwm_sync held low is forgotten.",
+   "reason": "If pwm_sync stays low for more than 255 clocks, period_counter wraps to 0 and the next rise captures a small prev_period instead of all-ones.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && pwm_sync_d) begin"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 4,
+   "line": 144,
+   "category": "boundary",
+   "description": "The counter saturates at the nominal period CLKS_PER_SW (111) instead of the counter's all-ones limit, which forgets the drift headroom CNT_W was sized for.",
+   "reason": "When the oscillator drifts slow enough that a period is longer than about 112 clocks, period_counter freezes at 111. prev_period (and duty_count, if the fall comes late) are clipped to 111 instead of showing the true count, and a stall reads 111 instead of all-ones.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == CNT_W'(pmic_types_pkg::CLKS_PER_SW)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 5,
+   "line": 129,
+   "category": "reset_init",
+   "description": "duty_count is cleared at the start of every switching period as if it were run state, but it is a held snapshot that should keep the last high-phase length.",
+   "reason": "In every period, duty_count reads 0 from the clock after pwm_rise until the next pwm_fall. During that window it no longer holds the last high time, and it is no longer consistent with prev_period.",
+   "before": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "    duty_count     <= 0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 6,
+   "line": 131,
+   "category": "boundary",
+   "description": "prev_period adds one for the rise clock, so the period is counted differently from duty_count, which is taken from the same counter run without the +1.",
+   "reason": "Every captured prev_period is one higher than the original. After a stall the saturated all-ones value wraps to 0, so a dead modulator reads as a zero-length period instead of the out-of-range marker.",
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    prev_period    <= period_counter + 1;"
+   ],
+   "run": "2026-11-17_write_mutants_8"
+  },
+  {
+   "key": 7,
+   "line": 104,
+   "category": "other",
+   "description": "PWM polarity misremembered as active-low: the switching period is taken from falling edge to falling edge and the duty snapshot is taken on the rising edge, so duty_count measures the low (LS) phase instead of HS conduction.",
+   "reason": "For any running PWM with duty other than 50%, duty_count reports the low-phase length (period minus high time) instead of the high-phase length; prev_period stays about the same, so the host infers the wrong Vout.",
+   "before": [
+    "always_comb pwm_fall = pwm_sync_d & ~pwm_sync;",
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_comb pwm_fall = ~pwm_sync_d & pwm_sync;",
+    "always_comb pwm_rise = pwm_sync_d & ~pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 8,
+   "line": 105,
+   "category": "wrong_event",
+   "description": "The start-of-cycle detector fires on any PWM edge rather than only the rising edge, so the period counter is restarted at the end of HS conduction as well.",
+   "reason": "With a running PWM, prev_period alternately captures the high-phase and the low-phase length instead of the full period, and duty_count is never updated by a normal falling edge because the restart branch wins.",
+   "before": [
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_comb pwm_rise = pwm_sync_d ^ pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 9,
+   "line": 131,
+   "category": "missing_case",
+   "description": "A rising edge that ends a saturated (stalled) period is treated as invalid and does not update prev_period, so the all-ones out-of-range marker is never exported.",
+   "reason": "After pwm_sync stalls long enough for period_counter to saturate and then resumes, prev_period keeps the last plausible period instead of reading all-ones, hiding the stall from the host.",
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    if (period_counter != '1) prev_period <= period_counter;"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 10,
+   "line": 144,
+   "category": "boundary",
+   "description": "The saturation test looks ahead at the next count, so the period counter stops one short at all-ones minus one instead of reaching the all-ones out-of-range marker.",
+   "reason": "When pwm_sync stalls for more than 254 clocks, the following rising edge exports prev_period = 0xFE (and a fall exports duty_count = 0xFE) instead of the all-ones value the host recognises as out-of-range.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if ((period_counter + CNT_W'(1)) == '1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 11,
+   "line": 146,
+   "category": "wrong_event",
+   "description": "When a stalled-high PWM finally falls, the saturated period counter is restarted at the fall as if measurement had recovered, rather than held until the next rising edge.",
+   "reason": "After a stall-high long enough to saturate the counter, the next rising edge exports only the low-phase length as prev_period, a plausible short period, instead of the all-ones marker for the stalled cycle.",
+   "before": [
+    "    if (pwm_fall) duty_count <= period_counter;"
+   ],
+   "after": [
+    "    if (pwm_fall) begin",
+    "      duty_count     <= period_counter;",
+    "      period_counter <= 0;",
+    "    end"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 12,
+   "line": 150,
+   "category": "wrong_event",
+   "description": "The duty snapshot is taken on the PWM low level instead of on the falling edge, so duty_count keeps being overwritten throughout the low phase.",
+   "reason": "For a running PWM, duty_count follows period_counter during the whole low phase and ends near the full period length at the next rise, instead of holding the high-phase length captured at the fall.",
+   "before": [
+    "  else if (pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!pwm_sync) begin"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 13,
+   "line": 152,
+   "category": "sequencing",
+   "description": "The falling-edge clock is counted as part of HS conduction, so duty_count is one higher than the count taken from the same counter run for prev_period.",
+   "reason": "For every normal period, duty_count reads one count higher than the high-phase length on the same basis as prev_period, so duty/period is biased high and reads 100% duty one count early.",
+   "before": [
+    "    duty_count     <= period_counter;"
+   ],
+   "after": [
+    "    duty_count     <= period_counter + 1;"
+   ],
+   "run": "2026-11-17_write_mutants_9"
+  },
+  {
+   "key": 14,
+   "line": 144,
+   "category": "boundary",
+   "description": "The saturation test reads the extra drift-headroom MSB as an overflow flag, so the period counter stops at 2^(CNT_W-1) (128) instead of the all-ones out-of-range marker.",
+   "reason": "If pwm_sync stalls high or low for more than 128 clocks, prev_period (and duty_count, if it stalled high) reads 128 instead of 255 after the stall. The host then sees a plausible long period, not the all-ones marker.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter[CNT_W-1]) begin"
+   ],
+   "run": "2026-11-17_write_mutants_10"
+  },
+  {
+   "key": 15,
+   "line": 150,
+   "category": "wrong_event",
+   "description": "The prev_period snapshot is copied into the falling-edge branch too, so the period export is overwritten at the end of HS conduction as well as at the start of the cycle.",
+   "reason": "In the low phase of every switching cycle, prev_period equals duty_count (the high-phase length) instead of the previous full period. It is corrected only at the next rising edge, so a read during the LS phase gets a wrong switching period.",
+   "before": [
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_10"
+  },
+  {
+   "key": 16,
+   "line": 157,
+   "category": "other",
+   "description": "The period counter is gated by the PWM level, as if it were an on-time counter, so it stops during the LS phase and does not span the whole switching period.",
+   "reason": "In any cycle with a low phase longer than one clock, prev_period is captured at the next rise as roughly duty_count+1 rather than the full period. A stall with pwm_sync held low also never saturates to the all-ones marker.",
+   "before": [
+    "  else begin",
+    "",
+    "    period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    if (pwm_sync) period_counter <= period_counter + 1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_10"
+  },
+  {
+   "key": 17,
+   "line": 131,
+   "category": "field",
+   "description": "The drift-headroom MSB of the period counter is treated as internal only and is dropped from the prev_period export, so the exported period is taken modulo 2^(CNT_W-1).",
+   "reason": "When pwm_sync stalls and the counter saturates, the next rising edge exports 127 instead of the all-ones out-of-range marker 255. Any slow period of 128 or more clocks also reads short, which looks like a higher switching frequency.",
+   "before": [
+    "    prev_period    <= period_counter;"
+   ],
+   "after": [
+    "    prev_period    <= {1'b0, period_counter[CNT_W-2:0]};"
+   ],
+   "run": "2026-11-17_write_mutants_11"
+  },
+  {
+   "key": 18,
+   "line": 144,
+   "category": "missing_case",
+   "description": "The saturation hold is applied only to a stall with pwm_sync held low (a dead modulator taken to mean PWM low). The stalled-high case named in the comment is left out, so the counter wraps.",
+   "reason": "If pwm_sync stays high for more than 255 clocks, period_counter wraps through 0. The fall then captures a small duty_count and the next rise exports a short prev_period instead of all-ones.",
+   "before": [
+    "  else if (period_counter == '1) begin"
+   ],
+   "after": [
+    "  else if (period_counter == '1 && !pwm_sync) begin"
+   ],
+   "run": "2026-11-17_write_mutants_11"
+  },
+  {
+   "key": 19,
+   "line": 105,
+   "category": "sequencing",
+   "description": "The start-of-cycle strobe pwm_rise is registered, unlike pwm_fall, so the period counter is restarted one clock after the rising edge while the duty snapshot still uses the combinational fall.",
+   "reason": "In steady switching, duty_count reads one less than the HS high time measured from the same counter run, so it no longer matches prev_period. With a one-clock HS pulse, the delayed rise and the fall land on the same clock, the rise wins, and duty_count is not updated.",
+   "before": [
+    "always_comb pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) pwm_rise <= 1'b0;",
+    "  else        pwm_rise <= ~pwm_sync_d & pwm_sync;",
+    "end"
+   ],
+   "run": "2026-11-17_write_mutants_11"
+  },
+  {
+   "key": 20,
+   "line": 144,
+   "category": "sequencing",
+   "description": "The out-of-range marker is published to prev_period as soon as period_counter saturates, mid-period, instead of when the next rising edge closes the stalled period.",
+   "reason": "If pwm_sync stalls (high or low) long enough to saturate the counter, prev_period changes to all-ones during the stall instead of keeping the last complete period. In the original it changes only at the next rising edge, and never changes if no rising edge comes.",
+   "before": [
+    "  else if (period_counter == '1) begin",
+    "",
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (period_counter == '1) begin",
+    "",
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "    prev_period <= period_counter;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_12"
+  },
+  {
+   "key": 21,
+   "line": 129,
+   "category": "wrong_event",
+   "description": "'Both captured from the same counter run' is misread as 'both captured at the same rising edge', so duty_count is also loaded with the full period count at every rising edge.",
+   "reason": "After each rising edge, duty_count equals prev_period (the whole switching period) until the next falling edge overwrites it. During the HS phase the host reads 100% duty, and if PWM stalls high it keeps reading that value.",
+   "before": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (pwm_rise) begin",
+    "",
+    "    prev_period    <= period_counter;",
+    "    duty_count     <= period_counter;",
+    "    period_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_12"
+  },
+  {
+   "key": 22,
+   "line": 146,
+   "category": "field",
+   "description": "The duty snapshot is assumed never to exceed the nominal period (111 < 128), so the drift-headroom MSB of period_counter is dropped from duty_count and the high-phase length is exported modulo 2^(CNT_W-1).",
+   "reason": "When a stalled-high PWM finally falls with the counter saturated, duty_count reads 127 instead of the all-ones out-of-range marker 255. The same happens for any high phase of 129 or more clocks: duty_count reads short.",
+   "before": [
+    "    if (pwm_fall) duty_count <= period_counter;",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= period_counter;"
+   ],
+   "after": [
+    "    if (pwm_fall) duty_count <= {1'b0, period_counter[CNT_W-2:0]};",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_fall) begin",
+    "",
+    "    duty_count     <= {1'b0, period_counter[CNT_W-2:0]};"
+   ],
+   "run": "2026-11-17_write_mutants_13"
+  },
+  {
+   "key": 23,
+   "line": 131,
+   "category": "reset_init",
+   "description": "The out-of-range marker is made sticky: a rising edge that ends a saturated period captures all-ones into prev_period but does not restart period_counter, so the counter stays saturated until reset.",
+   "reason": "After one stall (pwm_sync held high or low until period_counter reaches 255), the PWM can resume normally. prev_period then reads 255 at every later rising edge, and duty_count reads 255 at every later falling edge, until rst_n is asserted. It should show the real period and duty again.",
+   "before": [
+    "    prev_period    <= period_counter;",
+    "    period_counter <= 0;"
+   ],
+   "after": [
+    "    prev_period    <= period_counter;",
+    "    if (period_counter != '1) period_counter <= 0;"
+   ],
+   "run": "2026-11-17_write_mutants_13"
+  }
+ ],
+ "unit": "pwm_stats",
+ "file": "rtl-systemverilog/telemetry/pwm_stats.sv",
+ "last_key": 23
+}
