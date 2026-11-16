@@ -1,0 +1,243 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`pgood_gen`, in `rtl-systemverilog/status/pgood_gen.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "pgood_gen.64.CSK.1",
+  "line": 64,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "pgood_gen.66.SDL.1",
+  "line": 66,
+  "operator": "SDL",
+  "description": "delete 'pwm_sync_d<=0;'",
+  "before": "pwm_sync_d<=0;",
+  "after": ";"
+ },
+ {
+  "id": "pgood_gen.66.CST.1",
+  "line": 66,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "pwm_sync_d<=0;",
+  "after": "pwm_sync_d<=1;"
+ },
+ {
+  "id": "pgood_gen.70.AIM.13",
+  "line": 70,
+  "operator": "AIM",
+  "description": "The delayed PWM copy is only tracked while the supervisor is in S_RUN, so on entry to S_RUN the cycle-boundary detector compares the live PWM with a stale sample",
+  "before": "else begin",
+  "after": "else if (run_active) begin"
+ },
+ {
+  "id": "pgood_gen.72.STK.2",
+  "line": 72,
+  "operator": "STK",
+  "description": "pwm_sync_d stuck at all-ones (was 'pwm_sync')",
+  "before": "pwm_sync_d <= pwm_sync;",
+  "after": "pwm_sync_d <= '1;"
+ },
+ {
+  "id": "pgood_gen.72.VNG.1",
+  "line": 72,
+  "operator": "VNG",
+  "description": "pwm_sync_d inverted (was 'pwm_sync')",
+  "before": "pwm_sync_d <= pwm_sync;",
+  "after": "pwm_sync_d <= ~(pwm_sync);"
+ },
+ {
+  "id": "pgood_gen.79.AIM.16",
+  "line": 79,
+  "operator": "AIM",
+  "description": "The cycle-boundary pulse is registered instead of combinational, so the qualifying counter advances one clock after the PWM falling edge is seen rather than on it",
+  "before": "always_comb begin /  / /* / Purpose: / --- / One-clk enable pulse marking the switching-cycle boundary, so the / qualifying counter below advances once per cycle rather than once per / clock. / */ /  / pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "always_ff @(posedge clk) begin /  / /* / Purpose: / --- / One-clk enable pulse marking the switching-cycle boundary, so the / qualifying counter below advances once per cycle rather than once per / clock. / */ /  / pwm_fall <= pwm_sync_d & ~pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.89.AIM.1",
+  "line": 89,
+  "operator": "AIM",
+  "description": "The cycle-boundary pulse fires on both PWM edges, so the qualifying counter advances twice per switching cycle",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = pwm_sync_d ^ pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.89.AIM.2",
+  "line": 89,
+  "operator": "AIM",
+  "description": "The cycle boundary is taken on the rising edge of the PWM, not the falling edge that ends the cycle",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = ~pwm_sync_d & pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.89.CTN.1",
+  "line": 89,
+  "operator": "CTN",
+  "description": "negate the term 'pwm_sync_d'",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = ~(pwm_sync_d) & ~pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.89.VNG.1",
+  "line": 89,
+  "operator": "VNG",
+  "description": "pwm_fall inverted (was 'pwm_sync_d & ~pwm_sync')",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = ~(pwm_sync_d & ~pwm_sync);"
+ },
+ {
+  "id": "pgood_gen.89.CTD.2",
+  "line": 89,
+  "operator": "CTD",
+  "description": "drop the term '~pwm_sync'",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = pwm_sync_d;"
+ },
+ {
+  "id": "pgood_gen.89.LCR.1",
+  "line": 89,
+  "operator": "LCR",
+  "description": "& -> |",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = pwm_sync_d | ~pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.89.UOD.1",
+  "line": 89,
+  "operator": "UOD",
+  "description": "drop the '~' before pwm_sync",
+  "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+  "after": "pwm_fall = pwm_sync_d & pwm_sync;"
+ },
+ {
+  "id": "pgood_gen.114.CSK.1",
+  "line": 114,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "pgood_gen.116.SDL.1",
+  "line": 116,
+  "operator": "SDL",
+  "description": "delete 'qualify_counter <= 0;'",
+  "before": "qualify_counter <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "pgood_gen.116.CST.1",
+  "line": 116,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "qualify_counter <= 0;",
+  "after": "qualify_counter <= 1;"
+ },
+ {
+  "id": "pgood_gen.124.AIM.7",
+  "line": 124,
+  "operator": "AIM",
+  "description": "The cycle-boundary increment takes priority over the synchronous clear, so a bad rail or a departure from S_RUN on the clock that pwm_fall fires advances the qualifying counter instead of restarting it",
+  "before": "else if (!run_active ||  !pgood_comp) begin",
+  "after": "else if ((!run_active ||  !pgood_comp) && !pwm_fall) begin"
+ },
+ {
+  "id": "pgood_gen.132.CSK.2",
+  "line": 132,
+  "operator": "CSK",
+  "description": "if (qualify_counter == TARGET) -> if (1'b1): always taken",
+  "before": "if(qualify_counter == TARGET) begin",
+  "after": "if(1'b1) begin"
+ },
+ {
+  "id": "pgood_gen.134.SDL.1",
+  "line": 134,
+  "operator": "SDL",
+  "description": "delete 'qualify_counter <= TARGET;'",
+  "before": "qualify_counter <= TARGET;",
+  "after": ";"
+ },
+ {
+  "id": "pgood_gen.140.AOR.1",
+  "line": 140,
+  "operator": "AOR",
+  "description": "+ -> -",
+  "before": "qualify_counter <= qualify_counter + 1;",
+  "after": "qualify_counter <= qualify_counter - 1;"
+ }
+]
+```

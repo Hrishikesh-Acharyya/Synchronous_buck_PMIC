@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 169,
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = ((|qualify_counter) & pgood_comp & run_active);"
+   ],
+   "category": "boundary",
+   "description": "PGOOD treats a qualifying count that has started (counter non-zero) as qualified, instead of one that has reached TARGET, which confuses 'qualifying' with 'qualified'",
+   "reason": "In S_RUN with the comparator good, PGOOD now asserts on the first PWM falling edge rather than after PGOOD_DELAY_CYCLES consecutive good switching cycles. Any configuration with a delay above one cycle hands the load to the converter output almost at once."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.169.AIM.20"
+ }
+]

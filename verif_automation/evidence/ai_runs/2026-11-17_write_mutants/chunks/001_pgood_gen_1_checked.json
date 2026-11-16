@@ -1,0 +1,74 @@
+[
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && !pwm_fall) begin  "
+   ],
+   "category": "priority",
+   "description": "The cycle-boundary increment takes priority over the synchronous clear, so a bad rail or a departure from S_RUN on the clock that pwm_fall fires advances the qualifying counter instead of restarting it",
+   "reason": "If a one-clock comparator dip (or run_active drop) lands on the pwm_fall clock, the original restarts the count but the mutant increments it. PGOOD then asserts after a good period that was not continuous, earlier than PGOOD_DELAY_CYCLES consecutive good cycles after the dip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && (qualify_counter != TARGET)) begin  "
+   ],
+   "category": "reset_init",
+   "description": "The qualifying counter is restarted only while it is still qualifying; once at TARGET, a comparator dip or exit from S_RUN leaves it saturated, as though the live gating on PGOOD were enough",
+   "reason": "After PGOOD has asserted, pgood_comp drops (or run_active drops) and then comes back. The original keeps PGOOD low for a fresh PGOOD_DELAY_CYCLES qualifying period, but the mutant raises PGOOD again on the first clock the conditions return."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.8"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "      if(qualify_counter == TARGET) begin",
+    "",
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "      if(&qualify_counter) begin",
+    "",
+    "        qualify_counter <= '1;"
+   ],
+   "category": "boundary",
+   "description": "The qualifying counter saturates at its all-ones value (as the package comment describes) instead of at TARGET, so it runs past the count PGOOD compares against",
+   "reason": "With the default PGOOD_DELAY_CYCLES not equal to 2**PGOOD_DELAY_W-1, the counter passes TARGET on the next switching-cycle boundary. PGOOD goes high for one switching cycle and then drops for good, even though the rail stays good in S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.132.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 169,
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (qualify_counter[PGOOD_DELAY_W-1] & pgood_comp & run_active);"
+   ],
+   "category": "boundary",
+   "description": "PGOOD treats the counter's top bit as the 'qualified' flag instead of comparing it with TARGET",
+   "reason": "With the default delay, TARGET is not a power of two, so the MSB sets at 2**(PGOOD_DELAY_W-1) cycles. PGOOD then asserts before the full PGOOD_DELAY_CYCLES consecutive good cycles have passed in S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.169.AIM.10"
+ }
+]

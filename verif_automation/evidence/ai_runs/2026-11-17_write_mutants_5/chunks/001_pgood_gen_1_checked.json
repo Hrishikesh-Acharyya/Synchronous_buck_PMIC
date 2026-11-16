@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 169,
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (((qualify_counter == TARGET) | ((qualify_counter == PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1)) & pwm_fall)) & pgood_comp & run_active);"
+   ],
+   "category": "sequencing",
+   "description": "PGOOD looks ahead to the counter's next value: it asserts on the PWM falling edge that will take the counter to TARGET, instead of once the counter has reached it",
+   "reason": "In S_RUN with the comparator good for the whole qualifying period, PGOOD rises one clock early, on the clock where pwm_fall fires and the counter still holds TARGET-1. PGOOD also shows a one-clock pulse on that same clock if the counter is held at TARGET-1 and the comparator or run_active drops right after it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.169.AIM.17"
+ }
+]

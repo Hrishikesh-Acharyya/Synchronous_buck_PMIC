@@ -1,0 +1,39 @@
+[
+ {
+  "proposal": {
+   "line": 79,
+   "before": [
+    "always_comb begin",
+    "",
+    "  /*",
+    "  Purpose:",
+    "  ---",
+    "  One-clk enable pulse marking the switching-cycle boundary, so the",
+    "  qualifying counter below advances once per cycle rather than once per",
+    "  clock.",
+    "  */",
+    "",
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "  /*",
+    "  Purpose:",
+    "  ---",
+    "  One-clk enable pulse marking the switching-cycle boundary, so the",
+    "  qualifying counter below advances once per cycle rather than once per",
+    "  clock.",
+    "  */",
+    "",
+    "  pwm_fall <= pwm_sync_d & ~pwm_sync;"
+   ],
+   "category": "sequencing",
+   "description": "The cycle-boundary pulse is registered instead of combinational, so the qualifying counter advances one clock after the PWM falling edge is seen rather than on it",
+   "reason": "With the rail good in S_RUN, the counter reaches TARGET, and PGOOD rises, one clock later than it should after the qualifying PWM falling edge. A comparator dip or S_RUN exit on the clock right after a falling edge now wins over that late boundary pulse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.79.AIM.16"
+ }
+]

@@ -1,0 +1,134 @@
+[
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The cycle-boundary pulse fires on both PWM edges, so the qualifying counter advances twice per switching cycle",
+   "reason": "With run_active and pgood_comp held high and PWM switching, PGOOD asserts after about half the required switching cycles instead of the full PGOOD_DELAY_CYCLES."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.89.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 89,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = ~pwm_sync_d & pwm_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The cycle boundary is taken on the rising edge of the PWM, not the falling edge that ends the cycle",
+   "reason": "Each count, and so PGOOD's assertion, comes at a PWM rising edge instead of the falling edge. PGOOD rises earlier or later by the PWM high time relative to the cycle-end edge."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.89.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && pwm_fall) begin  "
+   ],
+   "category": "wrong_event",
+   "description": "The qualifying counter is cleared only at a switching-cycle boundary, not on every clock where the rail is bad or the supervisor is not in S_RUN",
+   "reason": "If pgood_comp dips and recovers between two PWM falling edges, the counter is not restarted. If it was already at TARGET, PGOOD reasserts as soon as the comparator recovers instead of waiting the full qualifying delay."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (!run_active) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if (!pgood_comp) begin",
+    "",
+    "    qualify_counter <= qualify_counter;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "A comparator dip in S_RUN pauses the qualifying count instead of restarting it, so the good period is cumulative rather than consecutive",
+   "reason": "After PGOOD has asserted, a short pgood_comp dip drops PGOOD, but PGOOD reasserts at once when pgood_comp returns, because the counter is still at TARGET. The correct design waits a fresh full delay."
+  },
+  "accepted": false,
+  "why": "changes 7 lines; at most 6"
+ },
+ {
+  "proposal": {
+   "line": 134,
+   "before": [
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "        qualify_counter <= qualify_counter + 1;"
+   ],
+   "category": "boundary",
+   "description": "The qualifying counter keeps incrementing past TARGET (wraps) instead of saturating there",
+   "reason": "With the rail good in S_RUN, PGOOD asserts at TARGET and then drops at the next PWM falling edge because the counter moves past TARGET. It does not stay high while conditions hold."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.134.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 51,
+   "before": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);"
+   ],
+   "after": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1);"
+   ],
+   "category": "boundary",
+   "description": "The qualifying target is one cycle short of PGOOD_DELAY_CYCLES (off-by-one in the counter's terminal value)",
+   "reason": "From entering S_RUN with a good rail, PGOOD asserts one switching cycle earlier than the specified qualifying delay."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.51.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 169,
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (qualify_counter == TARGET);"
+   ],
+   "category": "sequencing",
+   "description": "PGOOD is taken from the saturated counter alone, relying on the counter's synchronous clear for deassertion instead of gating it with the live conditions",
+   "reason": "When pgood_comp or run_active falls while PGOOD is high, PGOOD stays high for one more clock until the counter clears. Deassertion is no longer immediate."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.169.AIM.6"
+ }
+]

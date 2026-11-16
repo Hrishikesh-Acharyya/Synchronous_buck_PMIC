@@ -1,0 +1,40 @@
+[
+ {
+  "proposal": {
+   "line": 51,
+   "before": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);"
+   ],
+   "after": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(pmic_types_pkg::PGOOD_DELAY_CYCLES);"
+   ],
+   "category": "field",
+   "description": "TARGET is taken from the package's PGOOD_DELAY_CYCLES instead of the module parameter, so a call-site override of the qualifying delay does not reach the saturation value or the PGOOD comparison",
+   "reason": "When the instance overrides PGOOD_DELAY_CYCLES far below the default (as the header says simulation does), the counter is narrowed to the overridden width but TARGET becomes the truncated package value. PGOOD then asserts after the wrong number of good switching cycles, or never if that value is out of reach."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.51.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "      if(qualify_counter == TARGET) begin",
+    "",
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "      if(qualify_counter == TARGET - 1) begin",
+    "",
+    "        qualify_counter <= TARGET - 1;"
+   ],
+   "category": "boundary",
+   "description": "The qualifying counter saturates one count short of TARGET, while PGOOD still compares against TARGET itself",
+   "reason": "In S_RUN with the rail continuously good, the counter stops at TARGET-1 and never equals TARGET. PGOOD never asserts, however long the rail stays good."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.132.AIM.19"
+ }
+]

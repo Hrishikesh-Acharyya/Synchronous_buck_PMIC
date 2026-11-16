@@ -1,0 +1,2442 @@
+{
+ "module": "pgood_gen",
+ "file": "rtl-systemverilog/status/pgood_gen.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:00",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 7,
+   "accepted": 6,
+   "rejected": [
+    {
+     "description": "A comparator dip in S_RUN pauses the qualifying count instead of restarting it, so the good period is cumulative rather than consecutive",
+     "why": "changes 7 lines; at most 6"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-16_write_mutants"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:02",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 8,
+   "proposed": 4,
+   "accepted": 4,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:06",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 2,
+   "rejected": [
+    {
+     "description": "The qualifying counter advances on every clock while the PWM is high, not once per switching cycle at the PWM falling edge",
+     "why": "the same edit as pgood_gen.130.SIB.1"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_2"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:11",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_3"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:12",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 1,
+   "accepted": 1,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_4"
+  },
+  {
+   "n": 6,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:15",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 1,
+   "accepted": 1,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_5"
+  },
+  {
+   "n": 7,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:16",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_6"
+  },
+  {
+   "n": 8,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:19",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 1,
+   "accepted": 1,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_7"
+  },
+  {
+   "n": 9,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "00:23",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "reason": "the union of AIM.11 and AIM.12: both conditions cleared only at a cycle boundary; killed whenever those two are",
+   "mutants": [
+    "pgood_gen.124.AIM.3"
+   ],
+   "descriptions": [
+    "The qualifying counter is cleared only at a switching-cycle boundary, not on every clock where the rail is bad or the supervisor is not in S_RUN"
+   ]
+  },
+  {
+   "n": 10,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "00:23",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "reason": "same fault as AIM.9 at the output: the counter runs past TARGET and PGOOD drops one cycle after asserting; they differ only after 2**PGOOD_DELAY_W cycles",
+   "mutants": [
+    "pgood_gen.134.AIM.4"
+   ],
+   "descriptions": [
+    "The qualifying counter keeps incrementing past TARGET (wraps) instead of saturating there"
+   ]
+  },
+  {
+   "n": 11,
+   "kind": "mutation",
+   "date": "2026-11-17",
+   "time": "00:26",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 90,
+   "counts": {
+    "killed": 36,
+    "lint": 12,
+    "covers": 21,
+    "survived": 21
+   },
+   "score": "76.7%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_pgood_gen": 5.186607837677002
+   }
+  },
+  {
+   "n": 12,
+   "kind": "judge",
+   "date": "2026-11-17",
+   "time": "00:27",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "judged": 21,
+   "equivalent_high_confidence": 1,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_judge_survivors"
+  },
+  {
+   "n": 13,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:30",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)",
+   "mutants": [
+    "pgood_gen.72.STK.2",
+    "pgood_gen.72.VNG.1",
+    "pgood_gen.89.AIM.1",
+    "pgood_gen.89.CTD.2",
+    "pgood_gen.89.CTN.1",
+    "pgood_gen.89.LCR.1",
+    "pgood_gen.89.UOD.1",
+    "pgood_gen.89.VNG.1",
+    "pgood_gen.132.CSK.2",
+    "pgood_gen.140.AOR.1"
+   ]
+  },
+  {
+   "n": 14,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:30",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "a comparator dip or S_RUN exit on the same clock as pwm_fall is never tested; the count must restart, not advance",
+   "mutants": [
+    "pgood_gen.124.AIM.7"
+   ]
+  },
+  {
+   "n": 15,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:30",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high",
+   "mutants": [
+    "pgood_gen.64.CSK.1",
+    "pgood_gen.66.CST.1",
+    "pgood_gen.66.SDL.1",
+    "pgood_gen.114.CSK.1",
+    "pgood_gen.116.CST.1",
+    "pgood_gen.116.SDL.1"
+   ]
+  },
+  {
+   "n": 16,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:30",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "PGOOD qualification moves by at most one switching cycle (under 2.2 us) on a 9 ms delay; no consumer depends on that resolution",
+   "mutants": [
+    "pgood_gen.79.AIM.16",
+    "pgood_gen.89.AIM.2",
+    "pgood_gen.70.AIM.13"
+   ]
+  },
+  {
+   "n": 17,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "00:30",
+   "commit": "34b8ec6",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "the branch runs only when qualify_counter == TARGET, so the deleted line rewrote the value already held",
+   "mutants": [
+    "pgood_gen.134.SDL.1"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "XOR fires on both PWM edges, so qualify_counter advances twice per switching cycle and PGOOD asserts in roughly half the qualifying time."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.AIM.1",
+   "operator": "AIM",
+   "line": 89,
+   "description": "The cycle-boundary pulse fires on both PWM edges, so the qualifying counter advances twice per switching cycle",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d ^ pwm_sync;",
+   "category": "wrong_event",
+   "reason": "With run_active and pgood_comp held high and PWM switching, PGOOD asserts after about half the required switching cycles instead of the full PGOOD_DELAY_CYCLES.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Counting on rising edges instead of falling edges moves each increment by the PWM high time. A pgood_comp dip or a run_active drop between the two edges then gives a different count, and the final increment (and PGOOD rise) lands on a different clock."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "PGOOD qualification moves by at most one switching cycle (under 2.2 us) on a 9 ms delay; no consumer depends on that resolution"
+    }
+   ],
+   "id": "pgood_gen.89.AIM.2",
+   "operator": "AIM",
+   "line": 89,
+   "description": "The cycle boundary is taken on the rising edge of the PWM, not the falling edge that ends the cycle",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~pwm_sync_d & pwm_sync;",
+   "category": "wrong_event",
+   "reason": "Each count, and so PGOOD's assertion, comes at a PWM rising edge instead of the falling edge. PGOOD rises earlier or later by the PWM high time relative to the cycle-end edge.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.AIM.3",
+   "operator": "AIM",
+   "line": 124,
+   "description": "The qualifying counter is cleared only at a switching-cycle boundary, not on every clock where the rail is bad or the supervisor is not in S_RUN",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if ((!run_active ||  !pgood_comp) && pwm_fall) begin",
+   "category": "wrong_event",
+   "reason": "If pgood_comp dips and recovers between two PWM falling edges, the counter is not restarted. If it was already at TARGET, PGOOD reasserts as soon as the comparator recovers instead of waiting the full qualifying delay.",
+   "written_in": 1,
+   "retired": 9,
+   "withdrawn": "the union of AIM.11 and AIM.12: both conditions cleared only at a cycle boundary; killed whenever those two are"
+  },
+  "AIM.4": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.134.AIM.4",
+   "operator": "AIM",
+   "line": 134,
+   "description": "The qualifying counter keeps incrementing past TARGET (wraps) instead of saturating there",
+   "before": "qualify_counter <= TARGET;",
+   "after": "qualify_counter <= qualify_counter + 1;",
+   "category": "boundary",
+   "reason": "With the rail good in S_RUN, PGOOD asserts at TARGET and then drops at the next PWM falling edge because the counter moves past TARGET. It does not stay high while conditions hold.",
+   "written_in": 1,
+   "retired": 10,
+   "withdrawn": "same fault as AIM.9 at the output: the counter runs past TARGET and PGOOD drops one cycle after asserting; they differ only after 2**PGOOD_DELAY_W cycles"
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.51.AIM.5",
+   "operator": "AIM",
+   "line": 51,
+   "description": "The qualifying target is one cycle short of PGOOD_DELAY_CYCLES (off-by-one in the counter's terminal value)",
+   "before": "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);",
+   "after": "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1);",
+   "category": "boundary",
+   "reason": "From entering S_RUN with a good rail, PGOOD asserts one switching cycle earlier than the specified qualifying delay.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_drops_immediately",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.AIM.6",
+   "operator": "AIM",
+   "line": 169,
+   "description": "PGOOD is taken from the saturated counter alone, relying on the counter's synchronous clear for deassertion instead of gating it with the live conditions",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = (qualify_counter == TARGET);",
+   "category": "sequencing",
+   "reason": "When pgood_comp or run_active falls while PGOOD is high, PGOOD stays high for one more clock until the counter clears. Deassertion is no longer immediate.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "When pwm_fall coincides with pgood_comp or run_active being low, the counter increments instead of clearing. The good-cycle run is no longer required to be consecutive, so PGOOD can assert earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "a comparator dip or S_RUN exit on the same clock as pwm_fall is never tested; the count must restart, not advance"
+    }
+   ],
+   "id": "pgood_gen.124.AIM.7",
+   "operator": "AIM",
+   "line": 124,
+   "description": "The cycle-boundary increment takes priority over the synchronous clear, so a bad rail or a departure from S_RUN on the clock that pwm_fall fires advances the qualifying counter instead of restarting it",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if ((!run_active ||  !pgood_comp) && !pwm_fall) begin",
+   "category": "priority",
+   "reason": "If a one-clock comparator dip (or run_active drop) lands on the pwm_fall clock, the original restarts the count but the mutant increments it. PGOOD then asserts after a good period that was not continuous, earlier than PGOOD_DELAY_CYCLES consecutive good cycles after the dip.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.AIM.8",
+   "operator": "AIM",
+   "line": 124,
+   "description": "The qualifying counter is restarted only while it is still qualifying; once at TARGET, a comparator dip or exit from S_RUN leaves it saturated, as though the live gating on PGOOD were enough",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if ((!run_active ||  !pgood_comp) && (qualify_counter != TARGET)) begin",
+   "category": "reset_init",
+   "reason": "After PGOOD has asserted, pgood_comp drops (or run_active drops) and then comes back. The original keeps PGOOD low for a fresh PGOOD_DELAY_CYCLES qualifying period, but the mutant raises PGOOD again on the first clock the conditions return.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.132.AIM.9",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The qualifying counter saturates at its all-ones value (as the package comment describes) instead of at TARGET, so it runs past the count PGOOD compares against",
+   "before": "if(qualify_counter == TARGET) begin /  / qualify_counter <= TARGET;",
+   "after": "if(&qualify_counter) begin /  / qualify_counter <= '1;",
+   "category": "boundary",
+   "reason": "With the default PGOOD_DELAY_CYCLES not equal to 2**PGOOD_DELAY_W-1, the counter passes TARGET on the next switching-cycle boundary. PGOOD goes high for one switching cycle and then drops for good, even though the rail stays good in S_RUN.",
+   "written_in": 2
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.AIM.10",
+   "operator": "AIM",
+   "line": 169,
+   "description": "PGOOD treats the counter's top bit as the 'qualified' flag instead of comparing it with TARGET",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = (qualify_counter[PGOOD_DELAY_W-1] & pgood_comp & run_active);",
+   "category": "boundary",
+   "reason": "With the default delay, TARGET is not a power of two, so the MSB sets at 2**(PGOOD_DELAY_W-1) cycles. PGOOD then asserts before the full PGOOD_DELAY_CYCLES consecutive good cycles have passed in S_RUN.",
+   "written_in": 2
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.AIM.11",
+   "operator": "AIM",
+   "line": 124,
+   "description": "The comparator is sampled only at the switching-cycle boundary for the restart, so a comparator dip that recovers before the next PWM falling edge does not restart the qualifying count",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!run_active || (pwm_fall && !pgood_comp)) begin",
+   "category": "wrong_event",
+   "reason": "With the counter at TARGET (PGOOD high), a pgood_comp low pulse of a few clocks with no pwm_fall inside it drops PGOOD, but PGOOD comes back as soon as pgood_comp returns instead of staying low for the full PGOOD_DELAY_CYCLES qualifying period. Mid-count dips are skipped the same way, so PGOOD asserts early.",
+   "written_in": 3
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.AIM.12",
+   "operator": "AIM",
+   "line": 124,
+   "description": "A departure from S_RUN restarts the qualifying count only if it is seen on a switching-cycle boundary, so leaving S_RUN between PWM falling edges (or while PWM is stopped) leaves the count intact",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if ((pwm_fall && !run_active) || !pgood_comp) begin",
+   "category": "wrong_event",
+   "reason": "If run_active drops and returns with no pwm_fall in between while pgood_comp stays high, the counter keeps its value. If it was at TARGET, PGOOD reasserts as soon as run_active returns instead of waiting the full delay after re-entering S_RUN.",
+   "written_in": 3
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_sync_d is frozen while run_active is low. At the first edge with run_active high, pwm_fall at line 89 compares the live pwm_sync with a stale sample, so it can produce a spurious count or miss a real one. That shifts when qualify_counter reaches TARGET and so when PGOOD rises."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "PGOOD qualification moves by at most one switching cycle (under 2.2 us) on a 9 ms delay; no consumer depends on that resolution"
+    }
+   ],
+   "id": "pgood_gen.70.AIM.13",
+   "operator": "AIM",
+   "line": 70,
+   "description": "The delayed PWM copy is only tracked while the supervisor is in S_RUN, so on entry to S_RUN the cycle-boundary detector compares the live PWM with a stale sample",
+   "before": "else begin",
+   "after": "else if (run_active) begin",
+   "category": "wrong_event",
+   "reason": "pwm_sync is the free-running oscillator, so it keeps changing outside S_RUN. On the first clock in S_RUN, a stale pwm_sync_d=1 with PWM low creates a false falling edge, and a stale 0 hides a real one. Either way the qualifying count is off by one cycle, so PGOOD asserts one switching cycle early or late after entry or re-entry into S_RUN.",
+   "written_in": 4
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.AIM.14",
+   "operator": "AIM",
+   "line": 124,
+   "description": "Leaving S_RUN pauses the qualifying count instead of restarting it; only a comparator dip clears it",
+   "before": "else if (!run_active ||  !pgood_comp) begin /  / qualify_counter <= 0; /  / end /  / else if(pwm_fall) begin",
+   "after": "else if (!pgood_comp) begin /  / qualify_counter <= 0; /  / end /  / else if(pwm_fall && run_active) begin",
+   "category": "reset_init",
+   "reason": "Suppose the supervisor leaves S_RUN with the rail still in window, for example on a fault or hiccup, and later returns. The counter keeps its old value, so PGOOD reasserts as soon as run_active returns (if the count was saturated), or before a full fresh qualifying period, when it should wait PGOOD_DELAY_CYCLES again.",
+   "written_in": 4
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.AIM.15",
+   "operator": "AIM",
+   "line": 169,
+   "description": "PGOOD compares the counter with one less than the terminal value the counter saturates at, an off-by-one meant to make up for the counter's register delay",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET - 1'b1) & pgood_comp & run_active);",
+   "category": "boundary",
+   "reason": "While the rail stays good in S_RUN, PGOOD asserts one switching cycle early. It then drops when the counter steps to TARGET and stays low while the counter is saturated, so PGOOD is a single-cycle pulse and never stays high.",
+   "written_in": 4
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "A registered pwm_fall lags by one clock and has no reset value. Line 124 is evaluated against the same-clock run_active and pgood_comp, so a delayed pulse can land on a clock where the clear condition holds (or not) differently than in the original, which changes the count. PGOOD timing changes, and an X after reset is also possible."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "PGOOD qualification moves by at most one switching cycle (under 2.2 us) on a 9 ms delay; no consumer depends on that resolution"
+    }
+   ],
+   "id": "pgood_gen.79.AIM.16",
+   "operator": "AIM",
+   "line": 79,
+   "description": "The cycle-boundary pulse is registered instead of combinational, so the qualifying counter advances one clock after the PWM falling edge is seen rather than on it",
+   "before": "always_comb begin /  / /* / Purpose: / --- / One-clk enable pulse marking the switching-cycle boundary, so the / qualifying counter below advances once per cycle rather than once per / clock. / */ /  / pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "always_ff @(posedge clk) begin /  / /* / Purpose: / --- / One-clk enable pulse marking the switching-cycle boundary, so the / qualifying counter below advances once per cycle rather than once per / clock. / */ /  / pwm_fall <= pwm_sync_d & ~pwm_sync;",
+   "category": "sequencing",
+   "reason": "With the rail good in S_RUN, the counter reaches TARGET, and PGOOD rises, one clock later than it should after the qualifying PWM falling edge. A comparator dip or S_RUN exit on the clock right after a falling edge now wins over that late boundary pulse.",
+   "written_in": 5
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.AIM.17",
+   "operator": "AIM",
+   "line": 169,
+   "description": "PGOOD looks ahead to the counter's next value: it asserts on the PWM falling edge that will take the counter to TARGET, instead of once the counter has reached it",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = (((qualify_counter == TARGET) | ((qualify_counter == PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1)) & pwm_fall)) & pgood_comp & run_active);",
+   "category": "sequencing",
+   "reason": "In S_RUN with the comparator good for the whole qualifying period, PGOOD rises one clock early, on the clock where pwm_fall fires and the counter still holds TARGET-1. PGOOD also shows a one-clock pulse on that same clock if the counter is held at TARGET-1 and the comparator or run_active drops right after it.",
+   "written_in": 6
+  },
+  "AIM.18": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.51.AIM.18",
+   "operator": "AIM",
+   "line": 51,
+   "description": "TARGET is taken from the package's PGOOD_DELAY_CYCLES instead of the module parameter, so a call-site override of the qualifying delay does not reach the saturation value or the PGOOD comparison",
+   "before": "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);",
+   "after": "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(pmic_types_pkg::PGOOD_DELAY_CYCLES);",
+   "category": "field",
+   "reason": "When the instance overrides PGOOD_DELAY_CYCLES far below the default (as the header says simulation does), the counter is narrowed to the overridden width but TARGET becomes the truncated package value. PGOOD then asserts after the wrong number of good switching cycles, or never if that value is out of reach.",
+   "written_in": 7
+  },
+  "AIM.19": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 3 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.132.AIM.19",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The qualifying counter saturates one count short of TARGET, while PGOOD still compares against TARGET itself",
+   "before": "if(qualify_counter == TARGET) begin /  / qualify_counter <= TARGET;",
+   "after": "if(qualify_counter == TARGET - 1) begin /  / qualify_counter <= TARGET - 1;",
+   "category": "boundary",
+   "reason": "In S_RUN with the rail continuously good, the counter stops at TARGET-1 and never equals TARGET. PGOOD never asserts, however long the rail stays good.",
+   "written_in": 7
+  },
+  "AIM.20": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.AIM.20",
+   "operator": "AIM",
+   "line": 169,
+   "description": "PGOOD treats a qualifying count that has started (counter non-zero) as qualified, instead of one that has reached TARGET, which confuses 'qualifying' with 'qualified'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((|qualify_counter) & pgood_comp & run_active);",
+   "category": "boundary",
+   "reason": "In S_RUN with the comparator good, PGOOD now asserts on the first PWM falling edge rather than after PGOOD_DELAY_CYCLES consecutive good switching cycles. Any configuration with a delay above one cycle hands the load to the converter output almost at once.",
+   "written_in": 8
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.54.EDG.1",
+   "operator": "EDG",
+   "line": 54,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the async reset at line 64, pwm_sync_d keeps tracking pwm_sync during reset (or stays X if no clock ran), instead of being forced to 0. If pwm_sync was 1 at the last edge before reset is released and is 0 at the first edge after, pwm_fall fires and the counter at line 140 advances one extra time, so PGOOD asserts a cycle earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.64.CSK.1",
+   "operator": "CSK",
+   "line": 64,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.64.CSK.2",
+   "operator": "CSK",
+   "line": 64,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.64.UOD.1",
+   "operator": "UOD",
+   "line": 64,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "f1bc649577#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Resetting pwm_sync_d to 1 makes pwm_fall (line 89) pulse at the first edge after reset whenever pwm_sync is low. If run_active and pgood_comp are high, that pulse gives one extra count, so PGOOD asserts one switching cycle earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.66.CST.1",
+   "operator": "CST",
+   "line": 66,
+   "description": "0 -> 1",
+   "before": "pwm_sync_d<=0;",
+   "after": "pwm_sync_d<=1;"
+  },
+  "f50b692183#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset assignment deleted, pwm_sync_d holds its value from before reset (X at power-up). A held 1 gives a pwm_fall pulse at the first edge after reset if pwm_sync is low, which advances qualify_counter (line 140) one extra time and moves PGOOD's assertion earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.66.SDL.1",
+   "operator": "SDL",
+   "line": 66,
+   "description": "delete 'pwm_sync_d<=0;'",
+   "before": "pwm_sync_d<=0;",
+   "after": ";"
+  },
+  "c1a719f43d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.72.SDL.1",
+   "operator": "SDL",
+   "line": 72,
+   "description": "delete 'pwm_sync_d <= pwm_sync;'",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": ";"
+  },
+  "f16a0a1f05#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.72.SIB.1",
+   "operator": "SIB",
+   "line": 72,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= pwm_fall;"
+  },
+  "96d8c300df#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.72.STK.1",
+   "operator": "STK",
+   "line": 72,
+   "description": "pwm_sync_d stuck at all-zeros (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '0;"
+  },
+  "429e889f08#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pwm_sync_d stuck at 1, pwm_fall at line 89 becomes ~pwm_sync. The counter then advances on every clock that PWM is low instead of once per cycle, so PGOOD asserts far sooner."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.72.STK.2",
+   "operator": "STK",
+   "line": 72,
+   "description": "pwm_sync_d stuck at all-ones (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '1;"
+  },
+  "56e3983858#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_fall becomes ~pwm_sync(previous) & ~pwm_sync, which is high on every clock where PWM has been low for two samples. The count rate changes, and so does PGOOD timing."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.72.VNG.1",
+   "operator": "VNG",
+   "line": 72,
+   "description": "pwm_sync_d inverted (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= ~(pwm_sync);"
+  },
+  "c03cfaa81c#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.CTD.1",
+   "operator": "CTD",
+   "line": 89,
+   "description": "drop the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~pwm_sync;"
+  },
+  "faa236c084#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_fall = pwm_sync_d is high on every clock after PWM has been high, so the counter at line 140 advances many times per switching cycle instead of once."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.CTD.2",
+   "operator": "CTD",
+   "line": 89,
+   "description": "drop the term '~pwm_sync'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d;"
+  },
+  "f247ee59ff#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "~pwm_sync_d & ~pwm_sync is high on every clock that PWM stays low. The counter advances many times per cycle and PGOOD asserts much earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.CTN.1",
+   "operator": "CTN",
+   "line": 89,
+   "description": "negate the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d) & ~pwm_sync;"
+  },
+  "6a9ecbe9f1#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.DLY.1",
+   "operator": "DLY",
+   "line": 89,
+   "description": "pwm_sync_d -> pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync & ~pwm_sync;"
+  },
+  "b4ae3c3cf8#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.DLY.2",
+   "operator": "DLY",
+   "line": 89,
+   "description": "pwm_sync -> pwm_sync_d",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_sync_d;"
+  },
+  "9869f69826#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_sync_d | ~pwm_sync is high on most clocks, so the counter advances far more often than once per cycle and PGOOD asserts early."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.LCR.1",
+   "operator": "LCR",
+   "line": 89,
+   "description": "& -> |",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d | ~pwm_sync;"
+  },
+  "38bbb649c0#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN, UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.SDL.1",
+   "operator": "SDL",
+   "line": 89,
+   "description": "delete 'pwm_fall = pwm_sync_d & ~pwm_sync;'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": ";"
+  },
+  "930a5cf8bc#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.SIB.1",
+   "operator": "SIB",
+   "line": 89,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_fall;"
+  },
+  "1355930446#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.STK.1",
+   "operator": "STK",
+   "line": 89,
+   "description": "pwm_fall stuck at all-zeros (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '0;"
+  },
+  "efd44791f1#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.89.STK.2",
+   "operator": "STK",
+   "line": 89,
+   "description": "pwm_fall stuck at all-ones (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '1;"
+  },
+  "357a043fa8#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_sync_d & pwm_sync is high on every clock that PWM stays high, so the count rate changes and PGOOD asserts at a different time."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.UOD.1",
+   "operator": "UOD",
+   "line": 89,
+   "description": "drop the '~' before pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & pwm_sync;"
+  },
+  "ef4e5a0907#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "The inverted pwm_fall is high on almost every clock except the falling edge. The counter then advances nearly every clock and PGOOD timing changes drastically."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.89.VNG.1",
+   "operator": "VNG",
+   "line": 89,
+   "description": "pwm_fall inverted (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d & ~pwm_sync);"
+  },
+  "73448571c2#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_run_counter_advances_on_pwm_fall +1",
+     "killed_by": {
+      "assertions": [
+       "a_run_counter_advances_on_pwm_fall",
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.94.EDG.1",
+   "operator": "EDG",
+   "line": 94,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the async reset, qualify_counter is not cleared by rst_n and starts as X. If the counter was at TARGET and reset is asserted while run_active and pgood_comp are high (not ruled out by the header), PGOOD at line 169 stays 1 instead of 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.114.CSK.1",
+   "operator": "CSK",
+   "line": 114,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.114.CSK.2",
+   "operator": "CSK",
+   "line": 114,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.114.UOD.1",
+   "operator": "UOD",
+   "line": 114,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "323119d705#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Resetting the counter to 1 means it reaches TARGET (4050) one pwm_fall sooner after reset, so PGOOD asserts one switching cycle early."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.116.CST.1",
+   "operator": "CST",
+   "line": 116,
+   "description": "0 -> 1",
+   "before": "qualify_counter <= 0;",
+   "after": "qualify_counter <= 1;"
+  },
+  "2e7bd0c547#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset assignment deleted, qualify_counter holds its value through reset. A counter at TARGET with run_active and pgood_comp high keeps PGOOD (line 169) high during and after reset, and the power-up value is X."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-qualification and with pwm_sync high"
+    }
+   ],
+   "id": "pgood_gen.116.SDL.1",
+   "operator": "SDL",
+   "line": 116,
+   "description": "delete 'qualify_counter <= 0;'",
+   "before": "qualify_counter <= 0;",
+   "after": ";"
+  },
+  "91016bc17b#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.CND.1",
+   "operator": "CND",
+   "line": 124,
+   "description": "if (!run_active || !pgood_comp) -> if (!(...))",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!(!run_active ||  !pgood_comp)) begin"
+  },
+  "d3ba0de50e#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.CSK.1",
+   "operator": "CSK",
+   "line": 124,
+   "description": "if (!run_active || !pgood_comp) -> if (1'b0): never taken",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "6face4ff3a#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.CSK.2",
+   "operator": "CSK",
+   "line": 124,
+   "description": "if (!run_active || !pgood_comp) -> if (1'b1): always taken",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "0b4590963d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.CTD.1",
+   "operator": "CTD",
+   "line": 124,
+   "description": "drop the term '!run_active'",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!pgood_comp) begin"
+  },
+  "236f4e7cda#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.CTD.2",
+   "operator": "CTD",
+   "line": 124,
+   "description": "drop the term '!pgood_comp'",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!run_active) begin"
+  },
+  "e0482b564d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.EDL.1",
+   "operator": "EDL",
+   "line": 124,
+   "description": "delete the else branch at line 124",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": ""
+  },
+  "2ca0a07b34#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.LCR.1",
+   "operator": "LCR",
+   "line": 124,
+   "description": "|| -> &&",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!run_active &&  !pgood_comp) begin"
+  },
+  "513df8af74#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.UOD.1",
+   "operator": "UOD",
+   "line": 124,
+   "description": "drop the '!' before run_active",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (run_active ||  !pgood_comp) begin"
+  },
+  "2f0d933c7d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.124.UOD.2",
+   "operator": "UOD",
+   "line": 124,
+   "description": "drop the '!' before pgood_comp",
+   "before": "else if (!run_active ||  !pgood_comp) begin",
+   "after": "else if (!run_active ||  pgood_comp) begin"
+  },
+  "323119d705#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_run_counter_advances_on_pwm_fall +1",
+     "killed_by": {
+      "assertions": [
+       "a_run_counter_advances_on_pwm_fall",
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.126.CST.1",
+   "operator": "CST",
+   "line": 126,
+   "description": "0 -> 1",
+   "before": "qualify_counter <= 0;",
+   "after": "qualify_counter <= 1;"
+  },
+  "2e7bd0c547#2": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_resets",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_resets"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.126.SDL.1",
+   "operator": "SDL",
+   "line": 126,
+   "description": "delete 'qualify_counter <= 0;'",
+   "before": "qualify_counter <= 0;",
+   "after": ";"
+  },
+  "d1ad7285ad#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_run_counter_advances_on_pwm_fall",
+     "killed_by": {
+      "assertions": [
+       "a_run_counter_advances_on_pwm_fall"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.130.CND.1",
+   "operator": "CND",
+   "line": 130,
+   "description": "if (pwm_fall) -> if (!(...))",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(!(pwm_fall)) begin"
+  },
+  "9d2c1a707a#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.130.CSK.1",
+   "operator": "CSK",
+   "line": 130,
+   "description": "if (pwm_fall) -> if (1'b0): never taken",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(1'b0) begin"
+  },
+  "f1326f9401#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.130.CSK.2",
+   "operator": "CSK",
+   "line": 130,
+   "description": "if (pwm_fall) -> if (1'b1): always taken",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(1'b1) begin"
+  },
+  "683899f673#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.130.EDL.1",
+   "operator": "EDL",
+   "line": 130,
+   "description": "delete the else branch at line 130",
+   "before": "else if(pwm_fall) begin",
+   "after": ""
+  },
+  "f22106d9eb#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.130.SIB.1",
+   "operator": "SIB",
+   "line": 130,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(pwm_sync) begin"
+  },
+  "8045385bfc#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.132.CSK.1",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (qualify_counter == TARGET) -> if (1'b0): never taken",
+   "before": "if(qualify_counter == TARGET) begin",
+   "after": "if(1'b0) begin"
+  },
+  "a9f4769a7a#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the condition always true, the first pwm_fall loads TARGET directly, so PGOOD asserts after one good cycle instead of 4050."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.132.CSK.2",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (qualify_counter == TARGET) -> if (1'b1): always taken",
+   "before": "if(qualify_counter == TARGET) begin",
+   "after": "if(1'b1) begin"
+  },
+  "920e0b5b78#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.132.ROR.1",
+   "operator": "ROR",
+   "line": 132,
+   "description": "== -> !=",
+   "before": "if(qualify_counter == TARGET) begin",
+   "after": "if(qualify_counter != TARGET) begin"
+  },
+  "1b2b08aef2#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "This branch runs only when qualify_counter == TARGET (line 132), so the deleted line wrote TARGET into a register that already holds TARGET. Without it, the register keeps the same value, and nothing else in the module depends on the assignment."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "the branch runs only when qualify_counter == TARGET, so the deleted line rewrote the value already held"
+    }
+   ],
+   "id": "pgood_gen.134.SDL.1",
+   "operator": "SDL",
+   "line": 134,
+   "description": "delete 'qualify_counter <= TARGET;'",
+   "before": "qualify_counter <= TARGET;",
+   "after": ";"
+  },
+  "0163fd6730#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.134.STK.1",
+   "operator": "STK",
+   "line": 134,
+   "description": "qualify_counter stuck at all-zeros (was 'TARGET')",
+   "before": "qualify_counter <= TARGET;",
+   "after": "qualify_counter <= '0;"
+  },
+  "be25b2c76a#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.134.STK.2",
+   "operator": "STK",
+   "line": 134,
+   "description": "qualify_counter stuck at all-ones (was 'TARGET')",
+   "before": "qualify_counter <= TARGET;",
+   "after": "qualify_counter <= '1;"
+  },
+  "c4f31ae621#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_qualify_counter_saturates",
+     "killed_by": {
+      "assertions": [
+       "a_qualify_counter_saturates"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.134.VNG.1",
+   "operator": "VNG",
+   "line": 134,
+   "description": "qualify_counter inverted (was 'TARGET')",
+   "before": "qualify_counter <= TARGET;",
+   "after": "qualify_counter <= ~(TARGET);"
+  },
+  "7f5251799f#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 12,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Counting down from 0 wraps to 4095 (12-bit counter) and reaches TARGET = 4050 after 46 pwm_fall pulses instead of 4050, so PGOOD asserts far earlier."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "qualification time never measured from outside: the checker takes the cycle boundary and count from the module itself; needs PGOOD's rise timed in pwm_sync falling edges from the start of a good run (some of these qualify after one cycle)"
+    }
+   ],
+   "id": "pgood_gen.140.AOR.1",
+   "operator": "AOR",
+   "line": 140,
+   "description": "+ -> -",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= qualify_counter - 1;"
+  },
+  "676b7ff989#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.CST.1",
+   "operator": "CST",
+   "line": 140,
+   "description": "1 -> 0",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= qualify_counter + 0;"
+  },
+  "53e6da99f8#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 3 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.CST.2",
+   "operator": "CST",
+   "line": 140,
+   "description": "1 -> 2",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= qualify_counter + 2;"
+  },
+  "fc57b1da22#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.SDL.1",
+   "operator": "SDL",
+   "line": 140,
+   "description": "delete 'qualify_counter <= qualify_counter + 1;'",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": ";"
+  },
+  "cf4a2bbeae#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 2 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.STK.1",
+   "operator": "STK",
+   "line": 140,
+   "description": "qualify_counter stuck at all-zeros (was 'qualify_counter + 1')",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= '0;"
+  },
+  "cbcf9abffb#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 3 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.STK.2",
+   "operator": "STK",
+   "line": 140,
+   "description": "qualify_counter stuck at all-ones (was 'qualify_counter + 1')",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= '1;"
+  },
+  "2a60fe829c#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 3 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.140.VNG.1",
+   "operator": "VNG",
+   "line": 140,
+   "description": "qualify_counter inverted (was 'qualify_counter + 1')",
+   "before": "qualify_counter <= qualify_counter + 1;",
+   "after": "qualify_counter <= ~(qualify_counter + 1);"
+  },
+  "e14f9f72b2#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTD.1",
+   "operator": "CTD",
+   "line": 169,
+   "description": "drop the term '(qualify_counter == TARGET)'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = (pgood_comp & run_active);"
+  },
+  "4e8118d2cd#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_drops_immediately",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTD.2",
+   "operator": "CTD",
+   "line": 169,
+   "description": "drop the term 'pgood_comp'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) & run_active);"
+  },
+  "70c2bdb5ba#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_drops_immediately",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTD.3",
+   "operator": "CTD",
+   "line": 169,
+   "description": "drop the term 'run_active'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) & pgood_comp);"
+  },
+  "e5bafdfeaf#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTN.1",
+   "operator": "CTN",
+   "line": 169,
+   "description": "negate the term '(qualify_counter == TARGET)'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = (~((qualify_counter == TARGET)) & pgood_comp & run_active);"
+  },
+  "68d407ec19#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_drops_immediately",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTN.2",
+   "operator": "CTN",
+   "line": 169,
+   "description": "negate the term 'pgood_comp'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) & ~(pgood_comp) & run_active);"
+  },
+  "dd9e002d9f#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_drops_immediately",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.CTN.3",
+   "operator": "CTN",
+   "line": 169,
+   "description": "negate the term 'run_active'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & ~(run_active));"
+  },
+  "618aab0b8e#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion +1",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion",
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.LCR.1",
+   "operator": "LCR",
+   "line": 169,
+   "description": "& -> |",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) | pgood_comp & run_active);"
+  },
+  "25f04bf15d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion +1",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion",
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.LCR.2",
+   "operator": "LCR",
+   "line": 169,
+   "description": "& -> |",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter == TARGET) & pgood_comp | run_active);"
+  },
+  "220a172c9d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_pgood_assertion",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.ROR.1",
+   "operator": "ROR",
+   "line": 169,
+   "description": "== -> !=",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ((qualify_counter != TARGET) & pgood_comp & run_active);"
+  },
+  "7aed8657e0#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.SDL.1",
+   "operator": "SDL",
+   "line": 169,
+   "description": "delete 'PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_acti'",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": ";"
+  },
+  "6d02485653#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "covers",
+     "detail": "hit 4 SVA covers, the unmutated run 5"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.STK.1",
+   "operator": "STK",
+   "line": 169,
+   "description": "PGOOD stuck at all-zeros (was '((qualify_counter == TARGET) & pgood_com')",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = '0;"
+  },
+  "07308e6ebb#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_rst_n_mean_pgood_low +2",
+     "killed_by": {
+      "assertions": [
+       "a_rst_n_mean_pgood_low",
+       "a_pgood_assertion",
+       "a_pgood_drops_immediately"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.STK.2",
+   "operator": "STK",
+   "line": 169,
+   "description": "PGOOD stuck at all-ones (was '((qualify_counter == TARGET) & pgood_com')",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = '1;"
+  },
+  "0ee972cd1d#1": {
+   "outcomes": [
+    {
+     "run": 11,
+     "status": "killed",
+     "detail": "assertion a_rst_n_mean_pgood_low +2",
+     "killed_by": {
+      "assertions": [
+       "a_rst_n_mean_pgood_low",
+       "a_pgood_drops_immediately",
+       "a_pgood_assertion"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "pgood_gen.169.VNG.1",
+   "operator": "VNG",
+   "line": 169,
+   "description": "PGOOD inverted (was '((qualify_counter == TARGET) & pgood_com')",
+   "before": "PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);",
+   "after": "PGOOD = ~(((qualify_counter == TARGET) & pgood_comp & run_active));"
+  }
+ }
+}

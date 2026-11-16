@@ -1,0 +1,52 @@
+[
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if (!run_active || (pwm_fall && !pgood_comp)) begin  "
+   ],
+   "category": "wrong_event",
+   "description": "The comparator is sampled only at the switching-cycle boundary for the restart, so a comparator dip that recovers before the next PWM falling edge does not restart the qualifying count",
+   "reason": "With the counter at TARGET (PGOOD high), a pgood_comp low pulse of a few clocks with no pwm_fall inside it drops PGOOD, but PGOOD comes back as soon as pgood_comp returns instead of staying low for the full PGOOD_DELAY_CYCLES qualifying period. Mid-count dips are skipped the same way, so PGOOD asserts early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((pwm_fall && !run_active) || !pgood_comp) begin  "
+   ],
+   "category": "wrong_event",
+   "description": "A departure from S_RUN restarts the qualifying count only if it is seen on a switching-cycle boundary, so leaving S_RUN between PWM falling edges (or while PWM is stopped) leaves the count intact",
+   "reason": "If run_active drops and returns with no pwm_fall in between while pgood_comp stays high, the counter keeps its value. If it was at TARGET, PGOOD reasserts as soon as run_active returns instead of waiting the full delay after re-entering S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 130,
+   "before": [
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if(pwm_sync) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The qualifying counter advances on every clock while the PWM is high, not once per switching cycle at the PWM falling edge",
+   "reason": "With run_active and pgood_comp held high, the counter reaches TARGET after PGOOD_DELAY_CYCLES clocks of PWM high time, not PGOOD_DELAY_CYCLES switching cycles. PGOOD then asserts much sooner than the qualifying period."
+  },
+  "accepted": false,
+  "why": "the same edit as pgood_gen.130.SIB.1"
+ }
+]

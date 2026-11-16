@@ -1,0 +1,73 @@
+[
+ {
+  "proposal": {
+   "line": 70,
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync; ",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync; ",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The delayed PWM copy is only tracked while the supervisor is in S_RUN, so on entry to S_RUN the cycle-boundary detector compares the live PWM with a stale sample",
+   "reason": "pwm_sync is the free-running oscillator, so it keeps changing outside S_RUN. On the first clock in S_RUN, a stale pwm_sync_d=1 with PWM low creates a false falling edge, and a stale 0 hides a real one. Either way the qualifying count is off by one cycle, so PGOOD asserts one switching cycle early or late after entry or re-entry into S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.70.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 124,
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!pgood_comp) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && run_active) begin"
+   ],
+   "category": "reset_init",
+   "description": "Leaving S_RUN pauses the qualifying count instead of restarting it; only a comparator dip clears it",
+   "reason": "Suppose the supervisor leaves S_RUN with the rail still in window, for example on a fault or hiccup, and later returns. The counter keeps its old value, so PGOOD reasserts as soon as run_active returns (if the count was saturated), or before a full fresh qualifying period, when it should wait PGOOD_DELAY_CYCLES again."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.124.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 169,
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = ((qualify_counter == TARGET - 1'b1) & pgood_comp & run_active);"
+   ],
+   "category": "boundary",
+   "description": "PGOOD compares the counter with one less than the terminal value the counter saturates at, an off-by-one meant to make up for the counter's register delay",
+   "reason": "While the rail stays good in S_RUN, PGOOD asserts one switching cycle early. It then drops when the counter steps to TARGET and stays low while the counter is saturated, so PGOOD is a single-cycle pulse and never stays high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pgood_gen.169.AIM.15"
+ }
+]

@@ -1,0 +1,339 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 89,
+   "category": "wrong_event",
+   "description": "The cycle-boundary pulse fires on both PWM edges, so the qualifying counter advances twice per switching cycle",
+   "reason": "With run_active and pgood_comp held high and PWM switching, PGOOD asserts after about half the required switching cycles instead of the full PGOOD_DELAY_CYCLES.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "run": "2026-11-16_write_mutants"
+  },
+  {
+   "key": 2,
+   "line": 89,
+   "category": "wrong_event",
+   "description": "The cycle boundary is taken on the rising edge of the PWM, not the falling edge that ends the cycle",
+   "reason": "Each count, and so PGOOD's assertion, comes at a PWM rising edge instead of the falling edge. PGOOD rises earlier or later by the PWM high time relative to the cycle-end edge.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = ~pwm_sync_d & pwm_sync;"
+   ],
+   "run": "2026-11-16_write_mutants"
+  },
+  {
+   "key": 5,
+   "line": 51,
+   "category": "boundary",
+   "description": "The qualifying target is one cycle short of PGOOD_DELAY_CYCLES (off-by-one in the counter's terminal value)",
+   "reason": "From entering S_RUN with a good rail, PGOOD asserts one switching cycle earlier than the specified qualifying delay.",
+   "before": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);"
+   ],
+   "after": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1);"
+   ],
+   "run": "2026-11-16_write_mutants"
+  },
+  {
+   "key": 6,
+   "line": 169,
+   "category": "sequencing",
+   "description": "PGOOD is taken from the saturated counter alone, relying on the counter's synchronous clear for deassertion instead of gating it with the live conditions",
+   "reason": "When pgood_comp or run_active falls while PGOOD is high, PGOOD stays high for one more clock until the counter clears. Deassertion is no longer immediate.",
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (qualify_counter == TARGET);"
+   ],
+   "run": "2026-11-16_write_mutants"
+  },
+  {
+   "key": 7,
+   "line": 124,
+   "category": "priority",
+   "description": "The cycle-boundary increment takes priority over the synchronous clear, so a bad rail or a departure from S_RUN on the clock that pwm_fall fires advances the qualifying counter instead of restarting it",
+   "reason": "If a one-clock comparator dip (or run_active drop) lands on the pwm_fall clock, the original restarts the count but the mutant increments it. PGOOD then asserts after a good period that was not continuous, earlier than PGOOD_DELAY_CYCLES consecutive good cycles after the dip.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && !pwm_fall) begin  "
+   ],
+   "run": "2026-11-17_write_mutants"
+  },
+  {
+   "key": 8,
+   "line": 124,
+   "category": "reset_init",
+   "description": "The qualifying counter is restarted only while it is still qualifying; once at TARGET, a comparator dip or exit from S_RUN leaves it saturated, as though the live gating on PGOOD were enough",
+   "reason": "After PGOOD has asserted, pgood_comp drops (or run_active drops) and then comes back. The original keeps PGOOD low for a fresh PGOOD_DELAY_CYCLES qualifying period, but the mutant raises PGOOD again on the first clock the conditions return.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && (qualify_counter != TARGET)) begin  "
+   ],
+   "run": "2026-11-17_write_mutants"
+  },
+  {
+   "key": 9,
+   "line": 132,
+   "category": "boundary",
+   "description": "The qualifying counter saturates at its all-ones value (as the package comment describes) instead of at TARGET, so it runs past the count PGOOD compares against",
+   "reason": "With the default PGOOD_DELAY_CYCLES not equal to 2**PGOOD_DELAY_W-1, the counter passes TARGET on the next switching-cycle boundary. PGOOD goes high for one switching cycle and then drops for good, even though the rail stays good in S_RUN.",
+   "before": [
+    "      if(qualify_counter == TARGET) begin",
+    "",
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "      if(&qualify_counter) begin",
+    "",
+    "        qualify_counter <= '1;"
+   ],
+   "run": "2026-11-17_write_mutants"
+  },
+  {
+   "key": 10,
+   "line": 169,
+   "category": "boundary",
+   "description": "PGOOD treats the counter's top bit as the 'qualified' flag instead of comparing it with TARGET",
+   "reason": "With the default delay, TARGET is not a power of two, so the MSB sets at 2**(PGOOD_DELAY_W-1) cycles. PGOOD then asserts before the full PGOOD_DELAY_CYCLES consecutive good cycles have passed in S_RUN.",
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (qualify_counter[PGOOD_DELAY_W-1] & pgood_comp & run_active);"
+   ],
+   "run": "2026-11-17_write_mutants"
+  },
+  {
+   "key": 11,
+   "line": 124,
+   "category": "wrong_event",
+   "description": "The comparator is sampled only at the switching-cycle boundary for the restart, so a comparator dip that recovers before the next PWM falling edge does not restart the qualifying count",
+   "reason": "With the counter at TARGET (PGOOD high), a pgood_comp low pulse of a few clocks with no pwm_fall inside it drops PGOOD, but PGOOD comes back as soon as pgood_comp returns instead of staying low for the full PGOOD_DELAY_CYCLES qualifying period. Mid-count dips are skipped the same way, so PGOOD asserts early.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if (!run_active || (pwm_fall && !pgood_comp)) begin  "
+   ],
+   "run": "2026-11-17_write_mutants_2"
+  },
+  {
+   "key": 12,
+   "line": 124,
+   "category": "wrong_event",
+   "description": "A departure from S_RUN restarts the qualifying count only if it is seen on a switching-cycle boundary, so leaving S_RUN between PWM falling edges (or while PWM is stopped) leaves the count intact",
+   "reason": "If run_active drops and returns with no pwm_fall in between while pgood_comp stays high, the counter keeps its value. If it was at TARGET, PGOOD reasserts as soon as run_active returns instead of waiting the full delay after re-entering S_RUN.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((pwm_fall && !run_active) || !pgood_comp) begin  "
+   ],
+   "run": "2026-11-17_write_mutants_2"
+  },
+  {
+   "key": 13,
+   "line": 70,
+   "category": "wrong_event",
+   "description": "The delayed PWM copy is only tracked while the supervisor is in S_RUN, so on entry to S_RUN the cycle-boundary detector compares the live PWM with a stale sample",
+   "reason": "pwm_sync is the free-running oscillator, so it keeps changing outside S_RUN. On the first clock in S_RUN, a stale pwm_sync_d=1 with PWM low creates a false falling edge, and a stale 0 hides a real one. Either way the qualifying count is off by one cycle, so PGOOD asserts one switching cycle early or late after entry or re-entry into S_RUN.",
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync; ",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync; ",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_3"
+  },
+  {
+   "key": 14,
+   "line": 124,
+   "category": "reset_init",
+   "description": "Leaving S_RUN pauses the qualifying count instead of restarting it; only a comparator dip clears it",
+   "reason": "Suppose the supervisor leaves S_RUN with the rail still in window, for example on a fault or hiccup, and later returns. The counter keeps its old value, so PGOOD reasserts as soon as run_active returns (if the count was saturated), or before a full fresh qualifying period, when it should wait PGOOD_DELAY_CYCLES again.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!pgood_comp) begin  ",
+    "",
+    "    qualify_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && run_active) begin"
+   ],
+   "run": "2026-11-17_write_mutants_3"
+  },
+  {
+   "key": 15,
+   "line": 169,
+   "category": "boundary",
+   "description": "PGOOD compares the counter with one less than the terminal value the counter saturates at, an off-by-one meant to make up for the counter's register delay",
+   "reason": "While the rail stays good in S_RUN, PGOOD asserts one switching cycle early. It then drops when the counter steps to TARGET and stays low while the counter is saturated, so PGOOD is a single-cycle pulse and never stays high.",
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = ((qualify_counter == TARGET - 1'b1) & pgood_comp & run_active);"
+   ],
+   "run": "2026-11-17_write_mutants_3"
+  },
+  {
+   "key": 16,
+   "line": 79,
+   "category": "sequencing",
+   "description": "The cycle-boundary pulse is registered instead of combinational, so the qualifying counter advances one clock after the PWM falling edge is seen rather than on it",
+   "reason": "With the rail good in S_RUN, the counter reaches TARGET, and PGOOD rises, one clock later than it should after the qualifying PWM falling edge. A comparator dip or S_RUN exit on the clock right after a falling edge now wins over that late boundary pulse.",
+   "before": [
+    "always_comb begin",
+    "",
+    "  /*",
+    "  Purpose:",
+    "  ---",
+    "  One-clk enable pulse marking the switching-cycle boundary, so the",
+    "  qualifying counter below advances once per cycle rather than once per",
+    "  clock.",
+    "  */",
+    "",
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "  /*",
+    "  Purpose:",
+    "  ---",
+    "  One-clk enable pulse marking the switching-cycle boundary, so the",
+    "  qualifying counter below advances once per cycle rather than once per",
+    "  clock.",
+    "  */",
+    "",
+    "  pwm_fall <= pwm_sync_d & ~pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_4"
+  },
+  {
+   "key": 17,
+   "line": 169,
+   "category": "sequencing",
+   "description": "PGOOD looks ahead to the counter's next value: it asserts on the PWM falling edge that will take the counter to TARGET, instead of once the counter has reached it",
+   "reason": "In S_RUN with the comparator good for the whole qualifying period, PGOOD rises one clock early, on the clock where pwm_fall fires and the counter still holds TARGET-1. PGOOD also shows a one-clock pulse on that same clock if the counter is held at TARGET-1 and the comparator or run_active drops right after it.",
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = (((qualify_counter == TARGET) | ((qualify_counter == PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES - 1)) & pwm_fall)) & pgood_comp & run_active);"
+   ],
+   "run": "2026-11-17_write_mutants_5"
+  },
+  {
+   "key": 18,
+   "line": 51,
+   "category": "field",
+   "description": "TARGET is taken from the package's PGOOD_DELAY_CYCLES instead of the module parameter, so a call-site override of the qualifying delay does not reach the saturation value or the PGOOD comparison",
+   "reason": "When the instance overrides PGOOD_DELAY_CYCLES far below the default (as the header says simulation does), the counter is narrowed to the overridden width but TARGET becomes the truncated package value. PGOOD then asserts after the wrong number of good switching cycles, or never if that value is out of reach.",
+   "before": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(PGOOD_DELAY_CYCLES);"
+   ],
+   "after": [
+    "localparam logic [PGOOD_DELAY_W-1:0] TARGET = PGOOD_DELAY_W'(pmic_types_pkg::PGOOD_DELAY_CYCLES);"
+   ],
+   "run": "2026-11-17_write_mutants_6"
+  },
+  {
+   "key": 19,
+   "line": 132,
+   "category": "boundary",
+   "description": "The qualifying counter saturates one count short of TARGET, while PGOOD still compares against TARGET itself",
+   "reason": "In S_RUN with the rail continuously good, the counter stops at TARGET-1 and never equals TARGET. PGOOD never asserts, however long the rail stays good.",
+   "before": [
+    "      if(qualify_counter == TARGET) begin",
+    "",
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "      if(qualify_counter == TARGET - 1) begin",
+    "",
+    "        qualify_counter <= TARGET - 1;"
+   ],
+   "run": "2026-11-17_write_mutants_6"
+  },
+  {
+   "key": 20,
+   "line": 169,
+   "category": "boundary",
+   "description": "PGOOD treats a qualifying count that has started (counter non-zero) as qualified, instead of one that has reached TARGET, which confuses 'qualifying' with 'qualified'",
+   "reason": "In S_RUN with the comparator good, PGOOD now asserts on the first PWM falling edge rather than after PGOOD_DELAY_CYCLES consecutive good switching cycles. Any configuration with a delay above one cycle hands the load to the converter output almost at once.",
+   "before": [
+    "  PGOOD = ((qualify_counter == TARGET) & pgood_comp & run_active);"
+   ],
+   "after": [
+    "  PGOOD = ((|qualify_counter) & pgood_comp & run_active);"
+   ],
+   "run": "2026-11-17_write_mutants_7"
+  }
+ ],
+ "unit": "pgood_gen",
+ "file": "rtl-systemverilog/status/pgood_gen.sv",
+ "last_key": 20,
+ "withdrawn": [
+  {
+   "key": 3,
+   "line": 124,
+   "category": "wrong_event",
+   "description": "The qualifying counter is cleared only at a switching-cycle boundary, not on every clock where the rail is bad or the supervisor is not in S_RUN",
+   "reason": "If pgood_comp dips and recovers between two PWM falling edges, the counter is not restarted. If it was already at TARGET, PGOOD reasserts as soon as the comparator recovers instead of waiting the full qualifying delay.",
+   "before": [
+    "  else if (!run_active ||  !pgood_comp) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active ||  !pgood_comp) && pwm_fall) begin  "
+   ],
+   "run": "2026-11-16_write_mutants",
+   "withdrawn": "the union of AIM.11 and AIM.12: both conditions cleared only at a cycle boundary; killed whenever those two are"
+  },
+  {
+   "key": 4,
+   "line": 134,
+   "category": "boundary",
+   "description": "The qualifying counter keeps incrementing past TARGET (wraps) instead of saturating there",
+   "reason": "With the rail good in S_RUN, PGOOD asserts at TARGET and then drops at the next PWM falling edge because the counter moves past TARGET. It does not stay high while conditions hold.",
+   "before": [
+    "        qualify_counter <= TARGET;"
+   ],
+   "after": [
+    "        qualify_counter <= qualify_counter + 1;"
+   ],
+   "run": "2026-11-16_write_mutants",
+   "withdrawn": "same fault as AIM.9 at the output: the counter runs past TARGET and PGOOD drops one cycle after asserting; they differ only after 2**PGOOD_DELAY_W cycles"
+  }
+ ]
+}
