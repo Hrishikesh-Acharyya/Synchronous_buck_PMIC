@@ -1,0 +1,4055 @@
+{
+ "module": "strike_counter",
+ "file": "rtl-systemverilog/protect/strike_counter.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:55",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 8,
+   "accepted": 6,
+   "rejected": [
+    {
+     "description": "The clean-run clear outranks hiccup entry, so a hiccup that ends a saturated clean run earns no strike",
+     "why": "changes 12 lines; at most 6"
+    },
+    {
+     "description": "The clean-run streak is broken only by S_HICCUP, not by every exit from S_RUN, so cycles in soft-start count as clean",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_14"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "00:59",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 6,
+   "accepted": 6,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_15"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "01:03",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 7,
+   "accepted": 7,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_16"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "01:07",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 5,
+   "accepted": 5,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_17"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "01:25",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "asked": 120,
+   "proposed": 12,
+   "accepted": 11,
+   "rejected": [
+    {
+     "description": "The clean-run clear is nested inside hiccup_entry instead of being its sibling, so a completed clean run is forgiven only when the next hiccup begins (the count restarts at one strike)",
+     "why": "changes 8 lines; at most 6"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_18"
+  },
+  {
+   "n": 6,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "07:09",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "reason": "same output as AIM.17: the strike clear never fires, so strikes are never forgiven",
+   "mutants": [
+    "strike_counter.140.AIM.9"
+   ],
+   "descriptions": [
+    "The strike clear still waits for the old all-ones terminal count instead of clean_run_target, although the counter now saturates at the target"
+   ]
+  },
+  {
+   "n": 7,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "07:10",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "reason": "part of AIM.21: the count survives only the exit into S_HICCUP, which AIM.21 also does; any test that kills AIM.21 on a hiccup exit kills it",
+   "mutants": [
+    "strike_counter.176.AIM.30"
+   ],
+   "descriptions": [
+    "The clean-run streak is broken by leaving S_RUN for any state except S_HICCUP, so a completed clean count survives into the cool-down"
+   ]
+  },
+  {
+   "n": 8,
+   "kind": "mutation",
+   "date": "2026-11-17",
+   "time": "07:34",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 151,
+   "counts": {
+    "killed": 101,
+    "lint": 28,
+    "survived": 22
+   },
+   "score": "85.4%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_strike_counter": 8.50297999382019
+   }
+  },
+  {
+   "n": 9,
+   "kind": "judge",
+   "date": "2026-11-17",
+   "time": "08:22",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "judged": 22,
+   "equivalent_high_confidence": 1,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_judge_survivors_3"
+  },
+  {
+   "n": 10,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run",
+   "mutants": [
+    "strike_counter.63.BDL.1",
+    "strike_counter.63.CSK.1",
+    "strike_counter.65.CST.1",
+    "strike_counter.65.SDL.1",
+    "strike_counter.66.CST.1",
+    "strike_counter.66.SDL.1",
+    "strike_counter.165.CSK.1",
+    "strike_counter.167.CST.1",
+    "strike_counter.167.SDL.1"
+   ]
+  },
+  {
+   "n": 11,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "latch_assert must be cleared by reset alone, but no test runs a clean window after the latch; needs a clean run after latching with latch_assert checked to stay high",
+   "mutants": [
+    "strike_counter.143.AIM.34"
+   ]
+  },
+  {
+   "n": 12,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "a window trip on the clock the clean run completes is never tested; the earned forgiveness must still clear the strikes",
+   "mutants": [
+    "strike_counter.140.AIM.29"
+   ]
+  },
+  {
+   "n": 13,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output",
+   "mutants": [
+    "strike_counter.186.SDL.1",
+    "strike_counter.186.STK.1",
+    "strike_counter.186.STK.2",
+    "strike_counter.186.VNG.1",
+    "strike_counter.184.CSK.1"
+   ]
+  },
+  {
+   "n": 14,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differ only if clean_run_target is lowered below the running count; it changes only in S_OFF, where the counter is zero",
+   "mutants": [
+    "strike_counter.140.AIM.28",
+    "strike_counter.184.AIM.25",
+    "strike_counter.184.AIM.10"
+   ]
+  },
+  {
+   "n": 15,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "09:11",
+   "commit": "530e2fe",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "shifts of one clock or one switching cycle: forgiveness on a 1 s window, or the latch 100 ns before the hiccup entry that sets it anyway",
+   "mutants": [
+    "strike_counter.176.AIM.18",
+    "strike_counter.72.AIM.19",
+    "strike_counter.132.AIM.22"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +4",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path",
+       "a_last_strike_trips",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.AIM.1",
+   "operator": "AIM",
+   "line": 93,
+   "description": "A strike is counted when the supervisor leaves S_HICCUP instead of when it enters it",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = ~hiccup_active & hiccup_active_d;",
+   "category": "wrong_event",
+   "reason": "strike_level steps up only at the end of each cool-down, so hiccup_timer times the current cool-down from the old level, and latch_assert rises one whole cool-down late, after the converter has already restarted into the fault.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.AIM.2",
+   "operator": "AIM",
+   "line": 94,
+   "description": "The clean-run cycle boundary is taken on the PWM rising edge instead of the falling edge",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync & ~pwm_sync_d;",
+   "category": "wrong_event",
+   "reason": "clean_counter advances at the start of each switching cycle rather than at its end. strike_level is therefore cleared one PWM on-time early after a fault-free run, and a run that begins with PWM high counts one cycle fewer.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.3",
+   "operator": "AIM",
+   "line": 136,
+   "description": "The latch test matches MAX_STRIKES-1 exactly instead of at-or-above, so a limit lowered below the count already reached is missed",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level == max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "category": "boundary",
+   "reason": "If the host lowers max_strikes below strike_level, the next hiccup entry does not assert latch_assert. The count wraps round its 2-bit range and the latch trips several hiccups late.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.AIM.4",
+   "operator": "AIM",
+   "line": 176,
+   "description": "window_trip pauses the clean-run count instead of restarting it",
+   "before": "else if (!run_active || window_trip) begin /  / clean_counter <= 0; /  / end /  / else if(pwm_fall) begin",
+   "after": "else if (!run_active) begin /  / clean_counter <= 0; /  / end /  / else if(pwm_fall && !window_trip) begin",
+   "category": "other",
+   "reason": "A fault-window trip in the middle of S_RUN that does not cause a hiccup no longer restarts the streak. Cycles before the trip still count, so strike_level is cleared earlier than clean_run_target consecutive fault-free cycles.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_latch_earned",
+     "killed_by": {
+      "assertions": [
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.144.AIM.5",
+   "operator": "AIM",
+   "line": 144,
+   "description": "The latch also trips on the strike level alone, outside a hiccup entry",
+   "before": "end",
+   "after": "end /  / else if (strike_level >= max_strikes) begin /  / latch_assert <= 1'b1; /  / end",
+   "category": "wrong_event",
+   "reason": "If the host lowers max_strikes to or below the strike count during S_RUN, latch_assert rises at once with no new hiccup. The specified behaviour is to trip only at the next hiccup entry at or past the limit.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.6",
+   "operator": "AIM",
+   "line": 136,
+   "description": "strike_level is zeroed when the latch trips, instead of keeping the count for telemetry",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level >= max_strikes - 1'b1) begin / latch_assert <= 1'b1; / strike_level <= '0; / end",
+   "category": "reset_init",
+   "reason": "After latch_assert rises, strike_level reads 0 instead of the count that tripped the latch, so the count is lost from telemetry while the converter stays latched.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_latch_earned",
+     "killed_by": {
+      "assertions": [
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.7",
+   "operator": "AIM",
+   "line": 136,
+   "description": "The latch test compares the post-increment strike count against MAX_STRIKES-1, so the -1 for the pre-increment value is applied twice",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level + 1'b1 >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "category": "boundary",
+   "reason": "At the default max_strikes of 3, latch_assert rises on the second hiccup entry, when strike_level goes from 1 to 2, instead of the third. With max_strikes 2 it trips on the first hiccup.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.AIM.8",
+   "operator": "AIM",
+   "line": 94,
+   "description": "The switching-cycle boundary is taken on both PWM edges, so each switching cycle counts twice toward the clean run",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d ^ pwm_sync;",
+   "category": "wrong_event",
+   "reason": "In S_RUN, clean_counter reaches clean_run_target after half the intended number of switching cycles, so strike_level is cleared after about 0.5 s of fault-free running instead of 1 s.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.AIM.9",
+   "operator": "AIM",
+   "line": 140,
+   "description": "The strike clear still waits for the old all-ones terminal count instead of clean_run_target, although the counter now saturates at the target",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (&clean_counter) begin",
+   "category": "boundary",
+   "reason": "At the default target, which is below all-ones, clean_counter stops at the target and never reaches all-ones. A strike earned by a hiccup is then never cleared, however long the run, and later isolated hiccups add up to latch_assert.",
+   "written_in": 2,
+   "retired": 6,
+   "withdrawn": "same output as AIM.17: the strike clear never fires, so strikes are never forgiven"
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If clean_run_target is lowered below clean_counter while strikes are held, the original wraps and comes back to the target, clearing strike_level. The mutant saturates at all-ones and never equals the target, so line 140 never clears the strikes."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differ only if clean_run_target is lowered below the running count; it changes only in S_OFF, where the counter is zero"
+    }
+   ],
+   "id": "strike_counter.184.AIM.10",
+   "operator": "AIM",
+   "line": 184,
+   "description": "The clean-run counter saturates at all-ones, the old fixed terminal, instead of holding at clean_run_target",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(&clean_counter) begin",
+   "category": "boundary",
+   "reason": "If the host lowers clean_run_target to a value below the current clean count while strikes are outstanding, the original counter wraps around and then clears strike_level when it reaches the new target. The mutant holds at all-ones and never matches, so strike_level stays non-zero until the next hiccup.",
+   "written_in": 2
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.AIM.11",
+   "operator": "AIM",
+   "line": 140,
+   "description": "The strike clear waits for the next switching-cycle boundary after the clean run completes, instead of happening on the next clock",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (pwm_fall && clean_counter == clean_run_target) begin",
+   "category": "sequencing",
+   "reason": "In S_RUN with strikes outstanding, strike_level goes to zero one full PWM period after clean_counter reaches clean_run_target, not on the next clk. If S_RUN is left within that period, the clear never happens.",
+   "written_in": 2
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +2",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_level_moves_by_known_path",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.142.AIM.12",
+   "operator": "AIM",
+   "line": 142,
+   "description": "A completed clean run forgives one strike instead of clearing the whole count, and keeps doing so while the clean count stays saturated",
+   "before": "strike_level <= '0;",
+   "after": "strike_level <= strike_level - 1'b1;",
+   "category": "other",
+   "reason": "After a clean run in S_RUN with strike_level at 1, the clear branch fires every clock while the counter holds at the target. strike_level steps 0, 3, 2, 1 and so on, so the next hiccup gets the wrong cool-down and can trip latch_assert on its first entry.",
+   "written_in": 2
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_clear_earned",
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.AIM.13",
+   "operator": "AIM",
+   "line": 93,
+   "description": "A strike is counted on every change of hiccup_active, so both entering and leaving S_HICCUP add a strike",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active ^ hiccup_active_d;",
+   "category": "wrong_event",
+   "reason": "Each hiccup now raises strike_level by two: one on entry and one when the cool-down ends and the supervisor goes back to S_SS. The cool-down level is wrong from the second hiccup on, and latch_assert trips after fewer hiccups than max_strikes allows.",
+   "written_in": 3
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.AIM.14",
+   "operator": "AIM",
+   "line": 134,
+   "description": "strike_level is clamped at max_strikes-1, the deepest cool-down index, so the hiccup that trips the latch is not added to the count",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "if (strike_level < max_strikes - 1'b1) strike_level <= strike_level + 1;",
+   "category": "boundary",
+   "reason": "On the hiccup that asserts latch_assert, strike_level stays at max_strikes-1 instead of going to max_strikes. The final count read back for telemetry is one short every time the latch trips.",
+   "written_in": 3
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips +1",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips",
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.15",
+   "operator": "AIM",
+   "line": 136,
+   "description": "The latch is tested when the hiccup cool-down ends, on the post-increment count, instead of when the hiccup that reaches MAX_STRIKES begins",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "end /  / else if (hiccup_active_d & ~hiccup_active) begin /  / if (strike_level >= max_strikes) latch_assert <= 1'b1;",
+   "category": "wrong_event",
+   "reason": "On the hiccup that reaches max_strikes, latch_assert now rises only when hiccup_active falls at the end of the whole cool-down, not on the entry clock. Until then the supervisor sees no latch, and it moves from S_HICCUP to S_SS before shutting down.",
+   "written_in": 3
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.AIM.16",
+   "operator": "AIM",
+   "line": 140,
+   "description": "The pre-increment -1 used by the latch test is copied into the clean-run clear, so strikes are forgiven one switching cycle before the clean run is complete",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (clean_counter == clean_run_target - 1'b1) begin",
+   "category": "boundary",
+   "reason": "strike_level goes back to zero one switching cycle earlier than clean_run_target cycles of S_RUN. If S_RUN is left exactly at target-1 cycles, the strikes are cleared although the original keeps them.",
+   "written_in": 3
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.184.AIM.17",
+   "operator": "AIM",
+   "line": 184,
+   "description": "The clean-run counter saturates one cycle below clean_run_target, so it never reaches the value the strike clear waits for",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(clean_counter == clean_run_target - 1'b1) begin",
+   "category": "boundary",
+   "reason": "However long S_RUN stays fault-free, clean_counter stops at target-1, and the clear in the strike block (== clean_run_target) never fires. strike_level never returns to zero, so separate transients add up until latch_assert trips.",
+   "written_in": 3
+  },
+  "AIM.18": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "When run_active is low and pwm_fall is high, the mutant skips the clear and increments clean_counter. For example, on the hiccup-entry edge a run streak survives into the hiccup and can later clear strikes the original would keep."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "shifts of one clock or one switching cycle: forgiveness on a 1 s window, or the latch 100 ns before the hiccup entry that sets it anyway"
+    }
+   ],
+   "id": "strike_counter.176.AIM.18",
+   "operator": "AIM",
+   "line": 176,
+   "description": "A switching-cycle boundary outranks the streak break, so a PWM fall on the clock S_RUN is left still counts as a clean cycle",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if ((!run_active || window_trip) && !pwm_fall) begin",
+   "category": "priority",
+   "reason": "Say S_RUN is left (g_en dropped, say) on a clock with a PWM falling edge, and clean_counter is at target-1. The counter then reaches clean_run_target, and on the next clock strike_level is cleared although the clean run was cut short. The original clears the counter and keeps the strikes.",
+   "written_in": 3
+  },
+  "AIM.19": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "pwm_sync_d stays frozen at its last S_RUN value. On the first edge of a new run, pwm_fall (line 94) compares pwm_sync with that stale level, not the previous clock's. This can add or drop a clean-cycle count at line 182 and shift the strike clear at line 140."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "shifts of one clock or one switching cycle: forgiveness on a 1 s window, or the latch 100 ns before the hiccup entry that sets it anyway"
+    }
+   ],
+   "id": "strike_counter.72.AIM.19",
+   "operator": "AIM",
+   "line": 72,
+   "description": "The PWM delay flop updates only in S_RUN, so on re-entry to S_RUN it compares against a stale PWM level from the previous run",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "if (run_active) pwm_sync_d <= pwm_sync;",
+   "category": "sequencing",
+   "reason": "Suppose PWM was high when S_RUN was last left and is low on the first clock of the next S_RUN. pwm_fall then gives a false cycle boundary, so the clean run is counted one cycle long and strike_level is cleared one switching cycle early.",
+   "written_in": 3
+  },
+  "AIM.20": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.AIM.20",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The clean-run streak is broken only on a switching-cycle boundary, so leaving S_RUN or a window trip between PWM falls leaves the saturated clean count standing",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (pwm_fall && (!run_active || window_trip)) begin",
+   "category": "wrong_event",
+   "reason": "After a long clean run (clean_counter at clean_run_target), a window_trip moves the supervisor to S_HICCUP, which has no switching-cycle boundary. The count survives the hiccup entry, so on the next clock strike_level drops back to 0 and the strike that hiccup earned is wiped. Repeated faults then never escalate the cool-down or reach latch_assert.",
+   "written_in": 4
+  },
+  "AIM.21": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.AIM.21",
+   "operator": "AIM",
+   "line": 176,
+   "description": "Leaving S_RUN only pauses the clean-run count instead of clearing it; only window_trip restarts the streak",
+   "before": "else if (!run_active || window_trip) begin /  / clean_counter <= 0; /  / end /  / else if(pwm_fall) begin",
+   "after": "else if (window_trip) begin /  / clean_counter <= 0; /  / end /  / else if(pwm_fall && run_active) begin",
+   "category": "reset_init",
+   "reason": "Take a run that reaches clean_run_target and then leaves S_RUN through S_OFF (g_en low). The count stays at the target through S_OFF and S_SS. If a window_trip_SS hiccup follows, strike_level is cleared on the clock after its entry, so soft-start strikes never add up to latch_assert.",
+   "written_in": 4
+  },
+  "AIM.22": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "latch_assert now sets on a window_trip with strike_level >= max_strikes-1, with no hiccup entry needed. It can rise earlier, or rise when no further hiccup ever happens, and it is a port."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "shifts of one clock or one switching cycle: forgiveness on a 1 s window, or the latch 100 ns before the hiccup entry that sets it anyway"
+    }
+   ],
+   "id": "strike_counter.132.AIM.22",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The latch is armed on the run-window trip that leads to the final hiccup, one clock before that hiccup is entered",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (window_trip && strike_level >= max_strikes - 1'b1) begin /  / latch_assert <= 1'b1; /  / end /  / else if (hiccup_entry) begin",
+   "category": "sequencing",
+   "reason": "When strike_level is already max_strikes-1 and window_trip fires in S_RUN, latch_assert rises on that clock instead of one clock later on the S_HICCUP entry. The supervisor and the fault log therefore see the latch a cycle early.",
+   "written_in": 4
+  },
+  "AIM.23": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.AIM.23",
+   "operator": "AIM",
+   "line": 134,
+   "description": "The strike count saturates at MAX_STRIKES, so after the host lowers MAX_STRIKES below the count already reached, the latching hiccup is not counted",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "if (strike_level < max_strikes) strike_level <= strike_level + 1;",
+   "category": "boundary",
+   "reason": "Example: strike_level is 2 and the host writes MAX_STRIKES=1. The next hiccup still trips latch_assert, but strike_level stays at 2 instead of going to 3, so the strike_level reported for telemetry is one short.",
+   "written_in": 4
+  },
+  "AIM.24": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.24",
+   "operator": "AIM",
+   "line": 136,
+   "description": "A guard against the max_strikes-1 underflow is written with the wrong limit, so MAX_STRIKES=1 disables the latch",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (max_strikes > STRIKE_W'(1) && strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "category": "boundary",
+   "reason": "With MAX_STRIKES written to 1 (the minimum reg_file allows), the first hiccup should assert latch_assert. Under this fault latch_assert never asserts, and strike_level keeps counting and wrapping on every later hiccup.",
+   "written_in": 4
+  },
+  "AIM.25": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If clean_run_target is lowered below clean_counter while strike_level is nonzero, the mutant freezes the counter above target and line 140 never fires. The original keeps counting, wraps and reaches the target, which clears strike_level."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differ only if clean_run_target is lowered below the running count; it changes only in S_OFF, where the counter is zero"
+    }
+   ],
+   "id": "strike_counter.184.AIM.25",
+   "operator": "AIM",
+   "line": 184,
+   "description": "The clean-run counter holds at any count at or above clean_run_target, but the strike clear still waits for an exact match. So if the target is lowered below the running count, the counter freezes at a value that can never equal it.",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(clean_counter >= clean_run_target) begin",
+   "category": "boundary",
+   "reason": "Suppose the host writes a CLEAN_RUN target below the clean count already reached while strikes are outstanding in S_RUN. The original counter keeps counting, wraps and then reaches the new target, so strike_level is cleared. The mutant holds the counter above the target, so strike_level is never cleared for the rest of that run.",
+   "written_in": 5
+  },
+  "AIM.26": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +1",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.142.AIM.26",
+   "operator": "AIM",
+   "line": 142,
+   "description": "A completed clean run sets the strike count back to one strike, treated wrongly as the base cool-down level, instead of clearing it to no strikes.",
+   "before": "strike_level <= '0;",
+   "after": "strike_level <= STRIKE_W'(1);",
+   "category": "reset_init",
+   "reason": "After a fault-free run of clean_run_target cycles following a hiccup, strike_level reads 1 instead of 0. The next hiccup then gets the doubled cool-down index, and latch_assert trips one hiccup sooner than MAX_STRIKES allows.",
+   "written_in": 5
+  },
+  "AIM.27": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.AIM.27",
+   "operator": "AIM",
+   "line": 132,
+   "description": "The run-window trip is counted as a strike as well as the hiccup entry it causes, so every hiccup out of S_RUN adds two strikes",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (hiccup_entry || window_trip) begin",
+   "category": "wrong_event",
+   "reason": "window_trip is high on the last S_RUN clock and hiccup_entry fires on the next, so each overcurrent hiccup from S_RUN raises strike_level by 2 instead of 1. That lengthens the cool-down chosen by hiccup_timer, and with MAX_STRIKES=3 latch_assert trips on the second run hiccup instead of the third.",
+   "written_in": 5
+  },
+  "AIM.28": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "clean_run_target can be lowered below the running count while strike_level is nonzero, so clean_counter > target is reachable. The mutant then clears strike_level at once; the original waits for the wrap back to exact equality."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differ only if clean_run_target is lowered below the running count; it changes only in S_OFF, where the counter is zero"
+    }
+   ],
+   "id": "strike_counter.140.AIM.28",
+   "operator": "AIM",
+   "line": 140,
+   "description": "The strike clear fires when the clean count is at or above clean_run_target, while the clean-run counter itself saturates only on an exact match",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (clean_counter >= clean_run_target) begin",
+   "category": "boundary",
+   "reason": "Say the host lowers clean_run_target in mid-run to below the clean count already reached. The original counter runs on past the new target and wraps before it matches, so strike_level stays nonzero for about 2**CLEAN_RUN_W more switching cycles. With this mutant strike_level drops to 0 on the next clock.",
+   "written_in": 5
+  },
+  "AIM.29": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "On an edge where clean_counter == clean_run_target and window_trip is high, the original clears strike_level and the mutant does not. clean_counter is then zeroed (line 176), so the strikes stay."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 12,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "a window trip on the clock the clean run completes is never tested; the earned forgiveness must still clear the strikes"
+    }
+   ],
+   "id": "strike_counter.140.AIM.29",
+   "operator": "AIM",
+   "line": 140,
+   "description": "A window_trip on the clock the clean run completes cancels the strike forgiveness, although the run had already earned it",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (clean_counter == clean_run_target && !window_trip) begin",
+   "category": "priority",
+   "reason": "Say window_trip is asserted on the first clock where clean_counter equals clean_run_target. The original zeroes strike_level on that edge. The mutant keeps the old count, so the hiccup that follows adds to it, and it can set latch_assert (for example with 2 strikes and max_strikes=3) where the original would only go to 1 strike.",
+   "written_in": 5
+  },
+  "AIM.30": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.AIM.30",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The clean-run streak is broken by leaving S_RUN for any state except S_HICCUP, so a completed clean count survives into the cool-down",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if ((!run_active && !hiccup_active) || window_trip) begin",
+   "category": "missing_case",
+   "reason": "Say hiccup_active rises as run_active falls after a completed clean run, with no window_trip on that clock. The clean count stays at clean_run_target through the cool-down, so one clock after the entry the clean branch zeroes the strike that hiccup just added. strike_level drops back to 0 during S_HICCUP, and repeated hiccups never set latch_assert.",
+   "written_in": 5,
+   "retired": 7,
+   "withdrawn": "part of AIM.21: the count survives only the exit into S_HICCUP, which AIM.21 also does; any test that kills AIM.21 on a hiccup exit kills it"
+  },
+  "AIM.31": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.AIM.31",
+   "operator": "AIM",
+   "line": 72,
+   "description": "Copy-paste slip in the delay-flop block: pwm_sync_d is loaded from hiccup_active instead of pwm_sync, so the switching-cycle boundary pwm_fall only fires around a hiccup exit and never while the converter is in S_RUN",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= hiccup_active;",
+   "category": "other",
+   "reason": "After any hiccup, the clean-run counter never advances in S_RUN, so strike_level stays non-zero however long the fault-free run lasts. Transients that are far apart then add up to latch_assert, when each should have been cleared after clean_run_target cycles.",
+   "written_in": 5
+  },
+  "AIM.32": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.AIM.32",
+   "operator": "AIM",
+   "line": 71,
+   "description": "Copy-paste slip in the delay-flop block: hiccup_active_d is loaded from pwm_sync instead of hiccup_active, so hiccup_entry is no longer a single pulse on entry into S_HICCUP",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= pwm_sync;",
+   "category": "other",
+   "reason": "In S_HICCUP the PWM is stopped, so pwm_sync stays low and hiccup_entry = hiccup_active & ~pwm_sync_prev is true on every clock of the cool-down. strike_level then goes up every clock instead of once per hiccup, and latch_assert trips during the first hiccup instead of the MAX_STRIKES-th.",
+   "written_in": 5
+  },
+  "AIM.33": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.AIM.33",
+   "operator": "AIM",
+   "line": 140,
+   "description": "The strike clear tries to anticipate the clean-run counter reaching its target on the switching-cycle boundary, instead of waiting for the counter to actually hold clean_run_target",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (pwm_fall && clean_counter == clean_run_target - 1'b1) begin",
+   "category": "sequencing",
+   "reason": "strike_level drops to zero one clock earlier than it should. It is also cleared when the final PWM fall of the run comes on the same clock as a window_trip or the exit from S_RUN: the counter is then cleared rather than completed, so the run never earned the forgiveness.",
+   "written_in": 5
+  },
+  "AIM.34": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "A completed clean run (line 140) now also clears latch_assert. After latching, a later clean run in S_RUN would drop the latch_assert output, which only rst_n clears in the original."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "latch_assert must be cleared by reset alone, but no test runs a clean window after the latch; needs a clean run after latching with latch_assert checked to stay high"
+    }
+   ],
+   "id": "strike_counter.143.AIM.34",
+   "operator": "AIM",
+   "line": 143,
+   "description": "A completed clean run clears latch_assert along with the strike count, as though forgiveness reset the whole protection state, although latch_assert is meant to be set-only and cleared by rst_n alone",
+   "before": "",
+   "after": "latch_assert <= 1'b0; / ",
+   "category": "reset_init",
+   "reason": "After latch_assert has tripped, a later stretch of clean_run_target fault-free switching cycles with run_active high deasserts latch_assert at the port. This input sequence is allowed by the module's own interface, though at top level the supervisor's S_OFF lock-out keeps run_active low after a latch.",
+   "written_in": 5
+  },
+  "AIM.35": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips +1",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips",
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AIM.35",
+   "operator": "AIM",
+   "line": 136,
+   "description": "The latch test is moved out of the hiccup-entry branch to a later point in the cool-down. It compares the count after it has landed with MAX_STRIKES while hiccup_active is high, instead of testing the count about to land on the entry clock.",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1; / ",
+   "after": " / end /  / else if (hiccup_active && strike_level >= max_strikes) begin / latch_assert <= 1'b1;",
+   "category": "sequencing",
+   "reason": "On the hiccup that reaches MAX_STRIKES, latch_assert rises one clock late, so the supervisor stays in S_HICCUP one clock longer before it goes to S_OFF. Also, if the host lowers max_strikes to or below the current count during a cool-down, the latch trips in the middle of that cool-down instead of waiting for the next hiccup entry.",
+   "written_in": 5
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.54.EDG.1",
+   "operator": "EDG",
+   "line": 54,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "d6b553b466#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset body empty, hiccup_active_d and pwm_sync_d keep their old or X power-up values instead of 0. So hiccup_entry (line 93) and pwm_fall (line 94) can differ on the first edges after reset, which changes strike_level and latch_assert."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.63.BDL.1",
+   "operator": "BDL",
+   "line": 63,
+   "description": "empty the 2-statement body of the if at line 63",
+   "before": "if(!rst_n) begin",
+   "after": "if(!rst_n) begin end"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset branch at line 63 never taken, hiccup_active_d and pwm_sync_d are never forced to 0. They power up as X and follow their inputs during reset. If hiccup_active is high when reset releases, the entry pulse at line 93 is lost or becomes X, which changes strike_level and latch_assert."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.63.CSK.1",
+   "operator": "CSK",
+   "line": 63,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.63.CSK.2",
+   "operator": "CSK",
+   "line": 63,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.63.UOD.1",
+   "operator": "UOD",
+   "line": 63,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "4b45c40204#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If hiccup_active_d resets to 1 and hiccup_active is high on the first edge after reset, line 93 sees no entry. The original counts a strike there (lines 132-136)."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.65.CST.1",
+   "operator": "CST",
+   "line": 65,
+   "description": "0 -> 1",
+   "before": "hiccup_active_d <= 0;",
+   "after": "hiccup_active_d <= 1;"
+  },
+  "6125c01d0b#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "hiccup_active_d is no longer reset. It is X at power-up, or keeps 1 across a mid-run reset. If hiccup_active is high on the first edge after reset, hiccup_entry (line 93) can be X or 0 instead of 1, which changes strike_level and latch_assert."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.65.SDL.1",
+   "operator": "SDL",
+   "line": 65,
+   "description": "delete 'hiccup_active_d <= 0;'",
+   "before": "hiccup_active_d <= 0;",
+   "after": ";"
+  },
+  "a12a9337ed#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "medium",
+     "reason": "With pwm_sync_d reset to 1, run_active=1 and pwm_sync=0 on the first edge after reset gives a false pwm_fall (line 94). clean_counter then increments one cycle early, which can move the strike clear at line 140."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.66.CST.1",
+   "operator": "CST",
+   "line": 66,
+   "description": "0 -> 1",
+   "before": "pwm_sync_d <= 0;",
+   "after": "pwm_sync_d <= 1;"
+  },
+  "5ee073ca5f#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "medium",
+     "reason": "pwm_sync_d is X at power-up, or keeps 1 across a reset. If run_active is high and pwm_sync is 0 on the first edge after reset, pwm_fall (line 94) differs, so clean_counter (lines 182-191) and then the strike clear at line 140 differ. The header does not rule out run_active being high at that point."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.66.SDL.1",
+   "operator": "SDL",
+   "line": 66,
+   "description": "delete 'pwm_sync_d <= 0;'",
+   "before": "pwm_sync_d <= 0;",
+   "after": ";"
+  },
+  "f75b3b93d3#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.69.EDL.1",
+   "operator": "EDL",
+   "line": 69,
+   "description": "delete the else branch at line 69",
+   "before": "else begin",
+   "after": ""
+  },
+  "83b8f1a9df#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.SDL.1",
+   "operator": "SDL",
+   "line": 71,
+   "description": "delete 'hiccup_active_d <= hiccup_active;'",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": ";"
+  },
+  "e53d2ea436#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_clear_earned",
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.SIB.1",
+   "operator": "SIB",
+   "line": 71,
+   "description": "hiccup_active -> hiccup_entry",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= hiccup_entry;"
+  },
+  "754c08002a#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +3",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.SIB.2",
+   "operator": "SIB",
+   "line": 71,
+   "description": "hiccup_active -> run_active",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= run_active;"
+  },
+  "2b0b502331#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.STK.1",
+   "operator": "STK",
+   "line": 71,
+   "description": "hiccup_active_d stuck at all-zeros (was 'hiccup_active')",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= '0;"
+  },
+  "4124871daa#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.STK.2",
+   "operator": "STK",
+   "line": 71,
+   "description": "hiccup_active_d stuck at all-ones (was 'hiccup_active')",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= '1;"
+  },
+  "47680b4a2f#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +4",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.71.VNG.1",
+   "operator": "VNG",
+   "line": 71,
+   "description": "hiccup_active_d inverted (was 'hiccup_active')",
+   "before": "hiccup_active_d <= hiccup_active;",
+   "after": "hiccup_active_d <= ~(hiccup_active);"
+  },
+  "c1a719f43d#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.SDL.1",
+   "operator": "SDL",
+   "line": 72,
+   "description": "delete 'pwm_sync_d <= pwm_sync;'",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": ";"
+  },
+  "f16a0a1f05#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.SIB.1",
+   "operator": "SIB",
+   "line": 72,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= pwm_fall;"
+  },
+  "96d8c300df#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.STK.1",
+   "operator": "STK",
+   "line": 72,
+   "description": "pwm_sync_d stuck at all-zeros (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '0;"
+  },
+  "429e889f08#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.STK.2",
+   "operator": "STK",
+   "line": 72,
+   "description": "pwm_sync_d stuck at all-ones (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '1;"
+  },
+  "56e3983858#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +2",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.72.VNG.1",
+   "operator": "VNG",
+   "line": 72,
+   "description": "pwm_sync_d inverted (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= ~(pwm_sync);"
+  },
+  "d25cbdbf1b#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +3",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.CTD.1",
+   "operator": "CTD",
+   "line": 93,
+   "description": "drop the term 'hiccup_active'",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = ~hiccup_active_d;"
+  },
+  "a27217cb73#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.CTD.2",
+   "operator": "CTD",
+   "line": 93,
+   "description": "drop the term '~hiccup_active_d'",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active;"
+  },
+  "c435432491#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +4",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_strike_per_entry",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.CTN.1",
+   "operator": "CTN",
+   "line": 93,
+   "description": "negate the term 'hiccup_active'",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = ~(hiccup_active) & ~hiccup_active_d;"
+  },
+  "2496863c1e#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.DLY.1",
+   "operator": "DLY",
+   "line": 93,
+   "description": "hiccup_active -> hiccup_active_d",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active_d & ~hiccup_active_d;"
+  },
+  "e7df618a3f#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.DLY.2",
+   "operator": "DLY",
+   "line": 93,
+   "description": "hiccup_active_d -> hiccup_active",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active & ~hiccup_active;"
+  },
+  "dd158fdf44#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +3",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.LCR.1",
+   "operator": "LCR",
+   "line": 93,
+   "description": "& -> |",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active | ~hiccup_active_d;"
+  },
+  "71326b8784#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN, UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.SDL.1",
+   "operator": "SDL",
+   "line": 93,
+   "description": "delete 'hiccup_entry = hiccup_active & ~hiccup_active_d;'",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": ";"
+  },
+  "b2eb5ccfb9#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.SIB.1",
+   "operator": "SIB",
+   "line": 93,
+   "description": "hiccup_active -> hiccup_entry",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_entry & ~hiccup_active_d;"
+  },
+  "5a50deb85f#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +5",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips",
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.SIB.2",
+   "operator": "SIB",
+   "line": 93,
+   "description": "hiccup_active -> run_active",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = run_active & ~hiccup_active_d;"
+  },
+  "da3a2bae19#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.STK.1",
+   "operator": "STK",
+   "line": 93,
+   "description": "hiccup_entry stuck at all-zeros (was 'hiccup_active & ~hiccup_active_d')",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = '0;"
+  },
+  "4ee6d337ca#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.STK.2",
+   "operator": "STK",
+   "line": 93,
+   "description": "hiccup_entry stuck at all-ones (was 'hiccup_active & ~hiccup_active_d')",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = '1;"
+  },
+  "1bf5be1b73#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +4",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.UOD.1",
+   "operator": "UOD",
+   "line": 93,
+   "description": "drop the '~' before hiccup_active_d",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = hiccup_active & hiccup_active_d;"
+  },
+  "836eb9a3c4#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +4",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_strike_per_entry",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.93.VNG.1",
+   "operator": "VNG",
+   "line": 93,
+   "description": "hiccup_entry inverted (was 'hiccup_active & ~hiccup_active_d')",
+   "before": "hiccup_entry = hiccup_active & ~hiccup_active_d;",
+   "after": "hiccup_entry = ~(hiccup_active & ~hiccup_active_d);"
+  },
+  "c03cfaa81c#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.CTD.1",
+   "operator": "CTD",
+   "line": 94,
+   "description": "drop the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~pwm_sync;"
+  },
+  "faa236c084#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.CTD.2",
+   "operator": "CTD",
+   "line": 94,
+   "description": "drop the term '~pwm_sync'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d;"
+  },
+  "f247ee59ff#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +2",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.CTN.1",
+   "operator": "CTN",
+   "line": 94,
+   "description": "negate the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d) & ~pwm_sync;"
+  },
+  "6a9ecbe9f1#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.DLY.1",
+   "operator": "DLY",
+   "line": 94,
+   "description": "pwm_sync_d -> pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync & ~pwm_sync;"
+  },
+  "b4ae3c3cf8#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.DLY.2",
+   "operator": "DLY",
+   "line": 94,
+   "description": "pwm_sync -> pwm_sync_d",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_sync_d;"
+  },
+  "9869f69826#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.LCR.1",
+   "operator": "LCR",
+   "line": 94,
+   "description": "& -> |",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d | ~pwm_sync;"
+  },
+  "38bbb649c0#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN, UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.SDL.1",
+   "operator": "SDL",
+   "line": 94,
+   "description": "delete 'pwm_fall = pwm_sync_d & ~pwm_sync;'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": ";"
+  },
+  "930a5cf8bc#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.SIB.1",
+   "operator": "SIB",
+   "line": 94,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_fall;"
+  },
+  "1355930446#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.STK.1",
+   "operator": "STK",
+   "line": 94,
+   "description": "pwm_fall stuck at all-zeros (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '0;"
+  },
+  "efd44791f1#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.STK.2",
+   "operator": "STK",
+   "line": 94,
+   "description": "pwm_fall stuck at all-ones (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '1;"
+  },
+  "357a043fa8#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +2",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.UOD.1",
+   "operator": "UOD",
+   "line": 94,
+   "description": "drop the '~' before pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & pwm_sync;"
+  },
+  "ef4e5a0907#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.94.VNG.1",
+   "operator": "VNG",
+   "line": 94,
+   "description": "pwm_fall inverted (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d & ~pwm_sync);"
+  },
+  "73448571c2#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +4",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_strike_per_entry",
+       "a_last_strike_trips",
+       "a_latch_earned",
+       "a_clear_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.99.EDG.1",
+   "operator": "EDG",
+   "line": 99,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "f08a840493#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.125.BDL.1",
+   "operator": "BDL",
+   "line": 125,
+   "description": "empty the 2-statement body of the if at line 125",
+   "before": "if (!rst_n) begin",
+   "after": "if (!rst_n) begin end"
+  },
+  "4b72644b47#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.125.CSK.1",
+   "operator": "CSK",
+   "line": 125,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b0) begin"
+  },
+  "2a07bac648#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.125.CSK.2",
+   "operator": "CSK",
+   "line": 125,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b1) begin"
+  },
+  "d9cd5a9d8a#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.125.UOD.1",
+   "operator": "UOD",
+   "line": 125,
+   "description": "drop the '!' before rst_n",
+   "before": "if (!rst_n) begin",
+   "after": "if (rst_n) begin"
+  },
+  "f91266f2fd#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.127.CST.1",
+   "operator": "CST",
+   "line": 127,
+   "description": "1'b0 -> 1'b1",
+   "before": "latch_assert <= 1'b0;",
+   "after": "latch_assert <= 1'b1;"
+  },
+  "0f9680a54c#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.127.SDL.1",
+   "operator": "SDL",
+   "line": 127,
+   "description": "delete 'latch_assert <= 1'b0;'",
+   "before": "latch_assert <= 1'b0;",
+   "after": ";"
+  },
+  "148debb5db#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.128.CST.1",
+   "operator": "CST",
+   "line": 128,
+   "description": "'0 -> '1",
+   "before": "strike_level <= '0;",
+   "after": "strike_level <= '1;"
+  },
+  "f4644438ab#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_reset_clears",
+     "killed_by": {
+      "assertions": [
+       "a_reset_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.128.SDL.1",
+   "operator": "SDL",
+   "line": 128,
+   "description": "delete 'strike_level <= '0;'",
+   "before": "strike_level <= '0;",
+   "after": ";"
+  },
+  "1eca88bff3#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.BDL.1",
+   "operator": "BDL",
+   "line": 132,
+   "description": "empty the 2-statement body of the if at line 132",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (hiccup_entry) begin end"
+  },
+  "e43e098d1b#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_level_moves_by_known_path +4",
+     "killed_by": {
+      "assertions": [
+       "a_level_moves_by_known_path",
+       "a_latch_earned",
+       "a_clear_earned",
+       "a_strike_per_entry",
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.CND.1",
+   "operator": "CND",
+   "line": 132,
+   "description": "if (hiccup_entry) -> if (!(...))",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (!(hiccup_entry)) begin"
+  },
+  "9607a3baba#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.CSK.1",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (hiccup_entry) -> if (1'b0): never taken",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "86a0d35a4e#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.CSK.2",
+   "operator": "CSK",
+   "line": 132,
+   "description": "if (hiccup_entry) -> if (1'b1): always taken",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "06c3f4b31a#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.EDL.1",
+   "operator": "EDL",
+   "line": 132,
+   "description": "delete the else branch at line 132",
+   "before": "else if (hiccup_entry) begin",
+   "after": ""
+  },
+  "ba3de27000#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.132.SIB.1",
+   "operator": "SIB",
+   "line": 132,
+   "description": "hiccup_entry -> hiccup_active",
+   "before": "else if (hiccup_entry) begin",
+   "after": "else if (hiccup_active) begin"
+  },
+  "c0f02047dd#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.AOR.1",
+   "operator": "AOR",
+   "line": 134,
+   "description": "+ -> -",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= strike_level - 1;"
+  },
+  "9c7cccb1ab#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.CST.1",
+   "operator": "CST",
+   "line": 134,
+   "description": "1 -> 0",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= strike_level + 0;"
+  },
+  "9a52ba2548#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.CST.2",
+   "operator": "CST",
+   "line": 134,
+   "description": "1 -> 2",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= strike_level + 2;"
+  },
+  "99bb3ff320#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.SDL.1",
+   "operator": "SDL",
+   "line": 134,
+   "description": "delete 'strike_level <= strike_level + 1;'",
+   "before": "strike_level <= strike_level + 1;",
+   "after": ";"
+  },
+  "2eadabf6dc#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.STK.1",
+   "operator": "STK",
+   "line": 134,
+   "description": "strike_level stuck at all-zeros (was 'strike_level + 1')",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= '0;"
+  },
+  "be28b6e84e#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.STK.2",
+   "operator": "STK",
+   "line": 134,
+   "description": "strike_level stuck at all-ones (was 'strike_level + 1')",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= '1;"
+  },
+  "1a4faa3aee#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_strike_per_entry +1",
+     "killed_by": {
+      "assertions": [
+       "a_strike_per_entry",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.134.VNG.1",
+   "operator": "VNG",
+   "line": 134,
+   "description": "strike_level inverted (was 'strike_level + 1')",
+   "before": "strike_level <= strike_level + 1;",
+   "after": "strike_level <= ~(strike_level + 1);"
+  },
+  "3499357005#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_latch_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_latch_earned",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.AOR.1",
+   "operator": "AOR",
+   "line": 136,
+   "description": "- -> +",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level >= max_strikes + 1'b1) latch_assert <= 1'b1;"
+  },
+  "285e138a85#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_latch_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_latch_earned",
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.CND.1",
+   "operator": "CND",
+   "line": 136,
+   "description": "if (strike_level >= max_strikes - 1'b1) -> if (!(...))",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (!(strike_level >= max_strikes - 1'b1)) latch_assert <= 1'b1;"
+  },
+  "e8387a78ef#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.CSK.1",
+   "operator": "CSK",
+   "line": 136,
+   "description": "if (strike_level >= max_strikes - 1'b1) -> if (1'b1): always taken",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (1'b1) latch_assert <= 1'b1;"
+  },
+  "1a38ac8a4d#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.CST.1",
+   "operator": "CST",
+   "line": 136,
+   "description": "1'b1 -> 1'b0",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level >= max_strikes - 1'b0) latch_assert <= 1'b1;"
+  },
+  "85f308ea95#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.CST.2",
+   "operator": "CST",
+   "line": 136,
+   "description": "1'b1 -> 1'b0",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b0;"
+  },
+  "0cfb66ce5f#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_latch_earned",
+     "killed_by": {
+      "assertions": [
+       "a_latch_earned"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.ROR.1",
+   "operator": "ROR",
+   "line": 136,
+   "description": ">= -> <=",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level <= max_strikes - 1'b1) latch_assert <= 1'b1;"
+  },
+  "86194f654b#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.ROR.2",
+   "operator": "ROR",
+   "line": 136,
+   "description": ">= -> >",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level > max_strikes - 1'b1) latch_assert <= 1'b1;"
+  },
+  "568f99aed8#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_last_strike_trips",
+     "killed_by": {
+      "assertions": [
+       "a_last_strike_trips"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.136.SDL.1",
+   "operator": "SDL",
+   "line": 136,
+   "description": "delete 'latch_assert <= 1'b1;'",
+   "before": "if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+   "after": "if (strike_level >= max_strikes - 1'b1) ;"
+  },
+  "bc2375db88#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.CSK.1",
+   "operator": "CSK",
+   "line": 140,
+   "description": "if (clean_counter == clean_run_target) -> if (1'b1): always taken",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "97bb3e9773#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.EDL.1",
+   "operator": "EDL",
+   "line": 140,
+   "description": "delete the else branch at line 140",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": ""
+  },
+  "8c3f4ff6ff#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.140.ROR.1",
+   "operator": "ROR",
+   "line": 140,
+   "description": "== -> !=",
+   "before": "else if (clean_counter == clean_run_target) begin",
+   "after": "else if (clean_counter != clean_run_target) begin"
+  },
+  "148debb5db#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +1",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.142.CST.1",
+   "operator": "CST",
+   "line": 142,
+   "description": "'0 -> '1",
+   "before": "strike_level <= '0;",
+   "after": "strike_level <= '1;"
+  },
+  "f4644438ab#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.142.SDL.1",
+   "operator": "SDL",
+   "line": 142,
+   "description": "delete 'strike_level <= '0;'",
+   "before": "strike_level <= '0;",
+   "after": ";"
+  },
+  "73448571c2#3": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.150.EDG.1",
+   "operator": "EDG",
+   "line": 150,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "df16d9f400#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "clean_counter is never asynchronously reset. It is X at power-up until a synchronous clear, and keeps counting through reset if run_active is high. The comparison at line 140 can then go X or fire at a different time, which changes strike_level."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.165.CSK.1",
+   "operator": "CSK",
+   "line": 165,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.165.CSK.2",
+   "operator": "CSK",
+   "line": 165,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.165.UOD.1",
+   "operator": "UOD",
+   "line": 165,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "3529c4a275#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "clean_counter resets to 1. With clean_run_target=1 the strike clear at line 140 condition is true immediately, and in general the count reaches target one cycle earlier if run_active is high from reset."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.167.CST.1",
+   "operator": "CST",
+   "line": 167,
+   "description": "0 -> 1",
+   "before": "clean_counter <= 0;",
+   "after": "clean_counter <= 1;"
+  },
+  "e4aed145e6#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "clean_counter keeps its value through rst_n (or is X at power-up). After reset it can reach clean_run_target earlier than from 0, or compare as X at line 140."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 10,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of the delay flops and clean counter untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "strike_counter.167.SDL.1",
+   "operator": "SDL",
+   "line": 167,
+   "description": "delete 'clean_counter <= 0;'",
+   "before": "clean_counter <= 0;",
+   "after": ";"
+  },
+  "d2f28672c9#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CND.1",
+   "operator": "CND",
+   "line": 176,
+   "description": "if (!run_active || window_trip) -> if (!(...))",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (!(!run_active || window_trip)) begin"
+  },
+  "fd52ae6d1c#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CSK.1",
+   "operator": "CSK",
+   "line": 176,
+   "description": "if (!run_active || window_trip) -> if (1'b0): never taken",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "1a71086690#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CSK.2",
+   "operator": "CSK",
+   "line": 176,
+   "description": "if (!run_active || window_trip) -> if (1'b1): always taken",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "39cb815d97#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CTD.1",
+   "operator": "CTD",
+   "line": 176,
+   "description": "drop the term '!run_active'",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (window_trip) begin"
+  },
+  "e28f0972fc#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CTD.2",
+   "operator": "CTD",
+   "line": 176,
+   "description": "drop the term 'window_trip'",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (!run_active) begin"
+  },
+  "59925c4112#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.CTN.1",
+   "operator": "CTN",
+   "line": 176,
+   "description": "negate the term 'window_trip'",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (!run_active || !(window_trip)) begin"
+  },
+  "ba38bf9cd7#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.EDL.1",
+   "operator": "EDL",
+   "line": 176,
+   "description": "delete the else branch at line 176",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": ""
+  },
+  "3998700d3c#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.LCR.1",
+   "operator": "LCR",
+   "line": 176,
+   "description": "|| -> &&",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (!run_active && window_trip) begin"
+  },
+  "76f411bf06#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.SIB.1",
+   "operator": "SIB",
+   "line": 176,
+   "description": "run_active -> hiccup_active",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (!hiccup_active || window_trip) begin"
+  },
+  "d85b5a9982#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.176.UOD.1",
+   "operator": "UOD",
+   "line": 176,
+   "description": "drop the '!' before run_active",
+   "before": "else if (!run_active || window_trip) begin",
+   "after": "else if (run_active || window_trip) begin"
+  },
+  "3529c4a275#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.178.CST.1",
+   "operator": "CST",
+   "line": 178,
+   "description": "0 -> 1",
+   "before": "clean_counter <= 0;",
+   "after": "clean_counter <= 1;"
+  },
+  "e4aed145e6#2": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.178.SDL.1",
+   "operator": "SDL",
+   "line": 178,
+   "description": "delete 'clean_counter <= 0;'",
+   "before": "clean_counter <= 0;",
+   "after": ";"
+  },
+  "d1ad7285ad#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clear_earned +1",
+     "killed_by": {
+      "assertions": [
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.182.CND.1",
+   "operator": "CND",
+   "line": 182,
+   "description": "if (pwm_fall) -> if (!(...))",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(!(pwm_fall)) begin"
+  },
+  "9d2c1a707a#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.182.CSK.1",
+   "operator": "CSK",
+   "line": 182,
+   "description": "if (pwm_fall) -> if (1'b0): never taken",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(1'b0) begin"
+  },
+  "f1326f9401#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.182.CSK.2",
+   "operator": "CSK",
+   "line": 182,
+   "description": "if (pwm_fall) -> if (1'b1): always taken",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(1'b1) begin"
+  },
+  "683899f673#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.182.EDL.1",
+   "operator": "EDL",
+   "line": 182,
+   "description": "delete the else branch at line 182",
+   "before": "else if(pwm_fall) begin",
+   "after": ""
+  },
+  "f22106d9eb#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.182.SIB.1",
+   "operator": "SIB",
+   "line": 182,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "else if(pwm_fall) begin",
+   "after": "else if(pwm_sync) begin"
+  },
+  "96c99a30bd#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "The versions first diverge on a pwm_fall edge in S_RUN with clean_counter == target. On that same edge line 140 clears strike_level in both, because hiccup_entry needs hiccup_active, which is exclusive with run_active per the header (lines 33-34). strike_level then stays 0 until a hiccup_entry, and that edge has run_active=0, so line 176 zeroes clean_counter in both and they reconverge."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output"
+    }
+   ],
+   "id": "strike_counter.184.CSK.1",
+   "operator": "CSK",
+   "line": 184,
+   "description": "if (clean_counter == clean_run_target) -> if (1'b0): never taken",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(1'b0) begin"
+  },
+  "01c05b8f61#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.184.CSK.2",
+   "operator": "CSK",
+   "line": 184,
+   "description": "if (clean_counter == clean_run_target) -> if (1'b1): always taken",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(1'b1) begin"
+  },
+  "81c4407c07#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.184.ROR.1",
+   "operator": "ROR",
+   "line": 184,
+   "description": "== -> !=",
+   "before": "if(clean_counter == clean_run_target) begin",
+   "after": "if(clean_counter != clean_run_target) begin"
+  },
+  "8d983432f7#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "In a clocked always_ff, assigning clean_counter to itself is the same as not assigning it. The flop holds its value either way."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output"
+    }
+   ],
+   "id": "strike_counter.186.SDL.1",
+   "operator": "SDL",
+   "line": 186,
+   "description": "delete 'clean_counter <= clean_counter;'",
+   "before": "clean_counter <= clean_counter;",
+   "after": ";"
+  },
+  "c931124704#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "This line only runs on a pwm_fall edge in S_RUN with clean_counter == target. On that edge line 140 clears strike_level in both versions; no hiccup_entry is possible because hiccup_active and run_active are exclusive per lines 33-34. Strikes stay 0 until a hiccup_entry, which needs run_active=0, so line 176 resets clean_counter in both and the different counter values are never seen."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output"
+    }
+   ],
+   "id": "strike_counter.186.STK.1",
+   "operator": "STK",
+   "line": 186,
+   "description": "clean_counter stuck at all-zeros (was 'clean_counter')",
+   "before": "clean_counter <= clean_counter;",
+   "after": "clean_counter <= '0;"
+  },
+  "2cc7daecdf#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "Same argument as the other line-186 edits. Divergence starts on an edge where line 140 already clears strike_level. strike_level is then 0 until a hiccup_entry, and that edge has run_active=0 (exclusive per lines 33-34), so line 176 zeroes clean_counter in both. The all-ones value never reaches a port."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output"
+    }
+   ],
+   "id": "strike_counter.186.STK.2",
+   "operator": "STK",
+   "line": 186,
+   "description": "clean_counter stuck at all-ones (was 'clean_counter')",
+   "before": "clean_counter <= clean_counter;",
+   "after": "clean_counter <= '1;"
+  },
+  "1aaded3edd#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 9,
+     "verdict": "equivalent",
+     "confidence": "medium",
+     "reason": "Writing ~clean_counter only happens on an edge where clean_counter == target, and line 140 clears strike_level on that same edge in both versions. Until the next hiccup_entry (run_active=0, so line 176 clears the counter in both), the strike clear can only write 0 to a strike_level that is already 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "after the count reaches clean_run_target the strikes are cleared; strike_level then changes only on hiccup entry, which requires leaving S_RUN, which clears the counter, so its later value never reaches an output"
+    }
+   ],
+   "id": "strike_counter.186.VNG.1",
+   "operator": "VNG",
+   "line": 186,
+   "description": "clean_counter inverted (was 'clean_counter')",
+   "before": "clean_counter <= clean_counter;",
+   "after": "clean_counter <= ~(clean_counter);"
+  },
+  "f60f84d5ff#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.AOR.1",
+   "operator": "AOR",
+   "line": 191,
+   "description": "+ -> -",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= clean_counter - 1;"
+  },
+  "1aed694b03#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.CST.1",
+   "operator": "CST",
+   "line": 191,
+   "description": "1 -> 0",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= clean_counter + 0;"
+  },
+  "2a2db6e3ec#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears +2",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears",
+       "a_clear_earned",
+       "a_level_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.CST.2",
+   "operator": "CST",
+   "line": 191,
+   "description": "1 -> 2",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= clean_counter + 2;"
+  },
+  "374a396f67#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.SDL.1",
+   "operator": "SDL",
+   "line": 191,
+   "description": "delete 'clean_counter <= clean_counter + 1;'",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": ";"
+  },
+  "f4ba80837d#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.STK.1",
+   "operator": "STK",
+   "line": 191,
+   "description": "clean_counter stuck at all-zeros (was 'clean_counter + 1')",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= '0;"
+  },
+  "458629d1cc#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.STK.2",
+   "operator": "STK",
+   "line": 191,
+   "description": "clean_counter stuck at all-ones (was 'clean_counter + 1')",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= '1;"
+  },
+  "eba7cdf848#1": {
+   "outcomes": [
+    {
+     "run": 8,
+     "status": "killed",
+     "detail": "assertion a_clean_run_clears",
+     "killed_by": {
+      "assertions": [
+       "a_clean_run_clears"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "strike_counter.191.VNG.1",
+   "operator": "VNG",
+   "line": 191,
+   "description": "clean_counter inverted (was 'clean_counter + 1')",
+   "before": "clean_counter <= clean_counter + 1;",
+   "after": "clean_counter <= ~(clean_counter + 1);"
+  }
+ }
+}

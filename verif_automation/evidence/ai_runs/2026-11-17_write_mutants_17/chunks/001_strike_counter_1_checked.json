@@ -1,0 +1,105 @@
+[
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if (pwm_fall && (!run_active || window_trip)) begin  "
+   ],
+   "category": "wrong_event",
+   "description": "The clean-run streak is broken only on a switching-cycle boundary, so leaving S_RUN or a window trip between PWM falls leaves the saturated clean count standing",
+   "reason": "After a long clean run (clean_counter at clean_run_target), a window_trip moves the supervisor to S_HICCUP, which has no switching-cycle boundary. The count survives the hiccup entry, so on the next clock strike_level drops back to 0 and the strike that hiccup earned is wiped. Repeated faults then never escalate the cool-down or reach latch_assert."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.176.AIM.20"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && run_active) begin"
+   ],
+   "category": "reset_init",
+   "description": "Leaving S_RUN only pauses the clean-run count instead of clearing it; only window_trip restarts the streak",
+   "reason": "Take a run that reaches clean_run_target and then leaves S_RUN through S_OFF (g_en low). The count stays at the target through S_OFF and S_SS. If a window_trip_SS hiccup follows, strike_level is cleared on the clock after its entry, so soft-start strikes never add up to latch_assert."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.176.AIM.21"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "  else if (hiccup_entry) begin"
+   ],
+   "after": [
+    "  else if (window_trip && strike_level >= max_strikes - 1'b1) begin",
+    "",
+    "    latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_entry) begin"
+   ],
+   "category": "sequencing",
+   "description": "The latch is armed on the run-window trip that leads to the final hiccup, one clock before that hiccup is entered",
+   "reason": "When strike_level is already max_strikes-1 and window_trip fires in S_RUN, latch_assert rises on that clock instead of one clock later on the S_HICCUP entry. The supervisor and the fault log therefore see the latch a cycle early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.132.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 134,
+   "before": [
+    "      strike_level <= strike_level + 1;"
+   ],
+   "after": [
+    "      if (strike_level < max_strikes) strike_level <= strike_level + 1;"
+   ],
+   "category": "boundary",
+   "description": "The strike count saturates at MAX_STRIKES, so after the host lowers MAX_STRIKES below the count already reached, the latching hiccup is not counted",
+   "reason": "Example: strike_level is 2 and the host writes MAX_STRIKES=1. The next hiccup still trips latch_assert, but strike_level stays at 2 instead of going to 3, so the strike_level reported for telemetry is one short."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.134.AIM.23"
+ },
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (max_strikes > STRIKE_W'(1) && strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "A guard against the max_strikes-1 underflow is written with the wrong limit, so MAX_STRIKES=1 disables the latch",
+   "reason": "With MAX_STRIKES written to 1 (the minimum reg_file allows), the first hiccup should assert latch_assert. Under this fault latch_assert never asserts, and strike_level keeps counting and wrapping on every later hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.24"
+ }
+]

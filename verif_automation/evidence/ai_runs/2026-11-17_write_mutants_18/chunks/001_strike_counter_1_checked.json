@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 184,
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(clean_counter >= clean_run_target) begin"
+   ],
+   "category": "boundary",
+   "description": "The clean-run counter holds at any count at or above clean_run_target, but the strike clear still waits for an exact match. So if the target is lowered below the running count, the counter freezes at a value that can never equal it.",
+   "reason": "Suppose the host writes a CLEAN_RUN target below the clean count already reached while strikes are outstanding in S_RUN. The original counter keeps counting, wraps and then reaches the new target, so strike_level is cleared. The mutant holds the counter above the target, so strike_level is never cleared for the rest of that run."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.184.AIM.25"
+ },
+ {
+  "proposal": {
+   "line": 142,
+   "before": [
+    "    strike_level <= '0;"
+   ],
+   "after": [
+    "    strike_level <= STRIKE_W'(1);"
+   ],
+   "category": "reset_init",
+   "description": "A completed clean run sets the strike count back to one strike, treated wrongly as the base cool-down level, instead of clearing it to no strikes.",
+   "reason": "After a fault-free run of clean_run_target cycles following a hiccup, strike_level reads 1 instead of 0. The next hiccup then gets the doubled cool-down index, and latch_assert trips one hiccup sooner than MAX_STRIKES allows."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.142.AIM.26"
+ }
+]

@@ -1,0 +1,89 @@
+[
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter >= clean_run_target) begin"
+   ],
+   "category": "boundary",
+   "description": "The strike clear fires when the clean count is at or above clean_run_target, while the clean-run counter itself saturates only on an exact match",
+   "reason": "Say the host lowers clean_run_target in mid-run to below the clean count already reached. The original counter runs on past the new target and wraps before it matches, so strike_level stays nonzero for about 2**CLEAN_RUN_W more switching cycles. With this mutant strike_level drops to 0 on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.28"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter == clean_run_target && !window_trip) begin"
+   ],
+   "category": "priority",
+   "description": "A window_trip on the clock the clean run completes cancels the strike forgiveness, although the run had already earned it",
+   "reason": "Say window_trip is asserted on the first clock where clean_counter equals clean_run_target. The original zeroes strike_level on that edge. The mutant keeps the old count, so the hiccup that follows adds to it, and it can set latch_assert (for example with 2 strikes and max_strikes=3) where the original would only go to 1 strike."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.29"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active && !hiccup_active) || window_trip) begin  "
+   ],
+   "category": "missing_case",
+   "description": "The clean-run streak is broken by leaving S_RUN for any state except S_HICCUP, so a completed clean count survives into the cool-down",
+   "reason": "Say hiccup_active rises as run_active falls after a completed clean run, with no window_trip on that clock. The clean count stays at clean_run_target through the cool-down, so one clock after the entry the clean branch zeroes the strike that hiccup just added. strike_level drops back to 0 during S_HICCUP, and repeated hiccups never set latch_assert."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.176.AIM.30"
+ },
+ {
+  "proposal": {
+   "line": 134,
+   "before": [
+    "      strike_level <= strike_level + 1;",
+    "",
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin",
+    "",
+    "    strike_level <= '0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "      strike_level <= strike_level + 1;",
+    "",
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "    if (clean_counter == clean_run_target) begin",
+    "",
+    "      strike_level <= STRIKE_W'(1);",
+    "",
+    "    end",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The clean-run clear is nested inside hiccup_entry instead of being its sibling, so a completed clean run is forgiven only when the next hiccup begins (the count restarts at one strike)",
+   "reason": "After a completed clean run, strike_level keeps its old nonzero value for the rest of S_RUN instead of dropping to 0. On the next hiccup entry the latch test still reads that old count, so with 2 earlier strikes and max_strikes=3 latch_assert trips on the first hiccup after a long fault-free run."
+  },
+  "accepted": false,
+  "why": "changes 8 lines; at most 6"
+ }
+]

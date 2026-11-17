@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 71,
+   "before": [
+    "    hiccup_active_d <= hiccup_active;"
+   ],
+   "after": [
+    "    hiccup_active_d <= pwm_sync;"
+   ],
+   "category": "other",
+   "description": "Copy-paste slip in the delay-flop block: hiccup_active_d is loaded from pwm_sync instead of hiccup_active, so hiccup_entry is no longer a single pulse on entry into S_HICCUP",
+   "reason": "In S_HICCUP the PWM is stopped, so pwm_sync stays low and hiccup_entry = hiccup_active & ~pwm_sync_prev is true on every clock of the cool-down. strike_level then goes up every clock instead of once per hiccup, and latch_assert trips during the first hiccup instead of the MAX_STRIKES-th."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.71.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (pwm_fall && clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "category": "sequencing",
+   "description": "The strike clear tries to anticipate the clean-run counter reaching its target on the switching-cycle boundary, instead of waiting for the counter to actually hold clean_run_target",
+   "reason": "strike_level drops to zero one clock earlier than it should. It is also cleared when the final PWM fall of the run comes on the same clock as a window_trip or the exit from S_RUN: the counter is then cleared rather than completed, so the run never earned the forgiveness."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 142,
+   "before": [
+    "    strike_level <= '0;",
+    ""
+   ],
+   "after": [
+    "    strike_level <= '0;",
+    "    latch_assert <= 1'b0;",
+    ""
+   ],
+   "category": "reset_init",
+   "description": "A completed clean run clears latch_assert along with the strike count, as though forgiveness reset the whole protection state, although latch_assert is meant to be set-only and cleared by rst_n alone",
+   "reason": "After latch_assert has tripped, a later stretch of clean_run_target fault-free switching cycles with run_active high deasserts latch_assert at the port. This input sequence is allowed by the module's own interface, though at top level the supervisor's S_OFF lock-out keeps run_active low after a latch."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.143.AIM.34"
+ }
+]

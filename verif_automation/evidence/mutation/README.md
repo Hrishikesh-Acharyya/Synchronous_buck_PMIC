@@ -12,6 +12,7 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | [`pwm_mask`](pwm_mask.md) | 71 | 11 | 32 | 10 | 7 | 0 | 22 | 0 | 69.0% | 0 | 75.4% | 3 / 1 / 1 | 2026-11-15 e6d9ec9 |
 | [`pwm_stats`](pwm_stats.md) | 123 | 23 | 109 | 10 | 0 | 0 | 4 | 0 | 96.7% | 0 | 97.5% | 6 / 1 / 1 | 2026-11-17 58da85b |
 | [`reset_sync`](reset_sync.md) | 22 | 2 | 17 | 5 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 664452d |
+| [`strike_counter`](strike_counter.md) | 151 | 33 | 101 | 28 | 0 | 0 | 22 | 0 | 85.4% | 0 | 92.1% | 5 / 1 / 1 | 2026-11-17 530e2fe |
 | [`timestamp`](timestamp.md) | 46 | 5 | 42 | 0 | 0 | 0 | 4 | 0 | 91.3% | 0 | 97.7% | 2 / 1 / 1 | 2026-11-15 05405e5 |
 
 Score = (killed + lint + covers + timeout) / (those + survived), over each mutant's newest outcome. The aim is no undecided survivor, not 100% - see `tools/mutation/README.md`.

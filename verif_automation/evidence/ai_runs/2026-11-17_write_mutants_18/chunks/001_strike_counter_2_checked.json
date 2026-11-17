@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "  else if (hiccup_entry) begin"
+   ],
+   "after": [
+    "  else if (hiccup_entry || window_trip) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The run-window trip is counted as a strike as well as the hiccup entry it causes, so every hiccup out of S_RUN adds two strikes",
+   "reason": "window_trip is high on the last S_RUN clock and hiccup_entry fires on the next, so each overcurrent hiccup from S_RUN raises strike_level by 2 instead of 1. That lengthens the cool-down chosen by hiccup_timer, and with MAX_STRIKES=3 latch_assert trips on the second run hiccup instead of the third."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.132.AIM.27"
+ }
+]

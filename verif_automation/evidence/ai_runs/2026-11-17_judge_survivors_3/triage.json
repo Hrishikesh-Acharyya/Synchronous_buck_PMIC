@@ -1,0 +1,152 @@
+{
+ "header": {
+  "date": "2026-11-17",
+  "commit": "530e2fe",
+  "task": "judge_survivors",
+  "survivors_of": "the module records",
+  "agent": "Claude Code (claude -p), read-only",
+  "models": [
+   "claude-opus-5-5"
+  ],
+  "mutants_listed": 22,
+  "sent_to_triage": 22,
+  "judged": 22,
+  "equivalent_high_confidence": 1,
+  "untriaged": 0,
+  "complete": true
+ },
+ "verdicts": {
+  "strike_counter.63.CSK.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the reset branch at line 63 never taken, hiccup_active_d and pwm_sync_d are never forced to 0. They power up as X and follow their inputs during reset. If hiccup_active is high when reset releases, the entry pulse at line 93 is lost or becomes X, which changes strike_level and latch_assert.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.63.BDL.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the reset body empty, hiccup_active_d and pwm_sync_d keep their old or X power-up values instead of 0. So hiccup_entry (line 93) and pwm_fall (line 94) can differ on the first edges after reset, which changes strike_level and latch_assert.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.65.SDL.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "hiccup_active_d is no longer reset. It is X at power-up, or keeps 1 across a mid-run reset. If hiccup_active is high on the first edge after reset, hiccup_entry (line 93) can be X or 0 instead of 1, which changes strike_level and latch_assert.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.65.CST.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If hiccup_active_d resets to 1 and hiccup_active is high on the first edge after reset, line 93 sees no entry. The original counts a strike there (lines 132-136).",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.66.SDL.1": {
+   "verdict": "plausible",
+   "confidence": "medium",
+   "reason": "pwm_sync_d is X at power-up, or keeps 1 across a reset. If run_active is high and pwm_sync is 0 on the first edge after reset, pwm_fall (line 94) differs, so clean_counter (lines 182-191) and then the strike clear at line 140 differ. The header does not rule out run_active being high at that point.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.66.CST.1": {
+   "verdict": "plausible",
+   "confidence": "medium",
+   "reason": "With pwm_sync_d reset to 1, run_active=1 and pwm_sync=0 on the first edge after reset gives a false pwm_fall (line 94). clean_counter then increments one cycle early, which can move the strike clear at line 140.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.72.AIM.19": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "pwm_sync_d stays frozen at its last S_RUN value. On the first edge of a new run, pwm_fall (line 94) compares pwm_sync with that stale level, not the previous clock's. This can add or drop a clean-cycle count at line 182 and shift the strike clear at line 140.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.132.AIM.22": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "latch_assert now sets on a window_trip with strike_level >= max_strikes-1, with no hiccup entry needed. It can rise earlier, or rise when no further hiccup ever happens, and it is a port.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.140.AIM.28": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "clean_run_target can be lowered below the running count while strike_level is nonzero, so clean_counter > target is reachable. The mutant then clears strike_level at once; the original waits for the wrap back to exact equality.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.140.AIM.29": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "On an edge where clean_counter == clean_run_target and window_trip is high, the original clears strike_level and the mutant does not. clean_counter is then zeroed (line 176), so the strikes stay.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.143.AIM.34": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A completed clean run (line 140) now also clears latch_assert. After latching, a later clean run in S_RUN would drop the latch_assert output, which only rst_n clears in the original.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.165.CSK.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "clean_counter is never asynchronously reset. It is X at power-up until a synchronous clear, and keeps counting through reset if run_active is high. The comparison at line 140 can then go X or fire at a different time, which changes strike_level.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.167.SDL.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "clean_counter keeps its value through rst_n (or is X at power-up). After reset it can reach clean_run_target earlier than from 0, or compare as X at line 140.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.167.CST.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "clean_counter resets to 1. With clean_run_target=1 the strike clear at line 140 condition is true immediately, and in general the count reaches target one cycle earlier if run_active is high from reset.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.176.AIM.18": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "When run_active is low and pwm_fall is high, the mutant skips the clear and increments clean_counter. For example, on the hiccup-entry edge a run streak survives into the hiccup and can later clear strikes the original would keep.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.184.AIM.10": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If clean_run_target is lowered below clean_counter while strikes are held, the original wraps and comes back to the target, clearing strike_level. The mutant saturates at all-ones and never equals the target, so line 140 never clears the strikes.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.184.AIM.25": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If clean_run_target is lowered below clean_counter while strike_level is nonzero, the mutant freezes the counter above target and line 140 never fires. The original keeps counting, wraps and reaches the target, which clears strike_level.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.184.CSK.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "The versions first diverge on a pwm_fall edge in S_RUN with clean_counter == target. On that same edge line 140 clears strike_level in both, because hiccup_entry needs hiccup_active, which is exclusive with run_active per the header (lines 33-34). strike_level then stays 0 until a hiccup_entry, and that edge has run_active=0, so line 176 zeroes clean_counter in both and they reconverge.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.186.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "In a clocked always_ff, assigning clean_counter to itself is the same as not assigning it. The flop holds its value either way.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.186.STK.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "This line only runs on a pwm_fall edge in S_RUN with clean_counter == target. On that edge line 140 clears strike_level in both versions; no hiccup_entry is possible because hiccup_active and run_active are exclusive per lines 33-34. Strikes stay 0 until a hiccup_entry, which needs run_active=0, so line 176 resets clean_counter in both and the different counter values are never seen.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.186.STK.2": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "Same argument as the other line-186 edits. Divergence starts on an edge where line 140 already clears strike_level. strike_level is then 0 until a hiccup_entry, and that edge has run_active=0 (exclusive per lines 33-34), so line 176 zeroes clean_counter in both. The all-ones value never reaches a port.",
+   "chunk": "001_strike_counter"
+  },
+  "strike_counter.186.VNG.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "Writing ~clean_counter only happens on an edge where clean_counter == target, and line 140 clears strike_level on that same edge in both versions. Until the next hiccup_entry (run_active=0, so line 176 clears the counter in both), the strike clear can only write 0 to a strike_level that is already 0.",
+   "chunk": "001_strike_counter"
+  }
+ }
+}

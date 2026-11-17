@@ -1,0 +1,251 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`strike_counter`, in `rtl-systemverilog/protect/strike_counter.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "strike_counter.63.CSK.1",
+  "line": 63,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "strike_counter.63.BDL.1",
+  "line": 63,
+  "operator": "BDL",
+  "description": "empty the 2-statement body of the if at line 63",
+  "before": "if(!rst_n) begin",
+  "after": "if(!rst_n) begin end"
+ },
+ {
+  "id": "strike_counter.65.SDL.1",
+  "line": 65,
+  "operator": "SDL",
+  "description": "delete 'hiccup_active_d <= 0;'",
+  "before": "hiccup_active_d <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "strike_counter.65.CST.1",
+  "line": 65,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "hiccup_active_d <= 0;",
+  "after": "hiccup_active_d <= 1;"
+ },
+ {
+  "id": "strike_counter.66.SDL.1",
+  "line": 66,
+  "operator": "SDL",
+  "description": "delete 'pwm_sync_d <= 0;'",
+  "before": "pwm_sync_d <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "strike_counter.66.CST.1",
+  "line": 66,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "pwm_sync_d <= 0;",
+  "after": "pwm_sync_d <= 1;"
+ },
+ {
+  "id": "strike_counter.72.AIM.19",
+  "line": 72,
+  "operator": "AIM",
+  "description": "The PWM delay flop updates only in S_RUN, so on re-entry to S_RUN it compares against a stale PWM level from the previous run",
+  "before": "pwm_sync_d <= pwm_sync;",
+  "after": "if (run_active) pwm_sync_d <= pwm_sync;"
+ },
+ {
+  "id": "strike_counter.132.AIM.22",
+  "line": 132,
+  "operator": "AIM",
+  "description": "The latch is armed on the run-window trip that leads to the final hiccup, one clock before that hiccup is entered",
+  "before": "else if (hiccup_entry) begin",
+  "after": "else if (window_trip && strike_level >= max_strikes - 1'b1) begin /  / latch_assert <= 1'b1; /  / end /  / else if (hiccup_entry) begin"
+ },
+ {
+  "id": "strike_counter.140.AIM.28",
+  "line": 140,
+  "operator": "AIM",
+  "description": "The strike clear fires when the clean count is at or above clean_run_target, while the clean-run counter itself saturates only on an exact match",
+  "before": "else if (clean_counter == clean_run_target) begin",
+  "after": "else if (clean_counter >= clean_run_target) begin"
+ },
+ {
+  "id": "strike_counter.140.AIM.29",
+  "line": 140,
+  "operator": "AIM",
+  "description": "A window_trip on the clock the clean run completes cancels the strike forgiveness, although the run had already earned it",
+  "before": "else if (clean_counter == clean_run_target) begin",
+  "after": "else if (clean_counter == clean_run_target && !window_trip) begin"
+ },
+ {
+  "id": "strike_counter.143.AIM.34",
+  "line": 143,
+  "operator": "AIM",
+  "description": "A completed clean run clears latch_assert along with the strike count, as though forgiveness reset the whole protection state, although latch_assert is meant to be set-only and cleared by rst_n alone",
+  "before": "",
+  "after": "latch_assert <= 1'b0; / "
+ },
+ {
+  "id": "strike_counter.165.CSK.1",
+  "line": 165,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "strike_counter.167.SDL.1",
+  "line": 167,
+  "operator": "SDL",
+  "description": "delete 'clean_counter <= 0;'",
+  "before": "clean_counter <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "strike_counter.167.CST.1",
+  "line": 167,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "clean_counter <= 0;",
+  "after": "clean_counter <= 1;"
+ },
+ {
+  "id": "strike_counter.176.AIM.18",
+  "line": 176,
+  "operator": "AIM",
+  "description": "A switching-cycle boundary outranks the streak break, so a PWM fall on the clock S_RUN is left still counts as a clean cycle",
+  "before": "else if (!run_active || window_trip) begin",
+  "after": "else if ((!run_active || window_trip) && !pwm_fall) begin"
+ },
+ {
+  "id": "strike_counter.184.AIM.10",
+  "line": 184,
+  "operator": "AIM",
+  "description": "The clean-run counter saturates at all-ones, the old fixed terminal, instead of holding at clean_run_target",
+  "before": "if(clean_counter == clean_run_target) begin",
+  "after": "if(&clean_counter) begin"
+ },
+ {
+  "id": "strike_counter.184.AIM.25",
+  "line": 184,
+  "operator": "AIM",
+  "description": "The clean-run counter holds at any count at or above clean_run_target, but the strike clear still waits for an exact match. So if the target is lowered below the running count, the counter freezes at a value that can never equal it.",
+  "before": "if(clean_counter == clean_run_target) begin",
+  "after": "if(clean_counter >= clean_run_target) begin"
+ },
+ {
+  "id": "strike_counter.184.CSK.1",
+  "line": 184,
+  "operator": "CSK",
+  "description": "if (clean_counter == clean_run_target) -> if (1'b0): never taken",
+  "before": "if(clean_counter == clean_run_target) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "strike_counter.186.SDL.1",
+  "line": 186,
+  "operator": "SDL",
+  "description": "delete 'clean_counter <= clean_counter;'",
+  "before": "clean_counter <= clean_counter;",
+  "after": ";"
+ },
+ {
+  "id": "strike_counter.186.STK.1",
+  "line": 186,
+  "operator": "STK",
+  "description": "clean_counter stuck at all-zeros (was 'clean_counter')",
+  "before": "clean_counter <= clean_counter;",
+  "after": "clean_counter <= '0;"
+ },
+ {
+  "id": "strike_counter.186.STK.2",
+  "line": 186,
+  "operator": "STK",
+  "description": "clean_counter stuck at all-ones (was 'clean_counter')",
+  "before": "clean_counter <= clean_counter;",
+  "after": "clean_counter <= '1;"
+ },
+ {
+  "id": "strike_counter.186.VNG.1",
+  "line": 186,
+  "operator": "VNG",
+  "description": "clean_counter inverted (was 'clean_counter')",
+  "before": "clean_counter <= clean_counter;",
+  "after": "clean_counter <= ~(clean_counter);"
+ }
+]
+```

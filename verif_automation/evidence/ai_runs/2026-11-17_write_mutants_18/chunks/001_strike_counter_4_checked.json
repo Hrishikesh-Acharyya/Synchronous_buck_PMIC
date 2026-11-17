@@ -1,0 +1,21 @@
+[
+ {
+  "proposal": {
+   "line": 71,
+   "before": [
+    "    hiccup_active_d <= hiccup_active;",
+    "    pwm_sync_d <= pwm_sync;"
+   ],
+   "after": [
+    "    hiccup_active_d <= hiccup_active;",
+    "    pwm_sync_d <= hiccup_active;"
+   ],
+   "category": "other",
+   "description": "Copy-paste slip in the delay-flop block: pwm_sync_d is loaded from hiccup_active instead of pwm_sync, so the switching-cycle boundary pwm_fall only fires around a hiccup exit and never while the converter is in S_RUN",
+   "reason": "After any hiccup, the clean-run counter never advances in S_RUN, so strike_level stays non-zero however long the fault-free run lasts. Transients that are far apart then add up to latch_assert, when each should have been cleared after clean_run_target cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.72.AIM.31"
+ }
+]

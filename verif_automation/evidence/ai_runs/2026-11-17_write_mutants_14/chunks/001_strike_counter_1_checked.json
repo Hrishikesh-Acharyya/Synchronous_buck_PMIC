@@ -1,0 +1,177 @@
+[
+ {
+  "proposal": {
+   "line": 93,
+   "before": [
+    "  hiccup_entry = hiccup_active & ~hiccup_active_d;"
+   ],
+   "after": [
+    "  hiccup_entry = ~hiccup_active & hiccup_active_d;"
+   ],
+   "category": "wrong_event",
+   "description": "A strike is counted when the supervisor leaves S_HICCUP instead of when it enters it",
+   "reason": "strike_level steps up only at the end of each cool-down, so hiccup_timer times the current cool-down from the old level, and latch_assert rises one whole cool-down late, after the converter has already restarted into the fault."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.93.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 94,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync & ~pwm_sync_d;"
+   ],
+   "category": "wrong_event",
+   "description": "The clean-run cycle boundary is taken on the PWM rising edge instead of the falling edge",
+   "reason": "clean_counter advances at the start of each switching cycle rather than at its end. strike_level is therefore cleared one PWM on-time early after a fault-free run, and a run that begins with PWM high counts one cycle fewer."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.94.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level == max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "The latch test matches MAX_STRIKES-1 exactly instead of at-or-above, so a limit lowered below the count already reached is missed",
+   "reason": "If the host lowers max_strikes below strike_level, the next hiccup entry does not assert latch_assert. The count wraps round its 2-bit range and the latch trips several hiccups late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "  else if (hiccup_entry) begin",
+    "",
+    "      strike_level <= strike_level + 1;",
+    "",
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin",
+    "",
+    "    strike_level <= '0;"
+   ],
+   "after": [
+    "  else if (clean_counter == clean_run_target) begin",
+    "",
+    "    strike_level <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_entry) begin",
+    "",
+    "      strike_level <= strike_level + 1;",
+    "",
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "category": "priority",
+   "description": "The clean-run clear outranks hiccup entry, so a hiccup that ends a saturated clean run earns no strike",
+   "reason": "When a fault ends a run long enough to saturate clean_counter, clean_counter still holds the target on the hiccup_entry clock. The strike is dropped (strike_level stays 0 instead of becoming 1), and the latch check is skipped for that hiccup."
+  },
+  "accepted": false,
+  "why": "changes 12 lines; at most 6"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if (hiccup_active || window_trip) begin  "
+   ],
+   "category": "missing_case",
+   "description": "The clean-run streak is broken only by S_HICCUP, not by every exit from S_RUN, so cycles in soft-start count as clean",
+   "reason": "After a hiccup, the switching cycles of the S_SS soft-start add to clean_counter, so strike_level is cleared earlier than the programmed number of S_RUN cycles. A streak also survives a disable and re-enable that does not pass through S_HICCUP."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!run_active) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && !window_trip) begin"
+   ],
+   "category": "other",
+   "description": "window_trip pauses the clean-run count instead of restarting it",
+   "reason": "A fault-window trip in the middle of S_RUN that does not cause a hiccup no longer restarts the streak. Cycles before the trip still count, so strike_level is cleared earlier than clean_run_target consecutive fault-free cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.176.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 144,
+   "before": [
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if (strike_level >= max_strikes) begin",
+    "",
+    "    latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The latch also trips on the strike level alone, outside a hiccup entry",
+   "reason": "If the host lowers max_strikes to or below the strike count during S_RUN, latch_assert rises at once with no new hiccup. The specified behaviour is to trip only at the next hiccup entry at or past the limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.144.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level >= max_strikes - 1'b1) begin",
+    "      latch_assert <= 1'b1;",
+    "      strike_level <= '0;",
+    "    end"
+   ],
+   "category": "reset_init",
+   "description": "strike_level is zeroed when the latch trips, instead of keeping the count for telemetry",
+   "reason": "After latch_assert rises, strike_level reads 0 instead of the count that tripped the latch, so the count is lost from telemetry while the converter stays latched."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.6"
+ }
+]

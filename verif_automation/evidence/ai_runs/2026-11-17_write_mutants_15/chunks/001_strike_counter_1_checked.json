@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level + 1'b1 >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "The latch test compares the post-increment strike count against MAX_STRIKES-1, so the -1 for the pre-increment value is applied twice",
+   "reason": "At the default max_strikes of 3, latch_assert rises on the second hiccup entry, when strike_level goes from 1 to 2, instead of the third. With max_strikes 2 it trips on the first hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 94,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The switching-cycle boundary is taken on both PWM edges, so each switching cycle counts twice toward the clean run",
+   "reason": "In S_RUN, clean_counter reaches clean_run_target after half the intended number of switching cycles, so strike_level is cleared after about 0.5 s of fault-free running instead of 1 s."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.94.AIM.8"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (&clean_counter) begin"
+   ],
+   "category": "boundary",
+   "description": "The strike clear still waits for the old all-ones terminal count instead of clean_run_target, although the counter now saturates at the target",
+   "reason": "At the default target, which is below all-ones, clean_counter stops at the target and never reaches all-ones. A strike earned by a hiccup is then never cleared, however long the run, and later isolated hiccups add up to latch_assert."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 184,
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(&clean_counter) begin"
+   ],
+   "category": "boundary",
+   "description": "The clean-run counter saturates at all-ones, the old fixed terminal, instead of holding at clean_run_target",
+   "reason": "If the host lowers clean_run_target to a value below the current clean count while strikes are outstanding, the original counter wraps around and then clears strike_level when it reaches the new target. The mutant holds at all-ones and never matches, so strike_level stays non-zero until the next hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.184.AIM.10"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (pwm_fall && clean_counter == clean_run_target) begin"
+   ],
+   "category": "sequencing",
+   "description": "The strike clear waits for the next switching-cycle boundary after the clean run completes, instead of happening on the next clock",
+   "reason": "In S_RUN with strikes outstanding, strike_level goes to zero one full PWM period after clean_counter reaches clean_run_target, not on the next clk. If S_RUN is left within that period, the clear never happens."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 142,
+   "before": [
+    "    strike_level <= '0;"
+   ],
+   "after": [
+    "    strike_level <= strike_level - 1'b1;"
+   ],
+   "category": "other",
+   "description": "A completed clean run forgives one strike instead of clearing the whole count, and keeps doing so while the clean count stays saturated",
+   "reason": "After a clean run in S_RUN with strike_level at 1, the clear branch fires every clock while the counter holds at the target. strike_level steps 0, 3, 2, 1 and so on, so the next hiccup gets the wrong cool-down and can trip latch_assert on its first entry."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.142.AIM.12"
+ }
+]

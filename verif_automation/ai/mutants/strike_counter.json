@@ -1,0 +1,576 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 93,
+   "category": "wrong_event",
+   "description": "A strike is counted when the supervisor leaves S_HICCUP instead of when it enters it",
+   "reason": "strike_level steps up only at the end of each cool-down, so hiccup_timer times the current cool-down from the old level, and latch_assert rises one whole cool-down late, after the converter has already restarted into the fault.",
+   "before": [
+    "  hiccup_entry = hiccup_active & ~hiccup_active_d;"
+   ],
+   "after": [
+    "  hiccup_entry = ~hiccup_active & hiccup_active_d;"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 2,
+   "line": 94,
+   "category": "wrong_event",
+   "description": "The clean-run cycle boundary is taken on the PWM rising edge instead of the falling edge",
+   "reason": "clean_counter advances at the start of each switching cycle rather than at its end. strike_level is therefore cleared one PWM on-time early after a fault-free run, and a run that begins with PWM high counts one cycle fewer.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync & ~pwm_sync_d;"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 3,
+   "line": 136,
+   "category": "boundary",
+   "description": "The latch test matches MAX_STRIKES-1 exactly instead of at-or-above, so a limit lowered below the count already reached is missed",
+   "reason": "If the host lowers max_strikes below strike_level, the next hiccup entry does not assert latch_assert. The count wraps round its 2-bit range and the latch trips several hiccups late.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level == max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 4,
+   "line": 176,
+   "category": "other",
+   "description": "window_trip pauses the clean-run count instead of restarting it",
+   "reason": "A fault-window trip in the middle of S_RUN that does not cause a hiccup no longer restarts the streak. Cycles before the trip still count, so strike_level is cleared earlier than clean_run_target consecutive fault-free cycles.",
+   "before": [
+    "  else if (!run_active || window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (!run_active) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && !window_trip) begin"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 5,
+   "line": 141,
+   "category": "wrong_event",
+   "description": "The latch also trips on the strike level alone, outside a hiccup entry",
+   "reason": "If the host lowers max_strikes to or below the strike count during S_RUN, latch_assert rises at once with no new hiccup. The specified behaviour is to trip only at the next hiccup entry at or past the limit.",
+   "before": [
+    "",
+    "    strike_level <= '0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "",
+    "    strike_level <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if (strike_level >= max_strikes) begin",
+    "",
+    "    latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 6,
+   "line": 136,
+   "category": "reset_init",
+   "description": "strike_level is zeroed when the latch trips, instead of keeping the count for telemetry",
+   "reason": "After latch_assert rises, strike_level reads 0 instead of the count that tripped the latch, so the count is lost from telemetry while the converter stays latched.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level >= max_strikes - 1'b1) begin",
+    "      latch_assert <= 1'b1;",
+    "      strike_level <= '0;",
+    "    end"
+   ],
+   "run": "2026-11-17_write_mutants_14"
+  },
+  {
+   "key": 7,
+   "line": 136,
+   "category": "boundary",
+   "description": "The latch test compares the post-increment strike count against MAX_STRIKES-1, so the -1 for the pre-increment value is applied twice",
+   "reason": "At the default max_strikes of 3, latch_assert rises on the second hiccup entry, when strike_level goes from 1 to 2, instead of the third. With max_strikes 2 it trips on the first hiccup.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (strike_level + 1'b1 >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_15"
+  },
+  {
+   "key": 8,
+   "line": 94,
+   "category": "wrong_event",
+   "description": "The switching-cycle boundary is taken on both PWM edges, so each switching cycle counts twice toward the clean run",
+   "reason": "In S_RUN, clean_counter reaches clean_run_target after half the intended number of switching cycles, so strike_level is cleared after about 0.5 s of fault-free running instead of 1 s.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_15"
+  },
+  {
+   "key": 10,
+   "line": 184,
+   "category": "boundary",
+   "description": "The clean-run counter saturates at all-ones, the old fixed terminal, instead of holding at clean_run_target",
+   "reason": "If the host lowers clean_run_target to a value below the current clean count while strikes are outstanding, the original counter wraps around and then clears strike_level when it reaches the new target. The mutant holds at all-ones and never matches, so strike_level stays non-zero until the next hiccup.",
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(&clean_counter) begin"
+   ],
+   "run": "2026-11-17_write_mutants_15"
+  },
+  {
+   "key": 11,
+   "line": 140,
+   "category": "sequencing",
+   "description": "The strike clear waits for the next switching-cycle boundary after the clean run completes, instead of happening on the next clock",
+   "reason": "In S_RUN with strikes outstanding, strike_level goes to zero one full PWM period after clean_counter reaches clean_run_target, not on the next clk. If S_RUN is left within that period, the clear never happens.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (pwm_fall && clean_counter == clean_run_target) begin"
+   ],
+   "run": "2026-11-17_write_mutants_15"
+  },
+  {
+   "key": 12,
+   "line": 141,
+   "category": "other",
+   "description": "A completed clean run forgives one strike instead of clearing the whole count, and keeps doing so while the clean count stays saturated",
+   "reason": "After a clean run in S_RUN with strike_level at 1, the clear branch fires every clock while the counter holds at the target. strike_level steps 0, 3, 2, 1 and so on, so the next hiccup gets the wrong cool-down and can trip latch_assert on its first entry.",
+   "before": [
+    "",
+    "    strike_level <= '0;"
+   ],
+   "after": [
+    "",
+    "    strike_level <= strike_level - 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_15"
+  },
+  {
+   "key": 13,
+   "line": 93,
+   "category": "wrong_event",
+   "description": "A strike is counted on every change of hiccup_active, so both entering and leaving S_HICCUP add a strike",
+   "reason": "Each hiccup now raises strike_level by two: one on entry and one when the cool-down ends and the supervisor goes back to S_SS. The cool-down level is wrong from the second hiccup on, and latch_assert trips after fewer hiccups than max_strikes allows.",
+   "before": [
+    "  hiccup_entry = hiccup_active & ~hiccup_active_d;"
+   ],
+   "after": [
+    "  hiccup_entry = hiccup_active ^ hiccup_active_d;"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 14,
+   "line": 134,
+   "category": "boundary",
+   "description": "strike_level is clamped at max_strikes-1, the deepest cool-down index, so the hiccup that trips the latch is not added to the count",
+   "reason": "On the hiccup that asserts latch_assert, strike_level stays at max_strikes-1 instead of going to max_strikes. The final count read back for telemetry is one short every time the latch trips.",
+   "before": [
+    "      strike_level <= strike_level + 1;"
+   ],
+   "after": [
+    "      if (strike_level < max_strikes - 1'b1) strike_level <= strike_level + 1;"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 15,
+   "line": 136,
+   "category": "wrong_event",
+   "description": "The latch is tested when the hiccup cool-down ends, on the post-increment count, instead of when the hiccup that reaches MAX_STRIKES begins",
+   "reason": "On the hiccup that reaches max_strikes, latch_assert now rises only when hiccup_active falls at the end of the whole cool-down, not on the entry clock. Until then the supervisor sees no latch, and it moves from S_HICCUP to S_SS before shutting down.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if (hiccup_active_d & ~hiccup_active) begin",
+    "",
+    "    if (strike_level >= max_strikes) latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 16,
+   "line": 140,
+   "category": "boundary",
+   "description": "The pre-increment -1 used by the latch test is copied into the clean-run clear, so strikes are forgiven one switching cycle before the clean run is complete",
+   "reason": "strike_level goes back to zero one switching cycle earlier than clean_run_target cycles of S_RUN. If S_RUN is left exactly at target-1 cycles, the strikes are cleared although the original keeps them.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 17,
+   "line": 184,
+   "category": "boundary",
+   "description": "The clean-run counter saturates one cycle below clean_run_target, so it never reaches the value the strike clear waits for",
+   "reason": "However long S_RUN stays fault-free, clean_counter stops at target-1, and the clear in the strike block (== clean_run_target) never fires. strike_level never returns to zero, so separate transients add up until latch_assert trips.",
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 18,
+   "line": 176,
+   "category": "priority",
+   "description": "A switching-cycle boundary outranks the streak break, so a PWM fall on the clock S_RUN is left still counts as a clean cycle",
+   "reason": "Say S_RUN is left (g_en dropped, say) on a clock with a PWM falling edge, and clean_counter is at target-1. The counter then reaches clean_run_target, and on the next clock strike_level is cleared although the clean run was cut short. The original clears the counter and keeps the strikes.",
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active || window_trip) && !pwm_fall) begin  "
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 19,
+   "line": 72,
+   "category": "sequencing",
+   "description": "The PWM delay flop updates only in S_RUN, so on re-entry to S_RUN it compares against a stale PWM level from the previous run",
+   "reason": "Suppose PWM was high when S_RUN was last left and is low on the first clock of the next S_RUN. pwm_fall then gives a false cycle boundary, so the clean run is counted one cycle long and strike_level is cleared one switching cycle early.",
+   "before": [
+    "    pwm_sync_d <= pwm_sync;"
+   ],
+   "after": [
+    "    if (run_active) pwm_sync_d <= pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_16"
+  },
+  {
+   "key": 20,
+   "line": 176,
+   "category": "wrong_event",
+   "description": "The clean-run streak is broken only on a switching-cycle boundary, so leaving S_RUN or a window trip between PWM falls leaves the saturated clean count standing",
+   "reason": "After a long clean run (clean_counter at clean_run_target), a window_trip moves the supervisor to S_HICCUP, which has no switching-cycle boundary. The count survives the hiccup entry, so on the next clock strike_level drops back to 0 and the strike that hiccup earned is wiped. Repeated faults then never escalate the cool-down or reach latch_assert.",
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if (pwm_fall && (!run_active || window_trip)) begin  "
+   ],
+   "run": "2026-11-17_write_mutants_17"
+  },
+  {
+   "key": 21,
+   "line": 176,
+   "category": "reset_init",
+   "description": "Leaving S_RUN only pauses the clean-run count instead of clearing it; only window_trip restarts the streak",
+   "reason": "Take a run that reaches clean_run_target and then leaves S_RUN through S_OFF (g_en low). The count stays at the target through S_OFF and S_SS. If a window_trip_SS hiccup follows, strike_level is cleared on the clock after its entry, so soft-start strikes never add up to latch_assert.",
+   "before": [
+    "  else if (!run_active || window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall) begin"
+   ],
+   "after": [
+    "  else if (window_trip) begin  ",
+    "",
+    "    clean_counter <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if(pwm_fall && run_active) begin"
+   ],
+   "run": "2026-11-17_write_mutants_17"
+  },
+  {
+   "key": 22,
+   "line": 132,
+   "category": "sequencing",
+   "description": "The latch is armed on the run-window trip that leads to the final hiccup, one clock before that hiccup is entered",
+   "reason": "When strike_level is already max_strikes-1 and window_trip fires in S_RUN, latch_assert rises on that clock instead of one clock later on the S_HICCUP entry. The supervisor and the fault log therefore see the latch a cycle early.",
+   "before": [
+    "  else if (hiccup_entry) begin"
+   ],
+   "after": [
+    "  else if (window_trip && strike_level >= max_strikes - 1'b1) begin",
+    "",
+    "    latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_entry) begin"
+   ],
+   "run": "2026-11-17_write_mutants_17"
+  },
+  {
+   "key": 23,
+   "line": 134,
+   "category": "boundary",
+   "description": "The strike count saturates at MAX_STRIKES, so after the host lowers MAX_STRIKES below the count already reached, the latching hiccup is not counted",
+   "reason": "Example: strike_level is 2 and the host writes MAX_STRIKES=1. The next hiccup still trips latch_assert, but strike_level stays at 2 instead of going to 3, so the strike_level reported for telemetry is one short.",
+   "before": [
+    "      strike_level <= strike_level + 1;"
+   ],
+   "after": [
+    "      if (strike_level < max_strikes) strike_level <= strike_level + 1;"
+   ],
+   "run": "2026-11-17_write_mutants_17"
+  },
+  {
+   "key": 24,
+   "line": 136,
+   "category": "boundary",
+   "description": "A guard against the max_strikes-1 underflow is written with the wrong limit, so MAX_STRIKES=1 disables the latch",
+   "reason": "With MAX_STRIKES written to 1 (the minimum reg_file allows), the first hiccup should assert latch_assert. Under this fault latch_assert never asserts, and strike_level keeps counting and wrapping on every later hiccup.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "after": [
+    "    if (max_strikes > STRIKE_W'(1) && strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_17"
+  },
+  {
+   "key": 25,
+   "line": 184,
+   "category": "boundary",
+   "description": "The clean-run counter holds at any count at or above clean_run_target, but the strike clear still waits for an exact match. So if the target is lowered below the running count, the counter freezes at a value that can never equal it.",
+   "reason": "Suppose the host writes a CLEAN_RUN target below the clean count already reached while strikes are outstanding in S_RUN. The original counter keeps counting, wraps and then reaches the new target, so strike_level is cleared. The mutant holds the counter above the target, so strike_level is never cleared for the rest of that run.",
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(clean_counter >= clean_run_target) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 26,
+   "line": 141,
+   "category": "reset_init",
+   "description": "A completed clean run sets the strike count back to one strike, treated wrongly as the base cool-down level, instead of clearing it to no strikes.",
+   "reason": "After a fault-free run of clean_run_target cycles following a hiccup, strike_level reads 1 instead of 0. The next hiccup then gets the doubled cool-down index, and latch_assert trips one hiccup sooner than MAX_STRIKES allows.",
+   "before": [
+    "",
+    "    strike_level <= '0;"
+   ],
+   "after": [
+    "",
+    "    strike_level <= STRIKE_W'(1);"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 27,
+   "line": 132,
+   "category": "wrong_event",
+   "description": "The run-window trip is counted as a strike as well as the hiccup entry it causes, so every hiccup out of S_RUN adds two strikes",
+   "reason": "window_trip is high on the last S_RUN clock and hiccup_entry fires on the next, so each overcurrent hiccup from S_RUN raises strike_level by 2 instead of 1. That lengthens the cool-down chosen by hiccup_timer, and with MAX_STRIKES=3 latch_assert trips on the second run hiccup instead of the third.",
+   "before": [
+    "  else if (hiccup_entry) begin"
+   ],
+   "after": [
+    "  else if (hiccup_entry || window_trip) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 28,
+   "line": 140,
+   "category": "boundary",
+   "description": "The strike clear fires when the clean count is at or above clean_run_target, while the clean-run counter itself saturates only on an exact match",
+   "reason": "Say the host lowers clean_run_target in mid-run to below the clean count already reached. The original counter runs on past the new target and wraps before it matches, so strike_level stays nonzero for about 2**CLEAN_RUN_W more switching cycles. With this mutant strike_level drops to 0 on the next clock.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter >= clean_run_target) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 29,
+   "line": 140,
+   "category": "priority",
+   "description": "A window_trip on the clock the clean run completes cancels the strike forgiveness, although the run had already earned it",
+   "reason": "Say window_trip is asserted on the first clock where clean_counter equals clean_run_target. The original zeroes strike_level on that edge. The mutant keeps the old count, so the hiccup that follows adds to it, and it can set latch_assert (for example with 2 strikes and max_strikes=3) where the original would only go to 1 strike.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter == clean_run_target && !window_trip) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 31,
+   "line": 71,
+   "category": "other",
+   "description": "Copy-paste slip in the delay-flop block: pwm_sync_d is loaded from hiccup_active instead of pwm_sync, so the switching-cycle boundary pwm_fall only fires around a hiccup exit and never while the converter is in S_RUN",
+   "reason": "After any hiccup, the clean-run counter never advances in S_RUN, so strike_level stays non-zero however long the fault-free run lasts. Transients that are far apart then add up to latch_assert, when each should have been cleared after clean_run_target cycles.",
+   "before": [
+    "    hiccup_active_d <= hiccup_active;",
+    "    pwm_sync_d <= pwm_sync;"
+   ],
+   "after": [
+    "    hiccup_active_d <= hiccup_active;",
+    "    pwm_sync_d <= hiccup_active;"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 32,
+   "line": 71,
+   "category": "other",
+   "description": "Copy-paste slip in the delay-flop block: hiccup_active_d is loaded from pwm_sync instead of hiccup_active, so hiccup_entry is no longer a single pulse on entry into S_HICCUP",
+   "reason": "In S_HICCUP the PWM is stopped, so pwm_sync stays low and hiccup_entry = hiccup_active & ~pwm_sync_prev is true on every clock of the cool-down. strike_level then goes up every clock instead of once per hiccup, and latch_assert trips during the first hiccup instead of the MAX_STRIKES-th.",
+   "before": [
+    "    hiccup_active_d <= hiccup_active;"
+   ],
+   "after": [
+    "    hiccup_active_d <= pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 33,
+   "line": 140,
+   "category": "sequencing",
+   "description": "The strike clear tries to anticipate the clean-run counter reaching its target on the switching-cycle boundary, instead of waiting for the counter to actually hold clean_run_target",
+   "reason": "strike_level drops to zero one clock earlier than it should. It is also cleared when the final PWM fall of the run comes on the same clock as a window_trip or the exit from S_RUN: the counter is then cleared rather than completed, so the run never earned the forgiveness.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (pwm_fall && clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 34,
+   "line": 141,
+   "category": "reset_init",
+   "description": "A completed clean run clears latch_assert along with the strike count, as though forgiveness reset the whole protection state, although latch_assert is meant to be set-only and cleared by rst_n alone",
+   "reason": "After latch_assert has tripped, a later stretch of clean_run_target fault-free switching cycles with run_active high deasserts latch_assert at the port. This input sequence is allowed by the module's own interface, though at top level the supervisor's S_OFF lock-out keeps run_active low after a latch.",
+   "before": [
+    "",
+    "    strike_level <= '0;",
+    ""
+   ],
+   "after": [
+    "",
+    "    strike_level <= '0;",
+    "    latch_assert <= 1'b0;",
+    ""
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  },
+  {
+   "key": 35,
+   "line": 136,
+   "category": "sequencing",
+   "description": "The latch test is moved out of the hiccup-entry branch to a later point in the cool-down. It compares the count after it has landed with MAX_STRIKES while hiccup_active is high, instead of testing the count about to land on the entry clock.",
+   "reason": "On the hiccup that reaches MAX_STRIKES, latch_assert rises one clock late, so the supervisor stays in S_HICCUP one clock longer before it goes to S_OFF. Also, if the host lowers max_strikes to or below the current count during a cool-down, the latch trips in the middle of that cool-down instead of waiting for the next hiccup entry.",
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_active && strike_level >= max_strikes) begin",
+    "    latch_assert <= 1'b1;",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "run": "2026-11-17_write_mutants_18"
+  }
+ ],
+ "unit": "strike_counter",
+ "file": "rtl-systemverilog/protect/strike_counter.sv",
+ "last_key": 35,
+ "withdrawn": [
+  {
+   "key": 9,
+   "line": 140,
+   "category": "boundary",
+   "description": "The strike clear still waits for the old all-ones terminal count instead of clean_run_target, although the counter now saturates at the target",
+   "reason": "At the default target, which is below all-ones, clean_counter stops at the target and never reaches all-ones. A strike earned by a hiccup is then never cleared, however long the run, and later isolated hiccups add up to latch_assert.",
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (&clean_counter) begin"
+   ],
+   "run": "2026-11-17_write_mutants_15",
+   "withdrawn": "same output as AIM.17: the strike clear never fires, so strikes are never forgiven"
+  },
+  {
+   "key": 30,
+   "line": 176,
+   "category": "missing_case",
+   "description": "The clean-run streak is broken by leaving S_RUN for any state except S_HICCUP, so a completed clean count survives into the cool-down",
+   "reason": "Say hiccup_active rises as run_active falls after a completed clean run, with no window_trip on that clock. The clean count stays at clean_run_target through the cool-down, so one clock after the entry the clean branch zeroes the strike that hiccup just added. strike_level drops back to 0 during S_HICCUP, and repeated hiccups never set latch_assert.",
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active && !hiccup_active) || window_trip) begin  "
+   ],
+   "run": "2026-11-17_write_mutants_18",
+   "withdrawn": "part of AIM.21: the count survives only the exit into S_HICCUP, which AIM.21 also does; any test that kills AIM.21 on a hiccup exit kills it"
+  }
+ ]
+}

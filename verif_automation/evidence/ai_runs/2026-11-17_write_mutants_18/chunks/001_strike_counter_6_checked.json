@@ -1,0 +1,30 @@
+[
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "",
+    "  end",
+    "",
+    "  else if (hiccup_active && strike_level >= max_strikes) begin",
+    "    latch_assert <= 1'b1;",
+    "  end",
+    "",
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "category": "sequencing",
+   "description": "The latch test is moved out of the hiccup-entry branch to a later point in the cool-down. It compares the count after it has landed with MAX_STRIKES while hiccup_active is high, instead of testing the count about to land on the entry clock.",
+   "reason": "On the hiccup that reaches MAX_STRIKES, latch_assert rises one clock late, so the supervisor stays in S_HICCUP one clock longer before it goes to S_OFF. Also, if the host lowers max_strikes to or below the current count during a cool-down, the latch trips in the middle of that cool-down instead of waiting for the next hiccup entry."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.35"
+ }
+]

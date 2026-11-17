@@ -1,0 +1,129 @@
+[
+ {
+  "proposal": {
+   "line": 93,
+   "before": [
+    "  hiccup_entry = hiccup_active & ~hiccup_active_d;"
+   ],
+   "after": [
+    "  hiccup_entry = hiccup_active ^ hiccup_active_d;"
+   ],
+   "category": "wrong_event",
+   "description": "A strike is counted on every change of hiccup_active, so both entering and leaving S_HICCUP add a strike",
+   "reason": "Each hiccup now raises strike_level by two: one on entry and one when the cool-down ends and the supervisor goes back to S_SS. The cool-down level is wrong from the second hiccup on, and latch_assert trips after fewer hiccups than max_strikes allows."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.93.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 134,
+   "before": [
+    "      strike_level <= strike_level + 1;"
+   ],
+   "after": [
+    "      if (strike_level < max_strikes - 1'b1) strike_level <= strike_level + 1;"
+   ],
+   "category": "boundary",
+   "description": "strike_level is clamped at max_strikes-1, the deepest cool-down index, so the hiccup that trips the latch is not added to the count",
+   "reason": "On the hiccup that asserts latch_assert, strike_level stays at max_strikes-1 instead of going to max_strikes. The final count read back for telemetry is one short every time the latch trips."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.134.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "    if (strike_level >= max_strikes - 1'b1) latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if (hiccup_active_d & ~hiccup_active) begin",
+    "",
+    "    if (strike_level >= max_strikes) latch_assert <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The latch is tested when the hiccup cool-down ends, on the post-increment count, instead of when the hiccup that reaches MAX_STRIKES begins",
+   "reason": "On the hiccup that reaches max_strikes, latch_assert now rises only when hiccup_active falls at the end of the whole cool-down, not on the entry clock. Until then the supervisor sees no latch, and it moves from S_HICCUP to S_SS before shutting down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.136.AIM.15"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "  else if (clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "  else if (clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "category": "boundary",
+   "description": "The pre-increment -1 used by the latch test is copied into the clean-run clear, so strikes are forgiven one switching cycle before the clean run is complete",
+   "reason": "strike_level goes back to zero one switching cycle earlier than clean_run_target cycles of S_RUN. If S_RUN is left exactly at target-1 cycles, the strikes are cleared although the original keeps them."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.140.AIM.16"
+ },
+ {
+  "proposal": {
+   "line": 184,
+   "before": [
+    "    if(clean_counter == clean_run_target) begin"
+   ],
+   "after": [
+    "    if(clean_counter == clean_run_target - 1'b1) begin"
+   ],
+   "category": "boundary",
+   "description": "The clean-run counter saturates one cycle below clean_run_target, so it never reaches the value the strike clear waits for",
+   "reason": "However long S_RUN stays fault-free, clean_counter stops at target-1, and the clear in the strike block (== clean_run_target) never fires. strike_level never returns to zero, so separate transients add up until latch_assert trips."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.184.AIM.17"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "  else if (!run_active || window_trip) begin  "
+   ],
+   "after": [
+    "  else if ((!run_active || window_trip) && !pwm_fall) begin  "
+   ],
+   "category": "priority",
+   "description": "A switching-cycle boundary outranks the streak break, so a PWM fall on the clock S_RUN is left still counts as a clean cycle",
+   "reason": "Say S_RUN is left (g_en dropped, say) on a clock with a PWM falling edge, and clean_counter is at target-1. The counter then reaches clean_run_target, and on the next clock strike_level is cleared although the clean run was cut short. The original clears the counter and keeps the strikes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.176.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 72,
+   "before": [
+    "    pwm_sync_d <= pwm_sync;"
+   ],
+   "after": [
+    "    if (run_active) pwm_sync_d <= pwm_sync;"
+   ],
+   "category": "sequencing",
+   "description": "The PWM delay flop updates only in S_RUN, so on re-entry to S_RUN it compares against a stale PWM level from the previous run",
+   "reason": "Suppose PWM was high when S_RUN was last left and is low on the first clock of the next S_RUN. pwm_fall then gives a false cycle boundary, so the clean run is counted one cycle long and strike_level is cleared one switching cycle early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "strike_counter.72.AIM.19"
+ }
+]
