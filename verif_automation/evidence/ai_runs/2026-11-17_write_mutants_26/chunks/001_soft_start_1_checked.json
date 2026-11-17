@@ -1,0 +1,60 @@
+[
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter >= cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "boundary",
+   "description": "The ceiling-step test copies the at-or-past (>=) form of the target test, while the step-window counter still wraps only on equality. A cycles_per_step lowered below the running count therefore steps the ceiling on every switching cycle until the counter wraps.",
+   "reason": "In S_SS, if the host lowers cycles_per_step below the current cycle_counter mid-ramp, max_on_counts rises by one on every PWM falling edge, racing to max_on_limit and raising SS_done early. In the original the ceiling does not step until the counter wraps and reaches the new window end."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.43"
+ },
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "      cycle_counter <= '0;"
+   ],
+   "category": "reset_init",
+   "description": "Reaching the target also clears the step-window counter, as if a finished ramp should re-arm its window. The window then restarts on every at-target clock instead of running on every switching cycle of S_SS.",
+   "reason": "With ss_active held after the ceiling reaches max_on_limit, raising max_on_limit makes the next ceiling step land a full cycles_per_step cycles after the raise. In the original it lands at the end of the window already running."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.148.AIM.44"
+ },
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin",
+    "",
+    "        SS_done <= 1'b1;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      SS_done <= (max_on_counts + 1 == max_on_limit);"
+   ],
+   "category": "sequencing",
+   "description": "On a ramp step SS_done is assigned from the look-ahead comparison instead of only being set by it. Each step that does not land on the target therefore clears a SS_done that was already latched in S_SS.",
+   "reason": "In S_SS after SS_done has risen, if max_on_limit is raised above the ceiling while ss_active stays high, the next ceiling step drops SS_done to 0. In the original SS_done stays set until the module leaves S_SS and S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.158.AIM.45"
+ }
+]

@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 128,
+   "before": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin"
+   ],
+   "after": [
+    "      if (cycle_counter == pmic_types_pkg::CYCLES_PER_STEP_DEFAULT[pmic_types_pkg::CYC_STEP_W-1:0] - 1'b1) begin"
+   ],
+   "category": "missing_case",
+   "description": "The step-window counter wraps at the package default CYCLES_PER_STEP_DEFAULT instead of at the host-programmed cycles_per_step, so the register only reaches the step test and not the window length.",
+   "reason": "If the host programs cycles_per_step to anything other than 16, max_on_counts no longer steps every cycles_per_step cycles in S_SS. Below 16 it steps once every 16 cycles. Above 16 the counter never reaches cycles_per_step-1, so the ceiling never steps and SS_done never rises unless the limit equals the floor."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.128.AIM.29"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if ((pwm_sync & ~pwm_sync_d) && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The ceiling step is taken on the PWM rising edge of the window's last cycle, while the step-window counter still counts falling edges, so the ceiling widens at the start of a pulse instead of after it.",
+   "reason": "In S_SS, max_on_counts now increments at the rising edge of the last switching cycle of each window, not at its falling edge. Every step and the SS_done rise come one PWM on-time earlier, and the ceiling changes while a pulse is running."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.30"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter + 1'b1 == cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "sequencing",
+   "description": "The ceiling step tests the step-window counter's next value instead of its current value, so the step lands one switching cycle before the window ends.",
+   "reason": "In S_SS with cycles_per_step > 1, the first ceiling step comes after cycles_per_step-1 falling edges instead of cycles_per_step, and every step is one cycle ahead of the window wrap. With cycles_per_step = 1 the test can never match, so the ceiling never ramps and SS_done never rises."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.31"
+ }
+]

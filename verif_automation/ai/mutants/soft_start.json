@@ -1,0 +1,991 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 88,
+   "category": "wrong_event",
+   "description": "The cycle boundary is taken on the rising edge of the PWM instead of the falling edge, so the ceiling steps at the start of a pulse rather than after it.",
+   "reason": "In S_SS, max_on_counts now changes on the clock after pwm_sync rises, while the pulse is still on, instead of after it falls. Each step lands earlier by the width of the PWM pulse, and so does SS_done.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync & ~pwm_sync_d;"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 2,
+   "line": 168,
+   "category": "missing_case",
+   "description": "A max_on_limit lowered during S_RUN is clamped onto the held ceiling straight away, instead of being left until the next ramp.",
+   "reason": "If the host lowers max_on_limit while run_active is high, max_on_counts drops to the new limit on the next clock. The header says the ceiling stays unchanged through S_RUN and the new limit only takes effect at the next soft start.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    if (max_on_counts > max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "",
+    "    end",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 3,
+   "line": 152,
+   "category": "wrong_event",
+   "description": "The ceiling steps on the first switching cycle of each step window instead of its last.",
+   "reason": "On entering S_SS with cycles_per_step > 1, max_on_counts rises at the very first PWM falling edge, not after cycles_per_step cycles. The whole ramp, and SS_done, therefore arrive cycles_per_step-1 switching cycles early.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter == '0)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 4,
+   "line": 168,
+   "category": "reset_init",
+   "description": "SS_done is cleared on entry to S_RUN rather than held for all of S_RUN.",
+   "reason": "After a completed ramp, SS_done falls on the first clock that run_active is high and stays low through S_RUN. The original holds it high until the supervisor leaves S_RUN.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    SS_done <= 1'b0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 5,
+   "line": 145,
+   "category": "boundary",
+   "description": "The look-ahead meant only for SS_done is also used in the target test, so the last step lands as soon as the ceiling is one below the limit, without waiting out its step window.",
+   "reason": "In S_SS, as soon as max_on_counts reaches max_on_limit-1, it jumps to max_on_limit and SS_done rises on the next clock. That can happen mid-pulse, and it skips the cycles_per_step-cycle dwell, so the ramp ends one step period early.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts + 1 >= max_on_limit) begin"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 6,
+   "line": 68,
+   "category": "sequencing",
+   "description": "The edge detector's delayed PWM copy is only updated in S_SS, so it holds a stale value from the previous soft start.",
+   "reason": "Suppose S_SS is left while pwm_sync is high (a hiccup, say), and a later S_SS begins with pwm_sync low. The stale pwm_sync_d=1 then makes a false falling edge on the first clock. That counts a switching cycle that never happened, so the first ceiling step comes one cycle early.",
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_19"
+  },
+  {
+   "key": 7,
+   "line": 145,
+   "category": "boundary",
+   "description": "The target test checks for equality instead of at-or-past, so a ceiling already above a lowered max_on_limit is never clamped back down (the bug the header says >= was brought in to fix).",
+   "reason": "If max_on_limit is written below the present ceiling during S_SS, max_on_counts keeps stepping up past the limit, runs to the top of its range and wraps, and SS_done is not asserted when it should be.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts == max_on_limit) begin"
+   ],
+   "run": "2026-11-17_write_mutants_20"
+  },
+  {
+   "key": 8,
+   "line": 152,
+   "category": "priority",
+   "description": "The ramp step is an independent if after the at-target clamp rather than its else branch, so on a step boundary the later step assignment wins over the clamp.",
+   "reason": "In S_SS, with the ceiling at or above max_on_limit (for example after the limit is lowered mid-ramp), a pwm_fall that ends a step window drives max_on_counts to one above the ceiling, so it sits above max_on_limit for one clock before the clamp takes effect.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_20"
+  },
+  {
+   "key": 10,
+   "line": 168,
+   "category": "reset_init",
+   "description": "The hold condition also keeps the ceiling while SS_done is set, so a completed ramp is not reset to the floor when the supervisor leaves S_RUN for hiccup or idle.",
+   "reason": "After S_RUN, when both ss_active and run_active are low, max_on_counts stays at max_on_limit and SS_done stays high. The next S_SS then finishes at once at full ceiling instead of re-ramping from MIN_ON_COUNTS.",
+   "before": [
+    "  else if (run_active) begin"
+   ],
+   "after": [
+    "  else if (run_active || SS_done) begin"
+   ],
+   "run": "2026-11-17_write_mutants_20"
+  },
+  {
+   "key": 11,
+   "line": 174,
+   "category": "reset_init",
+   "description": "Outside S_SS and S_RUN the ceiling is only reset to the floor if the ramp had finished, so a soft start aborted mid-ramp leaves its partial ceiling in place.",
+   "reason": "If ss_active drops before SS_done (for example a hiccup during soft start), max_on_counts keeps its partial value. The retry's S_SS then starts its ramp from that value instead of from MIN_ON_COUNTS.",
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    if (SS_done) begin",
+    "",
+    "      max_on_counts <= MIN_ON_CNT;",
+    "",
+    "    end",
+    "    SS_done       <= 1'b0;"
+   ],
+   "run": "2026-11-17_write_mutants_20"
+  },
+  {
+   "key": 12,
+   "line": 152,
+   "category": "sequencing",
+   "description": "The SS_done look-ahead is tested on every clock below the target instead of only on the clock the last step lands, so SS_done rises as soon as the ceiling is one count below max_on_limit.",
+   "reason": "During S_SS, SS_done goes high a whole step window before the last step lands. The supervisor then moves to S_RUN and holds max_on_counts at max_on_limit-1 instead of max_on_limit.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+    "",
+    "      max_on_counts <= max_on_counts + 1;",
+    "      // SS_done is set from the value about to land, not the current",
+    "      // one, so the ramp does not finish a step late.",
+    "",
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "    else begin",
+    "",
+    "      if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+    "        max_on_counts <= max_on_counts + 1;",
+    "      end",
+    "      // SS_done is set from the value about to land, not the current",
+    "      // one, so the ramp does not finish a step late.",
+    "",
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "run": "2026-11-17_write_mutants_21"
+  },
+  {
+   "key": 13,
+   "line": 145,
+   "category": "sequencing",
+   "description": "On the at-target branch SS_done only counts as done when the ceiling already equals the limit, so a ceiling clamped down from above a lowered max_on_limit finishes one clock late.",
+   "reason": "If max_on_limit is written below the current ceiling during S_SS, max_on_counts is clamped on the first clock but SS_done stays low until the next clock, so S_SS lasts one clock longer.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;"
+   ],
+   "after": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= (max_on_counts == max_on_limit);"
+   ],
+   "run": "2026-11-17_write_mutants_21"
+  },
+  {
+   "key": 14,
+   "line": 174,
+   "category": "reset_init",
+   "description": "Outside S_SS and S_RUN the ceiling is reset to the target max_on_limit (a copy of the clamp line) instead of to the MIN_ON_CNT floor.",
+   "reason": "After a hiccup or any return to idle, max_on_counts shows max_on_limit instead of the floor. On the next S_SS the at-target test is true on the first clock, so SS_done asserts at once and the retry starts at full ceiling with no ramp.",
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= max_on_limit;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "run": "2026-11-17_write_mutants_21"
+  },
+  {
+   "key": 15,
+   "line": 126,
+   "category": "wrong_event",
+   "description": "The step-window counter advances on the PWM rising edge, while the ceiling step is still taken at the falling edge.",
+   "reason": "With cycles_per_step > 1, the counter has already advanced by the first falling edge of S_SS. The first ceiling step therefore comes one switching cycle early, and SS_done comes early too.",
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_sync & ~pwm_sync_d) begin"
+   ],
+   "run": "2026-11-17_write_mutants_21"
+  },
+  {
+   "key": 16,
+   "line": 174,
+   "category": "boundary",
+   "description": "The idle re-arm sets the ceiling one count above the MIN_ON_CNT floor, unlike the power-on reset, so a re-ramp starts at the first step instead of the floor.",
+   "reason": "After leaving S_RUN or S_SS for hiccup or idle, max_on_counts reads MIN_ON_CNT+1 instead of MIN_ON_CNT. The next soft start begins one count wider and reaches max_on_limit one step window sooner.",
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT + 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_21"
+  },
+  {
+   "key": 17,
+   "line": 88,
+   "category": "wrong_event",
+   "description": "The cycle-boundary detector is written as a generic any-edge detector, so both the rising and the falling edge of each PWM pulse count as a switching-cycle boundary.",
+   "reason": "In S_SS the step window advances twice per switching cycle, so max_on_counts widens every cycles_per_step/2 cycles and SS_done arrives about twice as early. Half of the steps also land on a rising edge, so the ceiling changes mid-pulse.",
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "run": "2026-11-17_write_mutants_22"
+  },
+  {
+   "key": 18,
+   "line": 152,
+   "category": "wrong_event",
+   "description": "The ceiling step is qualified by the PWM being low (the 'pulse is over' level) instead of by the one-clock falling-edge pulse.",
+   "reason": "In S_SS with cycle_counter at cycles_per_step-1, max_on_counts goes up by one on every clock of the PWM low time instead of once per step window. The ramp then jumps by many counts per window, and SS_done comes far too early.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (~pwm_sync && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_22"
+  },
+  {
+   "key": 19,
+   "line": 170,
+   "category": "wrong_event",
+   "description": "The return to the floor outside S_SS/S_RUN waits for a PWM falling edge, as if it were a ceiling update that must not land mid-pulse.",
+   "reason": "When the supervisor leaves S_SS or S_RUN for hiccup or off, max_on_counts and SS_done keep their old values until a PWM falling edge arrives. With the stage disabled and the PWM not switching, they are never reset, so the retry re-enables at the old ceiling with SS_done already high.",
+   "before": [
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_fall) begin"
+   ],
+   "run": "2026-11-17_write_mutants_22"
+  },
+  {
+   "key": 20,
+   "line": 174,
+   "category": "reset_init",
+   "description": "The idle re-arm loads the step-window counter with its terminal count instead of zero, so each soft start begins at the end of a step window.",
+   "reason": "On every entry to S_SS (from S_OFF and from hiccup), the first ceiling step comes at the first PWM falling edge instead of after cycles_per_step cycles. The ramp is therefore one step ahead throughout, and SS_done rises cycles_per_step-1 switching cycles early.",
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= cycles_per_step - 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_22"
+  },
+  {
+   "key": 21,
+   "line": 121,
+   "category": "missing_case",
+   "description": "The ramp branch is entered in S_RUN as well as S_SS, so the ramp keeps running under the regulating loop instead of the ceiling being held.",
+   "reason": "If the host lowers max_on_limit during S_RUN and then raises it again, max_on_counts climbs back up one count per step window while in S_RUN. The header says the ceiling must stay where the last ramp left it until the next soft start.",
+   "before": [
+    "  else if (ss_active) begin"
+   ],
+   "after": [
+    "  else if (ss_active || run_active) begin"
+   ],
+   "run": "2026-11-17_write_mutants_22"
+  },
+  {
+   "key": 22,
+   "line": 121,
+   "category": "wrong_event",
+   "description": "The ramp branch is gated off once SS_done is set, so the last S_SS clock after the ramp finishes falls through to the idle reset branch.",
+   "reason": "The supervisor's state register leaves S_SS one clock after SS_done rises, so ss_active is still high on that clock. With this fault the ceiling drops back to MIN_ON_CNT and SS_done clears just as S_RUN starts, so S_RUN runs with the floor ceiling and SS_done low instead of holding the reached max_on_limit.",
+   "before": [
+    "  else if (ss_active) begin"
+   ],
+   "after": [
+    "  else if (ss_active && !SS_done) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 23,
+   "line": 145,
+   "category": "missing_case",
+   "description": "The at-target clamp is applied only while SS_done is still low, as if finishing the ramp needed acting on only once, so on the last S_SS clock after done the step branch is reachable again.",
+   "reason": "Take a ramp finished by the clamp branch rather than by a step: max_on_limit equal to the floor, or lowered mid-ramp. If the following clock, still in S_SS, is a PWM falling edge at the end of a step window (every falling edge when cycles_per_step=1), the ceiling steps to max_on_limit+1. It is then held there through S_RUN, above the limit.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (!SS_done && (max_on_counts >= max_on_limit)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 24,
+   "line": 168,
+   "category": "other",
+   "description": "In S_RUN the digital ceiling is opened to full scale, leaving only the analog duty clamp, instead of holding the ceiling the ramp reached as a backstop.",
+   "reason": "On the first clock of S_RUN max_on_counts jumps from max_on_limit to all-ones and stays there for the whole run. pwm_mask then no longer limits on-time to the programmed maximum while regulating.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    max_on_counts <= '1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 25,
+   "line": 128,
+   "category": "boundary",
+   "description": "At the end of a step window the cycle counter wraps to 1 instead of 0, counting the wrapping cycle as the first of the next window, so every window after the first is one switching cycle short.",
+   "reason": "In S_SS with cycles_per_step >= 2, the second and later ceiling steps on max_on_counts come every cycles_per_step-1 PWM cycles instead of every cycles_per_step, so SS_done is reached early. With cycles_per_step = 1 the counter leaves the terminal value 0 and has to wrap through its whole range, so the ramp stalls after its first step.",
+   "before": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin",
+    "",
+    "        cycle_counter <= '0;"
+   ],
+   "after": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin",
+    "",
+    "        cycle_counter <= {{(pmic_types_pkg::CYC_STEP_W-1){1'b0}}, 1'b1};"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 26,
+   "line": 158,
+   "category": "sequencing",
+   "description": "The SS_done look-ahead on a ramp step tests the current ceiling instead of the value about to land, so the last step does not raise SS_done itself.",
+   "reason": "When the last ramp step brings max_on_counts up to max_on_limit, SS_done goes high one clock late, on the next clock through the at-target branch, instead of on the same clock as the step.",
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "      if (max_on_counts == max_on_limit) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 27,
+   "line": 168,
+   "category": "other",
+   "description": "In S_RUN SS_done is treated as a live 'ceiling at target' status and recomputed against max_on_limit, instead of being held as the latched end of the ramp.",
+   "reason": "If the host raises max_on_limit above the held ceiling while run_active is high, SS_done drops to 0 in S_RUN although the ramp finished and the ceiling is still being held.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    SS_done <= (max_on_counts >= max_on_limit);",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 29,
+   "line": 128,
+   "category": "missing_case",
+   "description": "The step-window counter wraps at the package default CYCLES_PER_STEP_DEFAULT instead of at the host-programmed cycles_per_step, so the register only reaches the step test and not the window length.",
+   "reason": "If the host programs cycles_per_step to anything other than 16, max_on_counts no longer steps every cycles_per_step cycles in S_SS. Below 16 it steps once every 16 cycles. Above 16 the counter never reaches cycles_per_step-1, so the ceiling never steps and SS_done never rises unless the limit equals the floor.",
+   "before": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin"
+   ],
+   "after": [
+    "      if (cycle_counter == pmic_types_pkg::CYCLES_PER_STEP_DEFAULT[pmic_types_pkg::CYC_STEP_W-1:0] - 1'b1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 30,
+   "line": 152,
+   "category": "wrong_event",
+   "description": "The ceiling step is taken on the PWM rising edge of the window's last cycle, while the step-window counter still counts falling edges, so the ceiling widens at the start of a pulse instead of after it.",
+   "reason": "In S_SS, max_on_counts now increments at the rising edge of the last switching cycle of each window, not at its falling edge. Every step and the SS_done rise come one PWM on-time earlier, and the ceiling changes while a pulse is running.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if ((pwm_sync & ~pwm_sync_d) && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 31,
+   "line": 152,
+   "category": "sequencing",
+   "description": "The ceiling step tests the step-window counter's next value instead of its current value, so the step lands one switching cycle before the window ends.",
+   "reason": "In S_SS with cycles_per_step > 1, the first ceiling step comes after cycles_per_step-1 falling edges instead of cycles_per_step, and every step is one cycle ahead of the window wrap. With cycles_per_step = 1 the test can never match, so the ceiling never ramps and SS_done never rises.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter + 1'b1 == cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23"
+  },
+  {
+   "key": 32,
+   "line": 158,
+   "category": "boundary",
+   "description": "The SS_done look-ahead on a ramp step compares the landing ceiling with the package MAX_ON_COUNTS_DEFAULT (the 'MAX_ON_COUNTS' of the port comment) instead of the programmed max_on_limit.",
+   "reason": "With max_on_limit programmed below the default, the step that lands on the limit no longer raises SS_done. SS_done then rises one clock late, through the at-target branch. With the default limit nothing changes.",
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "      if (max_on_counts + 1 == ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 33,
+   "line": 145,
+   "category": "boundary",
+   "description": "The at-target test compares the ceiling with the package default MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit, while the clamp still loads max_on_limit.",
+   "reason": "If max_on_limit is set to the floor, or lowered below a ceiling the ramp has already reached, max_on_counts keeps climbing past the limit and SS_done stays low until the ceiling reaches the default. The real design finishes at once, or clamps straight away.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts >= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 34,
+   "line": 147,
+   "category": "field",
+   "description": "When the ramp reaches or passes its target, the ceiling is clamped to the package MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit.",
+   "reason": "With max_on_limit below the default, max_on_counts jumps from the limit up to the default on the first S_SS clock at the target. That ceiling, above the host's limit, is then held through S_RUN.",
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT);"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 35,
+   "line": 152,
+   "category": "missing_case",
+   "description": "The ceiling-step test compares the step-window counter with the package CYCLES_PER_STEP_DEFAULT instead of the programmed cycles_per_step, while the counter still wraps at cycles_per_step.",
+   "reason": "With cycles_per_step programmed below 16, the counter wraps before it reaches 15, so max_on_counts never widens and SS_done never rises. Above 16, each step lands on the 16th cycle of its window instead of the last.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter == pmic_types_pkg::CYC_STEP_W'(pmic_types_pkg::CYCLES_PER_STEP_DEFAULT) - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 36,
+   "line": 147,
+   "category": "other",
+   "description": "When the ramp reaches or passes its target, the at-target branch loads the MIN_ON_CNT floor (a copy of the idle re-arm line) instead of clamping the ceiling to max_on_limit.",
+   "reason": "After a normal ramp the last step sets max_on_counts to max_on_limit with SS_done. On the next S_SS clock the at-target branch drops max_on_counts back to the floor, and S_RUN then holds the floor as the running ceiling, with SS_done still high.",
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= MIN_ON_CNT;"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 37,
+   "line": 147,
+   "category": "boundary",
+   "description": "The at-target clamp treats max_on_limit as an exclusive bound and loads one count below it, so a finished ramp settles one count short of its target.",
+   "reason": "On the S_SS clock after the last step, and on the first S_SS clock when max_on_limit equals the floor, max_on_counts is set to max_on_limit-1 while SS_done is high. S_RUN then holds that value, one count below the programmed limit (and below MIN_ON_COUNTS in the floor case).",
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_limit - 1'b1;"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 38,
+   "line": 126,
+   "category": "wrong_event",
+   "description": "The step-window counter wraps on any clock that finds it at its terminal count, not only on a switching-cycle boundary, so it never waits at the terminal count for the PWM falling edge that should end the window.",
+   "reason": "When cycles_per_step > 1 (the default is 16), the counter reaches the terminal count on one PWM falling edge and wraps on the very next clock. The ceiling-step test needs pwm_fall and the terminal count on the same clock, so it never fires: max_on_counts stays at the MIN_ON_COUNTS floor for all of S_SS, and SS_done never rises unless max_on_limit equals the floor.",
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_fall || (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 39,
+   "line": 145,
+   "category": "sequencing",
+   "description": "The ramp stops on the latched SS_done flag instead of on the live ceiling-vs-max_on_limit comparison, so the at-target clamp acts only after the look-ahead has already finished the ramp.",
+   "reason": "If max_on_limit equals the floor, the ramp should finish on the first clock of S_SS. Under the mutant it steps to floor+1, the look-ahead never matches, and the ceiling climbs and wraps with SS_done never asserted. If max_on_limit is lowered below the ceiling during the ramp, the ceiling is not clamped and keeps climbing past the new limit.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (SS_done) begin"
+   ],
+   "run": "2026-11-17_write_mutants_24"
+  },
+  {
+   "key": 40,
+   "line": 145,
+   "category": "missing_case",
+   "description": "The at-target test is suppressed while the ceiling is still at the MIN_ON_CNT floor, as if to stop the ramp finishing on S_SS entry. Because of that, a max_on_limit equal to the floor is not finished on the first clock, which the header requires.",
+   "reason": "With max_on_limit programmed equal to MIN_ON_COUNTS, SS_done no longer rises on the first S_SS clock. Instead max_on_counts steps to floor+1, above the limit, at the end of the first step window. It is clamped back and SS_done is set only on the clock after that, a whole step period late.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if ((max_on_counts >= max_on_limit) && (max_on_counts != MIN_ON_CNT)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_25"
+  },
+  {
+   "key": 41,
+   "line": 174,
+   "category": "reset_init",
+   "description": "The idle re-arm loads the step-window counter with 1, counting cycles from one, instead of 0. The first step window of every soft start is therefore one switching cycle short.",
+   "reason": "On each new S_SS entry (after S_OFF or hiccup), the first ceiling step lands one PWM falling edge early when cycles_per_step >= 2. With cycles_per_step = 1 the counter starts past the terminal count, so the first step is held for nearly the full counter range. Either way max_on_counts and SS_done change at different times.",
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= 1;"
+   ],
+   "run": "2026-11-17_write_mutants_25"
+  },
+  {
+   "key": 42,
+   "line": 147,
+   "category": "other",
+   "description": "A ceiling found above a lowered max_on_limit is walked down one count per clock, as a gentle ramp-down, instead of being clamped to the limit at once. SS_done is still raised at once.",
+   "reason": "If max_on_limit is lowered below the ceiling during S_SS, SS_done rises straight away and the supervisor moves to S_RUN on the next clock. The ceiling then stops partway down, so max_on_counts stays above max_on_limit for all of S_RUN instead of equalling it.",
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= (max_on_counts > max_on_limit) ? max_on_counts - 1 : max_on_limit;"
+   ],
+   "run": "2026-11-17_write_mutants_25"
+  },
+  {
+   "key": 43,
+   "line": 152,
+   "category": "boundary",
+   "description": "The ceiling-step test copies the at-or-past (>=) form of the target test, while the step-window counter still wraps only on equality. A cycles_per_step lowered below the running count therefore steps the ceiling on every switching cycle until the counter wraps.",
+   "reason": "In S_SS, if the host lowers cycles_per_step below the current cycle_counter mid-ramp, max_on_counts rises by one on every PWM falling edge, racing to max_on_limit and raising SS_done early. In the original the ceiling does not step until the counter wraps and reaches the new window end.",
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter >= cycles_per_step - 1'b1)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_26"
+  },
+  {
+   "key": 46,
+   "line": 168,
+   "category": "wrong_event",
+   "description": "The step-window counter is cleared when the ramp hands over to S_RUN instead of in the idle/hiccup branch, so it is only re-armed after a ramp that finished.",
+   "reason": "Suppose a soft start is aborted mid-window, for example S_SS to S_HICCUP on window_trip_SS and then back to S_SS. The retry keeps the partial cycle count, so its first ceiling step arrives early: max_on_counts leaves the MIN_ON_CNT floor after fewer than cycles_per_step switching cycles.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "    cycle_counter <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    ""
+   ],
+   "run": "2026-11-17_write_mutants_27"
+  },
+  {
+   "key": 47,
+   "line": 66,
+   "category": "reset_init",
+   "description": "The edge detector's delayed PWM copy is re-armed low outside S_SS, like the rest of the ramp state, instead of always tracking pwm_sync.",
+   "reason": "If the PWM is high on the last clock before S_SS and low on the first S_SS clock, the original counts that falling edge as a cycle boundary but the mutant does not. The first step window of the ramp is then one switching cycle longer, and the first widening of max_on_counts lands one PWM cycle late.",
+   "before": [
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if (!ss_active) begin",
+    "",
+    "    pwm_sync_d <= 1'b0;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_27"
+  },
+  {
+   "key": 48,
+   "line": 154,
+   "category": "other",
+   "description": "Each ramp step widens the ceiling by cycles_per_step counts instead of one count, mixing up the step period with the step size.",
+   "reason": "In S_SS, the first step boundary moves max_on_counts from MIN_ON_CNT to MIN_ON_CNT+cycles_per_step (12 to 28 with the defaults) instead of to 13. The ramp overshoots max_on_limit and is clamped back on the next clock, so the ceiling and the timing of SS_done both differ from the one-count-per-window ramp.",
+   "before": [
+    "      max_on_counts <= max_on_counts + 1;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_counts + cycles_per_step;"
+   ],
+   "run": "2026-11-17_write_mutants_27"
+  },
+  {
+   "key": 49,
+   "line": 154,
+   "category": "sequencing",
+   "description": "On the step that would land on max_on_limit, only SS_done is raised and the ceiling step itself is skipped, as if signalling done replaced the last step.",
+   "reason": "At the end of a normal ramp, SS_done rises but max_on_counts stays at max_on_limit-1. The supervisor then moves to S_RUN, where that ceiling is held, so pwm_mask gets a running backstop one count below the programmed max_on_limit.",
+   "before": [
+    "      max_on_counts <= max_on_counts + 1;"
+   ],
+   "after": [
+    "      if (max_on_counts + 1 != max_on_limit) begin",
+    "",
+    "        max_on_counts <= max_on_counts + 1;",
+    "",
+    "      end"
+   ],
+   "run": "2026-11-17_write_mutants_27"
+  },
+  {
+   "key": 50,
+   "line": 168,
+   "category": "wrong_event",
+   "description": "A max_on_limit raised during S_RUN widens the held ceiling at once, as if only a lowered limit had to wait for the next ramp, instead of every change being deferred to the next soft start.",
+   "reason": "If the host raises MAX_ON while the supervisor is in S_RUN, max_on_counts jumps straight to the new limit under the running loop. It should keep the ceiling the ramp reached until the next soft start re-ramps to it.",
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    if (max_on_limit > max_on_counts) begin",
+    "      max_on_counts <= max_on_limit;",
+    "    end",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_28"
+  },
+  {
+   "key": 51,
+   "line": 145,
+   "category": "sequencing",
+   "description": "On the at-target branch SS_done waits for a PWM falling edge, as if it were a ceiling update that must land between pulses, while the clamp itself still acts on the clock it is found.",
+   "reason": "When max_on_limit equals the MIN_ON_CNT floor, or is lowered below the ceiling mid-ramp, the ceiling is clamped at once but SS_done rises only at the next switching-cycle boundary, not on the next clock. That delays the handover to S_RUN, and the header requires a floor-level limit to finish on the first clock of S_SS.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      if (pwm_fall) begin",
+    "        SS_done     <= 1'b1;",
+    "      end",
+    "",
+    "    end"
+   ],
+   "run": "2026-11-17_write_mutants_28"
+  },
+  {
+   "key": 52,
+   "line": 128,
+   "category": "boundary",
+   "description": "The step-window counter wraps at or past its terminal count (the at-or-past form of the target test), while the ceiling-step test still requires the count to equal it.",
+   "reason": "If cycles_per_step is lowered below the running count in S_SS, the counter wraps to 0 at the next PWM falling edge without a ceiling step, so the ramp loses that window. The original instead keeps counting up to the counter's natural wrap. Either way the time at which max_on_counts next widens is different.",
+   "before": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin"
+   ],
+   "after": [
+    "      if (cycle_counter >= cycles_per_step - 1'b1) begin"
+   ],
+   "run": "2026-11-17_write_mutants_28"
+  },
+  {
+   "key": 53,
+   "line": 147,
+   "category": "sequencing",
+   "description": "The clamp of a ceiling at or past max_on_limit waits for a PWM falling edge, treated like a ceiling update that must not land mid-pulse, but SS_done is still raised on the clock the target is found.",
+   "reason": "If max_on_limit is lowered below the ramping ceiling in S_SS, SS_done rises at once while max_on_counts stays above the limit until a falling edge. The supervisor then moves to S_RUN, where the ceiling is held, so max_on_counts can stay above max_on_limit for all of S_RUN.",
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      if (pwm_fall) begin",
+    "        max_on_counts <= max_on_limit;",
+    "      end"
+   ],
+   "run": "2026-11-17_write_mutants_29"
+  },
+  {
+   "key": 54,
+   "line": 145,
+   "category": "other",
+   "description": "A ceiling found above a lowered max_on_limit is handled like an aborted ramp and sent back to the MIN_ON_CNT floor to re-ramp, instead of being clamped to the limit and finishing.",
+   "reason": "When max_on_limit is lowered below the ceiling during S_SS, max_on_counts drops to the floor instead of to the new limit, and SS_done does not rise until the ramp climbs back up to the limit. That is many step windows late. A normal ramp that reaches the limit by equality is unchanged.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    if (max_on_counts > max_on_limit) begin",
+    "",
+    "      max_on_counts <= MIN_ON_CNT;",
+    "    end",
+    "    else if (max_on_counts == max_on_limit) begin",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "run": "2026-11-17_write_mutants_29"
+  }
+ ],
+ "unit": "soft_start",
+ "file": "rtl-systemverilog/protect/soft_start.sv",
+ "last_key": 55,
+ "withdrawn": [
+  {
+   "key": 9,
+   "line": 145,
+   "category": "wrong_event",
+   "description": "The at-target clamp and SS_done are only acted on at a PWM falling edge, as if they were a ceiling update that has to wait for the pulse to end, instead of on any clock.",
+   "reason": "When max_on_limit equals the floor, SS_done comes at the first falling edge of the PWM instead of on the first clock of S_SS. A limit lowered below the ceiling mid-ramp is likewise not clamped onto max_on_counts until the next falling edge.",
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (max_on_counts >= max_on_limit)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_20",
+   "withdrawn": "AIM.51 and AIM.53 together: SS_done timing is the same as AIM.51 and the clamp timing the same as AIM.53, so any test that kills AIM.51 kills it"
+  },
+  {
+   "key": 28,
+   "line": 126,
+   "category": "wrong_event",
+   "description": "The step-window counter only runs while a ramp step is still owed, not on every switching cycle of S_SS as the design says, so it freezes once the ceiling reaches the target.",
+   "reason": "In S_SS after the ceiling reaches max_on_limit, the window counter stops. If max_on_limit is then raised while ss_active is still high, the next step on max_on_counts comes at a different PWM cycle from the original, where the window kept counting.",
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (max_on_counts < max_on_limit)) begin"
+   ],
+   "run": "2026-11-17_write_mutants_23",
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  {
+   "key": 44,
+   "line": 147,
+   "category": "reset_init",
+   "description": "Reaching the target also clears the step-window counter, as if a finished ramp should re-arm its window. The window then restarts on every at-target clock instead of running on every switching cycle of S_SS.",
+   "reason": "With ss_active held after the ceiling reaches max_on_limit, raising max_on_limit makes the next ceiling step land a full cycles_per_step cycles after the raise. In the original it lands at the end of the window already running.",
+   "before": [
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "      cycle_counter <= '0;"
+   ],
+   "run": "2026-11-17_write_mutants_26",
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  {
+   "key": 45,
+   "line": 158,
+   "category": "sequencing",
+   "description": "On a ramp step SS_done is assigned from the look-ahead comparison instead of only being set by it. Each step that does not land on the target therefore clears a SS_done that was already latched in S_SS.",
+   "reason": "In S_SS after SS_done has risen, if max_on_limit is raised above the ceiling while ss_active stays high, the next ceiling step drops SS_done to 0. In the original SS_done stays set until the module leaves S_SS and S_RUN.",
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin",
+    "",
+    "        SS_done <= 1'b1;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      SS_done <= (max_on_counts + 1 == max_on_limit);"
+   ],
+   "run": "2026-11-17_write_mutants_26",
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  {
+   "key": 55,
+   "line": 162,
+   "category": "reset_init",
+   "description": "In S_SS, SS_done is treated as a live 'ceiling at target' flag and cleared on any clock that finds the ceiling below max_on_limit with no step landing, instead of staying latched once the ramp has finished.",
+   "reason": "The supervisor stays in S_SS for one more clock after SS_done rises. If the host raises max_on_limit (it can write it at any time) during that clock, the mutant drops SS_done as the supervisor moves to S_RUN. SS_done is then held low for all of S_RUN, where the original holds it high.",
+   "before": [
+    "      end",
+    "",
+    "    end",
+    "",
+    "  end"
+   ],
+   "after": [
+    "      end",
+    "",
+    "    end",
+    "",
+    "    else begin",
+    "      SS_done <= 1'b0;",
+    "    end",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-17_write_mutants_30",
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  }
+ ]
+}

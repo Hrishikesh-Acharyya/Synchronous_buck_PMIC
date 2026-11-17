@@ -1,0 +1,111 @@
+[
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+    "",
+    "      max_on_counts <= max_on_counts + 1;",
+    "      // SS_done is set from the value about to land, not the current",
+    "      // one, so the ramp does not finish a step late.",
+    "",
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "    else begin",
+    "",
+    "      if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+    "        max_on_counts <= max_on_counts + 1;",
+    "      end",
+    "      // SS_done is set from the value about to land, not the current",
+    "      // one, so the ramp does not finish a step late.",
+    "",
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "category": "sequencing",
+   "description": "The SS_done look-ahead is tested on every clock below the target instead of only on the clock the last step lands, so SS_done rises as soon as the ceiling is one count below max_on_limit.",
+   "reason": "During S_SS, SS_done goes high a whole step window before the last step lands. The supervisor then moves to S_RUN and holds max_on_counts at max_on_limit-1 instead of max_on_limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;"
+   ],
+   "after": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= (max_on_counts == max_on_limit);"
+   ],
+   "category": "sequencing",
+   "description": "On the at-target branch SS_done only counts as done when the ceiling already equals the limit, so a ceiling clamped down from above a lowered max_on_limit finishes one clock late.",
+   "reason": "If max_on_limit is written below the current ceiling during S_SS, max_on_counts is clamped on the first clock but SS_done stays low until the next clock, so S_SS lasts one clock longer."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.148.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "after": [
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= max_on_limit;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "category": "reset_init",
+   "description": "Outside S_SS and S_RUN the ceiling is reset to the target max_on_limit (a copy of the clamp line) instead of to the MIN_ON_CNT floor.",
+   "reason": "After a hiccup or any return to idle, max_on_counts shows max_on_limit instead of the floor. On the next S_SS the at-target test is true on the first clock, so SS_done asserts at once and the retry starts at full ceiling with no ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.177.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 126,
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_sync & ~pwm_sync_d) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The step-window counter advances on the PWM rising edge, while the ceiling step is still taken at the falling edge.",
+   "reason": "With cycles_per_step > 1, the counter has already advanced by the first falling edge of S_SS. The first ceiling step therefore comes one switching cycle early, and SS_done comes early too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.126.AIM.15"
+ },
+ {
+  "proposal": {
+   "line": 177,
+   "before": [
+    "    max_on_counts <= MIN_ON_CNT;"
+   ],
+   "after": [
+    "    max_on_counts <= MIN_ON_CNT + 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "The idle re-arm sets the ceiling one count above the MIN_ON_CNT floor, unlike the power-on reset, so a re-ramp starts at the first step instead of the floor.",
+   "reason": "After leaving S_RUN or S_SS for hiccup or idle, max_on_counts reads MIN_ON_CNT+1 instead of MIN_ON_CNT. The next soft start begins one count wider and reaches max_on_limit one step window sooner."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.177.AIM.16"
+ }
+]

@@ -1,0 +1,27 @@
+[
+ {
+  "proposal": {
+   "line": 164,
+   "before": [
+    "    end",
+    "",
+    "  end"
+   ],
+   "after": [
+    "    end",
+    "",
+    "    else begin",
+    "      SS_done <= 1'b0;",
+    "    end",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "In S_SS, SS_done is treated as a live 'ceiling at target' flag and cleared on any clock that finds the ceiling below max_on_limit with no step landing, instead of staying latched once the ramp has finished.",
+   "reason": "The supervisor stays in S_SS for one more clock after SS_done rises. If the host raises max_on_limit (it can write it at any time) during that clock, the mutant drops SS_done as the supervisor moves to S_RUN. SS_done is then held low for all of S_RUN, where the original holds it high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.166.AIM.55"
+ }
+]

@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "      if (max_on_counts + 1 == ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin"
+   ],
+   "category": "boundary",
+   "description": "The SS_done look-ahead on a ramp step compares the landing ceiling with the package MAX_ON_COUNTS_DEFAULT (the 'MAX_ON_COUNTS' of the port comment) instead of the programmed max_on_limit.",
+   "reason": "With max_on_limit programmed below the default, the step that lands on the limit no longer raises SS_done. SS_done then rises one clock late, through the at-target branch. With the default limit nothing changes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.158.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts >= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin"
+   ],
+   "category": "boundary",
+   "description": "The at-target test compares the ceiling with the package default MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit, while the clamp still loads max_on_limit.",
+   "reason": "If max_on_limit is set to the floor, or lowered below a ceiling the ramp has already reached, max_on_counts keeps climbing past the limit and SS_done stays low until the ceiling reaches the default. The real design finishes at once, or clamps straight away."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT);"
+   ],
+   "category": "field",
+   "description": "When the ramp reaches or passes its target, the ceiling is clamped to the package MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit.",
+   "reason": "With max_on_limit below the default, max_on_counts jumps from the limit up to the default on the first S_SS clock at the target. That ceiling, above the host's limit, is then held through S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.147.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter == pmic_types_pkg::CYC_STEP_W'(pmic_types_pkg::CYCLES_PER_STEP_DEFAULT) - 1'b1)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The ceiling-step test compares the step-window counter with the package CYCLES_PER_STEP_DEFAULT instead of the programmed cycles_per_step, while the counter still wraps at cycles_per_step.",
+   "reason": "With cycles_per_step programmed below 16, the counter wraps before it reaches 15, so max_on_counts never widens and SS_done never rises. Above 16, each step lands on the 16th cycle of its window instead of the last."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.35"
+ }
+]

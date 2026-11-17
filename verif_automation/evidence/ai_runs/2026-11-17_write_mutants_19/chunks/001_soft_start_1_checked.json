@@ -1,0 +1,132 @@
+[
+ {
+  "proposal": {
+   "line": 88,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync & ~pwm_sync_d;"
+   ],
+   "category": "wrong_event",
+   "description": "The cycle boundary is taken on the rising edge of the PWM instead of the falling edge, so the ceiling steps at the start of a pulse rather than after it.",
+   "reason": "In S_SS, max_on_counts now changes on the clock after pwm_sync rises, while the pulse is still on, instead of after it falls. Each step lands earlier by the width of the PWM pulse, and so does SS_done."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.88.AIM.1"
+ },
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    if (max_on_counts > max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "",
+    "    end",
+    "",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "A max_on_limit lowered during S_RUN is clamped onto the held ceiling straight away, instead of being left until the next ramp.",
+   "reason": "If the host lowers max_on_limit while run_active is high, max_on_counts drops to the new limit on the next clock. The header says the ceiling stays unchanged through S_RUN and the new limit only takes effect at the next soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.170.AIM.2"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (pwm_fall && (cycle_counter == '0)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The ceiling steps on the first switching cycle of each step window instead of its last.",
+   "reason": "On entering S_SS with cycles_per_step > 1, max_on_counts rises at the very first PWM falling edge, not after cycles_per_step cycles. The whole ramp, and SS_done, therefore arrive cycles_per_step-1 switching cycles early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    SS_done <= 1'b0;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "SS_done is cleared on entry to S_RUN rather than held for all of S_RUN.",
+   "reason": "After a completed ramp, SS_done falls on the first clock that run_active is high and stays low through S_RUN. The original holds it high until the supervisor leaves S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.170.AIM.4"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts + 1 >= max_on_limit) begin"
+   ],
+   "category": "boundary",
+   "description": "The look-ahead meant only for SS_done is also used in the target test, so the last step lands as soon as the ceiling is one below the limit, without waiting out its step window.",
+   "reason": "In S_SS, as soon as max_on_counts reaches max_on_limit-1, it jumps to max_on_limit and SS_done rises on the next clock. That can happen mid-pulse, and it skips the cycles_per_step-cycle dwell, so the ramp ends one step period early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.5"
+ },
+ {
+  "proposal": {
+   "line": 68,
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "category": "sequencing",
+   "description": "The edge detector's delayed PWM copy is only updated in S_SS, so it holds a stale value from the previous soft start.",
+   "reason": "Suppose S_SS is left while pwm_sync is high (a hiccup, say), and a later S_SS begins with pwm_sync low. The stale pwm_sync_d=1 then makes a false falling edge on the first clock. That counts a switching cycle that never happened, so the first ceiling step comes one cycle early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.68.AIM.6"
+ }
+]

@@ -1,0 +1,79 @@
+[
+ {
+  "proposal": {
+   "line": 130,
+   "before": [
+    "        cycle_counter <= '0;"
+   ],
+   "after": [
+    "        cycle_counter <= {{(pmic_types_pkg::CYC_STEP_W-1){1'b0}}, 1'b1};"
+   ],
+   "category": "boundary",
+   "description": "At the end of a step window the cycle counter wraps to 1 instead of 0, counting the wrapping cycle as the first of the next window, so every window after the first is one switching cycle short.",
+   "reason": "In S_SS with cycles_per_step >= 2, the second and later ceiling steps on max_on_counts come every cycles_per_step-1 PWM cycles instead of every cycles_per_step, so SS_done is reached early. With cycles_per_step = 1 the counter leaves the terminal value 0 and has to wrap through its whole range, so the ramp stalls after its first step."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.130.AIM.25"
+ },
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "      if (max_on_counts + 1 == max_on_limit) begin"
+   ],
+   "after": [
+    "      if (max_on_counts == max_on_limit) begin"
+   ],
+   "category": "sequencing",
+   "description": "The SS_done look-ahead on a ramp step tests the current ceiling instead of the value about to land, so the last step does not raise SS_done itself.",
+   "reason": "When the last ramp step brings max_on_counts up to max_on_limit, SS_done goes high one clock late, on the next clock through the at-target branch, instead of on the same clock as the step."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.158.AIM.26"
+ },
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    SS_done <= (max_on_counts >= max_on_limit);",
+    "",
+    "  end"
+   ],
+   "category": "other",
+   "description": "In S_RUN SS_done is treated as a live 'ceiling at target' status and recomputed against max_on_limit, instead of being held as the latched end of the ramp.",
+   "reason": "If the host raises max_on_limit above the held ceiling while run_active is high, SS_done drops to 0 in S_RUN although the ramp finished and the ceiling is still being held."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.171.AIM.27"
+ },
+ {
+  "proposal": {
+   "line": 126,
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (max_on_counts < max_on_limit)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The step-window counter only runs while a ramp step is still owed, not on every switching cycle of S_SS as the design says, so it freezes once the ceiling reaches the target.",
+   "reason": "In S_SS after the ceiling reaches max_on_limit, the window counter stops. If max_on_limit is then raised while ss_active is still high, the next step on max_on_counts comes at a different PWM cycle from the original, where the window kept counting."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.126.AIM.28"
+ }
+]

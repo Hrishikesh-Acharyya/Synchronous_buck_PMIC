@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 126,
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_fall || (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The step-window counter wraps on any clock that finds it at its terminal count, not only on a switching-cycle boundary, so it never waits at the terminal count for the PWM falling edge that should end the window.",
+   "reason": "When cycles_per_step > 1 (the default is 16), the counter reaches the terminal count on one PWM falling edge and wraps on the very next clock. The ceiling-step test needs pwm_fall and the terminal count on the same clock, so it never fires: max_on_counts stays at the MIN_ON_COUNTS floor for all of S_SS, and SS_done never rises unless max_on_limit equals the floor."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.126.AIM.38"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (SS_done) begin"
+   ],
+   "category": "sequencing",
+   "description": "The ramp stops on the latched SS_done flag instead of on the live ceiling-vs-max_on_limit comparison, so the at-target clamp acts only after the look-ahead has already finished the ramp.",
+   "reason": "If max_on_limit equals the floor, the ramp should finish on the first clock of S_SS. Under the mutant it steps to floor+1, the look-ahead never matches, and the ceiling climbs and wraps with SS_done never asserted. If max_on_limit is lowered below the ceiling during the ramp, the ceiling is not clamped and keeps climbing past the new limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.39"
+ }
+]

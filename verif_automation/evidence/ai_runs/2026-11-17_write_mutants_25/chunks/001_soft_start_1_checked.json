@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if ((max_on_counts >= max_on_limit) && (max_on_counts != MIN_ON_CNT)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The at-target test is suppressed while the ceiling is still at the MIN_ON_CNT floor, as if to stop the ramp finishing on S_SS entry. Because of that, a max_on_limit equal to the floor is not finished on the first clock, which the header requires.",
+   "reason": "With max_on_limit programmed equal to MIN_ON_COUNTS, SS_done no longer rises on the first S_SS clock. Instead max_on_counts steps to floor+1, above the limit, at the end of the first step window. It is clamped back and SS_done is set only on the clock after that, a whole step period late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.40"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "    cycle_counter <= 1;"
+   ],
+   "category": "reset_init",
+   "description": "The idle re-arm loads the step-window counter with 1, counting cycles from one, instead of 0. The first step window of every soft start is therefore one switching cycle short.",
+   "reason": "On each new S_SS entry (after S_OFF or hiccup), the first ceiling step lands one PWM falling edge early when cycles_per_step >= 2. With cycles_per_step = 1 the counter starts past the terminal count, so the first step is held for nearly the full counter range. Either way max_on_counts and SS_done change at different times."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.176.AIM.41"
+ },
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= (max_on_counts > max_on_limit) ? max_on_counts - 1 : max_on_limit;"
+   ],
+   "category": "other",
+   "description": "A ceiling found above a lowered max_on_limit is walked down one count per clock, as a gentle ramp-down, instead of being clamped to the limit at once. SS_done is still raised at once.",
+   "reason": "If max_on_limit is lowered below the ceiling during S_SS, SS_done rises straight away and the supervisor moves to S_RUN on the next clock. The ceiling then stops partway down, so max_on_counts stays above max_on_limit for all of S_RUN instead of equalling it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.147.AIM.42"
+ }
+]

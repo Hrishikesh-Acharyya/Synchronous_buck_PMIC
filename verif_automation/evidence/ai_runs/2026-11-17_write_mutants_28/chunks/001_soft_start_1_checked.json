@@ -1,0 +1,76 @@
+[
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    if (max_on_limit > max_on_counts) begin",
+    "      max_on_counts <= max_on_limit;",
+    "    end",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "A max_on_limit raised during S_RUN widens the held ceiling at once, as if only a lowered limit had to wait for the next ramp, instead of every change being deferred to the next soft start.",
+   "reason": "If the host raises MAX_ON while the supervisor is in S_RUN, max_on_counts jumps straight to the new limit under the running loop. It should keep the ceiling the ramp reached until the next soft start re-ramps to it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.171.AIM.50"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      if (pwm_fall) begin",
+    "        SS_done     <= 1'b1;",
+    "      end",
+    "",
+    "    end"
+   ],
+   "category": "sequencing",
+   "description": "On the at-target branch SS_done waits for a PWM falling edge, as if it were a ceiling update that must land between pulses, while the clamp itself still acts on the clock it is found.",
+   "reason": "When max_on_limit equals the MIN_ON_CNT floor, or is lowered below the ceiling mid-ramp, the ceiling is clamped at once but SS_done rises only at the next switching-cycle boundary, not on the next clock. That delays the handover to S_RUN, and the header requires a floor-level limit to finish on the first clock of S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.148.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 128,
+   "before": [
+    "      if (cycle_counter == cycles_per_step - 1'b1) begin"
+   ],
+   "after": [
+    "      if (cycle_counter >= cycles_per_step - 1'b1) begin"
+   ],
+   "category": "boundary",
+   "description": "The step-window counter wraps at or past its terminal count (the at-or-past form of the target test), while the ceiling-step test still requires the count to equal it.",
+   "reason": "If cycles_per_step is lowered below the running count in S_SS, the counter wraps to 0 at the next PWM falling edge without a ceiling step, so the ramp loses that window. The original instead keeps counting up to the counter's natural wrap. Either way the time at which max_on_counts next widens is different."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.128.AIM.52"
+ }
+]

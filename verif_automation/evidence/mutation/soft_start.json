@@ -1,0 +1,4770 @@
+{
+ "module": "soft_start",
+ "file": "rtl-systemverilog/protect/soft_start.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "10:20",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 6,
+   "accepted": 6,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_19"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:16",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 6,
+   "accepted": 5,
+   "rejected": [
+    {
+     "description": "The step-window counter advances on every clock while the PWM is high, not once per switching cycle at the falling edge.",
+     "why": "the same edit as soft_start.126.SIB.1"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_20"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:25",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 5,
+   "accepted": 5,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_21"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:29",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 10,
+   "proposed": 5,
+   "accepted": 5,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_22"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:40",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 10,
+   "accepted": 10,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_23"
+  },
+  {
+   "n": 6,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:48",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 8,
+   "accepted": 8,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_24"
+  },
+  {
+   "n": 7,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:54",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_25"
+  },
+  {
+   "n": 8,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "16:58",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_26"
+  },
+  {
+   "n": 9,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "17:01",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 4,
+   "accepted": 4,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_27"
+  },
+  {
+   "n": 10,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "17:05",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 3,
+   "accepted": 3,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_28"
+  },
+  {
+   "n": 11,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "17:12",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 2,
+   "accepted": 2,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_29"
+  },
+  {
+   "n": 12,
+   "kind": "write_mutants",
+   "date": "2026-11-17",
+   "time": "17:17",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "asked": 20,
+   "proposed": 1,
+   "accepted": 1,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_write_mutants_30"
+  },
+  {
+   "n": 13,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "17:25",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "reason": "AIM.51 and AIM.53 together: SS_done timing is the same as AIM.51 and the clamp timing the same as AIM.53, so any test that kills AIM.51 kills it",
+   "mutants": [
+    "soft_start.145.AIM.9"
+   ],
+   "descriptions": [
+    "The at-target clamp and SS_done are only acted on at a PWM falling edge, as if they were a ceiling update that has to wait for the pulse to end, instead of on any clock."
+   ]
+  },
+  {
+   "n": 14,
+   "kind": "withdrawn",
+   "date": "2026-11-17",
+   "time": "17:26",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "reason": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway",
+   "mutants": [
+    "soft_start.126.AIM.28",
+    "soft_start.148.AIM.44",
+    "soft_start.158.AIM.45",
+    "soft_start.166.AIM.55"
+   ],
+   "descriptions": [
+    "The step-window counter only runs while a ramp step is still owed, not on every switching cycle of S_SS as the design says, so it freezes once the ceiling reaches the target.",
+    "Reaching the target also clears the step-window counter, as if a finished ramp should re-arm its window. The window then restarts on every at-target clock instead of running on every switching cycle of S_SS.",
+    "On a ramp step SS_done is assigned from the look-ahead comparison instead of only being set by it. Each step that does not land on the target therefore clears a SS_done that was already latched in S_SS.",
+    "In S_SS, SS_done is treated as a live 'ceiling at target' flag and cleared on any clock that finds the ceiling below max_on_limit with no step landing, instead of staying latched once the ramp has finished."
+   ]
+  },
+  {
+   "n": 15,
+   "kind": "mutation",
+   "date": "2026-11-17",
+   "time": "17:40",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 173,
+   "counts": {
+    "killed": 147,
+    "lint": 17,
+    "survived": 9
+   },
+   "score": "94.8%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_soft_start": 6.640770435333252
+   }
+  },
+  {
+   "n": 16,
+   "kind": "judge",
+   "date": "2026-11-17",
+   "time": "17:42",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "judged": 9,
+   "equivalent_high_confidence": 1,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-17_judge_survivors_4"
+  },
+  {
+   "n": 17,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "17:44",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values of pwm_sync_d, cycle_counter and SS_done untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run",
+   "mutants": [
+    "soft_start.62.CSK.1",
+    "soft_start.64.SDL.1",
+    "soft_start.115.SDL.1",
+    "soft_start.117.SDL.1"
+   ]
+  },
+  {
+   "n": 18,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "17:44",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "decision": "equivalent",
+   "reason": "MIN_ON_COUNTS is 12 and bit 6 of 12 is 0, so [5:0] and [6:0] give the same MIN_ON_CNT; pmic_top does not override the parameter",
+   "mutants": [
+    "soft_start.44.CST.2"
+   ]
+  },
+  {
+   "n": 19,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "17:44",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differ only when a PWM fall lands on the first clock of S_SS: the first step window is one switching cycle (about 2.2 us) longer or shorter, and the rest of the ramp is unchanged",
+   "mutants": [
+    "soft_start.68.AIM.47",
+    "soft_start.68.AIM.6"
+   ]
+  },
+  {
+   "n": 20,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "17:45",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "no test lowers cycles_per_step below the running count mid-ramp; the mutant then steps the ceiling every switching cycle until the counter wraps, a fast ramp and more inrush; needs a check that the ceiling never steps twice within one programmed window",
+   "mutants": [
+    "soft_start.152.AIM.43"
+   ]
+  },
+  {
+   "n": 21,
+   "kind": "decision",
+   "date": "2026-11-17",
+   "time": "17:45",
+   "commit": "743c83a",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "differs only after cycles_per_step is lowered below the running count mid-ramp: the mutant wraps at once, the original runs to 127 and wraps; both give one slower window, the safe direction",
+   "mutants": [
+    "soft_start.128.AIM.52"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.AIM.1",
+   "operator": "AIM",
+   "line": 88,
+   "description": "The cycle boundary is taken on the rising edge of the PWM instead of the falling edge, so the ceiling steps at the start of a pulse rather than after it.",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync & ~pwm_sync_d;",
+   "category": "wrong_event",
+   "reason": "In S_SS, max_on_counts now changes on the clock after pwm_sync rises, while the pulse is still on, instead of after it falls. Each step lands earlier by the width of the PWM pulse, and so does SS_done.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_hold_in_run +1",
+     "killed_by": {
+      "assertions": [
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.170.AIM.2",
+   "operator": "AIM",
+   "line": 170,
+   "description": "A max_on_limit lowered during S_RUN is clamped onto the held ceiling straight away, instead of being left until the next ramp.",
+   "before": "// Hold: ceiling and SS_done keep their values for all of S_RUN.",
+   "after": "if (max_on_counts > max_on_limit) begin /  / max_on_counts <= max_on_limit; /  / end",
+   "category": "missing_case",
+   "reason": "If the host lowers max_on_limit while run_active is high, max_on_counts drops to the new limit on the next clock. The header says the ceiling stays unchanged through S_RUN and the new limit only takes effect at the next soft start.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.3",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling steps on the first switching cycle of each step window instead of its last.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter == '0)) begin",
+   "category": "wrong_event",
+   "reason": "On entering S_SS with cycles_per_step > 1, max_on_counts rises at the very first PWM falling edge, not after cycles_per_step cycles. The whole ramp, and SS_done, therefore arrive cycles_per_step-1 switching cycles early.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_falls_on_exit +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_falls_on_exit",
+       "a_hold_in_run"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.170.AIM.4",
+   "operator": "AIM",
+   "line": 170,
+   "description": "SS_done is cleared on entry to S_RUN rather than held for all of S_RUN.",
+   "before": "// Hold: ceiling and SS_done keep their values for all of S_RUN.",
+   "after": "SS_done <= 1'b0;",
+   "category": "reset_init",
+   "reason": "After a completed ramp, SS_done falls on the first clock that run_active is high and stays low through S_RUN. The original holds it high until the supervisor leaves S_RUN.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.5",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The look-ahead meant only for SS_done is also used in the target test, so the last step lands as soon as the ceiling is one below the limit, without waiting out its step window.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts + 1 >= max_on_limit) begin",
+   "category": "boundary",
+   "reason": "In S_SS, as soon as max_on_counts reaches max_on_limit-1, it jumps to max_on_limit and SS_done rises on the next clock. That can happen mid-pulse, and it skips the cycles_per_step-cycle dwell, so the ramp ends one step period early.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Outside S_SS, pwm_sync_d stops updating and keeps a stale value, so on the first S_SS clock pwm_fall (line 88) can differ from the original: a missed fall, or a false one. That changes cycle_counter and when max_on_counts steps."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differ only when a PWM fall lands on the first clock of S_SS: the first step window is one switching cycle (about 2.2 us) longer or shorter, and the rest of the ramp is unchanged"
+    }
+   ],
+   "id": "soft_start.68.AIM.6",
+   "operator": "AIM",
+   "line": 68,
+   "description": "The edge detector's delayed PWM copy is only updated in S_SS, so it holds a stale value from the previous soft start.",
+   "before": "else begin",
+   "after": "else if (ss_active) begin",
+   "category": "sequencing",
+   "reason": "Suppose S_SS is left while pwm_sync is high (a hiccup, say), and a later S_SS begins with pwm_sync low. The stale pwm_sync_d=1 then makes a false falling edge on the first clock. That counts a switching cycle that never happened, so the first ceiling step comes one cycle early.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_done_follows_target",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.7",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The target test checks for equality instead of at-or-past, so a ceiling already above a lowered max_on_limit is never clamped back down (the bug the header says >= was brought in to fix).",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts == max_on_limit) begin",
+   "category": "boundary",
+   "reason": "If max_on_limit is written below the present ceiling during S_SS, max_on_counts keeps stepping up past the limit, runs to the top of its range and wraps, and SS_done is not asserted when it should be.",
+   "written_in": 2
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.8",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ramp step is an independent if after the at-target clamp rather than its else branch, so on a step boundary the later step assignment wins over the clamp.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "category": "priority",
+   "reason": "In S_SS, with the ceiling at or above max_on_limit (for example after the limit is lowered mid-ramp), a pwm_fall that ends a step window drives max_on_counts to one above the ceiling, so it sits above max_on_limit for one clock before the clamp takes effect.",
+   "written_in": 2
+  },
+  "AIM.9": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.9",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The at-target clamp and SS_done are only acted on at a PWM falling edge, as if they were a ceiling update that has to wait for the pulse to end, instead of on any clock.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (pwm_fall && (max_on_counts >= max_on_limit)) begin",
+   "category": "wrong_event",
+   "reason": "When max_on_limit equals the floor, SS_done comes at the first falling edge of the PWM instead of on the first clock of S_SS. A limit lowered below the ceiling mid-ramp is likewise not clamped onto max_on_counts until the next falling edge.",
+   "written_in": 2,
+   "retired": 13,
+   "withdrawn": "AIM.51 and AIM.53 together: SS_done timing is the same as AIM.51 and the clamp timing the same as AIM.53, so any test that kills AIM.51 kills it"
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.AIM.10",
+   "operator": "AIM",
+   "line": 168,
+   "description": "The hold condition also keeps the ceiling while SS_done is set, so a completed ramp is not reset to the floor when the supervisor leaves S_RUN for hiccup or idle.",
+   "before": "else if (run_active) begin",
+   "after": "else if (run_active || SS_done) begin",
+   "category": "reset_init",
+   "reason": "After S_RUN, when both ss_active and run_active are low, max_on_counts stays at max_on_limit and SS_done stays high. The next S_SS then finishes at once at full ceiling instead of re-ramping from MIN_ON_COUNTS.",
+   "written_in": 2
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.AIM.11",
+   "operator": "AIM",
+   "line": 177,
+   "description": "Outside S_SS and S_RUN the ceiling is only reset to the floor if the ramp had finished, so a soft start aborted mid-ramp leaves its partial ceiling in place.",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "if (SS_done) begin /  / max_on_counts <= MIN_ON_CNT; /  / end",
+   "category": "reset_init",
+   "reason": "If ss_active drops before SS_done (for example a hiccup during soft start), max_on_counts keeps its partial value. The retry's S_SS then starts its ramp from that value instead of from MIN_ON_COUNTS.",
+   "written_in": 2
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.12",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The SS_done look-ahead is tested on every clock below the target instead of only on the clock the last step lands, so SS_done rises as soon as the ceiling is one count below max_on_limit.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin /  / max_on_counts <= max_on_counts + 1;",
+   "after": "else begin /  / if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin / max_on_counts <= max_on_counts + 1; / end",
+   "category": "sequencing",
+   "reason": "During S_SS, SS_done goes high a whole step window before the last step lands. The supervisor then moves to S_RUN and holds max_on_counts at max_on_limit-1 instead of max_on_limit.",
+   "written_in": 3
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.148.AIM.13",
+   "operator": "AIM",
+   "line": 148,
+   "description": "On the at-target branch SS_done only counts as done when the ceiling already equals the limit, so a ceiling clamped down from above a lowered max_on_limit finishes one clock late.",
+   "before": "SS_done       <= 1'b1;",
+   "after": "SS_done       <= (max_on_counts == max_on_limit);",
+   "category": "sequencing",
+   "reason": "If max_on_limit is written below the current ceiling during S_SS, max_on_counts is clamped on the first clock but SS_done stays low until the next clock, so S_SS lasts one clock longer.",
+   "written_in": 3
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.AIM.14",
+   "operator": "AIM",
+   "line": 177,
+   "description": "Outside S_SS and S_RUN the ceiling is reset to the target max_on_limit (a copy of the clamp line) instead of to the MIN_ON_CNT floor.",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= max_on_limit;",
+   "category": "reset_init",
+   "reason": "After a hiccup or any return to idle, max_on_counts shows max_on_limit instead of the floor. On the next S_SS the at-target test is true on the first clock, so SS_done asserts at once and the retry starts at full ceiling with no ramp.",
+   "written_in": 3
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.AIM.15",
+   "operator": "AIM",
+   "line": 126,
+   "description": "The step-window counter advances on the PWM rising edge, while the ceiling step is still taken at the falling edge.",
+   "before": "if (pwm_fall) begin",
+   "after": "if (pwm_sync & ~pwm_sync_d) begin",
+   "category": "wrong_event",
+   "reason": "With cycles_per_step > 1, the counter has already advanced by the first falling edge of S_SS. The first ceiling step therefore comes one switching cycle early, and SS_done comes early too.",
+   "written_in": 3
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.AIM.16",
+   "operator": "AIM",
+   "line": 177,
+   "description": "The idle re-arm sets the ceiling one count above the MIN_ON_CNT floor, unlike the power-on reset, so a re-ramp starts at the first step instead of the floor.",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= MIN_ON_CNT + 1'b1;",
+   "category": "boundary",
+   "reason": "After leaving S_RUN or S_SS for hiccup or idle, max_on_counts reads MIN_ON_CNT+1 instead of MIN_ON_CNT. The next soft start begins one count wider and reaches max_on_limit one step window sooner.",
+   "written_in": 3
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.AIM.17",
+   "operator": "AIM",
+   "line": 88,
+   "description": "The cycle-boundary detector is written as a generic any-edge detector, so both the rising and the falling edge of each PWM pulse count as a switching-cycle boundary.",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d ^ pwm_sync;",
+   "category": "wrong_event",
+   "reason": "In S_SS the step window advances twice per switching cycle, so max_on_counts widens every cycles_per_step/2 cycles and SS_done arrives about twice as early. Half of the steps also land on a rising edge, so the ceiling changes mid-pulse.",
+   "written_in": 4
+  },
+  "AIM.18": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.18",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling step is qualified by the PWM being low (the 'pulse is over' level) instead of by the one-clock falling-edge pulse.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (~pwm_sync && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "category": "wrong_event",
+   "reason": "In S_SS with cycle_counter at cycles_per_step-1, max_on_counts goes up by one on every clock of the PWM low time instead of once per step window. The ramp then jumps by many counts per window, and SS_done comes far too early.",
+   "written_in": 4
+  },
+  "AIM.19": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.174.AIM.19",
+   "operator": "AIM",
+   "line": 174,
+   "description": "The return to the floor outside S_SS/S_RUN waits for a PWM falling edge, as if it were a ceiling update that must not land mid-pulse.",
+   "before": "else begin",
+   "after": "else if (pwm_fall) begin",
+   "category": "wrong_event",
+   "reason": "When the supervisor leaves S_SS or S_RUN for hiccup or off, max_on_counts and SS_done keep their old values until a PWM falling edge arrives. With the stage disabled and the PWM not switching, they are never reset, so the retry re-enables at the old ceiling with SS_done already high.",
+   "written_in": 4
+  },
+  "AIM.20": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.176.AIM.20",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The idle re-arm loads the step-window counter with its terminal count instead of zero, so each soft start begins at the end of a step window.",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= cycles_per_step - 1'b1;",
+   "category": "reset_init",
+   "reason": "On every entry to S_SS (from S_OFF and from hiccup), the first ceiling step comes at the first PWM falling edge instead of after cycles_per_step cycles. The ramp is therefore one step ahead throughout, and SS_done rises cycles_per_step-1 switching cycles early.",
+   "written_in": 4
+  },
+  "AIM.21": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_hold_in_run +1",
+     "killed_by": {
+      "assertions": [
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.AIM.21",
+   "operator": "AIM",
+   "line": 121,
+   "description": "The ramp branch is entered in S_RUN as well as S_SS, so the ramp keeps running under the regulating loop instead of the ceiling being held.",
+   "before": "else if (ss_active) begin",
+   "after": "else if (ss_active || run_active) begin",
+   "category": "missing_case",
+   "reason": "If the host lowers max_on_limit during S_RUN and then raises it again, max_on_counts climbs back up one count per step window while in S_RUN. The header says the ceiling must stay where the last ramp left it until the next soft start.",
+   "written_in": 4
+  },
+  "AIM.22": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target +2",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target",
+       "a_done_falls_on_exit",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.AIM.22",
+   "operator": "AIM",
+   "line": 121,
+   "description": "The ramp branch is gated off once SS_done is set, so the last S_SS clock after the ramp finishes falls through to the idle reset branch.",
+   "before": "else if (ss_active) begin",
+   "after": "else if (ss_active && !SS_done) begin",
+   "category": "wrong_event",
+   "reason": "The supervisor's state register leaves S_SS one clock after SS_done rises, so ss_active is still high on that clock. With this fault the ceiling drops back to MIN_ON_CNT and SS_done clears just as S_RUN starts, so S_RUN runs with the floor ceiling and SS_done low instead of holding the reached max_on_limit.",
+   "written_in": 5
+  },
+  "AIM.23": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.23",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The at-target clamp is applied only while SS_done is still low, as if finishing the ramp needed acting on only once, so on the last S_SS clock after done the step branch is reachable again.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (!SS_done && (max_on_counts >= max_on_limit)) begin",
+   "category": "missing_case",
+   "reason": "Take a ramp finished by the clamp branch rather than by a step: max_on_limit equal to the floor, or lowered mid-ramp. If the following clock, still in S_SS, is a PWM falling edge at the end of a step window (every falling edge when cycles_per_step=1), the ceiling steps to max_on_limit+1. It is then held there through S_RUN, above the limit.",
+   "written_in": 5
+  },
+  "AIM.24": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_hold_in_run +1",
+     "killed_by": {
+      "assertions": [
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.171.AIM.24",
+   "operator": "AIM",
+   "line": 171,
+   "description": "In S_RUN the digital ceiling is opened to full scale, leaving only the analog duty clamp, instead of holding the ceiling the ramp reached as a backstop.",
+   "before": "",
+   "after": "max_on_counts <= '1; / ",
+   "category": "other",
+   "reason": "On the first clock of S_RUN max_on_counts jumps from max_on_limit to all-ones and stays there for the whole run. pwm_mask then no longer limits on-time to the programmed maximum while regulating.",
+   "written_in": 5
+  },
+  "AIM.25": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.130.AIM.25",
+   "operator": "AIM",
+   "line": 130,
+   "description": "At the end of a step window the cycle counter wraps to 1 instead of 0, counting the wrapping cycle as the first of the next window, so every window after the first is one switching cycle short.",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= {{(pmic_types_pkg::CYC_STEP_W-1){1'b0}}, 1'b1};",
+   "category": "boundary",
+   "reason": "In S_SS with cycles_per_step >= 2, the second and later ceiling steps on max_on_counts come every cycles_per_step-1 PWM cycles instead of every cycles_per_step, so SS_done is reached early. With cycles_per_step = 1 the counter leaves the terminal value 0 and has to wrap through its whole range, so the ramp stalls after its first step.",
+   "written_in": 5
+  },
+  "AIM.26": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.AIM.26",
+   "operator": "AIM",
+   "line": 158,
+   "description": "The SS_done look-ahead on a ramp step tests the current ceiling instead of the value about to land, so the last step does not raise SS_done itself.",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts == max_on_limit) begin",
+   "category": "sequencing",
+   "reason": "When the last ramp step brings max_on_counts up to max_on_limit, SS_done goes high one clock late, on the next clock through the at-target branch, instead of on the same clock as the step.",
+   "written_in": 5
+  },
+  "AIM.27": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_falls_on_exit +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_falls_on_exit",
+       "a_hold_in_run"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.171.AIM.27",
+   "operator": "AIM",
+   "line": 171,
+   "description": "In S_RUN SS_done is treated as a live 'ceiling at target' status and recomputed against max_on_limit, instead of being held as the latched end of the ramp.",
+   "before": "",
+   "after": "SS_done <= (max_on_counts >= max_on_limit); / ",
+   "category": "other",
+   "reason": "If the host raises max_on_limit above the held ceiling while run_active is high, SS_done drops to 0 in S_RUN although the ramp finished and the ceiling is still being held.",
+   "written_in": 5
+  },
+  "AIM.28": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.AIM.28",
+   "operator": "AIM",
+   "line": 126,
+   "description": "The step-window counter only runs while a ramp step is still owed, not on every switching cycle of S_SS as the design says, so it freezes once the ceiling reaches the target.",
+   "before": "if (pwm_fall) begin",
+   "after": "if (pwm_fall && (max_on_counts < max_on_limit)) begin",
+   "category": "wrong_event",
+   "reason": "In S_SS after the ceiling reaches max_on_limit, the window counter stops. If max_on_limit is then raised while ss_active is still high, the next step on max_on_counts comes at a different PWM cycle from the original, where the window kept counting.",
+   "written_in": 5,
+   "retired": 14,
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  "AIM.29": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.AIM.29",
+   "operator": "AIM",
+   "line": 128,
+   "description": "The step-window counter wraps at the package default CYCLES_PER_STEP_DEFAULT instead of at the host-programmed cycles_per_step, so the register only reaches the step test and not the window length.",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (cycle_counter == pmic_types_pkg::CYCLES_PER_STEP_DEFAULT[pmic_types_pkg::CYC_STEP_W-1:0] - 1'b1) begin",
+   "category": "missing_case",
+   "reason": "If the host programs cycles_per_step to anything other than 16, max_on_counts no longer steps every cycles_per_step cycles in S_SS. Below 16 it steps once every 16 cycles. Above 16 the counter never reaches cycles_per_step-1, so the ceiling never steps and SS_done never rises unless the limit equals the floor.",
+   "written_in": 5
+  },
+  "AIM.30": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.30",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling step is taken on the PWM rising edge of the window's last cycle, while the step-window counter still counts falling edges, so the ceiling widens at the start of a pulse instead of after it.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if ((pwm_sync & ~pwm_sync_d) && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "category": "wrong_event",
+   "reason": "In S_SS, max_on_counts now increments at the rising edge of the last switching cycle of each window, not at its falling edge. Every step and the SS_done rise come one PWM on-time earlier, and the ceiling changes while a pulse is running.",
+   "written_in": 5
+  },
+  "AIM.31": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.31",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling step tests the step-window counter's next value instead of its current value, so the step lands one switching cycle before the window ends.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter + 1'b1 == cycles_per_step - 1'b1)) begin",
+   "category": "sequencing",
+   "reason": "In S_SS with cycles_per_step > 1, the first ceiling step comes after cycles_per_step-1 falling edges instead of cycles_per_step, and every step is one cycle ahead of the window wrap. With cycles_per_step = 1 the test can never match, so the ceiling never ramps and SS_done never rises.",
+   "written_in": 5
+  },
+  "AIM.32": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.AIM.32",
+   "operator": "AIM",
+   "line": 158,
+   "description": "The SS_done look-ahead on a ramp step compares the landing ceiling with the package MAX_ON_COUNTS_DEFAULT (the 'MAX_ON_COUNTS' of the port comment) instead of the programmed max_on_limit.",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts + 1 == ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin",
+   "category": "boundary",
+   "reason": "With max_on_limit programmed below the default, the step that lands on the limit no longer raises SS_done. SS_done then rises one clock late, through the at-target branch. With the default limit nothing changes.",
+   "written_in": 6
+  },
+  "AIM.33": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.33",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The at-target test compares the ceiling with the package default MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit, while the clamp still loads max_on_limit.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts >= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT)) begin",
+   "category": "boundary",
+   "reason": "If max_on_limit is set to the floor, or lowered below a ceiling the ramp has already reached, max_on_counts keeps climbing past the limit and SS_done stays low until the ceiling reaches the default. The real design finishes at once, or clamps straight away.",
+   "written_in": 6
+  },
+  "AIM.34": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.AIM.34",
+   "operator": "AIM",
+   "line": 147,
+   "description": "When the ramp reaches or passes its target, the ceiling is clamped to the package MAX_ON_COUNTS_DEFAULT instead of the programmed max_on_limit.",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= ON_TIME_W'(pmic_types_pkg::MAX_ON_COUNTS_DEFAULT);",
+   "category": "field",
+   "reason": "With max_on_limit below the default, max_on_counts jumps from the limit up to the default on the first S_SS clock at the target. That ceiling, above the host's limit, is then held through S_RUN.",
+   "written_in": 6
+  },
+  "AIM.35": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AIM.35",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling-step test compares the step-window counter with the package CYCLES_PER_STEP_DEFAULT instead of the programmed cycles_per_step, while the counter still wraps at cycles_per_step.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter == pmic_types_pkg::CYC_STEP_W'(pmic_types_pkg::CYCLES_PER_STEP_DEFAULT) - 1'b1)) begin",
+   "category": "missing_case",
+   "reason": "With cycles_per_step programmed below 16, the counter wraps before it reaches 15, so max_on_counts never widens and SS_done never rises. Above 16, each step lands on the 16th cycle of its window instead of the last.",
+   "written_in": 6
+  },
+  "AIM.36": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.AIM.36",
+   "operator": "AIM",
+   "line": 147,
+   "description": "When the ramp reaches or passes its target, the at-target branch loads the MIN_ON_CNT floor (a copy of the idle re-arm line) instead of clamping the ceiling to max_on_limit.",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= MIN_ON_CNT;",
+   "category": "other",
+   "reason": "After a normal ramp the last step sets max_on_counts to max_on_limit with SS_done. On the next S_SS clock the at-target branch drops max_on_counts back to the floor, and S_RUN then holds the floor as the running ceiling, with SS_done still high.",
+   "written_in": 6
+  },
+  "AIM.37": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.AIM.37",
+   "operator": "AIM",
+   "line": 147,
+   "description": "The at-target clamp treats max_on_limit as an exclusive bound and loads one count below it, so a finished ramp settles one count short of its target.",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= max_on_limit - 1'b1;",
+   "category": "boundary",
+   "reason": "On the S_SS clock after the last step, and on the first S_SS clock when max_on_limit equals the floor, max_on_counts is set to max_on_limit-1 while SS_done is high. S_RUN then holds that value, one count below the programmed limit (and below MIN_ON_COUNTS in the floor case).",
+   "written_in": 6
+  },
+  "AIM.38": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.AIM.38",
+   "operator": "AIM",
+   "line": 126,
+   "description": "The step-window counter wraps on any clock that finds it at its terminal count, not only on a switching-cycle boundary, so it never waits at the terminal count for the PWM falling edge that should end the window.",
+   "before": "if (pwm_fall) begin",
+   "after": "if (pwm_fall || (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "category": "wrong_event",
+   "reason": "When cycles_per_step > 1 (the default is 16), the counter reaches the terminal count on one PWM falling edge and wraps on the very next clock. The ceiling-step test needs pwm_fall and the terminal count on the same clock, so it never fires: max_on_counts stays at the MIN_ON_COUNTS floor for all of S_SS, and SS_done never rises unless max_on_limit equals the floor.",
+   "written_in": 6
+  },
+  "AIM.39": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target +2",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target",
+       "a_ceiling_within_limit",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.39",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The ramp stops on the latched SS_done flag instead of on the live ceiling-vs-max_on_limit comparison, so the at-target clamp acts only after the look-ahead has already finished the ramp.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (SS_done) begin",
+   "category": "sequencing",
+   "reason": "If max_on_limit equals the floor, the ramp should finish on the first clock of S_SS. Under the mutant it steps to floor+1, the look-ahead never matches, and the ceiling climbs and wraps with SS_done never asserted. If max_on_limit is lowered below the ceiling during the ramp, the ceiling is not clamped and keeps climbing past the new limit.",
+   "written_in": 6
+  },
+  "AIM.40": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.40",
+   "operator": "AIM",
+   "line": 145,
+   "description": "The at-target test is suppressed while the ceiling is still at the MIN_ON_CNT floor, as if to stop the ramp finishing on S_SS entry. Because of that, a max_on_limit equal to the floor is not finished on the first clock, which the header requires.",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if ((max_on_counts >= max_on_limit) && (max_on_counts != MIN_ON_CNT)) begin",
+   "category": "missing_case",
+   "reason": "With max_on_limit programmed equal to MIN_ON_COUNTS, SS_done no longer rises on the first S_SS clock. Instead max_on_counts steps to floor+1, above the limit, at the end of the first step window. It is clamped back and SS_done is set only on the clock after that, a whole step period late.",
+   "written_in": 7
+  },
+  "AIM.41": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.176.AIM.41",
+   "operator": "AIM",
+   "line": 176,
+   "description": "The idle re-arm loads the step-window counter with 1, counting cycles from one, instead of 0. The first step window of every soft start is therefore one switching cycle short.",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= 1;",
+   "category": "reset_init",
+   "reason": "On each new S_SS entry (after S_OFF or hiccup), the first ceiling step lands one PWM falling edge early when cycles_per_step >= 2. With cycles_per_step = 1 the counter starts past the terminal count, so the first step is held for nearly the full counter range. Either way max_on_counts and SS_done change at different times.",
+   "written_in": 7
+  },
+  "AIM.42": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.AIM.42",
+   "operator": "AIM",
+   "line": 147,
+   "description": "A ceiling found above a lowered max_on_limit is walked down one count per clock, as a gentle ramp-down, instead of being clamped to the limit at once. SS_done is still raised at once.",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= (max_on_counts > max_on_limit) ? max_on_counts - 1 : max_on_limit;",
+   "category": "other",
+   "reason": "If max_on_limit is lowered below the ceiling during S_SS, SS_done rises straight away and the supervisor moves to S_RUN on the next clock. The ceiling then stops partway down, so max_on_counts stays above max_on_limit for all of S_RUN instead of equalling it.",
+   "written_in": 7
+  },
+  "AIM.43": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If cycles_per_step is lowered below the running cycle_counter, the mutant's >= test steps max_on_counts on every pwm_fall until the counter wraps. The original's == test does not step. This changes max_on_counts and SS_done timing at the ports."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 20,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "no test lowers cycles_per_step below the running count mid-ramp; the mutant then steps the ceiling every switching cycle until the counter wraps, a fast ramp and more inrush; needs a check that the ceiling never steps twice within one programmed window"
+    }
+   ],
+   "id": "soft_start.152.AIM.43",
+   "operator": "AIM",
+   "line": 152,
+   "description": "The ceiling-step test copies the at-or-past (>=) form of the target test, while the step-window counter still wraps only on equality. A cycles_per_step lowered below the running count therefore steps the ceiling on every switching cycle until the counter wraps.",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter >= cycles_per_step - 1'b1)) begin",
+   "category": "boundary",
+   "reason": "In S_SS, if the host lowers cycles_per_step below the current cycle_counter mid-ramp, max_on_counts rises by one on every PWM falling edge, racing to max_on_limit and raising SS_done early. In the original the ceiling does not step until the counter wraps and reaches the new window end.",
+   "written_in": 8
+  },
+  "AIM.44": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.148.AIM.44",
+   "operator": "AIM",
+   "line": 147,
+   "description": "Reaching the target also clears the step-window counter, as if a finished ramp should re-arm its window. The window then restarts on every at-target clock instead of running on every switching cycle of S_SS.",
+   "before": "max_on_counts <= max_on_limit; / SS_done       <= 1'b1;",
+   "after": "max_on_counts <= max_on_limit; / SS_done       <= 1'b1; / cycle_counter <= '0;",
+   "category": "reset_init",
+   "reason": "With ss_active held after the ceiling reaches max_on_limit, raising max_on_limit makes the next ceiling step land a full cycles_per_step cycles after the raise. In the original it lands at the end of the window already running.",
+   "written_in": 8,
+   "retired": 14,
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  "AIM.45": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.AIM.45",
+   "operator": "AIM",
+   "line": 158,
+   "description": "On a ramp step SS_done is assigned from the look-ahead comparison instead of only being set by it. Each step that does not land on the target therefore clears a SS_done that was already latched in S_SS.",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin /  / SS_done <= 1'b1; /  / end",
+   "after": "SS_done <= (max_on_counts + 1 == max_on_limit);",
+   "category": "sequencing",
+   "reason": "In S_SS after SS_done has risen, if max_on_limit is raised above the ceiling while ss_active stays high, the next ceiling step drops SS_done to 0. In the original SS_done stays set until the module leaves S_SS and S_RUN.",
+   "written_in": 8,
+   "retired": 14,
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  "AIM.46": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.172.AIM.46",
+   "operator": "AIM",
+   "line": 172,
+   "description": "The step-window counter is cleared when the ramp hands over to S_RUN instead of in the idle/hiccup branch, so it is only re-armed after a ramp that finished.",
+   "before": "end /  / else begin /  / cycle_counter <= '0;",
+   "after": "cycle_counter <= '0; /  / end /  / else begin / ",
+   "category": "wrong_event",
+   "reason": "Suppose a soft start is aborted mid-window, for example S_SS to S_HICCUP on window_trip_SS and then back to S_SS. The retry keeps the partial cycle count, so its first ceiling step arrives early: max_on_counts leaves the MIN_ON_CNT floor after fewer than cycles_per_step switching cycles.",
+   "written_in": 9
+  },
+  "AIM.47": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "On the first S_SS clock, pwm_sync_d is 0 in the mutant but holds the previous pwm_sync in the original. If PWM was high before S_SS and falls on that clock, the original sees pwm_fall and the mutant does not, so cycle_counter and step timing (lines 126-154) change."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differ only when a PWM fall lands on the first clock of S_SS: the first step window is one switching cycle (about 2.2 us) longer or shorter, and the rest of the ramp is unchanged"
+    }
+   ],
+   "id": "soft_start.68.AIM.47",
+   "operator": "AIM",
+   "line": 68,
+   "description": "The edge detector's delayed PWM copy is re-armed low outside S_SS, like the rest of the ramp state, instead of always tracking pwm_sync.",
+   "before": "else begin",
+   "after": "else if (!ss_active) begin /  / pwm_sync_d <= 1'b0; /  / end /  / else begin",
+   "category": "reset_init",
+   "reason": "If the PWM is high on the last clock before S_SS and low on the first S_SS clock, the original counts that falling edge as a cycle boundary but the mutant does not. The first step window of the ramp is then one switching cycle longer, and the first widening of max_on_counts lands one PWM cycle late.",
+   "written_in": 9
+  },
+  "AIM.48": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "Verilator: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.AIM.48",
+   "operator": "AIM",
+   "line": 154,
+   "description": "Each ramp step widens the ceiling by cycles_per_step counts instead of one count, mixing up the step period with the step size.",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= max_on_counts + cycles_per_step;",
+   "category": "other",
+   "reason": "In S_SS, the first step boundary moves max_on_counts from MIN_ON_CNT to MIN_ON_CNT+cycles_per_step (12 to 28 with the defaults) instead of to 13. The ramp overshoots max_on_limit and is clamped back on the next clock, so the ceiling and the timing of SS_done both differ from the one-count-per-window ramp.",
+   "written_in": 9
+  },
+  "AIM.49": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.AIM.49",
+   "operator": "AIM",
+   "line": 154,
+   "description": "On the step that would land on max_on_limit, only SS_done is raised and the ceiling step itself is skipped, as if signalling done replaced the last step.",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "if (max_on_counts + 1 != max_on_limit) begin /  / max_on_counts <= max_on_counts + 1; /  / end",
+   "category": "sequencing",
+   "reason": "At the end of a normal ramp, SS_done rises but max_on_counts stays at max_on_limit-1. The supervisor then moves to S_RUN, where that ceiling is held, so pwm_mask gets a running backstop one count below the programmed max_on_limit.",
+   "written_in": 9
+  },
+  "AIM.50": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_hold_in_run +1",
+     "killed_by": {
+      "assertions": [
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.171.AIM.50",
+   "operator": "AIM",
+   "line": 171,
+   "description": "A max_on_limit raised during S_RUN widens the held ceiling at once, as if only a lowered limit had to wait for the next ramp, instead of every change being deferred to the next soft start.",
+   "before": "",
+   "after": "if (max_on_limit > max_on_counts) begin / max_on_counts <= max_on_limit; / end / ",
+   "category": "wrong_event",
+   "reason": "If the host raises MAX_ON while the supervisor is in S_RUN, max_on_counts jumps straight to the new limit under the running loop. It should keep the ceiling the ramp reached until the next soft start re-ramps to it.",
+   "written_in": 10
+  },
+  "AIM.51": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.148.AIM.51",
+   "operator": "AIM",
+   "line": 148,
+   "description": "On the at-target branch SS_done waits for a PWM falling edge, as if it were a ceiling update that must land between pulses, while the clamp itself still acts on the clock it is found.",
+   "before": "SS_done       <= 1'b1;",
+   "after": "if (pwm_fall) begin / SS_done     <= 1'b1; / end",
+   "category": "sequencing",
+   "reason": "When max_on_limit equals the MIN_ON_CNT floor, or is lowered below the ceiling mid-ramp, the ceiling is clamped at once but SS_done rises only at the next switching-cycle boundary, not on the next clock. That delays the handover to S_RUN, and the header requires a floor-level limit to finish on the first clock of S_SS.",
+   "written_in": 10
+  },
+  "AIM.52": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "cycles_per_step is an input that can drop below the running cycle_counter mid-ramp. The mutant then wraps cycle_counter to 0 at once, while the original counts up to 127 and wraps. The step condition on line 152 then fires at different times, so max_on_counts changes."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 21,
+     "date": "2026-11-17",
+     "decision": "accepted",
+     "reason": "differs only after cycles_per_step is lowered below the running count mid-ramp: the mutant wraps at once, the original runs to 127 and wraps; both give one slower window, the safe direction"
+    }
+   ],
+   "id": "soft_start.128.AIM.52",
+   "operator": "AIM",
+   "line": 128,
+   "description": "The step-window counter wraps at or past its terminal count (the at-or-past form of the target test), while the ceiling-step test still requires the count to equal it.",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (cycle_counter >= cycles_per_step - 1'b1) begin",
+   "category": "boundary",
+   "reason": "If cycles_per_step is lowered below the running count in S_SS, the counter wraps to 0 at the next PWM falling edge without a ceiling step, so the ramp loses that window. The original instead keeps counting up to the counter's natural wrap. Either way the time at which max_on_counts next widens is different.",
+   "written_in": 10
+  },
+  "AIM.53": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.AIM.53",
+   "operator": "AIM",
+   "line": 147,
+   "description": "The clamp of a ceiling at or past max_on_limit waits for a PWM falling edge, treated like a ceiling update that must not land mid-pulse, but SS_done is still raised on the clock the target is found.",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "if (pwm_fall) begin / max_on_counts <= max_on_limit; / end",
+   "category": "sequencing",
+   "reason": "If max_on_limit is lowered below the ramping ceiling in S_SS, SS_done rises at once while max_on_counts stays above the limit until a falling edge. The supervisor then moves to S_RUN, where the ceiling is held, so max_on_counts can stay above max_on_limit for all of S_RUN.",
+   "written_in": 11
+  },
+  "AIM.54": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.AIM.54",
+   "operator": "AIM",
+   "line": 145,
+   "description": "A ceiling found above a lowered max_on_limit is handled like an aborted ramp and sent back to the MIN_ON_CNT floor to re-ramp, instead of being clamped to the limit and finishing.",
+   "before": "if (max_on_counts >= max_on_limit) begin /  / max_on_counts <= max_on_limit;",
+   "after": "if (max_on_counts > max_on_limit) begin /  / max_on_counts <= MIN_ON_CNT; / end / else if (max_on_counts == max_on_limit) begin",
+   "category": "other",
+   "reason": "When max_on_limit is lowered below the ceiling during S_SS, max_on_counts drops to the floor instead of to the new limit, and SS_done does not rise until the ramp climbs back up to the limit. That is many step windows late. A normal ramp that reaches the limit by equality is unchanged.",
+   "written_in": 11
+  },
+  "AIM.55": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.166.AIM.55",
+   "operator": "AIM",
+   "line": 162,
+   "description": "In S_SS, SS_done is treated as a live 'ceiling at target' flag and cleared on any clock that finds the ceiling below max_on_limit with no step landing, instead of staying latched once the ramp has finished.",
+   "before": "end /  / end /  / end",
+   "after": "end /  / end /  / else begin / SS_done <= 1'b0; / end /  / end",
+   "category": "reset_init",
+   "reason": "The supervisor stays in S_SS for one more clock after SS_done rises. If the host raises max_on_limit (it can write it at any time) during that clock, the mutant drops SS_done as the supervisor moves to S_RUN. SS_done is then held low for all of S_RUN, where the original holds it high.",
+   "written_in": 12,
+   "retired": 14,
+   "withdrawn": "differ only if the ramp resumes after SS_done is set while still in S_SS, which needs max_on_limit raised in the single S_SS clock before the supervisor leaves on SS_done; before done SS_done is 0 anyway"
+  },
+  "530c0ae4eb#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: WIDTHTRUNC"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.44.CST.1",
+   "operator": "CST",
+   "line": 44,
+   "description": "localparam MIN_ON_CNT: 1 -> 0",
+   "before": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-1:0];",
+   "after": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-0:0];"
+  },
+  "2cef7b0276#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "equivalent",
+     "confidence": "high",
+     "reason": "With the package values, MIN_ON_COUNTS = (50*240+999)/1000 = 12 and ON_TIME_W = $clog2(83+1) = 7. Bit 6 of 12 is 0, so MIN_ON_COUNTS[5:0] zero-extended to 7 bits is still 12, the same as [6:0]; pmic_top.sv:319 does not override the parameters, so MIN_ON_CNT (line 44) is unchanged."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-17",
+     "decision": "equivalent",
+     "reason": "MIN_ON_COUNTS is 12 and bit 6 of 12 is 0, so [5:0] and [6:0] give the same MIN_ON_CNT; pmic_top does not override the parameter"
+    }
+   ],
+   "id": "soft_start.44.CST.2",
+   "operator": "CST",
+   "line": 44,
+   "description": "localparam MIN_ON_CNT: 1 -> 2",
+   "before": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-1:0];",
+   "after": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-2:0];"
+  },
+  "36a9e9b7ec#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor +2",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor",
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.44.CST.3",
+   "operator": "CST",
+   "line": 44,
+   "description": "localparam MIN_ON_CNT: 0 -> 1",
+   "before": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-1:0];",
+   "after": "localparam logic [ON_TIME_W-1:0] MIN_ON_CNT = MIN_ON_COUNTS[ON_TIME_W-1:1];"
+  },
+  "73448571c2#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.53.EDG.1",
+   "operator": "EDG",
+   "line": 53,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "4b72644b47#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the asynchronous reset removed, pwm_sync_d is never cleared: it starts as X, or follows pwm_sync on clocks during reset. If pwm_sync is high just before reset releases and ss_active is high at once, pwm_fall (line 88) can fire on the first clock where the original gives 0, which shifts cycle_counter and the ramp steps."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of pwm_sync_d, cycle_counter and SS_done untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "soft_start.62.CSK.1",
+   "operator": "CSK",
+   "line": 62,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b0) begin"
+  },
+  "2a07bac648#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.62.CSK.2",
+   "operator": "CSK",
+   "line": 62,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b1) begin"
+  },
+  "d9cd5a9d8a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.62.UOD.1",
+   "operator": "UOD",
+   "line": 62,
+   "description": "drop the '!' before rst_n",
+   "before": "if (!rst_n) begin",
+   "after": "if (rst_n) begin"
+  },
+  "01c6a6bd8f#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.64.CST.1",
+   "operator": "CST",
+   "line": 64,
+   "description": "1'b0 -> 1'b1",
+   "before": "pwm_sync_d <= 1'b0;",
+   "after": "pwm_sync_d <= 1'b1;"
+  },
+  "a8708afbc7#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 64, pwm_sync_d keeps its value from before reset (or X at power-up) instead of 0. A stale 1 makes a false pwm_fall on the first clock after reset if pwm_sync is 0 and ss_active is high, which changes cycle_counter and when max_on_counts steps."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of pwm_sync_d, cycle_counter and SS_done untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "soft_start.64.SDL.1",
+   "operator": "SDL",
+   "line": 64,
+   "description": "delete 'pwm_sync_d <= 1'b0;'",
+   "before": "pwm_sync_d <= 1'b0;",
+   "after": ";"
+  },
+  "c1a719f43d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.70.SDL.1",
+   "operator": "SDL",
+   "line": 70,
+   "description": "delete 'pwm_sync_d <= pwm_sync;'",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": ";"
+  },
+  "f16a0a1f05#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.70.SIB.1",
+   "operator": "SIB",
+   "line": 70,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= pwm_fall;"
+  },
+  "96d8c300df#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.70.STK.1",
+   "operator": "STK",
+   "line": 70,
+   "description": "pwm_sync_d stuck at all-zeros (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '0;"
+  },
+  "429e889f08#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.70.STK.2",
+   "operator": "STK",
+   "line": 70,
+   "description": "pwm_sync_d stuck at all-ones (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= '1;"
+  },
+  "56e3983858#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.70.VNG.1",
+   "operator": "VNG",
+   "line": 70,
+   "description": "pwm_sync_d inverted (was 'pwm_sync')",
+   "before": "pwm_sync_d <= pwm_sync;",
+   "after": "pwm_sync_d <= ~(pwm_sync);"
+  },
+  "c03cfaa81c#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.CTD.1",
+   "operator": "CTD",
+   "line": 88,
+   "description": "drop the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~pwm_sync;"
+  },
+  "faa236c084#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.CTD.2",
+   "operator": "CTD",
+   "line": 88,
+   "description": "drop the term '~pwm_sync'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d;"
+  },
+  "f247ee59ff#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.CTN.1",
+   "operator": "CTN",
+   "line": 88,
+   "description": "negate the term 'pwm_sync_d'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d) & ~pwm_sync;"
+  },
+  "6a9ecbe9f1#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.DLY.1",
+   "operator": "DLY",
+   "line": 88,
+   "description": "pwm_sync_d -> pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync & ~pwm_sync;"
+  },
+  "b4ae3c3cf8#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.DLY.2",
+   "operator": "DLY",
+   "line": 88,
+   "description": "pwm_sync -> pwm_sync_d",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_sync_d;"
+  },
+  "9869f69826#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.LCR.1",
+   "operator": "LCR",
+   "line": 88,
+   "description": "& -> |",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d | ~pwm_sync;"
+  },
+  "38bbb649c0#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN, UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.SDL.1",
+   "operator": "SDL",
+   "line": 88,
+   "description": "delete 'pwm_fall = pwm_sync_d & ~pwm_sync;'",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": ";"
+  },
+  "930a5cf8bc#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: ALWCOMBORDER, UNOPTFLAT"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.SIB.1",
+   "operator": "SIB",
+   "line": 88,
+   "description": "pwm_sync -> pwm_fall",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & ~pwm_fall;"
+  },
+  "1355930446#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.STK.1",
+   "operator": "STK",
+   "line": 88,
+   "description": "pwm_fall stuck at all-zeros (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '0;"
+  },
+  "efd44791f1#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.STK.2",
+   "operator": "STK",
+   "line": 88,
+   "description": "pwm_fall stuck at all-ones (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = '1;"
+  },
+  "357a043fa8#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.UOD.1",
+   "operator": "UOD",
+   "line": 88,
+   "description": "drop the '~' before pwm_sync",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = pwm_sync_d & pwm_sync;"
+  },
+  "ef4e5a0907#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.88.VNG.1",
+   "operator": "VNG",
+   "line": 88,
+   "description": "pwm_fall inverted (was 'pwm_sync_d & ~pwm_sync')",
+   "before": "pwm_fall = pwm_sync_d & ~pwm_sync;",
+   "after": "pwm_fall = ~(pwm_sync_d & ~pwm_sync);"
+  },
+  "73448571c2#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +6",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling",
+       "a_done_falls_on_exit",
+       "a_hold_in_run",
+       "a_done_follows_target",
+       "a_done_rises_at_target",
+       "a_floor_when_idle"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.93.EDG.1",
+   "operator": "EDG",
+   "line": 93,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @(posedge clk or negedge rst_n) begin",
+   "after": "always_ff @(negedge clk or negedge rst_n) begin"
+  },
+  "a3fd3e95c8#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.113.BDL.1",
+   "operator": "BDL",
+   "line": 113,
+   "description": "empty the 3-statement body of the if at line 113",
+   "before": "if (!rst_n) begin",
+   "after": "if (!rst_n) begin end"
+  },
+  "4b72644b47#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.113.CSK.1",
+   "operator": "CSK",
+   "line": 113,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b0) begin"
+  },
+  "2a07bac648#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.113.CSK.2",
+   "operator": "CSK",
+   "line": 113,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if (!rst_n) begin",
+   "after": "if (1'b1) begin"
+  },
+  "d9cd5a9d8a#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.113.UOD.1",
+   "operator": "UOD",
+   "line": 113,
+   "description": "drop the '!' before rst_n",
+   "before": "if (!rst_n) begin",
+   "after": "if (rst_n) begin"
+  },
+  "56c0967b19#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.115.CST.1",
+   "operator": "CST",
+   "line": 115,
+   "description": "'0 -> '1",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= '1;"
+  },
+  "0f5d7d6483#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 115, reset leaves cycle_counter as it was (X at power-up, or a mid-ramp value). If ss_active goes high right after reset without passing through the clearing branch at line 176, which the header does not rule out, the step timing at lines 128/152 changes."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of pwm_sync_d, cycle_counter and SS_done untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "soft_start.115.SDL.1",
+   "operator": "SDL",
+   "line": 115,
+   "description": "delete 'cycle_counter <= '0;'",
+   "before": "cycle_counter <= '0;",
+   "after": ";"
+  },
+  "9f7897e20d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.116.SDL.1",
+   "operator": "SDL",
+   "line": 116,
+   "description": "delete 'max_on_counts <= MIN_ON_CNT;'",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": ";"
+  },
+  "0900430e29#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.116.STK.1",
+   "operator": "STK",
+   "line": 116,
+   "description": "max_on_counts stuck at all-zeros (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= '0;"
+  },
+  "d45ebac8f3#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.116.STK.2",
+   "operator": "STK",
+   "line": 116,
+   "description": "max_on_counts stuck at all-ones (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= '1;"
+  },
+  "28b473c589#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.116.VNG.1",
+   "operator": "VNG",
+   "line": 116,
+   "description": "max_on_counts inverted (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= ~(MIN_ON_CNT);"
+  },
+  "37cb63c83a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_reset_floor",
+     "killed_by": {
+      "assertions": [
+       "a_reset_floor"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.117.CST.1",
+   "operator": "CST",
+   "line": 117,
+   "description": "1'b0 -> 1'b1",
+   "before": "SS_done       <= 1'b0;",
+   "after": "SS_done       <= 1'b1;"
+  },
+  "215c098a6e#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 16,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "SS_done is an output port. Without line 117, an asserted SS_done stays 1 through reset instead of going to 0, and starts as X at power-up. Both are directly visible at the port."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-17",
+     "decision": "gap",
+     "reason": "reset values of pwm_sync_d, cycle_counter and SS_done untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run"
+    }
+   ],
+   "id": "soft_start.117.SDL.1",
+   "operator": "SDL",
+   "line": 117,
+   "description": "delete 'SS_done <= 1'b0;'",
+   "before": "SS_done       <= 1'b0;",
+   "after": ";"
+  },
+  "4bb42d2099#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.BDL.1",
+   "operator": "BDL",
+   "line": 121,
+   "description": "empty the 2-statement body of the if at line 121",
+   "before": "else if (ss_active) begin",
+   "after": "else if (ss_active) begin end"
+  },
+  "777f4dcca3#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target +6",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target",
+       "a_floor_when_idle",
+       "a_done_falls_on_exit",
+       "a_window_steps_ceiling",
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path",
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.CND.1",
+   "operator": "CND",
+   "line": 121,
+   "description": "if (ss_active) -> if (!(...))",
+   "before": "else if (ss_active) begin",
+   "after": "else if (!(ss_active)) begin"
+  },
+  "4370005941#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.CSK.1",
+   "operator": "CSK",
+   "line": 121,
+   "description": "if (ss_active) -> if (1'b0): never taken",
+   "before": "else if (ss_active) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "c5abcf6d77#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.CSK.2",
+   "operator": "CSK",
+   "line": 121,
+   "description": "if (ss_active) -> if (1'b1): always taken",
+   "before": "else if (ss_active) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "31af172a67#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.EDL.1",
+   "operator": "EDL",
+   "line": 121,
+   "description": "delete the else branch at line 121",
+   "before": "else if (ss_active) begin",
+   "after": ""
+  },
+  "e6b3f0de0c#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.121.SIB.1",
+   "operator": "SIB",
+   "line": 121,
+   "description": "ss_active -> run_active",
+   "before": "else if (ss_active) begin",
+   "after": "else if (run_active) begin"
+  },
+  "ffba9fe553#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.CND.1",
+   "operator": "CND",
+   "line": 126,
+   "description": "if (pwm_fall) -> if (!(...))",
+   "before": "if (pwm_fall) begin",
+   "after": "if (!(pwm_fall)) begin"
+  },
+  "5dc411f0b9#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.CSK.1",
+   "operator": "CSK",
+   "line": 126,
+   "description": "if (pwm_fall) -> if (1'b0): never taken",
+   "before": "if (pwm_fall) begin",
+   "after": "if (1'b0) begin"
+  },
+  "8defedd8c6#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.CSK.2",
+   "operator": "CSK",
+   "line": 126,
+   "description": "if (pwm_fall) -> if (1'b1): always taken",
+   "before": "if (pwm_fall) begin",
+   "after": "if (1'b1) begin"
+  },
+  "0d7b70072f#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.126.SIB.1",
+   "operator": "SIB",
+   "line": 126,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "if (pwm_fall) begin",
+   "after": "if (pwm_sync) begin"
+  },
+  "267cbeedb3#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.AOR.1",
+   "operator": "AOR",
+   "line": 128,
+   "description": "- -> +",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (cycle_counter == cycles_per_step + 1'b1) begin"
+  },
+  "35816fe722#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.CND.1",
+   "operator": "CND",
+   "line": 128,
+   "description": "if (cycle_counter == cycles_per_step - 1'b1) -> if (!(...))",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (!(cycle_counter == cycles_per_step - 1'b1)) begin"
+  },
+  "d62295142c#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.CSK.1",
+   "operator": "CSK",
+   "line": 128,
+   "description": "if (cycle_counter == cycles_per_step - 1'b1) -> if (1'b0): never taken",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (1'b0) begin"
+  },
+  "98b48b4541#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.CSK.2",
+   "operator": "CSK",
+   "line": 128,
+   "description": "if (cycle_counter == cycles_per_step - 1'b1) -> if (1'b1): always taken",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (1'b1) begin"
+  },
+  "733324c8e4#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.CST.1",
+   "operator": "CST",
+   "line": 128,
+   "description": "1'b1 -> 1'b0",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (cycle_counter == cycles_per_step - 1'b0) begin"
+  },
+  "16d08abe2d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.128.ROR.1",
+   "operator": "ROR",
+   "line": 128,
+   "description": "== -> !=",
+   "before": "if (cycle_counter == cycles_per_step - 1'b1) begin",
+   "after": "if (cycle_counter != cycles_per_step - 1'b1) begin"
+  },
+  "56c0967b19#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.130.CST.1",
+   "operator": "CST",
+   "line": 130,
+   "description": "'0 -> '1",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= '1;"
+  },
+  "0f5d7d6483#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.130.SDL.1",
+   "operator": "SDL",
+   "line": 130,
+   "description": "delete 'cycle_counter <= '0;'",
+   "before": "cycle_counter <= '0;",
+   "after": ";"
+  },
+  "bb4651d5cc#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.AOR.1",
+   "operator": "AOR",
+   "line": 136,
+   "description": "+ -> -",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= cycle_counter - 1;"
+  },
+  "cb9ccfb5d7#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.CST.1",
+   "operator": "CST",
+   "line": 136,
+   "description": "1 -> 0",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= cycle_counter + 0;"
+  },
+  "416532527c#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.CST.2",
+   "operator": "CST",
+   "line": 136,
+   "description": "1 -> 2",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= cycle_counter + 2;"
+  },
+  "6236b1ca3a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.SDL.1",
+   "operator": "SDL",
+   "line": 136,
+   "description": "delete 'cycle_counter <= cycle_counter + 1;'",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": ";"
+  },
+  "0f2ba4e401#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.STK.1",
+   "operator": "STK",
+   "line": 136,
+   "description": "cycle_counter stuck at all-zeros (was 'cycle_counter + 1')",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= '0;"
+  },
+  "2395209502#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.STK.2",
+   "operator": "STK",
+   "line": 136,
+   "description": "cycle_counter stuck at all-ones (was 'cycle_counter + 1')",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= '1;"
+  },
+  "8662b8814b#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.136.VNG.1",
+   "operator": "VNG",
+   "line": 136,
+   "description": "cycle_counter inverted (was 'cycle_counter + 1')",
+   "before": "cycle_counter <= cycle_counter + 1;",
+   "after": "cycle_counter <= ~(cycle_counter + 1);"
+  },
+  "5d9828406e#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.BDL.1",
+   "operator": "BDL",
+   "line": 145,
+   "description": "empty the 2-statement body of the if at line 145",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts >= max_on_limit) begin end"
+  },
+  "d66a1f8c06#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit",
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.CND.1",
+   "operator": "CND",
+   "line": 145,
+   "description": "if (max_on_counts >= max_on_limit) -> if (!(...))",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (!(max_on_counts >= max_on_limit)) begin"
+  },
+  "7bc9a43a40#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_follows_target",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.CSK.1",
+   "operator": "CSK",
+   "line": 145,
+   "description": "if (max_on_counts >= max_on_limit) -> if (1'b0): never taken",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (1'b0) begin"
+  },
+  "f723c4def2#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.CSK.2",
+   "operator": "CSK",
+   "line": 145,
+   "description": "if (max_on_counts >= max_on_limit) -> if (1'b1): always taken",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (1'b1) begin"
+  },
+  "02f4808281#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.ROR.1",
+   "operator": "ROR",
+   "line": 145,
+   "description": ">= -> <=",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts <= max_on_limit) begin"
+  },
+  "0801d060ca#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_follows_target",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.ROR.2",
+   "operator": "ROR",
+   "line": 145,
+   "description": ">= -> >",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts > max_on_limit) begin"
+  },
+  "62bc45f86f#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.SIB.1",
+   "operator": "SIB",
+   "line": 145,
+   "description": "max_on_counts -> max_on_limit",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_limit >= max_on_limit) begin"
+  },
+  "ddcd70f23b#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.145.SIB.2",
+   "operator": "SIB",
+   "line": 145,
+   "description": "max_on_limit -> max_on_counts",
+   "before": "if (max_on_counts >= max_on_limit) begin",
+   "after": "if (max_on_counts >= max_on_counts) begin"
+  },
+  "75fd51da9f#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.SDL.1",
+   "operator": "SDL",
+   "line": 147,
+   "description": "delete 'max_on_counts <= max_on_limit;'",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": ";"
+  },
+  "d679a5fc14#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.STK.1",
+   "operator": "STK",
+   "line": 147,
+   "description": "max_on_counts stuck at all-zeros (was 'max_on_limit')",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= '0;"
+  },
+  "f03c76521c#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_ceiling_moves_by_known_path",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.STK.2",
+   "operator": "STK",
+   "line": 147,
+   "description": "max_on_counts stuck at all-ones (was 'max_on_limit')",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= '1;"
+  },
+  "17105d7838#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.147.VNG.1",
+   "operator": "VNG",
+   "line": 147,
+   "description": "max_on_counts inverted (was 'max_on_limit')",
+   "before": "max_on_counts <= max_on_limit;",
+   "after": "max_on_counts <= ~(max_on_limit);"
+  },
+  "1be9581fb6#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target",
+       "a_done_falls_on_exit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.148.CST.1",
+   "operator": "CST",
+   "line": 148,
+   "description": "1'b1 -> 1'b0",
+   "before": "SS_done       <= 1'b1;",
+   "after": "SS_done       <= 1'b0;"
+  },
+  "445d78e3eb#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_follows_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_follows_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.148.SDL.1",
+   "operator": "SDL",
+   "line": 148,
+   "description": "delete 'SS_done <= 1'b1;'",
+   "before": "SS_done       <= 1'b1;",
+   "after": ";"
+  },
+  "8b8ba53574#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.AOR.1",
+   "operator": "AOR",
+   "line": 152,
+   "description": "- -> +",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter == cycles_per_step + 1'b1)) begin"
+  },
+  "e2d8b04167#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.BDL.1",
+   "operator": "BDL",
+   "line": 152,
+   "description": "empty the 2-statement body of the if at line 152",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin end"
+  },
+  "c05057c69e#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CND.1",
+   "operator": "CND",
+   "line": 152,
+   "description": "if (pwm_fall && (cycle_counter == cycles_per_step - 1') -> if (!(...))",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (!(pwm_fall && (cycle_counter == cycles_per_step - 1'b1))) begin"
+  },
+  "b0313fa28d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CSK.1",
+   "operator": "CSK",
+   "line": 152,
+   "description": "if (pwm_fall && (cycle_counter == cycles_per_step - 1') -> if (1'b1): always taken",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "95edb9c279#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CST.1",
+   "operator": "CST",
+   "line": 152,
+   "description": "1'b1 -> 1'b0",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b0)) begin"
+  },
+  "9bc2e239a0#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CTD.1",
+   "operator": "CTD",
+   "line": 152,
+   "description": "drop the term 'pwm_fall'",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if ((cycle_counter == cycles_per_step - 1'b1)) begin"
+  },
+  "cf8be412b6#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CTD.2",
+   "operator": "CTD",
+   "line": 152,
+   "description": "drop the term '(cycle_counter == cycles_per_step - 1'b1'",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall) begin"
+  },
+  "f2e66239ab#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CTN.1",
+   "operator": "CTN",
+   "line": 152,
+   "description": "negate the term 'pwm_fall'",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (!(pwm_fall) && (cycle_counter == cycles_per_step - 1'b1)) begin"
+  },
+  "e3921718d3#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.CTN.2",
+   "operator": "CTN",
+   "line": 152,
+   "description": "negate the term '(cycle_counter == cycles_per_step - 1'b1'",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && !((cycle_counter == cycles_per_step - 1'b1))) begin"
+  },
+  "be3f8e5fea#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.EDL.1",
+   "operator": "EDL",
+   "line": 152,
+   "description": "delete the else branch at line 152",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": ""
+  },
+  "0219aef2c7#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.LCR.1",
+   "operator": "LCR",
+   "line": 152,
+   "description": "&& -> ||",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall || (cycle_counter == cycles_per_step - 1'b1)) begin"
+  },
+  "55e7d796c8#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.ROR.1",
+   "operator": "ROR",
+   "line": 152,
+   "description": "== -> !=",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_fall && (cycle_counter != cycles_per_step - 1'b1)) begin"
+  },
+  "3845eed527#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_moves_by_known_path +1",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.152.SIB.1",
+   "operator": "SIB",
+   "line": 152,
+   "description": "pwm_fall -> pwm_sync",
+   "before": "else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin",
+   "after": "else if (pwm_sync && (cycle_counter == cycles_per_step - 1'b1)) begin"
+  },
+  "cbf20d0e41#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +2",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.AOR.1",
+   "operator": "AOR",
+   "line": 154,
+   "description": "+ -> -",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= max_on_counts - 1;"
+  },
+  "59cc099e1d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.CST.1",
+   "operator": "CST",
+   "line": 154,
+   "description": "1 -> 0",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= max_on_counts + 0;"
+  },
+  "c64bb70257#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +3",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path",
+       "a_ceiling_within_limit",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.CST.2",
+   "operator": "CST",
+   "line": 154,
+   "description": "1 -> 2",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= max_on_counts + 2;"
+  },
+  "f529074b8a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.SDL.1",
+   "operator": "SDL",
+   "line": 154,
+   "description": "delete 'max_on_counts <= max_on_counts + 1;'",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": ";"
+  },
+  "a327c6168b#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.SIB.1",
+   "operator": "SIB",
+   "line": 154,
+   "description": "max_on_counts -> max_on_limit",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= max_on_limit + 1;"
+  },
+  "b50cd72d77#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.STK.1",
+   "operator": "STK",
+   "line": 154,
+   "description": "max_on_counts stuck at all-zeros (was 'max_on_counts + 1')",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= '0;"
+  },
+  "9ca6d98fd1#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +2",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.STK.2",
+   "operator": "STK",
+   "line": 154,
+   "description": "max_on_counts stuck at all-ones (was 'max_on_counts + 1')",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= '1;"
+  },
+  "2075082a79#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_ceiling_within_limit +3",
+     "killed_by": {
+      "assertions": [
+       "a_ceiling_within_limit",
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path",
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.154.VNG.1",
+   "operator": "VNG",
+   "line": 154,
+   "description": "max_on_counts inverted (was 'max_on_counts + 1')",
+   "before": "max_on_counts <= max_on_counts + 1;",
+   "after": "max_on_counts <= ~(max_on_counts + 1);"
+  },
+  "892edaeaae#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.AOR.1",
+   "operator": "AOR",
+   "line": 158,
+   "description": "+ -> -",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts - 1 == max_on_limit) begin"
+  },
+  "cd7b9d8e5b#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.CND.1",
+   "operator": "CND",
+   "line": 158,
+   "description": "if (max_on_counts + 1 == max_on_limit) -> if (!(...))",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (!(max_on_counts + 1 == max_on_limit)) begin"
+  },
+  "49542c5a2a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.CSK.1",
+   "operator": "CSK",
+   "line": 158,
+   "description": "if (max_on_counts + 1 == max_on_limit) -> if (1'b1): always taken",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (1'b1) begin"
+  },
+  "3bbbe7a5f2#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.CST.1",
+   "operator": "CST",
+   "line": 158,
+   "description": "1 -> 0",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts + 0 == max_on_limit) begin"
+  },
+  "6a2dabe1d7#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.CST.2",
+   "operator": "CST",
+   "line": 158,
+   "description": "1 -> 2",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts + 2 == max_on_limit) begin"
+  },
+  "0794467b54#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.ROR.1",
+   "operator": "ROR",
+   "line": 158,
+   "description": "== -> !=",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts + 1 != max_on_limit) begin"
+  },
+  "8b90d94d2a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.SIB.1",
+   "operator": "SIB",
+   "line": 158,
+   "description": "max_on_counts -> max_on_limit",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_limit + 1 == max_on_limit) begin"
+  },
+  "c8414d75ff#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.158.SIB.2",
+   "operator": "SIB",
+   "line": 158,
+   "description": "max_on_limit -> max_on_counts",
+   "before": "if (max_on_counts + 1 == max_on_limit) begin",
+   "after": "if (max_on_counts + 1 == max_on_counts) begin"
+  },
+  "7ce89c439d#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.160.CST.1",
+   "operator": "CST",
+   "line": 160,
+   "description": "1'b1 -> 1'b0",
+   "before": "SS_done <= 1'b1;",
+   "after": "SS_done <= 1'b0;"
+  },
+  "5907e75666#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_with_last_step",
+     "killed_by": {
+      "assertions": [
+       "a_done_with_last_step"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.160.SDL.1",
+   "operator": "SDL",
+   "line": 160,
+   "description": "delete 'SS_done <= 1'b1;'",
+   "before": "SS_done <= 1'b1;",
+   "after": ";"
+  },
+  "ff4b261c7e#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +4",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_done_falls_on_exit",
+       "a_hold_in_run",
+       "a_ceiling_moves_by_known_path",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.CND.1",
+   "operator": "CND",
+   "line": 168,
+   "description": "if (run_active) -> if (!(...))",
+   "before": "else if (run_active) begin",
+   "after": "else if (!(run_active)) begin"
+  },
+  "30dc95b35a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.CSK.1",
+   "operator": "CSK",
+   "line": 168,
+   "description": "if (run_active) -> if (1'b0): never taken",
+   "before": "else if (run_active) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "04f6371a62#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.CSK.2",
+   "operator": "CSK",
+   "line": 168,
+   "description": "if (run_active) -> if (1'b1): always taken",
+   "before": "else if (run_active) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "aafc05dc4a#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.EDL.1",
+   "operator": "EDL",
+   "line": 168,
+   "description": "delete the else branch at line 168",
+   "before": "else if (run_active) begin",
+   "after": ""
+  },
+  "894d5620be#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.168.SIB.1",
+   "operator": "SIB",
+   "line": 168,
+   "description": "run_active -> ss_active",
+   "before": "else if (run_active) begin",
+   "after": "else if (ss_active) begin"
+  },
+  "f75b3b93d3#1": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.174.EDL.1",
+   "operator": "EDL",
+   "line": 174,
+   "description": "delete the else branch at line 174",
+   "before": "else begin",
+   "after": ""
+  },
+  "56c0967b19#3": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling +1",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.176.CST.1",
+   "operator": "CST",
+   "line": 176,
+   "description": "'0 -> '1",
+   "before": "cycle_counter <= '0;",
+   "after": "cycle_counter <= '1;"
+  },
+  "0f5d7d6483#3": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_window_steps_ceiling",
+     "killed_by": {
+      "assertions": [
+       "a_window_steps_ceiling"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.176.SDL.1",
+   "operator": "SDL",
+   "line": 176,
+   "description": "delete 'cycle_counter <= '0;'",
+   "before": "cycle_counter <= '0;",
+   "after": ";"
+  },
+  "9f7897e20d#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.SDL.1",
+   "operator": "SDL",
+   "line": 177,
+   "description": "delete 'max_on_counts <= MIN_ON_CNT;'",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": ";"
+  },
+  "0900430e29#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.STK.1",
+   "operator": "STK",
+   "line": 177,
+   "description": "max_on_counts stuck at all-zeros (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= '0;"
+  },
+  "d45ebac8f3#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.STK.2",
+   "operator": "STK",
+   "line": 177,
+   "description": "max_on_counts stuck at all-ones (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= '1;"
+  },
+  "28b473c589#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle +1",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle",
+       "a_ceiling_moves_by_known_path"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.177.VNG.1",
+   "operator": "VNG",
+   "line": 177,
+   "description": "max_on_counts inverted (was 'MIN_ON_CNT')",
+   "before": "max_on_counts <= MIN_ON_CNT;",
+   "after": "max_on_counts <= ~(MIN_ON_CNT);"
+  },
+  "37cb63c83a#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_done_rises_at_target +1",
+     "killed_by": {
+      "assertions": [
+       "a_done_rises_at_target",
+       "a_floor_when_idle"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.178.CST.1",
+   "operator": "CST",
+   "line": 178,
+   "description": "1'b0 -> 1'b1",
+   "before": "SS_done       <= 1'b0;",
+   "after": "SS_done       <= 1'b1;"
+  },
+  "215c098a6e#2": {
+   "outcomes": [
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "assertion a_floor_when_idle",
+     "killed_by": {
+      "assertions": [
+       "a_floor_when_idle"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "soft_start.178.SDL.1",
+   "operator": "SDL",
+   "line": 178,
+   "description": "delete 'SS_done <= 1'b0;'",
+   "before": "SS_done       <= 1'b0;",
+   "after": ";"
+  }
+ }
+}

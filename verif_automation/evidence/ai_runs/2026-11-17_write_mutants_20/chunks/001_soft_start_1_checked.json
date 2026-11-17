@@ -1,0 +1,115 @@
+[
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (max_on_counts == max_on_limit) begin"
+   ],
+   "category": "boundary",
+   "description": "The target test checks for equality instead of at-or-past, so a ceiling already above a lowered max_on_limit is never clamped back down (the bug the header says >= was brought in to fix).",
+   "reason": "If max_on_limit is written below the present ceiling during S_SS, max_on_counts keeps stepping up past the limit, runs to the top of its range and wraps, and SS_done is not asserted when it should be."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.7"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "priority",
+   "description": "The ramp step is an independent if after the at-target clamp rather than its else branch, so on a step boundary the later step assignment wins over the clamp.",
+   "reason": "In S_SS, with the ceiling at or above max_on_limit (for example after the limit is lowered mid-ramp), a pwm_fall that ends a step window drives max_on_counts to one above the ceiling, so it sits above max_on_limit for one clock before the clamp takes effect."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.8"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (pwm_fall && (max_on_counts >= max_on_limit)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The at-target clamp and SS_done are only acted on at a PWM falling edge, as if they were a ceiling update that has to wait for the pulse to end, instead of on any clock.",
+   "reason": "When max_on_limit equals the floor, SS_done comes at the first falling edge of the PWM instead of on the first clock of S_SS. A limit lowered below the ceiling mid-ramp is likewise not clamped onto max_on_counts until the next falling edge."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 126,
+   "before": [
+    "    if (pwm_fall) begin"
+   ],
+   "after": [
+    "    if (pwm_sync) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The step-window counter advances on every clock while the PWM is high, not once per switching cycle at the falling edge.",
+   "reason": "In S_SS cycle_counter counts on-time clocks, so whether it equals cycles_per_step-1 at a falling edge depends on the pulse width. max_on_counts then steps at the wrong cycles, or not at all, instead of once every cycles_per_step cycles."
+  },
+  "accepted": false,
+  "why": "the same edit as soft_start.126.SIB.1"
+ },
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin"
+   ],
+   "after": [
+    "  else if (run_active || SS_done) begin"
+   ],
+   "category": "reset_init",
+   "description": "The hold condition also keeps the ceiling while SS_done is set, so a completed ramp is not reset to the floor when the supervisor leaves S_RUN for hiccup or idle.",
+   "reason": "After S_RUN, when both ss_active and run_active are low, max_on_counts stays at max_on_limit and SS_done stays high. The next S_SS then finishes at once at full ceiling instead of re-ramping from MIN_ON_COUNTS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.168.AIM.10"
+ },
+ {
+  "proposal": {
+   "line": 174,
+   "before": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    max_on_counts <= MIN_ON_CNT;",
+    "    SS_done       <= 1'b0;"
+   ],
+   "after": [
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;",
+    "    if (SS_done) begin",
+    "",
+    "      max_on_counts <= MIN_ON_CNT;",
+    "",
+    "    end",
+    "    SS_done       <= 1'b0;"
+   ],
+   "category": "reset_init",
+   "description": "Outside S_SS and S_RUN the ceiling is only reset to the floor if the ramp had finished, so a soft start aborted mid-ramp leaves its partial ceiling in place.",
+   "reason": "If ss_active drops before SS_done (for example a hiccup during soft start), max_on_counts keeps its partial value. The retry's S_SS then starts its ramp from that value instead of from MIN_ON_COUNTS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.177.AIM.11"
+ }
+]

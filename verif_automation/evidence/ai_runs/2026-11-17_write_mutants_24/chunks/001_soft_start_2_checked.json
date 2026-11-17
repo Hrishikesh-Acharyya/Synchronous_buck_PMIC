@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= MIN_ON_CNT;"
+   ],
+   "category": "other",
+   "description": "When the ramp reaches or passes its target, the at-target branch loads the MIN_ON_CNT floor (a copy of the idle re-arm line) instead of clamping the ceiling to max_on_limit.",
+   "reason": "After a normal ramp the last step sets max_on_counts to max_on_limit with SS_done. On the next S_SS clock the at-target branch drops max_on_counts back to the floor, and S_RUN then holds the floor as the running ceiling, with SS_done still high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.147.AIM.36"
+ },
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_limit - 1'b1;"
+   ],
+   "category": "boundary",
+   "description": "The at-target clamp treats max_on_limit as an exclusive bound and loads one count below it, so a finished ramp settles one count short of its target.",
+   "reason": "On the S_SS clock after the last step, and on the first S_SS clock when max_on_limit equals the floor, max_on_counts is set to max_on_limit-1 while SS_done is high. S_RUN then holds that value, one count below the programmed limit (and below MIN_ON_COUNTS in the floor case)."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.147.AIM.37"
+ }
+]

@@ -1,0 +1,50 @@
+[
+ {
+  "proposal": {
+   "line": 147,
+   "before": [
+    "      max_on_counts <= max_on_limit;"
+   ],
+   "after": [
+    "      if (pwm_fall) begin",
+    "        max_on_counts <= max_on_limit;",
+    "      end"
+   ],
+   "category": "sequencing",
+   "description": "The clamp of a ceiling at or past max_on_limit waits for a PWM falling edge, treated like a ceiling update that must not land mid-pulse, but SS_done is still raised on the clock the target is found.",
+   "reason": "If max_on_limit is lowered below the ramping ceiling in S_SS, SS_done rises at once while max_on_counts stays above the limit until a falling edge. The supervisor then moves to S_RUN, where the ceiling is held, so max_on_counts can stay above max_on_limit for all of S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.147.AIM.53"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin",
+    "",
+    "      max_on_counts <= max_on_limit;",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "after": [
+    "    if (max_on_counts > max_on_limit) begin",
+    "",
+    "      max_on_counts <= MIN_ON_CNT;",
+    "    end",
+    "    else if (max_on_counts == max_on_limit) begin",
+    "      SS_done       <= 1'b1;",
+    "",
+    "    end"
+   ],
+   "category": "other",
+   "description": "A ceiling found above a lowered max_on_limit is handled like an aborted ramp and sent back to the MIN_ON_CNT floor to re-ramp, instead of being clamped to the limit and finishing.",
+   "reason": "When max_on_limit is lowered below the ceiling during S_SS, max_on_counts drops to the floor instead of to the new limit, and SS_done does not rise until the ramp climbs back up to the limit. That is many step windows late. A normal ramp that reaches the limit by equality is unchanged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.54"
+ }
+]

@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 88,
+   "before": [
+    "  pwm_fall = pwm_sync_d & ~pwm_sync;"
+   ],
+   "after": [
+    "  pwm_fall = pwm_sync_d ^ pwm_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The cycle-boundary detector is written as a generic any-edge detector, so both the rising and the falling edge of each PWM pulse count as a switching-cycle boundary.",
+   "reason": "In S_SS the step window advances twice per switching cycle, so max_on_counts widens every cycles_per_step/2 cycles and SS_done arrives about twice as early. Half of the steps also land on a rising edge, so the ceiling changes mid-pulse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.88.AIM.17"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    else if (pwm_fall && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "after": [
+    "    else if (~pwm_sync && (cycle_counter == cycles_per_step - 1'b1)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The ceiling step is qualified by the PWM being low (the 'pulse is over' level) instead of by the one-clock falling-edge pulse.",
+   "reason": "In S_SS with cycle_counter at cycles_per_step-1, max_on_counts goes up by one on every clock of the PWM low time instead of once per step window. The ramp then jumps by many counts per window, and SS_done comes far too early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.152.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 174,
+   "before": [
+    "  else begin"
+   ],
+   "after": [
+    "  else if (pwm_fall) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The return to the floor outside S_SS/S_RUN waits for a PWM falling edge, as if it were a ceiling update that must not land mid-pulse.",
+   "reason": "When the supervisor leaves S_SS or S_RUN for hiccup or off, max_on_counts and SS_done keep their old values until a PWM falling edge arrives. With the stage disabled and the PWM not switching, they are never reset, so the retry re-enables at the old ceiling with SS_done already high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.174.AIM.19"
+ },
+ {
+  "proposal": {
+   "line": 176,
+   "before": [
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "    cycle_counter <= cycles_per_step - 1'b1;"
+   ],
+   "category": "reset_init",
+   "description": "The idle re-arm loads the step-window counter with its terminal count instead of zero, so each soft start begins at the end of a step window.",
+   "reason": "On every entry to S_SS (from S_OFF and from hiccup), the first ceiling step comes at the first PWM falling edge instead of after cycles_per_step cycles. The ramp is therefore one step ahead throughout, and SS_done rises cycles_per_step-1 switching cycles early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.176.AIM.20"
+ },
+ {
+  "proposal": {
+   "line": 121,
+   "before": [
+    "  else if (ss_active) begin"
+   ],
+   "after": [
+    "  else if (ss_active || run_active) begin"
+   ],
+   "category": "missing_case",
+   "description": "The ramp branch is entered in S_RUN as well as S_SS, so the ramp keeps running under the regulating loop instead of the ceiling being held.",
+   "reason": "If the host lowers max_on_limit during S_RUN and then raises it again, max_on_counts climbs back up one count per step window while in S_RUN. The header says the ceiling must stay where the last ramp left it until the next soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.121.AIM.21"
+ }
+]

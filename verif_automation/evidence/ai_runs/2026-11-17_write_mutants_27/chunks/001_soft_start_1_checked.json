@@ -1,0 +1,109 @@
+[
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    cycle_counter <= '0;"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "    cycle_counter <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    ""
+   ],
+   "category": "wrong_event",
+   "description": "The step-window counter is cleared when the ramp hands over to S_RUN instead of in the idle/hiccup branch, so it is only re-armed after a ramp that finished.",
+   "reason": "Suppose a soft start is aborted mid-window, for example S_SS to S_HICCUP on window_trip_SS and then back to S_SS. The retry keeps the partial cycle count, so its first ceiling step arrives early: max_on_counts leaves the MIN_ON_CNT floor after fewer than cycles_per_step switching cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.172.AIM.46"
+ },
+ {
+  "proposal": {
+   "line": 66,
+   "before": [
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if (!ss_active) begin",
+    "",
+    "    pwm_sync_d <= 1'b0;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "The edge detector's delayed PWM copy is re-armed low outside S_SS, like the rest of the ramp state, instead of always tracking pwm_sync.",
+   "reason": "If the PWM is high on the last clock before S_SS and low on the first S_SS clock, the original counts that falling edge as a cycle boundary but the mutant does not. The first step window of the ramp is then one switching cycle longer, and the first widening of max_on_counts lands one PWM cycle late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.68.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 154,
+   "before": [
+    "      max_on_counts <= max_on_counts + 1;"
+   ],
+   "after": [
+    "      max_on_counts <= max_on_counts + cycles_per_step;"
+   ],
+   "category": "other",
+   "description": "Each ramp step widens the ceiling by cycles_per_step counts instead of one count, mixing up the step period with the step size.",
+   "reason": "In S_SS, the first step boundary moves max_on_counts from MIN_ON_CNT to MIN_ON_CNT+cycles_per_step (12 to 28 with the defaults) instead of to 13. The ramp overshoots max_on_limit and is clamped back on the next clock, so the ceiling and the timing of SS_done both differ from the one-count-per-window ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.154.AIM.48"
+ },
+ {
+  "proposal": {
+   "line": 154,
+   "before": [
+    "      max_on_counts <= max_on_counts + 1;"
+   ],
+   "after": [
+    "      if (max_on_counts + 1 != max_on_limit) begin",
+    "",
+    "        max_on_counts <= max_on_counts + 1;",
+    "",
+    "      end"
+   ],
+   "category": "sequencing",
+   "description": "On the step that would land on max_on_limit, only SS_done is raised and the ceiling step itself is skipped, as if signalling done replaced the last step.",
+   "reason": "At the end of a normal ramp, SS_done rises but max_on_counts stays at max_on_limit-1. The supervisor then moves to S_RUN, where that ceiling is held, so pwm_mask gets a running backstop one count below the programmed max_on_limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.154.AIM.49"
+ }
+]

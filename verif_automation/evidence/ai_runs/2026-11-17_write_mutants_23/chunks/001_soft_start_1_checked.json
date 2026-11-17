@@ -1,0 +1,62 @@
+[
+ {
+  "proposal": {
+   "line": 121,
+   "before": [
+    "  else if (ss_active) begin"
+   ],
+   "after": [
+    "  else if (ss_active && !SS_done) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The ramp branch is gated off once SS_done is set, so the last S_SS clock after the ramp finishes falls through to the idle reset branch.",
+   "reason": "The supervisor's state register leaves S_SS one clock after SS_done rises, so ss_active is still high on that clock. With this fault the ceiling drops back to MIN_ON_CNT and SS_done clears just as S_RUN starts, so S_RUN runs with the floor ceiling and SS_done low instead of holding the reached max_on_limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.121.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 145,
+   "before": [
+    "    if (max_on_counts >= max_on_limit) begin"
+   ],
+   "after": [
+    "    if (!SS_done && (max_on_counts >= max_on_limit)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The at-target clamp is applied only while SS_done is still low, as if finishing the ramp needed acting on only once, so on the last S_SS clock after done the step branch is reachable again.",
+   "reason": "Take a ramp finished by the clamp branch rather than by a step: max_on_limit equal to the floor, or lowered mid-ramp. If the following clock, still in S_SS, is a PWM falling edge at the end of a step window (every falling edge when cycles_per_step=1), the ceiling steps to max_on_limit+1. It is then held there through S_RUN, above the limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.145.AIM.23"
+ },
+ {
+  "proposal": {
+   "line": 168,
+   "before": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    // Hold: ceiling and SS_done keep their values for all of S_RUN.",
+    "    max_on_counts <= '1;",
+    "",
+    "  end"
+   ],
+   "category": "other",
+   "description": "In S_RUN the digital ceiling is opened to full scale, leaving only the analog duty clamp, instead of holding the ceiling the ramp reached as a backstop.",
+   "reason": "On the first clock of S_RUN max_on_counts jumps from max_on_limit to all-ones and stays there for the whole run. pwm_mask then no longer limits on-time to the programmed maximum while regulating."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "soft_start.171.AIM.24"
+ }
+]
