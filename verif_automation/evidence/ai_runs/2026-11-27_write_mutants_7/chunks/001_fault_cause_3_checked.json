@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done)     fault_time[TIMESTAMP_W-1:16] <= '0;"
+   ],
+   "category": "field",
+   "description": "A host read clears only the top byte of fault_time (FTIME_2, the byte whose read raises the pulse), so the two low bytes keep the old episode start time",
+   "reason": "After the host reads a record whose start time had non-zero low bytes, fault_time reads back non-zero (the old low 16 bits) while fault_reg is empty. This lasts until the next episode re-stamps it, but the header says fault_time is cleared with the bits."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.117"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = ss_active && (fault_reg == '0)"
+   ],
+   "category": "missing_case",
+   "description": "Episode start is detected only during soft start, as if every fault episode began with a failed start-up, so a first cause captured in S_RUN does not stamp fault_time",
+   "reason": "A first fault that appears while the converter is in S_RUN (OTP, UVLO, a window trip or a latch trip) is still recorded in fault_reg, but fault_time stays at zero instead of latching timestamp_ms."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.118"
+ }
+]

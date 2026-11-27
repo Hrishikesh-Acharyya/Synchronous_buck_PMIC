@@ -1,0 +1,254 @@
+# Task: write mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small fault put into it on
+purpose. Each mutant is then simulated against the module's testbench: if the
+testbench still passes, the behaviour that fault broke is not being checked.
+
+A program already makes the mechanical mutants - one operator swapped, one
+constant changed, one statement deleted (the list is below). It cannot make a
+fault that needs an understanding of what the module is for. Those are yours
+to write.
+
+## What you are given
+
+- This file.
+- The name of **one module** and its file, and how many mutants are asked
+  for.
+- The mechanical operators, so that you do not repeat them.
+- The mutants already written for this module, and the proposals a program
+  has already refused (with the check each failed), so that you do not repeat
+  those either.
+- Read access to the RTL in `rtl-systemverilog/` and to the project's
+  documents. Read the module's own file in full first - its header states
+  what it must do, and every block has a Purpose comment. Read
+  `pkg/pmic_types_pkg.sv` for constants and types, and the modules that
+  drive or read this one when a fault's effect depends on them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to: you return the mutants as data, and a program checks and
+stores them. The testbenches and checkers are deliberately not readable. A
+mutant is a fault a designer could have made, written from the design alone -
+not one aimed at what the tests happen to miss.
+
+## What a good mutant is
+
+A fault that:
+
+1. **a designer could really have made** while writing or changing this
+   module - a rule misremembered, one case forgotten, an event confused with
+   a similar one;
+2. **changes what the module does at its ports**, in some state it can
+   reach, for some input sequence its header allows - say which, in `reason`;
+3. **needs the design's meaning to write**. If one mechanical operator on
+   one token makes the same fault, do not write it;
+4. is still **legal code that lint accepts**: every signal still driven and
+   still used, no width changed, no latch made.
+
+Kinds of fault to look for - use these as `category`:
+
+| Category | The fault |
+|---|---|
+| `wrong_event` | something is captured, counted or cleared on the wrong event, or in the wrong state: a snapshot taken at the end of a transaction instead of its start, a counter cleared on entry instead of exit |
+| `missing_case` | a rule that forgets one state, one address, one mode or one source: a write-reject rule that lets one register through, a fault source left out of a summary bit |
+| `priority` | two conditions answered in the wrong order: an `if` / `else if` chain reordered, a later assignment that should lose winning |
+| `boundary` | a limit wrong for one case only: saturating one count early, wrapping instead of saturating, a threshold compared with the wrong one of two limits |
+| `protocol` | the serial interface's framing: bit order, which clock phase a bit is taken on, the bit or byte count that ends a field, what an aborted transaction leaves behind |
+| `field` | a register's contents mapped wrongly: bytes of a multi-byte value in the wrong order, a field read from the live value instead of the snapshot, a read-only bit made writable |
+| `sequencing` | right value, wrong clock: a flag raised one clock early or late, a stale value used, a handshake that does not wait |
+| `reset_init` | state that is not put back: a register missing from one of several clear conditions, a value that survives a re-entry it should not |
+| `other` | a design-aware fault that fits none of these |
+
+## What not to write
+
+- An edit that only changes a comment, spacing or a name.
+- An edit to the module's ports, its header parameters, or the width of any
+  declaration.
+- An edit that leaves a signal undriven or unused, or assigns a signal from
+  two blocks - lint rejects those before any test runs. Lint also rejects a
+  flop whose asynchronous reset is made synchronous, or dropped from its
+  sensitivity list.
+- An edit that one mechanical operator already makes, in any spelling. In
+  particular: replacing the whole value of one assignment by a constant 0 or
+  1 is STK, and inverting it is VNG - `x <= 1'b0` in place of `x <= y` is
+  STK's mutant even though STK writes it `'0`.
+- A different circuit. Replacing a synchroniser by an edge detector, a
+  latch or a filter is not a slip a designer makes while writing a
+  synchroniser; it is another design.
+- Two mutants that are the same fault written twice.
+- A fault that cannot change anything at the ports. If you cannot say what
+  changes and when, leave it out.
+
+## The form of a mutant
+
+One mutant is **one edit to one place**: some consecutive whole lines of the
+file replaced by other lines.
+
+- `line` - the number of the first line you replace, as the Read tool shows
+  it.
+- `before` - those lines, copied exactly from the file, one string per line,
+  in order. Whole lines. At most 12.
+- `after` - the lines that take their place. At most 16. Keep the house
+  layout: `begin` / `end` on every block, the same indentation as the lines
+  around it.
+- Change as little as the fault needs: at most 6 lines may differ between
+  `before` and `after`. Lines you include only for context must be identical
+  in both.
+- `description` - one line saying what the fault is, in the design's terms:
+  "FCOUNT_RUN is cleared by a write to FCOUNT_SS", not "changed line 512".
+- `reason` - one or two sentences: which behaviour at the ports changes, and
+  in which situation.
+
+## Rules
+
+1. Write the number of mutants asked for if the module has that many
+   distinct design-aware faults in it. A small module may not: fewer good
+   mutants are better than the number made up with weak ones.
+2. Spread them over the module - every block that holds a decision, not
+   five variations on one line.
+3. Each mutant stands alone: it is applied to the unmodified file, never on
+   top of another.
+4. Judge the module with the parameter values this design uses (the defaults
+   in its header and the package).
+5. Do not explain or summarise outside the structured answer.
+
+## The module
+
+`fault_cause`, in `rtl-systemverilog/telemetry/fault_cause.sv`. Write up to 20 mutants.
+
+## The mechanical operators
+
+These are already made for this module (136 mutants). Do not write an edit that one of them makes.
+
+- ROR: relational: boundary (< <-> <=, > <-> >=), direction (< <-> >, <= <-> >=), equality (== <-> !=)
+- LCR: logical connective: && <-> ||, binary & <-> |, binary ^ -> |
+- CTD: a term dropped from a condition: a && b -> a, and -> b (also ||, and binary & and |)
+- CTN: a term of a condition negated: a && b -> !a && b, and a && !b (a polarity mix-up)
+- AOR: arithmetic: binary + <-> -
+- SHF: shift direction: << <-> >>
+- CND: negate an if condition: if (c) -> if (!(c))
+- CSK: an if condition stuck: if (c) -> if (1'b1), and -> if (1'b0)
+- UOD: drop a unary negation: !x -> x, ~x -> x
+- RDX: reduction swapped: &x <-> |x (all bits set <-> any bit set)
+- TRN: swap the branches of a ?: - c ? a : b -> c ? b : a
+- CST: constant: 1'b0 <-> 1'b1, '0 <-> '1, any other integer literal +1 and -1
+- ENM: an enum constant replaced by the next member of its enum (an FSM state, say)
+- DLY: a signal swapped with its one-clock-delayed copy: x <-> x_d
+- BSL: wrong bit or field: a constant select moved by one - x[3] -> x[2], x[6:4] -> x[7:5]
+- CIS: the labels of two adjacent case items swapped
+- CID: one case item deleted, so its value takes the default branch (a forgotten decode)
+- CCS: the first two elements of a concatenation swapped: {a, b} -> {b, a}
+- SIB: a signal swapped with a sibling of the same type whose name differs in one part: temp_0 <-> temp_1, trip_run <-> trip_ss (a copy-paste slip)
+- STK: an assignment's value stuck at all-zeros, and at all-ones
+- VNG: an assignment's value inverted: x <= y -> x <= ~(y)
+- EDG: a flop clocked on the other edge: posedge clk <-> negedge clk
+- BDL: a whole multi-statement block emptied (the body of an if, or of a case item)
+- SDL: delete one procedural assignment statement
+- EDL: delete an else branch
+- ICS: wrong wire: two same-type inputs, or two same-type outputs, of one instance swapped, or the same input of two instances of one module swapped
+
+## Mutants already written for this module
+
+- line 197: On a host read, capture wins over clear: fault_reg is loaded with the causes live on that clock instead of being emptied
+- line 165: fault_time capture takes priority over its clear-on-read, the opposite of fault_reg
+- line 138: Episode start is detected from fault_reg having gone non-empty rather than from the capture conditions, so fault_time is latched one clock after the first cause
+- line 138: The episode is judged empty by fault_time being zero instead of fault_reg being zero
+- line 118: OVP is inferred against the recorded LATCH bit instead of the live latch_assert
+- line 203: Over-temperature bypasses the capture gate: with otp_state high, causes are recorded even while the converter is stopped
+- line 206: UVLO is recorded only in S_RUN; a UVLO that interrupts soft start is forgotten
+- line 197: The clear-on-read leaves the OVP bit set; only the four lower cause bits are cleared
+- line 197: A host read clears only the recorded causes that have gone away; a recorded cause still asserted survives the read, even with the converter stopped
+- line 205: Causes are captured through a priority chain, one per clock, instead of independently accumulated
+- line 207: The OVERCURRENT bit follows the live window trips while running instead of being set and held
+- line 197: A host read clears fault_reg only when the converter is stopped; a read during S_SS or S_RUN does not clear it
+- line 207: latch_assert also sets the OVERCURRENT bit, on the assumption that every CPLD latch trip is an overcurrent
+- line 138: The episode start is detected only in S_RUN: a first cause captured during soft start does not latch fault_time
+- line 118: OVP inference is suppressed while an overcurrent window trip is live, on the assumption that the latch trip then belongs to the overcurrent
+- line 208: Recording LATCH_ASSERT withdraws an already recorded OVP bit, treating the two latch origins as mutually exclusive in the record
+- line 138: The record is judged empty from the four lower cause bits only; a recorded OVP does not count as an open episode
+- line 206: UVLO is recorded only as the first cause of an episode; a UVLO that follows another recorded cause is treated as a consequence and dropped
+- line 209: LATCH_ASSERT is recorded only once the debounced SCR readback confirms it, not when the CPLD asserts the trip
+- line 165: fault_time is cleared by a host read only when the converter is stopped; a read during S_SS or S_RUN clears fault_reg but leaves the old start time
+- line 166: The three bytes of timestamp_ms are latched into fault_time in reversed order
+- line 166: fault_time is cleared when the converter stops, instead of being held until the host reads the record
+- line 118: OVP is inferred from any disagreement between latch_state and latch_assert, not only from the latch set without the CPLD's trip
+- line 138: fault_time is re-latched every time a cause not yet in the record is captured, so it holds the time of the most recent new cause instead of the start of the episode
+- line 203: The capture gate only scopes the start of an episode: once fault_reg holds a cause, further causes are added even after the converter has stopped
+- line 139: Episode start leaves out the overcurrent window trips, on the assumption that an overcurrent episode only starts when latch_assert trips, so the accumulator and the episode detector disagree
+- line 138: fault_time records when the converter stopped with a non-empty record (the shutdown) instead of when the first cause of the episode was captured
+- line 165: A host read stamps fault_time with the read time instead of clearing it, so an empty record reports when it was last read
+- line 82: Cause bit positions laid out LSB-first (OVP in bit 0, OVERCURRENT in bit 4), with the priority order misremembered as LSB highest
+- line 203: fault_reg is cleared when the converter stops, like the supervisor's window state, instead of being held until the host reads it
+- line 205: While running, any live cause overwrites the record with a snapshot of the currently live causes instead of OR-accumulating into it
+- line 203: The accumulator's capture gate is S_RUN only, while episode_start still uses convertor_running (S_SS or S_RUN), so the two blocks no longer agree during soft start
+- line 207: OVERCURRENT is recorded only when the window trip has already led to a CPLD latch trip, as if an overcurrent only counts once strikes reach the trip
+- line 209: LATCH_ASSERT is recorded only in S_RUN, on the assumption that the CPLD trips the latch only from run-time strikes, so a latch trip during soft start is forgotten
+- line 207: A soft-start overcurrent window trip is filed under the LATCH_ASSERT (OCP/SCP) bit instead of the OVERCURRENT bit
+- line 84: The OTP and UVLO cause bits are laid out in swapped positions, with the priority order between them misremembered
+- line 208: OVP is recorded only in S_RUN, on the assumption that overvoltage can only occur once the output is regulated, so an OVP overshoot during soft start is not recorded
+- line 82: The OVP and LATCH_ASSERT cause bits are laid out in swapped positions, with the CPLD's measured trip misremembered as outranking the inferred OVP
+- line 118: OVP is inferred with the two latch signals confused: CPLD trip asserted while the SCR readback is still clear, instead of readback set without a CPLD trip
+- line 203: The capture gate is held open while the CPLD's latch trip is asserted, so the trip that stops the converter is sure to be seen. Because latch_assert is held until reset, the gate never closes after a latch trip.
+- line 165: A host read clears fault_time only when no cause is live. The episode is treated as still open while any cause persists, so its start time survives the read even though fault_reg is cleared.
+- line 209: The LATCH_ASSERT bit is set whenever the protection latch reads back set, so an analog OVP trip is recorded as both OVP and LATCH_ASSERT (OCP/SCP)
+- line 118: OVP is inferred as a latch trip with no recorded overcurrent, as if every CPLD trip is shown by a recorded window trip, instead of a latch trip without the CPLD's latch_assert
+- line 138: fault_time is re-latched whenever a live cause outranks every cause already recorded, so it gives the time of the highest-priority cause instead of the start of the episode
+- line 197: fault_reg is cleared all through soft start, as if each restart began a new record, as well as on a host read
+- line 205: OTP is recorded only when UVLO is not live, as if a brown-out made the OTP reading unreliable and UVLO took precedence
+- line 85: The UVLO and OVERCURRENT cause bits are laid out in swapped positions, so overcurrent is ranked above UVLO
+- line 165: fault_time is cleared when it sees the record empty, instead of on the host-read pulse itself, so it is cleared one clock after fault_reg
+- line 83: The LATCH_ASSERT and OTP cause bits are laid out in swapped positions, so OTP is ranked above the CPLD's latch trip
+- line 203: The capture gate closes as soon as the protection latch reads back set, treating a set latch as a converter that has already stopped
+- line 208: The OVP bit is recorded from the raw latch readback instead of the inferred ovp, so every CPLD-originated latch trip is also recorded as OVP
+- line 209: OVP is recorded even while the converter is stopped, on the assumption that the analog comparator can trip the latch at any time and should always be logged
+- line 209: Recording the LATCH_ASSERT (OCP/SCP) trip withdraws the OVERCURRENT bit, on the assumption that the latch bit already covers the window trips that led to it
+- line 104: The capture gate is closed whenever UVLO is live, so every UVLO is treated as a routine power-down rather than only the ones that come after the converter has stopped
+- line 206: UVLO is recorded only during soft start, on the belief that a UVLO in S_RUN is the routine power-down the capture gate is there to ignore
+- line 205: OTP is recorded only in S_RUN, on the assumption that the board can only overheat under regulated load current, so an over-temperature during soft start is forgotten
+- line 118: OVP inference is suppressed while UVLO is live, on the assumption that the SCR readback is not trustworthy during a brown-out
+- line 104: The capture gate is held open while UVLO is asserted, so the brown-out that stops the converter is sure to be recorded. The side effect is that every routine power-down is logged as a UVLO episode.
+- line 165: fault_time is cleared all through soft start, as if each restart opened a new episode, while fault_reg keeps its record until the host reads it
+- line 118: OVP is inferred only into an empty record, on the belief that an analog latch trip after any other recorded cause must be a consequence of that cause
+- line 197: A host read clears fault_reg only while the converter is running, so the cause of a shutdown cannot be read away until the converter restarts
+- line 207: The OVERCURRENT bit is not recorded while an OVP is inferred, on the belief that a window trip during an analog overvoltage is only a consequence of the overshoot
+- line 206: UVLO is not recorded while the protection latch reads back set, on the belief that an input droop after a latch trip is caused by the trip
+- line 104: The capture gate is closed during a soft-start overcurrent window trip, treating a soft-start hiccup retry as routine rather than as a fault that interrupted operation
+- line 197: A host read is ignored by fault_reg while any cause is still live, as if a fault still asserted kept the whole record open, instead of always clearing and letting live causes re-set their own bits
+- line 138: An episode is treated as over once none of its recorded causes is still live, so a new cause after a quiet interval re-stamps fault_time instead of merging into the earlier episode as the header specifies
+- line 209: The LATCH_ASSERT bit bypasses the capture gate on the assumption that the CPLD's latch trip is always worth logging. It is recorded even while the converter is stopped, unlike every other cause.
+- line 138: Episode start leaves out the latch causes (inferred OVP and latch_assert), on the belief that a latch trip always follows a window trip that has already opened the episode
+- line 138: Episode start leaves out the environmental causes (OTP and UVLO), as if only faults the converter itself causes could open an episode
+- line 138: Each soft-start retry is treated as a new episode: a cause captured during S_SS re-stamps fault_time even when the record already holds causes
+- line 166: fault_time follows timestamp_ms whenever the record is empty and freezes once the first cause is captured, instead of being latched only at episode start
+- line 197: The LATCH_ASSERT bit survives a host read and is made sticky until reset, like the CPLD's latch_assert, instead of being cleared with the rest of the record
+- line 138: Episode start lets the latch causes (inferred OVP and latch_assert) bypass the capture gate, on the belief that a latch trip always marks an episode, while the accumulator still gates them, so the two blocks disagree once the converter has stopped
+- line 165: fault_time is cleared by a host read only when the record is non-empty, on the belief that an empty record has no start time to clear
+- line 205: While the converter runs, the OTP bit follows the live comparator instead of being set and held
+- line 206: UVLO is not recorded while an overcurrent window trip is live, on the belief that an input droop under overcurrent is caused by the load current
+- line 209: LATCH_ASSERT is not recorded once OVERCURRENT is in the record, on the belief that the window trip already explains the CPLD's latch trip
+- line 138: fault_time stamps the converter's soft start, read as the start of an operating episode, instead of the capture of the first fault cause
+- line 82: Over-voltage and over-current are confused in the bit map: OVP is placed in bit 0 and OVERCURRENT in bit 4
+- line 82: The two overcurrent-related causes are confused in the bit map: LATCH_ASSERT (OCP/SCP) is placed in bit 0 and the window-trip OVERCURRENT in bit 3
+- line 82: Over-voltage and under-voltage are confused in the bit map: OVP is placed in bit 1 and UVLO in bit 4
+- line 138: When deciding whether the record is empty, the episode detector ignores the OVERCURRENT bit, as if a recorded soft-start hiccup were routine and did not open an episode
+- line 197: A host read clears fault_reg only when the record is non-empty, on the belief that an empty record has nothing to clear, so a cause live on the read clock is captured through the read instead of losing to the clear
+- line 138: When deciding whether the record is empty, the episode detector ignores the LATCH_ASSERT bit, as if the sticky CPLD trip were background state rather than an open episode
+- line 82: OVP and OTP, acronyms one letter apart, are swapped in the bit map: over-temperature is reported in bit 4 and the inferred overvoltage in bit 2
+- line 104: The capture gate is held open one clock after the converter stops, so the trip that stopped it is sure to be seen, but it also captures a cause that only appears after the stop
+- line 205: The bit-position priority is applied to recording: once a higher-priority cause is recorded, every lower-priority cause is dropped as its consequence, instead of all causes being OR-accumulated
+- line 209: UVLO bypasses the capture gate and is recorded even while the converter is stopped, on the belief that the debounced UVLO always arrives after the supervisor has already stopped the converter
+- line 138: When deciding whether the record is empty, the episode detector ignores the UVLO bit, as if a recorded UVLO were the routine power-down the capture gate is there to ignore and did not open an episode
+- line 118: OVP inference is suppressed while OTP is live, as if the over-temperature comparator were a third trip source of the shared protection latch
+- line 205: OTP is not recorded once OVERCURRENT is in the record, on the belief that an over-temperature after an overcurrent is only the heating the overcurrent caused
+- line 138: When deciding whether the record is empty, the episode detector ignores the OTP bit, as if a self-clearing over-temperature that has cooled off did not hold an episode open
+- line 206: UVLO is not recorded while OTP is live, as if over-temperature outranked and explained a simultaneous input brown-out
+- line 207: The OVERCURRENT bit is not recorded while UVLO is live, on the belief that a window trip during a brown-out is only the input-current surge the droop causes
+- line 206: The UVLO bit is withdrawn during soft start once Vin is back. A restart after a recovered brown-out is taken to mean the UVLO was a routine power cycle and not a fault.
+- line 165: A host read clears fault_time only while the converter is in S_SS or S_RUN. A read after a shutdown clears fault_reg but leaves the old episode start time.
+
+## Proposals already refused for this module
+
+Do not write these again, in any wording. If the design-aware faults left are all of a kind that is refused, return fewer mutants.
+
+- The episode-start detector uses the debounced SCR readback latch_state where the accumulator uses the CPLD's latch_assert, so a CPLD trip opens no episode until the readback follows - refused: the same edit as fault_cause.139.SIB.5
+- The episode start time is latched from the two low bytes of timestamp_ms only, as if the counter were 16 bits wide, so the top byte of fault_time is always zero - refused: make lint already catches it: make lint: UNUSEDSIGNAL

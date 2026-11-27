@@ -1,0 +1,100 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "category": "missing_case",
+   "description": "Episode start leaves out the latch causes (inferred OVP and latch_assert), on the belief that a latch trip always follows a window trip that has already opened the episode",
+   "reason": "An analog OVP trip while running, with nothing else recorded yet, sets fault_reg[4], but fault_time stays 0 instead of holding the trip time. Later causes cannot stamp it either, because the record is no longer empty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.139.AIM.68"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "category": "missing_case",
+   "description": "Episode start leaves out the environmental causes (OTP and UVLO), as if only faults the converter itself causes could open an episode",
+   "reason": "An OTP or UVLO that is the first cause while running sets its fault_reg bit, but fault_time stays 0. A later overcurrent in the same record does not stamp it, because the record is already non-empty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.139.AIM.69"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = convertor_running && ((fault_reg == '0) || ss_active)"
+   ],
+   "category": "wrong_event",
+   "description": "Each soft-start retry is treated as a new episode: a cause captured during S_SS re-stamps fault_time even when the record already holds causes",
+   "reason": "After an overcurrent in S_RUN is recorded, a restart that sees window_trip_SS (or any live cause in S_SS) overwrites fault_time with the time of the restart. The header says fault_time holds the start of the episode until the host reads it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.70"
+ },
+ {
+  "proposal": {
+   "line": 166,
+   "before": [
+    "  else if (episode_start)           fault_time <= timestamp_ms;"
+   ],
+   "after": [
+    "  else if (episode_start || fault_reg == '0) fault_time <= timestamp_ms;"
+   ],
+   "category": "wrong_event",
+   "description": "fault_time follows timestamp_ms whenever the record is empty and freezes once the first cause is captured, instead of being latched only at episode start",
+   "reason": "After reset or after a host read with no cause live, fault_time reports the running ms count instead of 0. An empty record then shows a non-zero, changing start time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.166.AIM.71"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg            <= '0;",
+    "    fault_reg[BIT_LATCH] <= fault_reg[BIT_LATCH];"
+   ],
+   "category": "reset_init",
+   "description": "The LATCH_ASSERT bit survives a host read and is made sticky until reset, like the CPLD's latch_assert, instead of being cleared with the rest of the record",
+   "reason": "After a CPLD latch trip stops the converter, a host read should return fault_reg to 0 because the capture gate is closed. Under this mutant bit 3 stays set while the other bits and fault_time clear, so the next read still reports a latch trip with fault_time 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.199.AIM.72"
+ }
+]

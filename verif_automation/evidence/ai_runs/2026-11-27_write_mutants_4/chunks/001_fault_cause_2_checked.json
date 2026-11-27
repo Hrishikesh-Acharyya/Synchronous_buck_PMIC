@@ -1,0 +1,54 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    " && (fault_reg[BIT_OVP:BIT_LATCH] == '0) && (fault_reg[BIT_UVLO:BIT_OC] == '0)"
+   ],
+   "category": "missing_case",
+   "description": "When deciding whether the record is empty, the episode detector ignores the OTP bit, as if a self-clearing over-temperature that has cooled off did not hold an episode open",
+   "reason": "After an OTP is recorded at T1 and the board cools, the converter restarts; a later cause (e.g. UVLO or a window trip) captured before any host read re-stamps fault_time with its own time instead of keeping T1."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.92"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state && !otp_state)        fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "category": "priority",
+   "description": "UVLO is not recorded while OTP is live, as if over-temperature outranked and explained a simultaneous input brown-out",
+   "reason": "If OTP and UVLO both assert on the same clock while the converter is running (it stops on the next clock), fault_reg reports only OTP instead of OTP and UVLO."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.93"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "after": [
+    "    if((window_trip || window_trip_SS) && !uvlo_state)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "The OVERCURRENT bit is not recorded while UVLO is live, on the belief that a window trip during a brown-out is only the input-current surge the droop causes",
+   "reason": "A window trip (S_RUN) or soft-start window trip that coincides with UVLO while the converter is running sets only the UVLO bit; the OVERCURRENT bit stays clear in the read-back."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.207.AIM.94"
+ }
+]

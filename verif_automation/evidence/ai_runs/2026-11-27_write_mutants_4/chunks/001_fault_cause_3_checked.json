@@ -1,0 +1,37 @@
+[
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+    "    else if(ss_active)                  fault_reg[BIT_UVLO]  <= 1'b0;"
+   ],
+   "category": "reset_init",
+   "description": "The UVLO bit is withdrawn during soft start once Vin is back. A restart after a recovered brown-out is taken to mean the UVLO was a routine power cycle and not a fault.",
+   "reason": "Suppose UVLO is recorded while running, the converter stops, and it later re-enters S_SS with uvlo_state low. fault_reg[1] is then cleared before the host reads it, so the brown-out that interrupted operation is missing from the record. The same happens to a UVLO that interrupts soft start once it clears."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.95"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && convertor_running)     fault_time <= '0;"
+   ],
+   "category": "wrong_event",
+   "description": "A host read clears fault_time only while the converter is in S_SS or S_RUN. A read after a shutdown clears fault_reg but leaves the old episode start time.",
+   "reason": "After a fault stops the converter, the host reads the record. fault_reg reads back as zero, but fault_time keeps the previous episode's timestamp instead of 0. It stays wrong until a new episode overwrites it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.96"
+ }
+]

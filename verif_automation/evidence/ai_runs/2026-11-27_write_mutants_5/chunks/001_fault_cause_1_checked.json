@@ -1,0 +1,90 @@
+[
+ {
+  "proposal": {
+   "line": 84,
+   "before": [
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OTP   = 0;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 2;"
+   ],
+   "category": "field",
+   "description": "Over-temperature (OT) and over-current (OC) are confused in the bit map: OTP is placed in bit 0 and OVERCURRENT in bit 2",
+   "reason": "An OTP during S_SS or S_RUN sets fault_reg bit 0 instead of bit 2, and an overcurrent window trip sets bit 2 instead of bit 0. Firmware then decodes an overheated board as an overcurrent, and the reverse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.84.AIM.97"
+ },
+ {
+  "proposal": {
+   "line": 83,
+   "before": [
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;"
+   ],
+   "after": [
+    "localparam int BIT_LATCH = 1;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 3;"
+   ],
+   "category": "field",
+   "description": "The two lock-type causes are confused in the bit map: the CPLD latch trip (LATCH_ASSERT) is placed in bit 1 and under-voltage lockout (UVLO) in bit 3",
+   "reason": "A latch_assert trip while the converter runs sets fault_reg bit 1 instead of bit 3, and a UVLO sets bit 3 instead of bit 1. Firmware reports an OCP/SCP latch trip as a brown-out, and the reverse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.83.AIM.98"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= '0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    if(fault_reg[BIT_OVP])             fault_reg[BIT_OVP]   <= 1'b0;",
+    "    else if(fault_reg[BIT_LATCH])      fault_reg[BIT_LATCH] <= 1'b0;",
+    "    else if(fault_reg[BIT_OTP])        fault_reg[BIT_OTP]   <= 1'b0;",
+    "    else if(fault_reg[BIT_UVLO])       fault_reg[BIT_UVLO]  <= 1'b0;",
+    "    else                               fault_reg[BIT_OC]    <= 1'b0;",
+    "",
+    "  end"
+   ],
+   "category": "priority",
+   "description": "A host read acknowledges only the highest-priority recorded cause and leaves the lower-priority causes in the record, instead of clearing the whole record",
+   "reason": "Suppose a record holds two causes, for example OTP and OVERCURRENT, and the host reads it after the converter has stopped. fault_reg still shows OVERCURRENT after the read, although it should be empty. fault_time is cleared, so the remaining record has no start time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.199.AIM.99"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert"
+   ],
+   "after": [
+    "                && (otp_state || (uvlo_state && run_active) || ovp || latch_assert"
+   ],
+   "category": "missing_case",
+   "description": "UVLO opens an episode only in S_RUN: a Vin dip during soft start is treated as inrush sag and does not stamp fault_time, although the accumulator still records it",
+   "reason": "Suppose UVLO is the first cause, and it asserts during S_SS. fault_reg gets the UVLO bit, but fault_time stays zero instead of taking timestamp_ms. Later causes do not stamp it either, because the record is no longer empty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.139.AIM.100"
+ }
+]

@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && (fault_reg != '0)) begin"
+   ],
+   "category": "priority",
+   "description": "A host read clears fault_reg only when the record is non-empty, on the belief that an empty record has nothing to clear, so a cause live on the read clock is captured through the read instead of losing to the clear",
+   "reason": "Suppose a host read of an empty record lands on the same clock as a new cause while the converter runs. fault_reg takes the cause's bit on that clock instead of one clock later. fault_time is still cleared by the read, and fault_reg is non-empty on the next clock, so episode_start never fires. The port shows a non-empty fault_reg with fault_time stuck at zero."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.197.AIM.83"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = convertor_running && (fault_reg[BIT_OVP] == 1'b0) && (fault_reg[BIT_OTP:BIT_OC] == '0)"
+   ],
+   "category": "missing_case",
+   "description": "When deciding whether the record is empty, the episode detector ignores the LATCH_ASSERT bit, as if the sticky CPLD trip were background state rather than an open episode",
+   "reason": "latch_assert rises while the converter runs, and fault_reg then holds only LATCH. Because latch_assert is held, episode_start stays true on every clock until the supervisor leaves S_SS/S_RUN, so fault_time gets the time of the last running clock instead of the trip time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.84"
+ }
+]

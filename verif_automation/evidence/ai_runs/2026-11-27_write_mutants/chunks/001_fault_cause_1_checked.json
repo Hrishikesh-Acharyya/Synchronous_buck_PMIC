@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "after": [
+    "    if((window_trip || window_trip_SS) && !ovp) fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "The OVERCURRENT bit is not recorded while an OVP is inferred, on the belief that a window trip during an analog overvoltage is only a consequence of the overshoot",
+   "reason": "Suppose the converter is in S_SS or S_RUN, latch_state is set with latch_assert clear (OVP inferred), and window_trip or window_trip_SS fires on the same clock. fault_reg then reads only the OVP bit, where it should read OVP and OVERCURRENT."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.207.AIM.62"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state && !latch_state)      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "UVLO is not recorded while the protection latch reads back set, on the belief that an input droop after a latch trip is caused by the trip",
+   "reason": "Suppose uvlo_state asserts while the converter is in S_SS or S_RUN and the debounced latch readback is set, from either an OVP or a CPLD trip. The UVLO bit is then never set in fault_reg, though the other cause bits are still recorded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.63"
+ }
+]

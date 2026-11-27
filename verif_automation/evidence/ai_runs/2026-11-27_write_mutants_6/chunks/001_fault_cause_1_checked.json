@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active) && !latch_assert;"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate closes as soon as the CPLD asserts latch_assert, treating the CPLD's own trip into the latch as a converter that has already stopped",
+   "reason": "When latch_assert rises while the converter is in S_SS or S_RUN, fault_reg[BIT_LATCH] is never set. If no other cause is live, fault_time is not stamped. latch_assert is held until reset, so every later cause is also dropped from fault_reg."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.106"
+ }
+]

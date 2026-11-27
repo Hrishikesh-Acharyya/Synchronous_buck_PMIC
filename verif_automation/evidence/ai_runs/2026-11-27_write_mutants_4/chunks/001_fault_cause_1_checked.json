@@ -1,0 +1,54 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    " && ({fault_reg[BIT_OVP], fault_reg[BIT_LATCH], fault_reg[BIT_OTP], fault_reg[BIT_OC]} == '0)"
+   ],
+   "category": "missing_case",
+   "description": "When deciding whether the record is empty, the episode detector ignores the UVLO bit, as if a recorded UVLO were the routine power-down the capture gate is there to ignore and did not open an episode",
+   "reason": "If a UVLO is recorded while the converter is running, and later (with no host read in between) another cause is captured during S_SS or S_RUN, fault_time is re-latched to the later time. The header says fault_time should keep the time the UVLO episode began."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.89"
+ },
+ {
+  "proposal": {
+   "line": 118,
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~latch_assert & ~otp_state) ovp = 1'b1;"
+   ],
+   "category": "other",
+   "description": "OVP inference is suppressed while OTP is live, as if the over-temperature comparator were a third trip source of the shared protection latch",
+   "reason": "If the latch reads back set without latch_assert during S_SS or S_RUN while otp_state is high, the OVP bit (bit 4) of fault_reg is not set. If the record was empty and OTP was the only other live cause, fault_time is still latched, but bit 4 is missing."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.118.AIM.90"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && !fault_reg[BIT_OC]) fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OTP is not recorded once OVERCURRENT is in the record, on the belief that an over-temperature after an overcurrent is only the heating the overcurrent caused",
+   "reason": "Sequence: a window trip records OVERCURRENT, the hiccup retry restarts the converter, and then otp_state rises during S_SS or S_RUN, all with no host read in between. The OTP bit (bit 2) of fault_reg stays clear, when the header requires every cause seen while running to be accumulated."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.91"
+ }
+]

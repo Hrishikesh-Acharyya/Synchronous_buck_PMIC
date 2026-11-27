@@ -1,0 +1,379 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`fault_cause`, in `rtl-systemverilog/telemetry/fault_cause.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "fault_cause.104.AIM.108",
+  "line": 104,
+  "operator": "AIM",
+  "description": "The capture gate is held open while the protection latch reads back set, so that the analog OVP trip that stops the converter is sure to be recorded",
+  "before": "always_comb convertor_running = (ss_active||run_active);",
+  "after": "always_comb convertor_running = (ss_active||run_active||latch_state);"
+ },
+ {
+  "id": "fault_cause.104.AIM.86",
+  "line": 104,
+  "operator": "AIM",
+  "description": "The capture gate is held open one clock after the converter stops, so the trip that stopped it is sure to be seen, but it also captures a cause that only appears after the stop",
+  "before": "always_comb convertor_running = (ss_active||run_active);",
+  "after": "logic  running_q; / always_ff @ (posedge clk or negedge rst_n) begin / if(!rst_n) running_q <= 1'b0; / else       running_q <= (ss_active||run_active); / end / always_comb convertor_running = (ss_active||run_active||running_q);"
+ },
+ {
+  "id": "fault_cause.118.AIM.15",
+  "line": 118,
+  "operator": "AIM",
+  "description": "OVP inference is suppressed while an overcurrent window trip is live, on the assumption that the latch trip then belongs to the overcurrent",
+  "before": "if(latch_state & ~latch_assert) ovp = 1'b1;",
+  "after": "if(latch_state & ~latch_assert & ~(window_trip | window_trip_SS)) ovp = 1'b1;"
+ },
+ {
+  "id": "fault_cause.118.AIM.57",
+  "line": 118,
+  "operator": "AIM",
+  "description": "OVP inference is suppressed while UVLO is live, on the assumption that the SCR readback is not trustworthy during a brown-out",
+  "before": "if(latch_state & ~latch_assert) ovp = 1'b1;",
+  "after": "if(latch_state & ~latch_assert & ~uvlo_state) ovp = 1'b1;"
+ },
+ {
+  "id": "fault_cause.118.AIM.60",
+  "line": 118,
+  "operator": "AIM",
+  "description": "OVP is inferred only into an empty record, on the belief that an analog latch trip after any other recorded cause must be a consequence of that cause",
+  "before": "if(latch_state & ~latch_assert) ovp = 1'b1;",
+  "after": "if(latch_state & ~latch_assert & (fault_reg == '0)) ovp = 1'b1;"
+ },
+ {
+  "id": "fault_cause.118.AIM.90",
+  "line": 118,
+  "operator": "AIM",
+  "description": "OVP inference is suppressed while OTP is live, as if the over-temperature comparator were a third trip source of the shared protection latch",
+  "before": "if(latch_state & ~latch_assert) ovp = 1'b1;",
+  "after": "if(latch_state & ~latch_assert & ~otp_state) ovp = 1'b1;"
+ },
+ {
+  "id": "fault_cause.138.AIM.17",
+  "line": 138,
+  "operator": "AIM",
+  "description": "The record is judged empty from the four lower cause bits only; a recorded OVP does not count as an open episode",
+  "before": "episode_start = convertor_running && (fault_reg == '0)",
+  "after": "episode_start = convertor_running && (fault_reg[BIT_LATCH:0] == '0)"
+ },
+ {
+  "id": "fault_cause.138.AIM.4",
+  "line": 138,
+  "operator": "AIM",
+  "description": "The episode is judged empty by fault_time being zero instead of fault_reg being zero",
+  "before": "episode_start = convertor_running && (fault_reg == '0)",
+  "after": "episode_start = convertor_running && (fault_time == '0)"
+ },
+ {
+  "id": "fault_cause.138.AIM.70",
+  "line": 138,
+  "operator": "AIM",
+  "description": "Each soft-start retry is treated as a new episode: a cause captured during S_SS re-stamps fault_time even when the record already holds causes",
+  "before": "episode_start = convertor_running && (fault_reg == '0)",
+  "after": "episode_start = convertor_running && ((fault_reg == '0) || ss_active)"
+ },
+ {
+  "id": "fault_cause.138.AIM.73",
+  "line": 138,
+  "operator": "AIM",
+  "description": "Episode start lets the latch causes (inferred OVP and latch_assert) bypass the capture gate, on the belief that a latch trip always marks an episode, while the accumulator still gates them, so the two blocks disagree once the converter has stopped",
+  "before": "episode_start = convertor_running && (fault_reg == '0) / && (otp_state || uvlo_state || ovp || latch_assert / || window_trip || window_trip_SS);",
+  "after": "episode_start = (fault_reg == '0) / && ((convertor_running && (otp_state || uvlo_state / || window_trip || window_trip_SS)) || ovp || latch_assert);"
+ },
+ {
+  "id": "fault_cause.138.AIM.84",
+  "line": 138,
+  "operator": "AIM",
+  "description": "When deciding whether the record is empty, the episode detector ignores the LATCH_ASSERT bit, as if the sticky CPLD trip were background state rather than an open episode",
+  "before": "episode_start = convertor_running && (fault_reg == '0)",
+  "after": "episode_start = convertor_running && (fault_reg[BIT_OVP] == 1'b0) && (fault_reg[BIT_OTP:BIT_OC] == '0)"
+ },
+ {
+  "id": "fault_cause.139.AIM.100",
+  "line": 139,
+  "operator": "AIM",
+  "description": "UVLO opens an episode only in S_RUN: a Vin dip during soft start is treated as inrush sag and does not stamp fault_time, although the accumulator still records it",
+  "before": "&& (otp_state || uvlo_state || ovp || latch_assert",
+  "after": "&& (otp_state || (uvlo_state && run_active) || ovp || latch_assert"
+ },
+ {
+  "id": "fault_cause.165.AIM.2",
+  "line": 165,
+  "operator": "AIM",
+  "description": "fault_time capture takes priority over its clear-on-read, the opposite of fault_reg",
+  "before": "else if (fault_reg_read_done)     fault_time <= '0; / else if (episode_start)           fault_time <= timestamp_ms;",
+  "after": "else if (episode_start)           fault_time <= timestamp_ms; / else if (fault_reg_read_done)     fault_time <= '0;"
+ },
+ {
+  "id": "fault_cause.165.AIM.96",
+  "line": 165,
+  "operator": "AIM",
+  "description": "A host read clears fault_time only while the converter is in S_SS or S_RUN. A read after a shutdown clears fault_reg but leaves the old episode start time.",
+  "before": "else if (fault_reg_read_done)     fault_time <= '0;",
+  "after": "else if (fault_reg_read_done && convertor_running)     fault_time <= '0;"
+ },
+ {
+  "id": "fault_cause.197.AIM.61",
+  "line": 197,
+  "operator": "AIM",
+  "description": "A host read clears fault_reg only while the converter is running, so the cause of a shutdown cannot be read away until the converter restarts",
+  "before": "else if (fault_reg_read_done) begin",
+  "after": "else if (fault_reg_read_done && convertor_running) begin"
+ },
+ {
+  "id": "fault_cause.197.AIM.83",
+  "line": 197,
+  "operator": "AIM",
+  "description": "A host read clears fault_reg only when the record is non-empty, on the belief that an empty record has nothing to clear, so a cause live on the read clock is captured through the read instead of losing to the clear",
+  "before": "else if (fault_reg_read_done) begin",
+  "after": "else if (fault_reg_read_done && (fault_reg != '0)) begin"
+ },
+ {
+  "id": "fault_cause.203.AIM.40",
+  "line": 203,
+  "operator": "AIM",
+  "description": "The capture gate is held open while the CPLD's latch trip is asserted, so the trip that stops the converter is sure to be seen. Because latch_assert is held until reset, the gate never closes after a latch trip.",
+  "before": "else if(convertor_running) begin",
+  "after": "else if(convertor_running || latch_assert) begin"
+ },
+ {
+  "id": "fault_cause.205.AIM.115",
+  "line": 205,
+  "operator": "AIM",
+  "description": "OTP is not recorded while the protection latch reads back set, on the belief that a latched converter is no longer heating the board, so any over-temperature then is not part of the fault",
+  "before": "if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+  "after": "if(otp_state && !latch_state)       fault_reg[BIT_OTP]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.205.AIM.46",
+  "line": 205,
+  "operator": "AIM",
+  "description": "OTP is recorded only when UVLO is not live, as if a brown-out made the OTP reading unreliable and UVLO took precedence",
+  "before": "if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+  "after": "if(otp_state && !uvlo_state)        fault_reg[BIT_OTP]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.205.AIM.56",
+  "line": 205,
+  "operator": "AIM",
+  "description": "OTP is recorded only in S_RUN, on the assumption that the board can only overheat under regulated load current, so an over-temperature during soft start is forgotten",
+  "before": "if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+  "after": "if(otp_state && run_active)         fault_reg[BIT_OTP]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.205.AIM.87",
+  "line": 205,
+  "operator": "AIM",
+  "description": "The bit-position priority is applied to recording: once a higher-priority cause is recorded, every lower-priority cause is dropped as its consequence, instead of all causes being OR-accumulated",
+  "before": "if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1; / if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1; / if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1; / if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1; / if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "if(otp_state && (fault_reg[BIT_OVP:BIT_LATCH] == '0))  fault_reg[BIT_OTP]   <= 1'b1; / if(uvlo_state && (fault_reg[BIT_OVP:BIT_OTP] == '0))   fault_reg[BIT_UVLO]  <= 1'b1; / if((window_trip || window_trip_SS) && (fault_reg[BIT_OVP:BIT_UVLO] == '0))   fault_reg [BIT_OC]   <= 1'b1; / if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1; / if(latch_assert && !fault_reg[BIT_OVP])                fault_reg[BIT_LATCH] <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.10",
+  "line": 206,
+  "operator": "AIM",
+  "description": "Causes are captured through a priority chain, one per clock, instead of independently accumulated",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1; / if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1; / if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1; / if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "else if(uvlo_state)                 fault_reg[BIT_UVLO]  <= 1'b1; / else if(window_trip || window_trip_SS) fault_reg [BIT_OC] <= 1'b1; / else if(ovp)                        fault_reg[BIT_OVP]   <= 1'b1; / else if(latch_assert)               fault_reg[BIT_LATCH] <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.18",
+  "line": 206,
+  "operator": "AIM",
+  "description": "UVLO is recorded only as the first cause of an episode; a UVLO that follows another recorded cause is treated as a consequence and dropped",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state && (fault_reg == '0)) fault_reg[BIT_UVLO]  <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.63",
+  "line": 206,
+  "operator": "AIM",
+  "description": "UVLO is not recorded while the protection latch reads back set, on the belief that an input droop after a latch trip is caused by the trip",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state && !latch_state)      fault_reg[BIT_UVLO]  <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.7",
+  "line": 206,
+  "operator": "AIM",
+  "description": "UVLO is recorded only in S_RUN; a UVLO that interrupts soft start is forgotten",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state && run_active)        fault_reg[BIT_UVLO]  <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.76",
+  "line": 206,
+  "operator": "AIM",
+  "description": "UVLO is not recorded while an overcurrent window trip is live, on the belief that an input droop under overcurrent is caused by the load current",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state && !(window_trip || window_trip_SS)) fault_reg[BIT_UVLO]  <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.93",
+  "line": 206,
+  "operator": "AIM",
+  "description": "UVLO is not recorded while OTP is live, as if over-temperature outranked and explained a simultaneous input brown-out",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state && !otp_state)        fault_reg[BIT_UVLO]  <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.206.AIM.95",
+  "line": 206,
+  "operator": "AIM",
+  "description": "The UVLO bit is withdrawn during soft start once Vin is back. A restart after a recovered brown-out is taken to mean the UVLO was a routine power cycle and not a fault.",
+  "before": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+  "after": "if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1; / else if(ss_active)                  fault_reg[BIT_UVLO]  <= 1'b0;"
+ },
+ {
+  "id": "fault_cause.207.AIM.62",
+  "line": 207,
+  "operator": "AIM",
+  "description": "The OVERCURRENT bit is not recorded while an OVP is inferred, on the belief that a window trip during an analog overvoltage is only a consequence of the overshoot",
+  "before": "if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+  "after": "if((window_trip || window_trip_SS) && !ovp) fault_reg [BIT_OC]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.207.AIM.94",
+  "line": 207,
+  "operator": "AIM",
+  "description": "The OVERCURRENT bit is not recorded while UVLO is live, on the belief that a window trip during a brown-out is only the input-current surge the droop causes",
+  "before": "if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+  "after": "if((window_trip || window_trip_SS) && !uvlo_state)   fault_reg [BIT_OC]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.208.AIM.37",
+  "line": 208,
+  "operator": "AIM",
+  "description": "OVP is recorded only in S_RUN, on the assumption that overvoltage can only occur once the output is regulated, so an OVP overshoot during soft start is not recorded",
+  "before": "if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+  "after": "if(ovp && run_active)               fault_reg[BIT_OVP]   <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.209.AIM.16",
+  "line": 209,
+  "operator": "AIM",
+  "description": "Recording LATCH_ASSERT withdraws an already recorded OVP bit, treating the two latch origins as mutually exclusive in the record",
+  "before": "if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "if(latch_assert) begin / fault_reg[BIT_LATCH] <= 1'b1; / fault_reg[BIT_OVP]   <= 1'b0; / end"
+ },
+ {
+  "id": "fault_cause.209.AIM.34",
+  "line": 209,
+  "operator": "AIM",
+  "description": "LATCH_ASSERT is recorded only in S_RUN, on the assumption that the CPLD trips the latch only from run-time strikes, so a latch trip during soft start is forgotten",
+  "before": "if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "if(latch_assert && run_active)      fault_reg[BIT_LATCH] <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.209.AIM.53",
+  "line": 209,
+  "operator": "AIM",
+  "description": "Recording the LATCH_ASSERT (OCP/SCP) trip withdraws the OVERCURRENT bit, on the assumption that the latch bit already covers the window trips that led to it",
+  "before": "if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "if(latch_assert) begin / fault_reg[BIT_LATCH] <= 1'b1; / fault_reg[BIT_OC]    <= 1'b0; / end"
+ },
+ {
+  "id": "fault_cause.209.AIM.77",
+  "line": 209,
+  "operator": "AIM",
+  "description": "LATCH_ASSERT is not recorded once OVERCURRENT is in the record, on the belief that the window trip already explains the CPLD's latch trip",
+  "before": "if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+  "after": "if(latch_assert && !fault_reg[BIT_OC]) fault_reg[BIT_LATCH] <= 1'b1;"
+ },
+ {
+  "id": "fault_cause.211.AIM.104",
+  "line": 211,
+  "operator": "AIM",
+  "description": "Once the converter has stopped, the OTP bit is withdrawn as soon as the board cools, as if a self-clearing over-temperature should clear its own record before the next start",
+  "before": "end",
+  "after": "end /  / else begin / if(!otp_state)                      fault_reg[BIT_OTP]   <= 1'b0; / end"
+ },
+ {
+  "id": "fault_cause.211.AIM.52",
+  "line": 211,
+  "operator": "AIM",
+  "description": "OVP is recorded even while the converter is stopped, on the assumption that the analog comparator can trip the latch at any time and should always be logged",
+  "before": "end",
+  "after": "end /  / else if(ovp) begin /  / fault_reg[BIT_OVP] <= 1'b1; /  / end"
+ },
+ {
+  "id": "fault_cause.211.AIM.67",
+  "line": 211,
+  "operator": "AIM",
+  "description": "The LATCH_ASSERT bit bypasses the capture gate on the assumption that the CPLD's latch trip is always worth logging. It is recorded even while the converter is stopped, unlike every other cause.",
+  "before": "end",
+  "after": "end /  / else if(latch_assert) begin / fault_reg[BIT_LATCH] <= 1'b1; / end"
+ }
+]
+```

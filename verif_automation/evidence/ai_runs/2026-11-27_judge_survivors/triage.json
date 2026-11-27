@@ -1,0 +1,248 @@
+{
+ "header": {
+  "date": "2026-11-27",
+  "commit": "8d82e7e",
+  "task": "judge_survivors",
+  "survivors_of": "the module records",
+  "agent": "Claude Code (claude -p), read-only",
+  "models": [
+   "claude-opus-5-5"
+  ],
+  "mutants_listed": 38,
+  "sent_to_triage": 38,
+  "judged": 38,
+  "equivalent_high_confidence": 0,
+  "untriaged": 0,
+  "complete": true
+ },
+ "verdicts": {
+  "fault_cause.104.AIM.108": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With ss_active=run_active=0 and latch_state=1, the mutant opens the gate at line 104. Causes are then captured at lines 205-209 and fault_time is stamped at line 166, but the original records nothing while stopped.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.104.AIM.86": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "For one clock after ss_active/run_active fall, running_q keeps convertor_running high. A cause that appears on that clock is captured at lines 205-209 in the mutant only.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.118.AIM.15": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if latch_state=1, latch_assert=0 and window_trip=1, the mutant leaves ovp low. fault_reg[BIT_OVP] is then not set at line 208, so the output differs.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.118.AIM.57": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if latch_state=1, latch_assert=0 and uvlo_state=1, the mutant suppresses ovp. BIT_OVP is then missing from fault_reg (line 208).",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.118.AIM.60": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If fault_reg already holds a cause (say OTP), a later latch_state=1 with latch_assert=0 sets BIT_OVP in the original but not in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.118.AIM.90": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if otp_state=1 together with latch_state=1 and latch_assert=0, the mutant does not infer ovp. BIT_OVP is not recorded at line 208.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.138.AIM.17": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With fault_reg holding only BIT_OVP, a new live cause makes episode_start true in the mutant. Line 166 then re-stamps fault_time, which the original holds.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.138.AIM.4": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If the episode is stamped when timestamp_ms=0, fault_time stays 0 while fault_reg is non-empty. A later cause then re-stamps fault_time in the mutant; it also stamps whenever fault_time is 0 even though fault_reg is non-empty.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.138.AIM.70": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "During ss_active with fault_reg already non-empty, a live cause re-stamps fault_time at line 166 in the mutant. The original holds the earlier stamp.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.138.AIM.73": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the converter stopped, fault_reg empty and ovp or latch_assert high, the mutant stamps fault_time from timestamp_ms. The original leaves it at 0.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.138.AIM.84": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With fault_reg holding only BIT_LATCH and a cause still live while running, the mutant keeps asserting episode_start. It re-stamps fault_time on each such clock, which the original does not.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.139.AIM.100": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With fault_reg empty, if UVLO is the only cause during ss_active, the mutant does not assert episode_start. fault_time stays 0 while fault_reg[BIT_UVLO] is set.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.165.AIM.2": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "fault_reg_read_done can pulse while fault_reg is empty and a cause is live while running. Then episode_start is also true and the mutant stamps fault_time where the original clears it.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.165.AIM.96": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A read while the converter is stopped and fault_time is non-zero clears fault_time in the original. The mutant leaves it unchanged.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.197.AIM.61": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A read while the converter is stopped and fault_reg is non-empty clears fault_reg in the original. The mutant does not clear it.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.197.AIM.83": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A read while fault_reg is empty, the converter is running and a cause is live falls through to the capture branch in the mutant. fault_reg becomes non-zero where the original stays 0.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.203.AIM.40": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the converter stopped and latch_assert=1, the mutant captures latch_assert and any other live causes into fault_reg. The original records nothing.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.205.AIM.115": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if otp_state=1 and latch_state=1, the mutant does not set BIT_OTP.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.205.AIM.46": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if otp_state=1 and uvlo_state=1, the mutant does not set BIT_OTP.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.205.AIM.56": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "An OTP during ss_active with run_active=0 sets BIT_OTP in the original but not in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.205.AIM.87": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With BIT_OVP already recorded, a later OTP, UVLO or window trip is no longer set by the mutant. The original OR-accumulates every cause.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.10": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "If otp_state and uvlo_state are both high while running, the else-if chain records only BIT_OTP on that clock. A one-clock UVLO is lost.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.18": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A UVLO that arrives after another cause is already recorded is dropped by the mutant, so BIT_UVLO differs.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.63": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if uvlo_state=1 and latch_state=1, the mutant does not set BIT_UVLO.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.7": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A UVLO during ss_active only sets BIT_UVLO in the original but not in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.76": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if uvlo_state is high together with window_trip or window_trip_SS, the mutant does not set BIT_UVLO.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.93": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if uvlo_state and otp_state are both high, the mutant does not set BIT_UVLO.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.206.AIM.95": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "Once BIT_UVLO is recorded, a later clock with ss_active=1 and uvlo_state=0 clears it in the mutant. The original never clears individual bits.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.207.AIM.62": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if a window trip happens together with latch_state=1 and latch_assert=0 (ovp=1), the mutant does not set BIT_OC.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.207.AIM.94": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "While running, if a window trip happens together with uvlo_state=1, the mutant does not set BIT_OC.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.208.AIM.37": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "An inferred ovp during ss_active only sets BIT_OVP in the original but not in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.209.AIM.16": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With BIT_OVP already recorded, a later latch_assert while running clears BIT_OVP in the mutant. The original keeps it set.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.209.AIM.34": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A latch_assert during ss_active only sets BIT_LATCH in the original but not in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.209.AIM.53": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "A latch_assert while running clears BIT_OC in the mutant, whether it was recorded earlier or set on the same clock. The original keeps it.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.209.AIM.77": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With BIT_OC already recorded, a later latch_assert does not set BIT_LATCH in the mutant.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.211.AIM.104": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the converter stopped, no read pending and otp_state=0, the new else branch clears a recorded BIT_OTP. The original holds it.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.211.AIM.52": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the converter stopped and latch_state=1, latch_assert=0, the mutant sets BIT_OVP. The original records nothing while stopped.",
+   "chunk": "001_fault_cause"
+  },
+  "fault_cause.211.AIM.67": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "With the converter stopped and latch_assert=1, the mutant sets BIT_LATCH. The original records nothing while stopped.",
+   "chunk": "001_fault_cause"
+  }
+ }
+}

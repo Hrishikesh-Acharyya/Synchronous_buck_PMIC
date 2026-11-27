@@ -1,0 +1,61 @@
+[
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= '0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= fault_reg & (FAULT_CAUSE_W'(1) << BIT_OC);",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "A host read leaves the OVERCURRENT bit in place, treating the window-trip record like the strike history that only a long clean run or rst_n clears, while every other cause bit is cleared",
+   "reason": "After an overcurrent window trip has been recorded, a host read should return fault_reg to zero. With this fault it stays at 5'b00001, so the next read still reports OVERCURRENT, and a later cause no longer counts as the start of an episode, so fault_time stays zero."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.199.AIM.107"
+ },
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active||latch_state);"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate is held open while the protection latch reads back set, so that the analog OVP trip that stops the converter is sure to be recorded",
+   "reason": "latch_state stays high until reset, so after an analog OVP trip the gate never closes. A UVLO or OTP that asserts after the converter has stopped is then recorded, and after a host read the still-live ovp sets the OVP bit again and stamps a new fault_time, so the record never stays clear."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.108"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if ((fault_time == '0) && (fault_reg != '0)) begin"
+   ],
+   "category": "sequencing",
+   "description": "fault_reg is cleared when it sees fault_time already cleared and the record non-empty, so its clear follows the read pulse through fault_time instead of using the pulse itself",
+   "reason": "The record is cleared one clock after the read. A cause that asserts on the clock after the read is lost, because the late clear outranks capture on that clock. A record whose episode began while timestamp_ms was still 0 is also wiped on the next clock without any host read."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.197.AIM.109"
+ }
+]

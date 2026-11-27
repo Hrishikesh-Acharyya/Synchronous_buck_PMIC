@@ -1,0 +1,22 @@
+[
+ {
+  "proposal": {
+   "line": 211,
+   "before": [
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "  else if(uvlo_state) begin",
+    "    fault_reg[BIT_UVLO]  <= 1'b1;",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "UVLO bypasses the capture gate and is recorded even while the converter is stopped, on the belief that the debounced UVLO always arrives after the supervisor has already stopped the converter",
+   "reason": "In a normal power-down, Vin drops and UVLO asserts after the converter has left S_SS and S_RUN. With this fault, fault_reg[BIT_UVLO] is set while fault_time stays 0, because episode_start is still gated. A later real fault during run then finds the record non-empty and is never time-stamped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.211.AIM.88"
+ }
+]

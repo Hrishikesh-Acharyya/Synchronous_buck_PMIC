@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(episode_start) begin"
+   ],
+   "category": "wrong_event",
+   "description": "Causes are recorded only on the clock the episode opens. A cause that appears later in the same episode is never added to fault_reg.",
+   "reason": "While the converter is running with OTP already recorded, a later latch_assert or window trip does not set its bit. fault_reg reads only the first cause instead of all the causes OR-accumulated over the episode."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.110"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    fault_reg[BIT_UVLO]  <= uvlo_state;"
+   ],
+   "category": "field",
+   "description": "While the converter runs, the UVLO bit follows the live debounced UVLO instead of being set and held",
+   "reason": "Suppose uvlo_state pulses high and then drops while ss_active or run_active stays high (a Vin dip that recovers). The UVLO bit in fault_reg clears again, but fault_time still holds the start time the dip stamped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.111"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state || ovp)                fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "category": "other",
+   "description": "The over-temperature and over-voltage trips are confused: an inferred analog OVP trip is also recorded as OTP",
+   "reason": "While running, if latch_state goes high with latch_assert low, fault_reg reads OVP|OTP (10100) instead of OVP alone (10000), even though otp_state never asserted."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.112"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert || window_trip)     fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "Every S_RUN window trip is also recorded as LATCH_ASSERT (OCP/SCP), as if each window trip were an OCP trip into the latch",
+   "reason": "In S_RUN, a window_trip that never builds up enough strikes to raise latch_assert sets fault_reg to 01001 instead of 00001, so it reports a CPLD latch trip that did not happen."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.209.AIM.113"
+ }
+]

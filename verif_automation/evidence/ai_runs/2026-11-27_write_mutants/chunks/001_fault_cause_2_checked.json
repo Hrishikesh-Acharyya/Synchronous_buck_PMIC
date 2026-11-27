@@ -1,0 +1,81 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (run_active || (ss_active && !window_trip_SS));"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate is closed during a soft-start overcurrent window trip, treating a soft-start hiccup retry as routine rather than as a fault that interrupted operation",
+   "reason": "When window_trip_SS asserts with ss_active high, the OVERCURRENT bit is not set and fault_time is not latched (episode_start is also gated), so fault_reg and fault_time stay empty where the original records bit 0 and the timestamp; any other cause live on that clock is lost too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.64"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && !(otp_state || uvlo_state || ovp || latch_assert",
+    "                                    || window_trip || window_trip_SS)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "A host read is ignored by fault_reg while any cause is still live, as if a fault still asserted kept the whole record open, instead of always clearing and letting live causes re-set their own bits",
+   "reason": "After an OTP shutdown, with otp_state still high and the converter stopped, a fault_reg_read_done pulse leaves fault_reg unchanged (and keeps every other recorded bit) where the original clears it to zero; fault_time is still cleared, so the record and its timestamp disagree."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.197.AIM.65"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    "                && ((fault_reg & {ovp, latch_assert, otp_state, uvlo_state,",
+    "                                  (window_trip || window_trip_SS)}) == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "category": "wrong_event",
+   "description": "An episode is treated as over once none of its recorded causes is still live, so a new cause after a quiet interval re-stamps fault_time instead of merging into the earlier episode as the header specifies",
+   "reason": "With OTP recorded at time t1, then OTP cleared and the converter running again, a later UVLO at t2 with no host read in between sets fault_time to t2, where the original keeps t1 (the documented merge carrying the EARLIER timestamp)."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.66"
+ },
+ {
+  "proposal": {
+   "line": 211,
+   "before": [
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if(latch_assert) begin",
+    "    fault_reg[BIT_LATCH] <= 1'b1;",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "The LATCH_ASSERT bit bypasses the capture gate on the assumption that the CPLD's latch trip is always worth logging. It is recorded even while the converter is stopped, unlike every other cause.",
+   "reason": "If latch_assert asserts while ss_active and run_active are both low (e.g. on a hiccup entry), fault_reg bit 3 becomes set where the original leaves fault_reg empty. A host read then cannot clear it while latch_assert is held, because it is set again on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.211.AIM.67"
+ }
+]

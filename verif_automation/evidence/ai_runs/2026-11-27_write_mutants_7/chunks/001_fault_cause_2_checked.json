@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(ovp && ss_active)                fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OVP is recorded only during soft start, on the belief that an analog overvoltage can only be the overshoot at the end of the soft-start ramp, so an OVP trip in S_RUN (a load dump, say) is not recorded",
+   "reason": "If the analog comparator trips the latch while run_active is high and latch_assert is low, bit 4 of fault_reg stays clear. fault_time is still stamped because episode_start fires, so the host reads a timestamp with no cause bit set. An OVP during S_SS is still recorded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.208.AIM.116"
+ }
+]

@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 2;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 4;"
+   ],
+   "category": "field",
+   "description": "OVP and OTP, acronyms one letter apart, are swapped in the bit map: over-temperature is reported in bit 4 and the inferred overvoltage in bit 2",
+   "reason": "Any captured over-temperature sets fault_reg[4] instead of fault_reg[2], and an analog latch trip with latch_assert low sets fault_reg[2], so the host reads the wrong cause for both."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.82.AIM.85"
+ },
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "logic  running_q;",
+    "always_ff @ (posedge clk or negedge rst_n) begin",
+    "  if(!rst_n) running_q <= 1'b0;",
+    "  else       running_q <= (ss_active||run_active);",
+    "end",
+    "always_comb convertor_running = (ss_active||run_active||running_q);"
+   ],
+   "category": "sequencing",
+   "description": "The capture gate is held open one clock after the converter stops, so the trip that stopped it is sure to be seen, but it also captures a cause that only appears after the stop",
+   "reason": "If a cause asserts on the clock right after ss_active/run_active fall (for example, UVLO during a routine power-down), it is recorded in fault_reg and starts an episode with a fault_time. The header says faults that arrive after the converter has stopped are not captured."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.86"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && (fault_reg[BIT_OVP:BIT_LATCH] == '0))  fault_reg[BIT_OTP]   <= 1'b1;",
+    "    if(uvlo_state && (fault_reg[BIT_OVP:BIT_OTP] == '0))   fault_reg[BIT_UVLO]  <= 1'b1;",
+    "    if((window_trip || window_trip_SS) && (fault_reg[BIT_OVP:BIT_UVLO] == '0))   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert && !fault_reg[BIT_OVP])                fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "priority",
+   "description": "The bit-position priority is applied to recording: once a higher-priority cause is recorded, every lower-priority cause is dropped as its consequence, instead of all causes being OR-accumulated",
+   "reason": "If a CPLD latch trip is recorded and OTP, UVLO or an overcurrent window trip follows while the converter is still running, the later bit never appears in fault_reg. The header requires every cause that interrupted operation to accumulate until the host reads it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.87"
+ }
+]

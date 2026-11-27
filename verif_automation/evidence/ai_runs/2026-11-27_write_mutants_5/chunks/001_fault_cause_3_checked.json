@@ -1,0 +1,78 @@
+[
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "    fault_reg[BIT_OC] <= 1'b0;",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "The OVERCURRENT bit is cleared whenever the converter is stopped, copying the fault_arbiter window's reset on leaving S_RUN/S_SS into the record, so an overcurrent that stopped the converter is gone from the record",
+   "reason": "After a window_trip or window_trip_SS stops the converter (hiccup or fault state), fault_reg[0] drops to 0 on the next clock. A host read after the shutdown then shows no OVERCURRENT, while fault_time still holds the start of the episode."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.211.AIM.103"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else begin",
+    "    if(!otp_state)                      fault_reg[BIT_OTP]   <= 1'b0;",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "Once the converter has stopped, the OTP bit is withdrawn as soon as the board cools, as if a self-clearing over-temperature should clear its own record before the next start",
+   "reason": "An OTP captured while running stops the converter. When otp_state later deasserts with the converter still stopped, fault_reg[2] falls to 0, so a host read after the board has cooled does not show the cause that stopped the converter."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.211.AIM.104"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= '0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done) begin",
+    "",
+    "    fault_reg <= '0;",
+    "    fault_reg[BIT_OTP] <= fault_reg[BIT_OTP];",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "A host read leaves the OTP bit in place, treating it as a latched thermal-shutdown flag that only rst_n clears, while every other cause bit is cleared",
+   "reason": "After an OTP has been recorded and the board has cooled, a host read clears fault_time and the other bits but fault_reg[2] stays at 1. Every later read still reports over-temperature until reset."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.200.AIM.105"
+ }
+]

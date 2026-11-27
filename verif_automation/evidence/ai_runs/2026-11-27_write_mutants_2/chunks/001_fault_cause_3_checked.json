@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)"
+   ],
+   "after": [
+    "  episode_start = convertor_running && (fault_reg[FAULT_CAUSE_W-1:BIT_OC+1] == '0)"
+   ],
+   "category": "missing_case",
+   "description": "When deciding whether the record is empty, the episode detector ignores the OVERCURRENT bit, as if a recorded soft-start hiccup were routine and did not open an episode",
+   "reason": "Suppose a window trip records only OVERCURRENT, and later, with no host read in between, another cause such as OTP or UVLO is captured after the retry. fault_time is then stamped again with the later time instead of keeping the time of the first overcurrent. It is also stamped again on every clock that a window trip alone stays live."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.82"
+ }
+]

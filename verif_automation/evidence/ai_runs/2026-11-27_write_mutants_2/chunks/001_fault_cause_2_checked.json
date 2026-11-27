@@ -1,0 +1,147 @@
+[
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    fault_reg[BIT_OTP]   <= otp_state;"
+   ],
+   "category": "field",
+   "description": "While the converter runs, the OTP bit follows the live comparator instead of being set and held",
+   "reason": "If OTP is recorded, the converter stops, the board cools and the supervisor restarts into S_SS before any host read, the OTP bit in fault_reg is cleared, although the header says bits are never cleared one at a time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.75"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state && !(window_trip || window_trip_SS)) fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "UVLO is not recorded while an overcurrent window trip is live, on the belief that an input droop under overcurrent is caused by the load current",
+   "reason": "With the converter in S_SS or S_RUN, a UVLO that is asserted only while window_trip or window_trip_SS is high leaves fault_reg[1] clear, but OVERCURRENT is still recorded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.76"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert && !fault_reg[BIT_OC]) fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "LATCH_ASSERT is not recorded once OVERCURRENT is in the record, on the belief that the window trip already explains the CPLD's latch trip",
+   "reason": "When a window trip records OVERCURRENT and latch_assert rises on a later clock while the converter still runs, fault_reg[3] stays clear, so the OCP/SCP trip is missing from the record."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.209.AIM.77"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = ss_active && (fault_reg == '0);"
+   ],
+   "category": "wrong_event",
+   "description": "fault_time stamps the converter's soft start, read as the start of an operating episode, instead of the capture of the first fault cause",
+   "reason": "fault_time is loaded with timestamp_ms on every S_SS clock while the record is empty. A first cause captured in S_RUN therefore reports the time soft start ended, and an empty record gets a non-zero fault_time after a clean start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.78"
+ },
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 0;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 4;"
+   ],
+   "category": "field",
+   "description": "Over-voltage and over-current are confused in the bit map: OVP is placed in bit 0 and OVERCURRENT in bit 4",
+   "reason": "An inferred analog OVP trip while running sets fault_reg[0], and an overcurrent window trip sets fault_reg[4]. The host reads each as the other."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.82.AIM.79"
+ },
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 0;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 3;"
+   ],
+   "category": "field",
+   "description": "The two overcurrent-related causes are confused in the bit map: LATCH_ASSERT (OCP/SCP) is placed in bit 0 and the window-trip OVERCURRENT in bit 3",
+   "reason": "A window trip while running sets fault_reg[3], and the CPLD's latch_assert sets fault_reg[0], so a soft-start hiccup reads as a latch trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.83.AIM.80"
+ },
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 1;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 4;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "category": "field",
+   "description": "Over-voltage and under-voltage are confused in the bit map: OVP is placed in bit 1 and UVLO in bit 4",
+   "reason": "A UVLO captured while the converter runs sets fault_reg[4] and reads as an analog OVP trip. An inferred OVP sets fault_reg[1] and reads as UVLO."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.82.AIM.81"
+ }
+]

@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "after": [
+    "    if((window_trip && ss_active) || (window_trip_SS && run_active)) fault_reg [BIT_OC] <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "Each overcurrent window trip is qualified with the other trip's supervisor state: the S_RUN window_trip is accepted only during soft start and window_trip_SS only in S_RUN",
+   "reason": "An overcurrent window trip in S_RUN, or a soft-start window trip in S_SS, no longer sets the OVERCURRENT bit. Episode start still sees it, so fault_time is stamped while fault_reg stays empty or lacks bit 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.207.AIM.114"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && !latch_state)       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OTP is not recorded while the protection latch reads back set, on the belief that a latched converter is no longer heating the board, so any over-temperature then is not part of the fault",
+   "reason": "If an over-temperature is asserted while the converter is still running and the SCR readback is set (an analog OVP or CPLD trip not yet acted on by the supervisor), the OTP bit stays clear in fault_reg. The original records it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.115"
+ }
+]
