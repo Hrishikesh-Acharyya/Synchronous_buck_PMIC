@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 163,
+   "before": [
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    else       pgood_LED <= pgood || (pgood_LED && run_active);"
+   ],
+   "category": "wrong_event",
+   "description": "Once pgood_LED is lit, it stays lit through comparator dropouts for as long as the supervisor is in S_RUN. The designer assumed the supervisor's window trip would catch a real loss of regulation, so the LED goes dark only on leaving S_RUN instead of following the comparator.",
+   "reason": "With run_active high and pgood_LED lit, a fall of pgood leaves pgood_LED lit until run_active falls. In the original it goes dark on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.85"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state || (Red_LED2 && (strike_level != '0));"
+   ],
+   "category": "reset_init",
+   "description": "Red_LED2 (over-temperature) stays lit after OTP clears for as long as hiccup strikes are outstanding. The 'recently troubled' persistence meant for the Red_LED1 strike blink is applied to the thermal indicator as well, instead of showing only the live OTP condition.",
+   "reason": "If otp_state falls while strike_level is non-zero, Red_LED2 stays lit until strike_level returns to zero. In the original it goes dark one clock after otp_state falls."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.86"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if ((strike_level != '0) && !Green_LED) Red_LED1 <= blink;"
+   ],
+   "category": "missing_case",
+   "description": "The strike blink is turned off whenever Green_LED is lit, so a board that is visibly running shows only one indicator. This breaks the header rule that Green and Red_LED1 are both lit during the clean-run window.",
+   "reason": "With strikes outstanding, no fault live and the converter in S_SS or S_RUN (Green_LED lit), Red_LED1 stays dark instead of blinking. If a live fault keeps Green dark in those states, the blink still shows. That second case is what separates this from the 'only while not switching' mutant."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.87"
+ }
+]

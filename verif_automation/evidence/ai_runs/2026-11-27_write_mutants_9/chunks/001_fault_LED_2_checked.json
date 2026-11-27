@@ -1,0 +1,155 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin"
+   ],
+   "after": [
+    "    else if (blink_counter == BLINK_W'(2*LED_BLINK_HALF_CLKS-1)) begin"
+   ],
+   "category": "boundary",
+   "description": "Blink terminal count is taken from the full blink period instead of the half-period, so each half of the square wave lasts the whole period",
+   "reason": "While strikes are outstanding and no latch is present, Red_LED1 toggles at a different rate than LED_BLINK_HALF_CLKS clocks per half, so the blink is slower than specified."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.104.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 106,
+   "before": [
+    "        blink_counter <= '0;"
+   ],
+   "after": [
+    "        blink_counter <= BLINK_W'(1);"
+   ],
+   "category": "boundary",
+   "description": "Blink counter is reloaded to 1 instead of 0 at the half-period terminal count, so every half-period after the first is one clock short",
+   "reason": "With strikes outstanding, Red_LED1 edges after the first occur every LED_BLINK_HALF_CLKS-1 clocks instead of LED_BLINK_HALF_CLKS, so the blink drifts against the specified period."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.106.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if (currently_faulted)           Red_LED1 <= 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "Red_LED1 solid indication is driven by any live fault instead of only a latched trip",
+   "reason": "When otp_state or uvlo_state is live with no latch, Red_LED1 goes solid (instead of off, or blinking if strikes are outstanding), duplicating Red_LED2/Red_LED3."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if (latch_state || latch_assert || strike_level == STRIKE_W'(MAX_STRIKES_DEFAULT)) Red_LED1 <= 1'b1;"
+   ],
+   "category": "other",
+   "description": "Strike level at its maximum is treated as a latched trip and shown solid instead of blinking",
+   "reason": "With strike_level equal to MAX_STRIKES_DEFAULT and neither latch_state nor latch_assert high, Red_LED1 is held solid on instead of following the blink square wave."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0 && !currently_faulted) Red_LED1 <= blink;"
+   ],
+   "category": "missing_case",
+   "description": "Strike blink is suppressed while an OTP or UVLO fault is live, though strikes are still outstanding",
+   "reason": "With strikes outstanding, no latch, and otp_state or uvlo_state high, Red_LED1 is driven off instead of blinking."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.15"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active || run_active) && pgood && !currently_faulted;"
+   ],
+   "category": "missing_case",
+   "description": "Running indication additionally requires power-good, conflating 'switching' with 'in regulation', so Green stays dark through soft-start",
+   "reason": "During ss_active (or run_active) with no fault but pgood low, Green_LED stays off instead of lit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.16"
+ },
+ {
+  "proposal": {
+   "line": 163,
+   "before": [
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    else       pgood_LED <= pgood && !currently_faulted;"
+   ],
+   "category": "other",
+   "description": "Power-good LED is masked by any live fault instead of following the comparator directly",
+   "reason": "With pgood high while otp_state, uvlo_state or a latch input is high, pgood_LED goes dark instead of showing the comparator."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.17"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state && !run_active;"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature indicator is shown only once the converter has left S_RUN, not for the whole time OTP is live",
+   "reason": "When otp_state is high while run_active is still high, Red_LED2 stays off instead of following the live OTP condition."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= currently_faulted;"
+   ],
+   "category": "field",
+   "description": "Undervoltage indicator is driven by the coarse any-fault summary instead of the UVLO condition alone",
+   "reason": "With otp_state or a latch input high and uvlo_state low, Red_LED3 lights although there is no input undervoltage."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.19"
+ }
+]

@@ -1,0 +1,57 @@
+[
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(!rst_n) Red_LED2 <= 1'b0;",
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    if(!rst_n) Red_LED2 <= 1'b0;",
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) Red_LED2 <= otp_state;"
+   ],
+   "category": "sequencing",
+   "description": "Over-temperature indicator is updated only at each blink half-period terminal count, to keep it in step with the panel blink, instead of following the live OTP condition on every clock",
+   "reason": "When otp_state rises or falls, Red_LED2 changes only at the next blink terminal count, up to a half-period late, and an OTP pulse between two terminal counts is never shown."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.71"
+ },
+ {
+  "proposal": {
+   "line": 162,
+   "before": [
+    "    if(!rst_n) pgood_LED <= 1'b0;",
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    if(!rst_n) pgood_LED <= 1'b0;",
+    "    else       pgood_LED <= pgood && !(latch_state || latch_assert);"
+   ],
+   "category": "missing_case",
+   "description": "Power-good LED is held dark while the latch is set or being asserted, as if a board that has given up could not be in regulation, instead of following the comparator straight through",
+   "reason": "With latch_state or latch_assert high and pgood high, pgood_LED is 0 where the design says it must be 1. No other fault input changes it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.72"
+ },
+ {
+  "proposal": {
+   "line": 111,
+   "before": [
+    "    else blink_counter <= blink_counter + 1'b1;"
+   ],
+   "after": [
+    "    else if (!(latch_state || latch_assert)) blink_counter <= blink_counter + 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "Blink timebase is frozen while the latch is set, on the reasoning that the solid latched indication masks the blink anyway, so it no longer runs freely",
+   "reason": "While a latch input is high, the blink counter holds its value. Once the latch inputs drop with strikes still outstanding, the Red_LED1 blink is phase-shifted by the time spent latched, and the half-period that was cut off by the latch lasts longer than it should."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.111.AIM.73"
+ }
+]

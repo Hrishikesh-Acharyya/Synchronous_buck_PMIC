@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0 && !run_active) Red_LED1 <= blink;"
+   ],
+   "category": "wrong_event",
+   "description": "Strike blink stops as soon as the supervisor re-enters S_RUN, as if a successful retry ended the strikes, instead of lasting through the clean-run window until clean_run_target clears strike_level",
+   "reason": "After a hiccup, once the retry's soft-start ends and run_active rises while strike_level is still non-zero, Red_LED1 goes dark at once instead of blinking for about a second. It still blinks in S_HICCUP and S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.68"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state && !pgood;"
+   ],
+   "category": "missing_case",
+   "description": "Undervoltage indicator is suppressed while the output is in regulation, as if an input UVLO with the rail still good had to be a comparator glitch",
+   "reason": "If debounced uvlo_state rises while pgood is still high (the output holding up as the input sags, before the supervisor shuts down), Red_LED3 stays dark. It lights only after pgood falls, although it should follow uvlo_state directly."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.69"
+ },
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if (latch_state || latch_assert || (Red_LED1 && strike_level == '0)) Red_LED1 <= 1'b1;"
+   ],
+   "category": "reset_init",
+   "description": "Latched-trip solid indication is made sticky until reset (the SCR 'cannot be un-tripped'), so once Red_LED1 is lit with no strikes outstanding it never clears from the latch inputs",
+   "reason": "If latch_state rises from the hardware path without latch_assert or strikes, then the debounced readback falls again, Red_LED1 stays solid until rst_n instead of going dark. Also, any lit strike-blink half that is showing when strike_level clears holds Red_LED1 on indefinitely."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.70"
+ }
+]

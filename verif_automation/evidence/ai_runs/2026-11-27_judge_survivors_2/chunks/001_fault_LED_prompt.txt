@@ -1,0 +1,395 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`fault_LED`, in `rtl-systemverilog/status/fault_LED.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "fault_LED.87.EDG.1",
+  "line": 87,
+  "operator": "EDG",
+  "description": "posedge clk -> negedge clk",
+  "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+  "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+ },
+ {
+  "id": "fault_LED.97.CSK.1",
+  "line": 97,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "fault_LED.97.BDL.1",
+  "line": 97,
+  "operator": "BDL",
+  "description": "empty the 2-statement body of the if at line 97",
+  "before": "if(!rst_n) begin",
+  "after": "if(!rst_n) begin end"
+ },
+ {
+  "id": "fault_LED.99.SDL.1",
+  "line": 99,
+  "operator": "SDL",
+  "description": "delete 'blink_counter <= '0;'",
+  "before": "blink_counter <= '0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_LED.100.SDL.1",
+  "line": 100,
+  "operator": "SDL",
+  "description": "delete 'blink <= 1'b0;'",
+  "before": "blink         <= 1'b0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_LED.100.CST.1",
+  "line": 100,
+  "operator": "CST",
+  "description": "1'b0 -> 1'b1",
+  "before": "blink         <= 1'b0;",
+  "after": "blink         <= 1'b1;"
+ },
+ {
+  "id": "fault_LED.133.AIM.57",
+  "line": 133,
+  "operator": "AIM",
+  "description": "Green's fault summary ignores input undervoltage during soft-start, treating an input sag under start-up inrush as expected rather than a live fault",
+  "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+  "after": "currently_faulted = (otp_state || (uvlo_state && !ss_active) || latch_state || latch_assert);"
+ },
+ {
+  "id": "fault_LED.149.AIM.75",
+  "line": 149,
+  "operator": "AIM",
+  "description": "Green_LED is updated only while the converter is switching and keeps its last value in S_OFF, S_HICCUP and S_LATCHED, instead of going dark whenever the converter is not switching",
+  "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+  "after": "else if (ss_active || run_active) Green_LED <= !currently_faulted;"
+ },
+ {
+  "id": "fault_LED.149.AIM.35",
+  "line": 149,
+  "operator": "AIM",
+  "description": "Running indication treats outstanding strikes as an active state, so Green stays lit through the hiccup off-time instead of going dark in S_HICCUP",
+  "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+  "after": "else       Green_LED <= (ss_active || run_active || (strike_level != '0)) && !currently_faulted;"
+ },
+ {
+  "id": "fault_LED.149.AIM.42",
+  "line": 149,
+  "operator": "AIM",
+  "description": "Parentheses lost around the active-state term, so the live-fault mask applies only to S_RUN and Green stays lit through soft-start whatever fault is live",
+  "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+  "after": "else       Green_LED <= ss_active || run_active && !currently_faulted;"
+ },
+ {
+  "id": "fault_LED.149.AIM.63",
+  "line": 149,
+  "operator": "AIM",
+  "description": "Running indication is held dark during a retry soft-start while strikes are outstanding, as if a retry were not yet 'running', though Green must be lit in S_SS and S_RUN whenever no fault is live",
+  "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+  "after": "else       Green_LED <= ((ss_active && (strike_level == '0)) || run_active) && !currently_faulted;"
+ },
+ {
+  "id": "fault_LED.162.AIM.58",
+  "line": 162,
+  "operator": "AIM",
+  "description": "Power-good LED samples the comparator only while the converter is switching and holds its last reading otherwise, as if the comparator were meaningless with the converter off, instead of following it in every state",
+  "before": "if(!rst_n) pgood_LED <= 1'b0; / else       pgood_LED <= pgood;",
+  "after": "if(!rst_n)                        pgood_LED <= 1'b0; / else if (ss_active || run_active) pgood_LED <= pgood;"
+ },
+ {
+  "id": "fault_LED.163.AIM.10",
+  "line": 163,
+  "operator": "AIM",
+  "description": "Power-good LED is gated by run_active, so it ignores the comparator in every state except S_RUN",
+  "before": "else       pgood_LED <= pgood;",
+  "after": "else       pgood_LED <= pgood && run_active;"
+ },
+ {
+  "id": "fault_LED.163.AIM.28",
+  "line": 163,
+  "operator": "AIM",
+  "description": "Power-good LED latches on once regulation is first reached and is cleared only by reset, instead of following the comparator",
+  "before": "else       pgood_LED <= pgood;",
+  "after": "else       pgood_LED <= pgood || pgood_LED;"
+ },
+ {
+  "id": "fault_LED.163.AIM.54",
+  "line": 163,
+  "operator": "AIM",
+  "description": "Power-good LED is held dark during soft-start, as if the comparator could not be trusted until the ramp finishes, instead of following it in every state",
+  "before": "else       pgood_LED <= pgood;",
+  "after": "else       pgood_LED <= pgood && !ss_active;"
+ },
+ {
+  "id": "fault_LED.163.AIM.59",
+  "line": 163,
+  "operator": "AIM",
+  "description": "Power-good LED is also lit for the whole of S_RUN, on the belief that the supervisor only reaches S_RUN once the rail is in regulation, instead of following the comparator alone",
+  "before": "else       pgood_LED <= pgood;",
+  "after": "else       pgood_LED <= pgood || run_active;"
+ },
+ {
+  "id": "fault_LED.163.AIM.85",
+  "line": 163,
+  "operator": "AIM",
+  "description": "Once pgood_LED is lit, it stays lit through comparator dropouts for as long as the supervisor is in S_RUN. The designer assumed the supervisor's window trip would catch a real loss of regulation, so the LED goes dark only on leaving S_RUN instead of following the comparator.",
+  "before": "else       pgood_LED <= pgood;",
+  "after": "else       pgood_LED <= pgood || (pgood_LED && run_active);"
+ },
+ {
+  "id": "fault_LED.189.CSK.1",
+  "line": 189,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+  "after": "if(1'b0)                            Red_LED1 <= 1'b0;"
+ },
+ {
+  "id": "fault_LED.189.SDL.1",
+  "line": 189,
+  "operator": "SDL",
+  "description": "delete 'Red_LED1 <= 1'b0;'",
+  "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+  "after": "if(!rst_n)                            ;"
+ },
+ {
+  "id": "fault_LED.191.AIM.14",
+  "line": 191,
+  "operator": "AIM",
+  "description": "Strike level at its maximum is treated as a latched trip and shown solid instead of blinking",
+  "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+  "after": "else if (latch_state || latch_assert || strike_level == STRIKE_W'(MAX_STRIKES_DEFAULT)) Red_LED1 <= 1'b1;"
+ },
+ {
+  "id": "fault_LED.191.AIM.55",
+  "line": 191,
+  "operator": "AIM",
+  "description": "Latched-trip solid indication is shown only while strikes are outstanding, misreading 'after a latch strike_level stays non-zero' as 'every latch comes with strikes', so a latch tripped by the hardware OVP path with no hiccup history is not shown",
+  "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+  "after": "else if ((latch_state || latch_assert) && strike_level != '0) Red_LED1 <= 1'b1;"
+ },
+ {
+  "id": "fault_LED.191.AIM.70",
+  "line": 191,
+  "operator": "AIM",
+  "description": "Latched-trip solid indication is made sticky until reset (the SCR 'cannot be un-tripped'), so once Red_LED1 is lit with no strikes outstanding it never clears from the latch inputs",
+  "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+  "after": "else if (latch_state || latch_assert || (Red_LED1 && strike_level == '0)) Red_LED1 <= 1'b1;"
+ },
+ {
+  "id": "fault_LED.191.AIM.82",
+  "line": 191,
+  "operator": "AIM",
+  "description": "The latched-trip solid indication gives way to a live over-temperature, as if a thermal latch were already explained by Red_LED2, so Red_LED1 is not solid while OTP is live",
+  "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+  "after": "else if ((latch_state || latch_assert) && !otp_state) Red_LED1 <= 1'b1;"
+ },
+ {
+  "id": "fault_LED.193.AIM.15",
+  "line": 193,
+  "operator": "AIM",
+  "description": "Strike blink is suppressed while an OTP or UVLO fault is live, though strikes are still outstanding",
+  "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+  "after": "else if (strike_level != '0 && !currently_faulted) Red_LED1 <= blink;"
+ },
+ {
+  "id": "fault_LED.193.AIM.30",
+  "line": 193,
+  "operator": "AIM",
+  "description": "Strike blink is shown only while the converter is switching, so Red_LED1 goes dark during the hiccup off-time though strikes are outstanding",
+  "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+  "after": "else if (strike_level != '0)          Red_LED1 <= blink && (ss_active || run_active);"
+ },
+ {
+  "id": "fault_LED.193.AIM.60",
+  "line": 193,
+  "operator": "AIM",
+  "description": "Outstanding strikes are shown solid while the converter is not switching (hiccup off-time, S_OFF) and blink only during the retry and run, so Red_LED1 looks like a latched trip during every hiccup",
+  "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+  "after": "else if (strike_level != '0)          Red_LED1 <= (ss_active || run_active) ? blink : 1'b1;"
+ },
+ {
+  "id": "fault_LED.193.AIM.76",
+  "line": 193,
+  "operator": "AIM",
+  "description": "Strike blink is shown only while exactly one strike is outstanding, as if strike_level were a single strike flag rather than a count",
+  "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+  "after": "else if (strike_level == STRIKE_W'(1)) Red_LED1 <= blink;"
+ },
+ {
+  "id": "fault_LED.195.AIM.62",
+  "line": 195,
+  "operator": "AIM",
+  "description": "When strikes clear, Red_LED1 stays lit to the end of the current lit blink half-period, to 'finish the pattern cleanly', instead of going dark on the next clock",
+  "before": "else                                  Red_LED1 <= 1'b0;",
+  "after": "else                                  Red_LED1 <= Red_LED1 && blink;"
+ },
+ {
+  "id": "fault_LED.195.AIM.7",
+  "line": 195,
+  "operator": "AIM",
+  "description": "Red_LED1 holds its last value when neither a latch nor strikes are present, instead of being cleared",
+  "before": "else                                  Red_LED1 <= 1'b0;",
+  "after": "else                                  Red_LED1 <= Red_LED1;"
+ },
+ {
+  "id": "fault_LED.195.SDL.1",
+  "line": 195,
+  "operator": "SDL",
+  "description": "delete 'Red_LED1 <= 1'b0;'",
+  "before": "else                                  Red_LED1 <= 1'b0;",
+  "after": "else                                  ;"
+ },
+ {
+  "id": "fault_LED.209.AIM.49",
+  "line": 209,
+  "operator": "AIM",
+  "description": "Over-temperature indicator is cleared only when the converter is back in S_RUN, treating it as a thermal-shutdown history to keep until restart, instead of showing the live OTP condition",
+  "before": "if(!rst_n) Red_LED2 <= 1'b0; / else       Red_LED2 <= otp_state;",
+  "after": "if(!rst_n)           Red_LED2 <= 1'b0; / else if (otp_state)  Red_LED2 <= 1'b1; / else if (run_active) Red_LED2 <= 1'b0;"
+ },
+ {
+  "id": "fault_LED.210.AIM.71",
+  "line": 210,
+  "operator": "AIM",
+  "description": "Over-temperature indicator is updated only at each blink half-period terminal count, to keep it in step with the panel blink, instead of following the live OTP condition on every clock",
+  "before": "else       Red_LED2 <= otp_state;",
+  "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) Red_LED2 <= otp_state;"
+ },
+ {
+  "id": "fault_LED.209.CSK.1",
+  "line": 209,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+  "after": "if(1'b0) Red_LED2 <= 1'b0;"
+ },
+ {
+  "id": "fault_LED.209.SDL.1",
+  "line": 209,
+  "operator": "SDL",
+  "description": "delete 'Red_LED2 <= 1'b0;'",
+  "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+  "after": "if(!rst_n) ;"
+ },
+ {
+  "id": "fault_LED.210.AIM.45",
+  "line": 210,
+  "operator": "AIM",
+  "description": "Over-temperature indicator is suppressed while the latch is set, as if the latched-trip display outranked every other red indicator",
+  "before": "else       Red_LED2 <= otp_state;",
+  "after": "else       Red_LED2 <= otp_state && !(latch_state || latch_assert);"
+ },
+ {
+  "id": "fault_LED.210.AIM.48",
+  "line": 210,
+  "operator": "AIM",
+  "description": "Over-temperature indicator is shown only while the converter is soft-starting or running, so an OTP that holds the converter off in S_OFF or S_HICCUP leaves Red_LED2 dark",
+  "before": "else       Red_LED2 <= otp_state;",
+  "after": "else       Red_LED2 <= otp_state && (ss_active || run_active);"
+ },
+ {
+  "id": "fault_LED.210.AIM.84",
+  "line": 210,
+  "operator": "AIM",
+  "description": "Over-temperature indicator is held lit after the board cools for as long as the SCR readback is set, to keep a thermal latch's cause on the panel, which mixes up the fault_cause history with the live condition",
+  "before": "else       Red_LED2 <= otp_state;",
+  "after": "else       Red_LED2 <= otp_state || (Red_LED2 && latch_state);"
+ },
+ {
+  "id": "fault_LED.210.AIM.86",
+  "line": 210,
+  "operator": "AIM",
+  "description": "Red_LED2 (over-temperature) stays lit after OTP clears for as long as hiccup strikes are outstanding. The 'recently troubled' persistence meant for the Red_LED1 strike blink is applied to the thermal indicator as well, instead of showing only the live OTP condition.",
+  "before": "else       Red_LED2 <= otp_state;",
+  "after": "else       Red_LED2 <= otp_state || (Red_LED2 && (strike_level != '0));"
+ },
+ {
+  "id": "fault_LED.224.CSK.1",
+  "line": 224,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+  "after": "if(1'b0) Red_LED3 <= 1'b0;"
+ },
+ {
+  "id": "fault_LED.224.SDL.1",
+  "line": 224,
+  "operator": "SDL",
+  "description": "delete 'Red_LED3 <= 1'b0;'",
+  "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+  "after": "if(!rst_n) ;"
+ }
+]
+```

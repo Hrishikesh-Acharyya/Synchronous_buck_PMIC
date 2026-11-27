@@ -1,0 +1,6173 @@
+{
+ "module": "fault_LED",
+ "file": "rtl-systemverilog/status/fault_LED.sv",
+ "runs": [
+  {
+   "n": 1,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:12",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 25,
+   "accepted": 24,
+   "rejected": [
+    {
+     "description": "Outstanding strikes are detected from the LSB of strike_level alone, so a level of 2 counts as no strikes",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_9"
+  },
+  {
+   "n": 2,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:17",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 17,
+   "accepted": 17,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_10"
+  },
+  {
+   "n": 3,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:21",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 13,
+   "accepted": 13,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_11"
+  },
+  {
+   "n": 4,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:25",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 9,
+   "accepted": 9,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_12"
+  },
+  {
+   "n": 5,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:30",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 10,
+   "accepted": 10,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_13"
+  },
+  {
+   "n": 6,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:33",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 4,
+   "accepted": 4,
+   "rejected": [],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_14"
+  },
+  {
+   "n": 7,
+   "kind": "write_mutants",
+   "date": "2026-11-27",
+   "time": "09:38",
+   "commit": "001df27",
+   "uncommitted": false,
+   "asked": 50,
+   "proposed": 11,
+   "accepted": 10,
+   "rejected": [
+    {
+     "description": "Running indication takes 'running' from the power-good comparator instead of run_active, mixing up 'output in regulation' with 'converter switching'",
+     "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_write_mutants_15"
+  },
+  {
+   "n": 8,
+   "kind": "withdrawn",
+   "date": "2026-11-27",
+   "time": "09:40",
+   "commit": "001df27",
+   "uncommitted": false,
+   "reason": "equivalent on the board: while the latch is set Red_LED1 is solid whatever blink does, and the latch (SCR and latch_assert) clears only through the drain button wired to rst_n, which also resets the blink timebase, so the frozen count never reaches an output",
+   "mutants": [
+    "fault_LED.111.AIM.73"
+   ],
+   "descriptions": [
+    "Blink timebase is frozen while the latch is set, on the reasoning that the solid latched indication masks the blink anyway, so it no longer runs freely"
+   ]
+  },
+  {
+   "n": 9,
+   "kind": "mutation",
+   "date": "2026-11-27",
+   "time": "09:42",
+   "commit": "001df27",
+   "uncommitted": false,
+   "scope": "every mutant of the module",
+   "mutants": 224,
+   "counts": {
+    "killed": 162,
+    "lint": 18,
+    "survived": 44
+   },
+   "score": "80.4%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_fault_LED": 2.878164529800415
+   }
+  },
+  {
+   "n": 10,
+   "kind": "judge",
+   "date": "2026-11-27",
+   "time": "09:43",
+   "commit": "001df27",
+   "uncommitted": false,
+   "judged": 44,
+   "equivalent_high_confidence": 0,
+   "models": [
+    "claude-opus-5-5"
+   ],
+   "run_record": "ai_runs/2026-11-27_judge_survivors_2"
+  },
+  {
+   "n": 11,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit",
+   "mutants": [
+    "fault_LED.97.BDL.1",
+    "fault_LED.97.CSK.1",
+    "fault_LED.99.SDL.1",
+    "fault_LED.100.SDL.1",
+    "fault_LED.189.CSK.1",
+    "fault_LED.189.SDL.1",
+    "fault_LED.209.CSK.1",
+    "fault_LED.209.SDL.1",
+    "fault_LED.224.CSK.1",
+    "fault_LED.224.SDL.1"
+   ]
+  },
+  {
+   "n": 12,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "the blink phase after reset is not checked: no test looks at whether Red_LED1 starts on a dark or a lit half-period",
+   "mutants": [
+    "fault_LED.100.CST.1"
+   ]
+  },
+  {
+   "n": 13,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "accepted",
+   "reason": "moves the 4 Hz blink by half a clock (50 ns in a 125 ms half-period); no indicator depends on that phase",
+   "mutants": [
+    "fault_LED.87.EDG.1"
+   ]
+  },
+  {
+   "n": 14,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "Red_LED1 is never checked to go dark again: no test clears the strikes (or the latch) while Red_LED1 is lit and checks it falls on the next clock",
+   "mutants": [
+    "fault_LED.195.SDL.1",
+    "fault_LED.195.AIM.7",
+    "fault_LED.195.AIM.62",
+    "fault_LED.191.AIM.70"
+   ]
+  },
+  {
+   "n": 15,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "the solid latch indication is tested only with strikes outstanding and no other fault: a latch with strike_level 0 (an analog OVP trip), a latch with OTP live, and strike_level 3 under a raised MAX_STRIKES with no latch are untested",
+   "mutants": [
+    "fault_LED.191.AIM.55",
+    "fault_LED.191.AIM.82",
+    "fault_LED.191.AIM.14"
+   ]
+  },
+  {
+   "n": 16,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "the strike blink is checked in one state with one strike: blink during the hiccup off-time and in S_SS/S_RUN, with strike_level 2 or 3, and with OTP or UVLO live are untested",
+   "mutants": [
+    "fault_LED.193.AIM.15",
+    "fault_LED.193.AIM.30",
+    "fault_LED.193.AIM.60",
+    "fault_LED.193.AIM.76"
+   ]
+  },
+  {
+   "n": 17,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested",
+   "mutants": [
+    "fault_LED.133.AIM.57",
+    "fault_LED.149.AIM.35",
+    "fault_LED.149.AIM.42",
+    "fault_LED.149.AIM.63",
+    "fault_LED.149.AIM.75"
+   ]
+  },
+  {
+   "n": 18,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit",
+   "mutants": [
+    "fault_LED.162.AIM.58",
+    "fault_LED.163.AIM.10",
+    "fault_LED.163.AIM.28",
+    "fault_LED.163.AIM.54",
+    "fault_LED.163.AIM.59",
+    "fault_LED.163.AIM.85"
+   ]
+  },
+  {
+   "n": 19,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested",
+   "mutants": [
+    "fault_LED.209.AIM.49",
+    "fault_LED.210.AIM.45",
+    "fault_LED.210.AIM.48",
+    "fault_LED.210.AIM.71",
+    "fault_LED.210.AIM.84",
+    "fault_LED.210.AIM.86"
+   ]
+  },
+  {
+   "n": 20,
+   "kind": "decision",
+   "date": "2026-11-27",
+   "time": "09:44",
+   "commit": "001df27",
+   "uncommitted": false,
+   "decision": "gap",
+   "reason": "Red_LED3 is checked only in one state with UVLO alone: UVLO in S_OFF, in S_SS, with the latch set, and UVLO clearing while stopped are untested",
+   "mutants": [
+    "fault_LED.225.AIM.24",
+    "fault_LED.225.AIM.27",
+    "fault_LED.225.AIM.33",
+    "fault_LED.225.AIM.41"
+   ]
+  }
+ ],
+ "mutants": {
+  "AIM.1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AIM.1",
+   "operator": "AIM",
+   "line": 111,
+   "description": "Blink timebase is held in reset while no strikes are outstanding, so it is started by the first strike instead of running freely",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else if (strike_level == '0) blink_counter <= '0; /  / else blink_counter <= blink_counter + 1'b1;",
+   "category": "wrong_event",
+   "reason": "When strike_level goes non-zero partway through a blink period, Red_LED1's first toggle now comes a full half-period after the strike rather than at the free-running phase, so the blink edges on Red_LED1 move in time.",
+   "written_in": 1
+  },
+  "AIM.2": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.106.AIM.2",
+   "operator": "AIM",
+   "line": 106,
+   "description": "Blink counter is not reloaded at the half-period terminal count and wraps at 2^BLINK_W, so only the first half-period is the right length",
+   "before": "blink_counter <= '0;",
+   "after": "blink_counter <= blink_counter + 1'b1;",
+   "category": "boundary",
+   "reason": "While strikes are outstanding, Red_LED1 toggles after the right half-period the first time, then every 2^BLINK_W clocks, so the blink period it shows is wrong.",
+   "written_in": 1
+  },
+  "AIM.3": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.AIM.3",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Loss of power-good is treated as a live fault, which puts out the running indicator",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert || !pgood);",
+   "category": "missing_case",
+   "reason": "During soft-start, before the rail reaches regulation (ss_active high, pgood low), Green_LED stays dark even though the converter is switching with no fault.",
+   "written_in": 1
+  },
+  "AIM.4": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.4",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Green LED is turned off while strikes are outstanding, against the rule that Green and Red_LED1 are both lit during the clean-run window",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active) && !currently_faulted && (strike_level == '0);",
+   "category": "other",
+   "reason": "After a hiccup recovery, while the board runs with strike_level non-zero, Green_LED stays dark instead of lit next to the blinking Red_LED1.",
+   "written_in": 1
+  },
+  "AIM.5": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.5",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Strike blink outranks the latched-trip solid indication",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1; /  / else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= blink; /  / else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "category": "priority",
+   "reason": "After the strike counter trips the latch, strike_level stays non-zero, so Red_LED1 blinks instead of staying solid in the latched state.",
+   "written_in": 1
+  },
+  "AIM.6": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.6",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is shown only while the converter is not switching, not for the whole time strikes are outstanding",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if ((strike_level != '0) && !(ss_active || run_active)) Red_LED1 <= blink;",
+   "category": "wrong_event",
+   "reason": "After a hiccup, once the retry enters soft-start or run with strike_level still non-zero, Red_LED1 goes dark instead of blinking until the clean-run window clears the strikes.",
+   "written_in": 1
+  },
+  "AIM.7": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Holding Red_LED1 at line 195 leaves it at 1 after the latch or strikes clear, while the original drives 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED1 is never checked to go dark again: no test clears the strikes (or the latch) while Red_LED1 is lit and checks it falls on the next clock"
+    }
+   ],
+   "id": "fault_LED.195.AIM.7",
+   "operator": "AIM",
+   "line": 195,
+   "description": "Red_LED1 holds its last value when neither a latch nor strikes are present, instead of being cleared",
+   "before": "else                                  Red_LED1 <= 1'b0;",
+   "after": "else                                  Red_LED1 <= Red_LED1;",
+   "category": "reset_init",
+   "reason": "If the clean-run window clears strike_level during the lit half of the blink, Red_LED1 stays on for good instead of going off.",
+   "written_in": 1
+  },
+  "AIM.8": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.8",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is made sticky until reset, like a fault_cause history bit, instead of showing the live condition",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state || Red_LED2;",
+   "category": "other",
+   "reason": "After otp_state rises and then falls when the board cools, Red_LED2 stays lit instead of following the comparator back low.",
+   "written_in": 1
+  },
+  "AIM.9": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.9",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is chained after over-temperature and suppressed while OTP is live, instead of being independent",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && !otp_state;",
+   "category": "priority",
+   "reason": "When uvlo_state and otp_state are both high, Red_LED3 is dark although input undervoltage is present.",
+   "written_in": 1
+  },
+  "AIM.10": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pgood=1 and run_active=0, the mutant drives pgood_LED to 0 where the original line 163 drives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.163.AIM.10",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is gated by run_active, so it ignores the comparator in every state except S_RUN",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood && run_active;",
+   "category": "missing_case",
+   "reason": "When pgood rises during soft-start (ss_active high, run_active low), pgood_LED stays dark until the supervisor enters run, instead of following the comparator.",
+   "written_in": 1
+  },
+  "AIM.11": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +3",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps",
+       "a_blink_toggles_on_wrap",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.AIM.11",
+   "operator": "AIM",
+   "line": 104,
+   "description": "Blink terminal count is taken from the full blink period instead of the half-period, so each half of the square wave lasts the whole period",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(2*LED_BLINK_HALF_CLKS-1)) begin",
+   "category": "boundary",
+   "reason": "While strikes are outstanding and no latch is present, Red_LED1 toggles at a different rate than LED_BLINK_HALF_CLKS clocks per half, so the blink is slower than specified.",
+   "written_in": 1
+  },
+  "AIM.12": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_wraps",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.106.AIM.12",
+   "operator": "AIM",
+   "line": 106,
+   "description": "Blink counter is reloaded to 1 instead of 0 at the half-period terminal count, so every half-period after the first is one clock short",
+   "before": "blink_counter <= '0;",
+   "after": "blink_counter <= BLINK_W'(1);",
+   "category": "boundary",
+   "reason": "With strikes outstanding, Red_LED1 edges after the first occur every LED_BLINK_HALF_CLKS-1 clocks instead of LED_BLINK_HALF_CLKS, so the blink drifts against the specified period.",
+   "written_in": 1
+  },
+  "AIM.13": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.13",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Red_LED1 solid indication is driven by any live fault instead of only a latched trip",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (currently_faulted)           Red_LED1 <= 1'b1;",
+   "category": "wrong_event",
+   "reason": "When otp_state or uvlo_state is live with no latch, Red_LED1 goes solid (instead of off, or blinking if strikes are outstanding), duplicating Red_LED2/Red_LED3.",
+   "written_in": 1
+  },
+  "AIM.14": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level=3 and no latch, the mutant holds Red_LED1 solid at 1 while the original follows blink at line 193. strike_level is an unconstrained input."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the solid latch indication is tested only with strikes outstanding and no other fault: a latch with strike_level 0 (an analog OVP trip), a latch with OTP live, and strike_level 3 under a raised MAX_STRIKES with no latch are untested"
+    }
+   ],
+   "id": "fault_LED.191.AIM.14",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Strike level at its maximum is treated as a latched trip and shown solid instead of blinking",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_assert || strike_level == STRIKE_W'(MAX_STRIKES_DEFAULT)) Red_LED1 <= 1'b1;",
+   "category": "other",
+   "reason": "With strike_level equal to MAX_STRIKES_DEFAULT and neither latch_state nor latch_assert high, Red_LED1 is held solid on instead of following the blink square wave.",
+   "written_in": 1
+  },
+  "AIM.15": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level non-zero, otp_state=1, no latch and blink=1, the mutant drives Red_LED1=0 where the original line 193 drives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the strike blink is checked in one state with one strike: blink during the hiccup off-time and in S_SS/S_RUN, with strike_level 2 or 3, and with OTP or UVLO live are untested"
+    }
+   ],
+   "id": "fault_LED.193.AIM.15",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is suppressed while an OTP or UVLO fault is live, though strikes are still outstanding",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0 && !currently_faulted) Red_LED1 <= blink;",
+   "category": "missing_case",
+   "reason": "With strikes outstanding, no latch, and otp_state or uvlo_state high, Red_LED1 is driven off instead of blinking.",
+   "written_in": 1
+  },
+  "AIM.16": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.16",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Running indication additionally requires power-good, conflating 'switching' with 'in regulation', so Green stays dark through soft-start",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active) && pgood && !currently_faulted;",
+   "category": "missing_case",
+   "reason": "During ss_active (or run_active) with no fault but pgood low, Green_LED stays off instead of lit.",
+   "written_in": 1
+  },
+  "AIM.17": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.AIM.17",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is masked by any live fault instead of following the comparator directly",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood && !currently_faulted;",
+   "category": "other",
+   "reason": "With pgood high while otp_state, uvlo_state or a latch input is high, pgood_LED goes dark instead of showing the comparator.",
+   "written_in": 1
+  },
+  "AIM.18": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.18",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is shown only once the converter has left S_RUN, not for the whole time OTP is live",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state && !run_active;",
+   "category": "missing_case",
+   "reason": "When otp_state is high while run_active is still high, Red_LED2 stays off instead of following the live OTP condition.",
+   "written_in": 1
+  },
+  "AIM.19": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.19",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is driven by the coarse any-fault summary instead of the UVLO condition alone",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= currently_faulted;",
+   "category": "field",
+   "reason": "With otp_state or a latch input high and uvlo_state low, Red_LED3 lights although there is no input undervoltage.",
+   "written_in": 1
+  },
+  "AIM.20": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.AIM.20",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Green's fault summary reads the registered over-temperature and undervoltage indicators instead of the live OTP/UVLO conditions, so it uses values one clock old",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (Red_LED2 || Red_LED3 || latch_state || latch_assert);",
+   "category": "sequencing",
+   "reason": "When otp_state or uvlo_state rises while the converter is running, Green_LED stays lit one clock longer than it should. When the condition clears, Green_LED comes back one clock late.",
+   "written_in": 1
+  },
+  "AIM.21": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.21",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink starts only from the second outstanding strike, as if strike_level counted from one hiccup before the first",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level > STRIKE_W'(1)) Red_LED1 <= blink;",
+   "category": "boundary",
+   "reason": "With strike_level == 1 (after the first hiccup, through the retry and the clean-run window) and no latch, Red_LED1 stays dark instead of blinking.",
+   "written_in": 1
+  },
+  "AIM.22": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.22",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is also shown during every soft-start, treating a normal start-up like recovery from a fault",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if ((strike_level != '0) || ss_active) Red_LED1 <= blink;",
+   "category": "wrong_event",
+   "reason": "On a clean power-up with strike_level == 0 and ss_active high, Red_LED1 blinks for the whole soft-start when it should stay dark.",
+   "written_in": 1
+  },
+  "AIM.23": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.23",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is also lit by the SCR latch readback, as if every latched trip were thermal",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state || latch_state;",
+   "category": "other",
+   "reason": "After a non-thermal trip (latch_state high, otp_state low), Red_LED2 lights and reports an over-temperature that is not there.",
+   "written_in": 1
+  },
+  "AIM.24": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "latch_state, latch_assert and uvlo_state are independent input ports, and the header does not rule out them being high together. With uvlo_state=1 and latch_state=1, the original line 225 sets Red_LED3 to 1 and the mutant sets it to 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 20,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED3 is checked only in one state with UVLO alone: UVLO in S_OFF, in S_SS, with the latch set, and UVLO clearing while stopped are untested"
+    }
+   ],
+   "id": "fault_LED.225.AIM.24",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is suppressed while the latch is set, as if the latched-trip display outranked it the way it outranks the strike blink",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && !(latch_state || latch_assert);",
+   "category": "priority",
+   "reason": "With uvlo_state live while latch_state or latch_assert is high, Red_LED3 stays dark, though the header says each red indicator must show its own condition.",
+   "written_in": 1
+  },
+  "AIM.25": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.25",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Red_LED1 patterns swapped: a latched trip blinks and outstanding strikes show solid, the indicator map misremembered",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1; /  / else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (latch_state || latch_assert) Red_LED1 <= blink; /  / else if (strike_level != '0)          Red_LED1 <= 1'b1;",
+   "category": "field",
+   "reason": "With the latch set, Red_LED1 follows the blink square wave instead of staying solid. With strikes outstanding and no latch, Red_LED1 stays solid instead of blinking.",
+   "written_in": 2
+  },
+  "AIM.26": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.AIM.26",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Green's fault summary takes the latch term from the Red_LED1 indicator instead of the live latch_state/latch_assert inputs",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || Red_LED1);",
+   "category": "field",
+   "reason": "In the clean-run window (strikes outstanding, running, no live fault), Green_LED goes dark each time the strike blink is high, though it should stay solid. On a latch trip Green also goes dark one clock late.",
+   "written_in": 2
+  },
+  "AIM.27": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "ss_active is an independent input, and nothing in the header rules out it being high together with uvlo_state. With uvlo_state=1 and ss_active=1, the original line 225 sets Red_LED3 to 1 and the mutant sets it to 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 20,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED3 is checked only in one state with UVLO alone: UVLO in S_OFF, in S_SS, with the latch set, and UVLO clearing while stopped are untested"
+    }
+   ],
+   "id": "fault_LED.225.AIM.27",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is masked during soft-start, as if an input sag during start-up inrush were expected and not worth showing",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && !ss_active;",
+   "category": "missing_case",
+   "reason": "If uvlo_state is high while ss_active is high, Red_LED3 stays dark instead of lighting. It lights only once soft-start ends.",
+   "written_in": 2
+  },
+  "AIM.28": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After pgood goes 1 and then 0, the mutant keeps pgood_LED at 1 while the original line 163 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.163.AIM.28",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED latches on once regulation is first reached and is cleared only by reset, instead of following the comparator",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood || pgood_LED;",
+   "category": "reset_init",
+   "reason": "After pgood has been high once, a later fall of pgood (a hiccup, latch or shutdown) leaves pgood_LED lit until rst_n.",
+   "written_in": 2
+  },
+  "AIM.29": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.AIM.29",
+   "operator": "AIM",
+   "line": 107,
+   "description": "Blink is made a one-clock tick at each half-period terminal count instead of a square wave toggled there",
+   "before": "blink         <= ~blink; /  / end /  / else blink_counter <= blink_counter + 1'b1;",
+   "after": "blink         <= 1'b1; /  / end /  / else begin / blink_counter <= blink_counter + 1'b1; / blink         <= 1'b0; / end",
+   "category": "other",
+   "reason": "While strikes are outstanding and there is no latch, Red_LED1 gives one clock-wide pulse every half-period instead of a 50% duty square wave, so it looks almost dark.",
+   "written_in": 2
+  },
+  "AIM.30": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level non-zero, blink=1 and ss_active=run_active=0, the mutant gives Red_LED1=0 where the original line 193 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the strike blink is checked in one state with one strike: blink during the hiccup off-time and in S_SS/S_RUN, with strike_level 2 or 3, and with OTP or UVLO live are untested"
+    }
+   ],
+   "id": "fault_LED.193.AIM.30",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is shown only while the converter is switching, so Red_LED1 goes dark during the hiccup off-time though strikes are outstanding",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= blink && (ss_active || run_active);",
+   "category": "missing_case",
+   "reason": "In hiccup, strike_level is non-zero while ss_active and run_active are both low. Red_LED1 then stays dark instead of blinking until the retry soft-start begins.",
+   "written_in": 2
+  },
+  "AIM.31": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.31",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink stops once the rail is back in regulation, as if power-good meant the strikes were resolved, instead of lasting until clean_run_target clears them",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if ((strike_level != '0) && !pgood) Red_LED1 <= blink;",
+   "category": "wrong_event",
+   "reason": "During the clean-run window after a hiccup (S_RUN, pgood high, strike_level non-zero, no latch), Red_LED1 goes dark when it should keep blinking until the strikes clear.",
+   "written_in": 2
+  },
+  "AIM.32": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.AIM.32",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is held off while strikes are outstanding, as if regulation did not count until the board had earned its clear",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood && (strike_level == '0);",
+   "category": "missing_case",
+   "reason": "While recovering in S_RUN with pgood high and strike_level non-zero, pgood_LED stays low instead of following the comparator.",
+   "written_in": 2
+  },
+  "AIM.33": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With uvlo_state=1 and both ss_active and run_active low (the S_OFF case), the original line 225 sets Red_LED3 to 1 and the mutant sets it to 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 20,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED3 is checked only in one state with UVLO alone: UVLO in S_OFF, in S_SS, with the latch set, and UVLO clearing while stopped are untested"
+    }
+   ],
+   "id": "fault_LED.225.AIM.33",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is shown only while the converter is soft-starting or running, so the case UVLO most often produces - a converter held off in S_OFF - is left dark",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && (ss_active || run_active);",
+   "category": "missing_case",
+   "reason": "With uvlo_state high while the supervisor is in S_OFF (ss_active and run_active both low), Red_LED3 stays low instead of lighting.",
+   "written_in": 2
+  },
+  "AIM.34": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.34",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is also lit by loss of output power-good, confusing input undervoltage with an output rail out of regulation",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state || !pgood;",
+   "category": "other",
+   "reason": "Whenever pgood is low with uvlo_state low (S_OFF, soft-start, hiccup), Red_LED3 lights although there is no input undervoltage.",
+   "written_in": 2
+  },
+  "AIM.35": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level non-zero, ss_active=run_active=0 and no fault, the mutant lights Green_LED and the original line 149 does not."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested"
+    }
+   ],
+   "id": "fault_LED.149.AIM.35",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Running indication treats outstanding strikes as an active state, so Green stays lit through the hiccup off-time instead of going dark in S_HICCUP",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active || (strike_level != '0)) && !currently_faulted;",
+   "category": "missing_case",
+   "reason": "In S_HICCUP with strike_level non-zero and no OTP/UVLO/latch live, Green_LED is lit although the converter is not switching.",
+   "written_in": 2
+  },
+  "AIM.36": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.36",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator blinks with the strike timebase instead of being lit solid, the indicator map misremembered",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state && blink;",
+   "category": "field",
+   "reason": "While otp_state is held high, Red_LED2 goes low during every low half of the blink square wave instead of staying solid.",
+   "written_in": 2
+  },
+  "AIM.37": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.37",
+   "operator": "AIM",
+   "line": 191,
+   "description": "The CPLD's own trip into the latch is shown blinking until the SCR readback confirms it, instead of solid from the moment latch_assert rises",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1; /  / else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (latch_state)                 Red_LED1 <= 1'b1; /  / else if (latch_assert || (strike_level != '0)) Red_LED1 <= blink;",
+   "category": "priority",
+   "reason": "In the clocks where latch_assert is high but the debounced latch_state has not yet risen, Red_LED1 follows blink instead of being driven solid high.",
+   "written_in": 2
+  },
+  "AIM.38": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap",
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.AIM.38",
+   "operator": "AIM",
+   "line": 104,
+   "description": "Blink timebase is held in reset through every soft-start so the retry's pattern 'starts on a fresh period', which freezes the blink phase for the whole of S_SS",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (ss_active) begin /  / blink_counter <= '0; /  / end /  / else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "category": "wrong_event",
+   "reason": "During a retry soft-start with strikes outstanding, Red_LED1 should keep blinking. With this fault it stays fixed at whatever phase blink had when S_SS was entered, and the blink resumes only once the converter reaches S_RUN.",
+   "written_in": 2
+  },
+  "AIM.39": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_stable_otherwise",
+     "killed_by": {
+      "assertions": [
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AIM.39",
+   "operator": "AIM",
+   "line": 111,
+   "description": "Blink phase is cleared to dark while no strikes are outstanding, so the timebase is no longer a free-running square wave and the first strike always starts on a dark half",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else begin /  / blink_counter <= blink_counter + 1'b1; / if (strike_level == '0) blink <= 1'b0; /  / end",
+   "category": "reset_init",
+   "reason": "When strike_level first goes non-zero at a moment when the free-running blink would be high, the correct Red_LED1 lights at once. With the fault it stays dark until the next terminal count, and the first visible half-period is the wrong length.",
+   "written_in": 2
+  },
+  "AIM.40": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.40",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is suppressed while input undervoltage is live, as if UVLO outranked OTP on the panel, when the two indicators are meant to be independent",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state && !uvlo_state;",
+   "category": "priority",
+   "reason": "When OTP and UVLO are both live, Red_LED2 should be lit beside Red_LED3. With the fault Red_LED2 stays dark until UVLO clears.",
+   "written_in": 2
+  },
+  "AIM.41": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After uvlo_state goes high and then low again while run_active=0, the mutant keeps Red_LED3 at 1 through its own feedback term. The original line 225 drops it to 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 20,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED3 is checked only in one state with UVLO alone: UVLO in S_OFF, in S_SS, with the latch set, and UVLO clearing while stopped are untested"
+    }
+   ],
+   "id": "fault_LED.225.AIM.41",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is stretched until the converter is running again, as though the UVLO comparator needed stretching, instead of showing the live condition",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state || (Red_LED3 && !run_active);",
+   "category": "other",
+   "reason": "After an input undervoltage clears, Red_LED3 should go dark on the next clock. With the fault it stays lit while the converter is in S_OFF and through soft-start, and goes dark only when run_active rises, or never if the converter does not restart.",
+   "written_in": 2
+  },
+  "AIM.42": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Because && binds tighter than ||, ss_active=1 with a live fault lights Green_LED in the mutant, while the original line 149 gives 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested"
+    }
+   ],
+   "id": "fault_LED.149.AIM.42",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Parentheses lost around the active-state term, so the live-fault mask applies only to S_RUN and Green stays lit through soft-start whatever fault is live",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= ss_active || run_active && !currently_faulted;",
+   "category": "priority",
+   "reason": "If OTP, UVLO or a latch trip goes live while the supervisor is in S_SS, Green_LED stays lit on the next clock instead of going dark. In the fault-free design it is dark.",
+   "written_in": 3
+  },
+  "AIM.43": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.AIM.43",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Green's fault summary leaves out OTP and UVLO, misapplying the window-trip argument that the supervisor leaves S_RUN on its own",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (latch_state || latch_assert);",
+   "category": "missing_case",
+   "reason": "When otp_state or uvlo_state rises while the converter is in S_SS or S_RUN, Green_LED stays lit until the supervisor actually leaves the active state. It should go dark on the next clock.",
+   "written_in": 3
+  },
+  "AIM.44": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.AIM.44",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Green's fault summary leaves out the latch terms, as if Red_LED1 showing the latch made masking Green unnecessary",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state);",
+   "category": "missing_case",
+   "reason": "When latch_assert or latch_state rises while ss_active or run_active is still high, Green_LED stays lit together with a solid Red_LED1. The design blanks Green on the next clock.",
+   "written_in": 3
+  },
+  "AIM.45": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With otp_state=1 and latch_state=1, the mutant gives Red_LED2=0 where the original line 210 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.210.AIM.45",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is suppressed while the latch is set, as if the latched-trip display outranked every other red indicator",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state && !(latch_state || latch_assert);",
+   "category": "priority",
+   "reason": "When the board is over temperature after a latched trip (or while latch_assert is high), Red_LED2 is dark instead of following otp_state, so the cause of a thermal latch-up is hidden on the panel.",
+   "written_in": 3
+  },
+  "AIM.46": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.AIM.46",
+   "operator": "AIM",
+   "line": 104,
+   "description": "The half-period is halved a second time (as if LED_BLINK_HALF_CLKS were the full period), so the blink square wave toggles every quarter of the intended period and runs at 8 Hz",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS/2-1)) begin",
+   "category": "boundary",
+   "reason": "While strike_level is non-zero and no latch is set, Red_LED1 toggles every LED_BLINK_HALF_CLKS/2 clocks instead of every LED_BLINK_HALF_CLKS clocks.",
+   "written_in": 3
+  },
+  "AIM.47": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AIM.47",
+   "operator": "AIM",
+   "line": 111,
+   "description": "Blink timebase only advances while strikes are outstanding and is frozen (not cleared) otherwise, so it is no longer free-running and keeps its phase from one strike episode to the next",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else if (strike_level != '0) blink_counter <= blink_counter + 1'b1;",
+   "category": "wrong_event",
+   "reason": "When strikes appear, the Red_LED1 blink starts from wherever the counter stopped (counter 0 after reset, or the remainder left by the previous episode), not at the free-running phase. Its edges come at different clocks from the intended design.",
+   "written_in": 3
+  },
+  "AIM.48": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With otp_state=1 and ss_active=run_active=0, the mutant gives Red_LED2=0 where the original line 210 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.210.AIM.48",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is shown only while the converter is soft-starting or running, so an OTP that holds the converter off in S_OFF or S_HICCUP leaves Red_LED2 dark",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state && (ss_active || run_active);",
+   "category": "missing_case",
+   "reason": "With otp_state high while neither ss_active nor run_active is set, which is the normal case during a thermal shutdown, Red_LED2 is 0 instead of 1.",
+   "written_in": 3
+  },
+  "AIM.49": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After otp_state goes 1 and then 0 with run_active=0, the mutant keeps Red_LED2=1 while the original line 210 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.209.AIM.49",
+   "operator": "AIM",
+   "line": 209,
+   "description": "Over-temperature indicator is cleared only when the converter is back in S_RUN, treating it as a thermal-shutdown history to keep until restart, instead of showing the live OTP condition",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0; / else       Red_LED2 <= otp_state;",
+   "after": "if(!rst_n)           Red_LED2 <= 1'b0; / else if (otp_state)  Red_LED2 <= 1'b1; / else if (run_active) Red_LED2 <= 1'b0;",
+   "category": "wrong_event",
+   "reason": "After otp_state falls while the converter is in S_OFF, S_HICCUP or S_SS, Red_LED2 stays lit until run_active rises, though the board is no longer too hot.",
+   "written_in": 3
+  },
+  "AIM.50": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.50",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is made a brown-out history bit, set by UVLO and cleared only by reset, instead of following the live input-undervoltage condition",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else if (uvlo_state) Red_LED3 <= 1'b1;",
+   "category": "reset_init",
+   "reason": "After any uvlo_state pulse, Red_LED3 stays at 1 after the input recovers and until rst_n, instead of going back to 0 one clock after uvlo_state falls.",
+   "written_in": 3
+  },
+  "AIM.51": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.51",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is taken from the half-period counter's MSB instead of from the toggled blink square wave, so the pattern repeats every half-period with an uneven duty cycle",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= blink_counter[BLINK_W-1];",
+   "category": "field",
+   "reason": "Whenever strikes are outstanding and no latch is present, Red_LED1 turns on and off at twice the intended rate and is lit for only part of each half-period (about 2.06 M of 6.25 M clocks at the default setting), instead of being a 50% square wave with period 2*LED_BLINK_HALF_CLKS.",
+   "written_in": 3
+  },
+  "AIM.52": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.AIM.52",
+   "operator": "AIM",
+   "line": 107,
+   "description": "Blink is toggled as the counter leaves zero, at the start of each half-period instead of at its terminal count, so the first half-period after reset lasts one clock",
+   "before": "blink         <= ~blink; /  / end /  / else blink_counter <= blink_counter + 1'b1;",
+   "after": " / end /  / else begin / blink_counter <= blink_counter + 1'b1; / if (blink_counter == '0) blink <= ~blink; / end",
+   "category": "sequencing",
+   "reason": "After reset the blink phase is shifted by LED_BLINK_HALF_CLKS-1 clocks: if strikes are outstanding, Red_LED1 lights one clock after reset instead of a full half-period later, and every later edge of the strike blink comes early by that amount.",
+   "written_in": 3
+  },
+  "AIM.53": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AIM.53",
+   "operator": "AIM",
+   "line": 111,
+   "description": "Blink timebase only counts while the converter is switching (S_SS or S_RUN), as if it shared the converter's enable, so it stops in S_OFF and S_HICCUP instead of running freely",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else if (ss_active || run_active) blink_counter <= blink_counter + 1'b1;",
+   "category": "wrong_event",
+   "reason": "During the hiccup off-time strikes are outstanding but the converter is not switching. The counter freezes, so Red_LED1 stays at its last blink level, solid on or dark, for the whole hiccup instead of blinking.",
+   "written_in": 3
+  },
+  "AIM.54": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pgood=1 and ss_active=1, the mutant gives pgood_LED=0 where the original line 163 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.163.AIM.54",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is held dark during soft-start, as if the comparator could not be trusted until the ramp finishes, instead of following it in every state",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood && !ss_active;",
+   "category": "missing_case",
+   "reason": "If the power-good comparator asserts while the supervisor is still in S_SS, pgood_LED stays dark until the converter enters S_RUN. It should light on the next clock.",
+   "written_in": 3
+  },
+  "AIM.55": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With latch_state=1 and strike_level=0, the original line 191 sets Red_LED1=1; the mutant falls through to line 195 and gives 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the solid latch indication is tested only with strikes outstanding and no other fault: a latch with strike_level 0 (an analog OVP trip), a latch with OTP live, and strike_level 3 under a raised MAX_STRIKES with no latch are untested"
+    }
+   ],
+   "id": "fault_LED.191.AIM.55",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Latched-trip solid indication is shown only while strikes are outstanding, misreading 'after a latch strike_level stays non-zero' as 'every latch comes with strikes', so a latch tripped by the hardware OVP path with no hiccup history is not shown",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if ((latch_state || latch_assert) && strike_level != '0) Red_LED1 <= 1'b1;",
+   "category": "missing_case",
+   "reason": "When latch_state rises while strike_level is zero (an SCR trip from the external OVP comparator, not the strike counter), Red_LED1 stays dark instead of lit solid.",
+   "written_in": 4
+  },
+  "AIM.56": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.56",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Green_LED blinks with the strike timebase during soft-start instead of being lit solid whenever the converter is switching unfaulted, the indicator map misremembered",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (run_active || (ss_active && blink)) && !currently_faulted;",
+   "category": "other",
+   "reason": "With ss_active high, no live fault, and blink in its dark half, Green_LED goes dark where it should be lit; it toggles at the blink rate through every soft-start.",
+   "written_in": 4
+  },
+  "AIM.57": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With uvlo_state=1, ss_active=1 and no other faults, the mutated line 133 gives currently_faulted=0, so Green_LED at line 149 lights where the original keeps it dark. The inputs are unconstrained."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested"
+    }
+   ],
+   "id": "fault_LED.133.AIM.57",
+   "operator": "AIM",
+   "line": 133,
+   "description": "Green's fault summary ignores input undervoltage during soft-start, treating an input sag under start-up inrush as expected rather than a live fault",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || (uvlo_state && !ss_active) || latch_state || latch_assert);",
+   "category": "missing_case",
+   "reason": "With ss_active high and uvlo_state high (and no other fault), Green_LED stays lit instead of going dark; in the full design this shows as Green lit on the clock UVLO arrives in S_SS.",
+   "written_in": 4
+  },
+  "AIM.58": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "When ss_active and run_active are both 0, the mutant holds pgood_LED while the original line 163 follows pgood, so a change in pgood is visible only in the original."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.162.AIM.58",
+   "operator": "AIM",
+   "line": 162,
+   "description": "Power-good LED samples the comparator only while the converter is switching and holds its last reading otherwise, as if the comparator were meaningless with the converter off, instead of following it in every state",
+   "before": "if(!rst_n) pgood_LED <= 1'b0; / else       pgood_LED <= pgood;",
+   "after": "if(!rst_n)                        pgood_LED <= 1'b0; / else if (ss_active || run_active) pgood_LED <= pgood;",
+   "category": "wrong_event",
+   "reason": "If the converter leaves S_RUN (fault, hiccup or disable) with pgood high and pgood then falls, pgood_LED stays lit through S_OFF/S_HICCUP/S_LATCHED instead of going dark; likewise a pgood change while not switching is not shown.",
+   "written_in": 4
+  },
+  "AIM.59": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With pgood=0 and run_active=1, the mutant lights pgood_LED where the original line 163 keeps it dark."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.163.AIM.59",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is also lit for the whole of S_RUN, on the belief that the supervisor only reaches S_RUN once the rail is in regulation, instead of following the comparator alone",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood || run_active;",
+   "category": "other",
+   "reason": "With run_active high and pgood low (the rail drops out of regulation while the converter is in S_RUN), pgood_LED stays lit instead of going dark on the next clock.",
+   "written_in": 4
+  },
+  "AIM.60": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level non-zero, blink=0 and the converter not switching, the mutant gives Red_LED1=1 where the original line 193 gives 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the strike blink is checked in one state with one strike: blink during the hiccup off-time and in S_SS/S_RUN, with strike_level 2 or 3, and with OTP or UVLO live are untested"
+    }
+   ],
+   "id": "fault_LED.193.AIM.60",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Outstanding strikes are shown solid while the converter is not switching (hiccup off-time, S_OFF) and blink only during the retry and run, so Red_LED1 looks like a latched trip during every hiccup",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= (ss_active || run_active) ? blink : 1'b1;",
+   "category": "missing_case",
+   "reason": "With strike_level non-zero, no latch, and ss_active and run_active both low (S_HICCUP), Red_LED1 stays solidly lit instead of following the blink square wave.",
+   "written_in": 4
+  },
+  "AIM.61": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.61",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator blinks with the strike timebase instead of being lit solid while input UVLO is live, the indicator map misremembered",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && blink;",
+   "category": "field",
+   "reason": "While uvlo_state stays high for longer than one blink half-period, Red_LED3 turns off and on with the blink square wave instead of staying lit.",
+   "written_in": 4
+  },
+  "AIM.62": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If strike_level drops to 0 while Red_LED1=1 and blink=1, the mutant keeps the LED at 1 while the original line 195 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED1 is never checked to go dark again: no test clears the strikes (or the latch) while Red_LED1 is lit and checks it falls on the next clock"
+    }
+   ],
+   "id": "fault_LED.195.AIM.62",
+   "operator": "AIM",
+   "line": 195,
+   "description": "When strikes clear, Red_LED1 stays lit to the end of the current lit blink half-period, to 'finish the pattern cleanly', instead of going dark on the next clock",
+   "before": "else                                  Red_LED1 <= 1'b0;",
+   "after": "else                                  Red_LED1 <= Red_LED1 && blink;",
+   "category": "sequencing",
+   "reason": "Suppose clean_run_target cycles clear strike_level while the blink is in its lit half. Red_LED1 then stays high for up to a whole half-period (125 ms) after strike_level reaches zero, when it should drop one clock later.",
+   "written_in": 4
+  },
+  "AIM.63": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With ss_active=1, strike_level non-zero, run_active=0 and no fault, the mutant gives Green_LED=0 where the original line 149 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested"
+    }
+   ],
+   "id": "fault_LED.149.AIM.63",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Running indication is held dark during a retry soft-start while strikes are outstanding, as if a retry were not yet 'running', though Green must be lit in S_SS and S_RUN whenever no fault is live",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= ((ss_active && (strike_level == '0)) || run_active) && !currently_faulted;",
+   "category": "missing_case",
+   "reason": "After a hiccup, the converter retries through S_SS with strike_level non-zero and no live fault. Green_LED stays dark for that whole soft-start and lights only on entry to S_RUN, when it should be lit for the whole retry soft-start too.",
+   "written_in": 4
+  },
+  "AIM.64": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.64",
+   "operator": "AIM",
+   "line": 149,
+   "description": "While strikes are outstanding, Green_LED flashes in antiphase with the Red_LED1 strike blink instead of staying solid, because the designer read 'show both' as 'alternate them'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active) && !currently_faulted && ((strike_level == '0) || !blink);",
+   "category": "other",
+   "reason": "During the clean-run window (strike_level non-zero, S_SS or S_RUN, no live fault), Green_LED goes dark on every lit half of the blink, where the header requires Green and Red_LED1 to be lit together.",
+   "written_in": 5
+  },
+  "AIM.65": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.AIM.65",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is driven by the coarse any-fault summary instead of the OTP condition alone",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= currently_faulted;",
+   "category": "missing_case",
+   "reason": "When UVLO is live or the latch is set (latch_state or latch_assert) and OTP is not, Red_LED2 lights and reports over-temperature that is not there.",
+   "written_in": 5
+  },
+  "AIM.66": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.66",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is also lit by the SCR latch readback, as if a latched board had lost its input",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state || latch_state;",
+   "category": "missing_case",
+   "reason": "When latch_state is set and input UVLO is not live, Red_LED3 lights next to the solid Red_LED1, which falsely reports input undervoltage.",
+   "written_in": 5
+  },
+  "AIM.67": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.AIM.67",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED samples the comparator only at each blink half-period terminal count, to hide chatter, instead of following it on every clock",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) pgood_LED <= pgood;",
+   "category": "wrong_event",
+   "reason": "A change on pgood reaches pgood_LED up to LED_BLINK_HALF_CLKS clocks late, and a pgood pulse or dropout shorter than a half-period that falls between terminal counts never shows.",
+   "written_in": 5
+  },
+  "AIM.68": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.68",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink stops as soon as the supervisor re-enters S_RUN, as if a successful retry ended the strikes, instead of lasting through the clean-run window until clean_run_target clears strike_level",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0 && !run_active) Red_LED1 <= blink;",
+   "category": "wrong_event",
+   "reason": "After a hiccup, once the retry's soft-start ends and run_active rises while strike_level is still non-zero, Red_LED1 goes dark at once instead of blinking for about a second. It still blinks in S_HICCUP and S_SS.",
+   "written_in": 5
+  },
+  "AIM.69": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.69",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is suppressed while the output is in regulation, as if an input UVLO with the rail still good had to be a comparator glitch",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && !pgood;",
+   "category": "missing_case",
+   "reason": "If debounced uvlo_state rises while pgood is still high (the output holding up as the input sags, before the supervisor shuts down), Red_LED3 stays dark. It lights only after pgood falls, although it should follow uvlo_state directly.",
+   "written_in": 5
+  },
+  "AIM.70": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After a latch lights Red_LED1 and the latch inputs then drop with strike_level=0, the mutant keeps the LED at 1 while the original line 195 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED1 is never checked to go dark again: no test clears the strikes (or the latch) while Red_LED1 is lit and checks it falls on the next clock"
+    }
+   ],
+   "id": "fault_LED.191.AIM.70",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Latched-trip solid indication is made sticky until reset (the SCR 'cannot be un-tripped'), so once Red_LED1 is lit with no strikes outstanding it never clears from the latch inputs",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_assert || (Red_LED1 && strike_level == '0)) Red_LED1 <= 1'b1;",
+   "category": "reset_init",
+   "reason": "If latch_state rises from the hardware path without latch_assert or strikes, then the debounced readback falls again, Red_LED1 stays solid until rst_n instead of going dark. Also, any lit strike-blink half that is showing when strike_level clears holds Red_LED1 on indefinitely.",
+   "written_in": 5
+  },
+  "AIM.71": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "The mutant updates Red_LED2 only at the blink terminal count, so a change in otp_state shows up millions of cycles later than the per-clock update at line 210."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.210.AIM.71",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is updated only at each blink half-period terminal count, to keep it in step with the panel blink, instead of following the live OTP condition on every clock",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) Red_LED2 <= otp_state;",
+   "category": "sequencing",
+   "reason": "When otp_state rises or falls, Red_LED2 changes only at the next blink terminal count, up to a half-period late, and an OTP pulse between two terminal counts is never shown.",
+   "written_in": 5
+  },
+  "AIM.72": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.AIM.72",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Power-good LED is held dark while the latch is set or being asserted, as if a board that has given up could not be in regulation, instead of following the comparator straight through",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood && !(latch_state || latch_assert);",
+   "category": "missing_case",
+   "reason": "With latch_state or latch_assert high and pgood high, pgood_LED is 0 where the design says it must be 1. No other fault input changes it.",
+   "written_in": 5
+  },
+  "AIM.73": {
+   "outcomes": [],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AIM.73",
+   "operator": "AIM",
+   "line": 111,
+   "description": "Blink timebase is frozen while the latch is set, on the reasoning that the solid latched indication masks the blink anyway, so it no longer runs freely",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else if (!(latch_state || latch_assert)) blink_counter <= blink_counter + 1'b1;",
+   "category": "wrong_event",
+   "reason": "While a latch input is high, the blink counter holds its value. Once the latch inputs drop with strikes still outstanding, the Red_LED1 blink is phase-shifted by the time spent latched, and the half-period that was cut off by the latch lasts longer than it should.",
+   "written_in": 5,
+   "retired": 8,
+   "withdrawn": "equivalent on the board: while the latch is set Red_LED1 is solid whatever blink does, and the latch (SCR and latch_assert) clears only through the drain button wired to rst_n, which also resets the blink timebase, so the frozen count never reaches an output"
+  },
+  "AIM.74": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.74",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Outstanding strikes are shown solid while the converter is switching (the retry soft-start and the clean-run window) and blink only during the hiccup off-time, because the designer read 'working through a problem' as the hiccup itself",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= (ss_active || run_active) ? 1'b1 : blink;",
+   "category": "missing_case",
+   "reason": "With strike_level non-zero and no latch, Red_LED1 stays lit solid through S_SS and the whole clean-run part of S_RUN instead of following blink. From the front panel this looks the same as a latched trip, although the board is recovering.",
+   "written_in": 6
+  },
+  "AIM.75": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "When ss_active and run_active both drop, the mutant keeps Green_LED at its old value (possibly 1), while the original line 149 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 17,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Green_LED is checked only in S_RUN: a fault live during soft start, a retry soft start with strikes outstanding, the hiccup off-time with strikes, and Green going dark when the converter stops are untested"
+    }
+   ],
+   "id": "fault_LED.149.AIM.75",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Green_LED is updated only while the converter is switching and keeps its last value in S_OFF, S_HICCUP and S_LATCHED, instead of going dark whenever the converter is not switching",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else if (ss_active || run_active) Green_LED <= !currently_faulted;",
+   "category": "missing_case",
+   "reason": "A window trip is left out of currently_faulted, so it takes the supervisor from S_RUN to S_HICCUP while Green_LED is lit. With this fault Green_LED then stays lit through the whole hiccup off-time. It also stays lit in S_OFF after a fault-free shutdown.",
+   "written_in": 6
+  },
+  "AIM.76": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With strike_level=2 and blink=1, the mutant falls through to line 195 and gives 0 where the original line 193 gives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 16,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the strike blink is checked in one state with one strike: blink during the hiccup off-time and in S_SS/S_RUN, with strike_level 2 or 3, and with OTP or UVLO live are untested"
+    }
+   ],
+   "id": "fault_LED.193.AIM.76",
+   "operator": "AIM",
+   "line": 193,
+   "description": "Strike blink is shown only while exactly one strike is outstanding, as if strike_level were a single strike flag rather than a count",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level == STRIKE_W'(1)) Red_LED1 <= blink;",
+   "category": "boundary",
+   "reason": "If a second hiccup happens before clean_run_target clears the strikes, strike_level reaches 2 or more. Red_LED1 then goes dark instead of blinking, while strikes are still outstanding and no latch is set.",
+   "written_in": 6
+  },
+  "AIM.77": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.77",
+   "operator": "AIM",
+   "line": 193,
+   "description": "The strike blink takes the blink wave's next value (it looks ahead at the half-period terminal count) to 'make up for' Red_LED1's register stage, so the displayed pattern runs one clock ahead of the blink timebase",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) ? ~blink : blink;",
+   "category": "sequencing",
+   "reason": "While strikes are outstanding and no latch is set, every Red_LED1 edge comes one clock earlier than the registered blink square wave, and a strike that appears on the terminal-count clock shows the phase after the toggle. The lit and dark halves stay the right length, but they are shifted against the timebase.",
+   "written_in": 6
+  },
+  "AIM.78": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.78",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Latched-trip solid indication waits until the supervisor has left the switching states, as if a latch only counted once the converter had stopped, so the CPLD's own trip in S_SS/S_RUN is not shown solid at once",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if ((latch_state || latch_assert) && !(ss_active || run_active)) Red_LED1 <= 1'b1;",
+   "category": "sequencing",
+   "reason": "When latch_assert (or latch_state) rises while ss_active or run_active is still high, Red_LED1 shows the strike blink or stays dark instead of going solid on the next clock. It goes solid only after the supervisor leaves S_SS/S_RUN.",
+   "written_in": 7
+  },
+  "AIM.79": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.AIM.79",
+   "operator": "AIM",
+   "line": 225,
+   "description": "Undervoltage indicator is shown only while the converter is not switching, as if input UVLO only mattered once it was holding the converter off",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= uvlo_state && !(ss_active || run_active);",
+   "category": "missing_case",
+   "reason": "If uvlo_state rises while the supervisor is in S_SS or S_RUN, Red_LED3 stays dark until the supervisor leaves those states, though the header says it follows the input undervoltage condition.",
+   "written_in": 7
+  },
+  "AIM.80": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.80",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Live-fault mask on Green is applied only during soft-start, because the designer stretched the window-trip argument ('a fault takes the supervisor out of S_RUN on the next edge') to cover every fault in S_RUN",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active && !currently_faulted) || run_active;",
+   "category": "missing_case",
+   "reason": "When OTP, UVLO, latch_state or latch_assert goes live while run_active is high, Green_LED stays lit until the supervisor leaves S_RUN, instead of going dark on the next clock.",
+   "written_in": 7
+  },
+  "AIM.81": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.AIM.81",
+   "operator": "AIM",
+   "line": 191,
+   "description": "Over-temperature is treated as a terminal latched trip and lights Red_LED1 solid, as if a thermal shutdown always fired the SCR",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_assert || otp_state) Red_LED1 <= 1'b1;",
+   "category": "missing_case",
+   "reason": "While otp_state is live and no latch is set, Red_LED1 is lit solid instead of dark, or instead of blinking when strikes are outstanding. This hides the strike pattern and shows a non-latched OTP as a board that has given up.",
+   "written_in": 7
+  },
+  "AIM.82": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With latch_state=1, otp_state=1 and strike_level=0, the mutant does not set Red_LED1 solid and drives 0 where the original line 191 drives 1."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 15,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the solid latch indication is tested only with strikes outstanding and no other fault: a latch with strike_level 0 (an analog OVP trip), a latch with OTP live, and strike_level 3 under a raised MAX_STRIKES with no latch are untested"
+    }
+   ],
+   "id": "fault_LED.191.AIM.82",
+   "operator": "AIM",
+   "line": 191,
+   "description": "The latched-trip solid indication gives way to a live over-temperature, as if a thermal latch were already explained by Red_LED2, so Red_LED1 is not solid while OTP is live",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if ((latch_state || latch_assert) && !otp_state) Red_LED1 <= 1'b1;",
+   "category": "priority",
+   "reason": "With the latch set (latch_state or latch_assert) and otp_state high, Red_LED1 falls to the strike branch. It blinks if strikes are outstanding and is dark if none are, where it should be solid. It becomes solid only once the board cools.",
+   "written_in": 7
+  },
+  "AIM.83": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.AIM.83",
+   "operator": "AIM",
+   "line": 149,
+   "description": "Green_LED, once dark in S_RUN, is relit only by a new soft-start, as if 'running unfaulted' meant 'unfaulted since the last start' instead of 'no fault live now'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || (run_active && Green_LED)) && !currently_faulted;",
+   "category": "reset_init",
+   "reason": "If a live fault (OTP, UVLO or latch) rises and clears while run_active stays high, Green_LED should relight on the next clock but stays dark until ss_active is asserted again. Green_LED also never lights if run_active is asserted without a soft-start first.",
+   "written_in": 7
+  },
+  "AIM.84": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After OTP lights Red_LED2, if otp_state drops while latch_state=1, the mutant keeps the LED at 1 while the original line 210 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.210.AIM.84",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Over-temperature indicator is held lit after the board cools for as long as the SCR readback is set, to keep a thermal latch's cause on the panel, which mixes up the fault_cause history with the live condition",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state || (Red_LED2 && latch_state);",
+   "category": "field",
+   "reason": "After OTP rises and then clears while latch_state is high, Red_LED2 stays lit until latch_state drops. It should go dark on the clock after otp_state falls.",
+   "written_in": 7
+  },
+  "AIM.85": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "If pgood drops while run_active=1 and pgood_LED is already 1, the mutant keeps the LED lit while the original line 163 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 18,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "pgood_LED must follow pgood in every state, but no test drops pgood in S_RUN, raises it in S_OFF or S_SS, or toggles it after it was lit"
+    }
+   ],
+   "id": "fault_LED.163.AIM.85",
+   "operator": "AIM",
+   "line": 163,
+   "description": "Once pgood_LED is lit, it stays lit through comparator dropouts for as long as the supervisor is in S_RUN. The designer assumed the supervisor's window trip would catch a real loss of regulation, so the LED goes dark only on leaving S_RUN instead of following the comparator.",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= pgood || (pgood_LED && run_active);",
+   "category": "wrong_event",
+   "reason": "With run_active high and pgood_LED lit, a fall of pgood leaves pgood_LED lit until run_active falls. In the original it goes dark on the next clock.",
+   "written_in": 7
+  },
+  "AIM.86": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "After OTP lights Red_LED2, if otp_state drops while strike_level is non-zero, the mutant keeps the LED at 1 while the original line 210 clears it."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 19,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED2 is checked only with the converter running and OTP alone: OTP while stopped, OTP with the latch set or strikes outstanding, OTP clearing while stopped, and a change between blink terminal counts are untested"
+    }
+   ],
+   "id": "fault_LED.210.AIM.86",
+   "operator": "AIM",
+   "line": 210,
+   "description": "Red_LED2 (over-temperature) stays lit after OTP clears for as long as hiccup strikes are outstanding. The 'recently troubled' persistence meant for the Red_LED1 strike blink is applied to the thermal indicator as well, instead of showing only the live OTP condition.",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= otp_state || (Red_LED2 && (strike_level != '0));",
+   "category": "reset_init",
+   "reason": "If otp_state falls while strike_level is non-zero, Red_LED2 stays lit until strike_level returns to zero. In the original it goes dark one clock after otp_state falls.",
+   "written_in": 7
+  },
+  "AIM.87": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.AIM.87",
+   "operator": "AIM",
+   "line": 193,
+   "description": "The strike blink is turned off whenever Green_LED is lit, so a board that is visibly running shows only one indicator. This breaks the header rule that Green and Red_LED1 are both lit during the clean-run window.",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if ((strike_level != '0) && !Green_LED) Red_LED1 <= blink;",
+   "category": "missing_case",
+   "reason": "With strikes outstanding, no fault live and the converter in S_SS or S_RUN (Green_LED lit), Red_LED1 stays dark instead of blinking. If a live fault keeps Green dark in those states, the blink still shows. That second case is what separates this from the 'only while not switching' mutant.",
+   "written_in": 7
+  },
+  "495af01178#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Moving the blink timebase at line 87 to negedge clk shifts when blink toggles by half a cycle relative to the posedge Red_LED1 register (line 193), so Red_LED1 can change on a different edge."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 13,
+     "date": "2026-11-27",
+     "decision": "accepted",
+     "reason": "moves the 4 Hz blink by half a clock (50 ns in a 125 ms half-period); no indicator depends on that phase"
+    }
+   ],
+   "id": "fault_LED.87.EDG.1",
+   "operator": "EDG",
+   "line": 87,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "d6b553b466#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset body at lines 99-100 emptied, blink_counter and blink keep unknown or stale values after reset. That changes the blink phase seen on Red_LED1 at line 193."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.97.BDL.1",
+   "operator": "BDL",
+   "line": 97,
+   "description": "empty the 2-statement body of the if at line 97",
+   "before": "if(!rst_n) begin",
+   "after": "if(!rst_n) begin end"
+  },
+  "df16d9f400#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset branch at line 97 disabled, blink_counter and blink are never initialised and the counter keeps running during reset. blink stays unknown or takes the wrong phase, which reaches Red_LED1 through line 193."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.97.CSK.1",
+   "operator": "CSK",
+   "line": 97,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b0) begin"
+  },
+  "091a5abe8a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.97.CSK.2",
+   "operator": "CSK",
+   "line": 97,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) begin",
+   "after": "if(1'b1) begin"
+  },
+  "5047be07bb#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.97.UOD.1",
+   "operator": "UOD",
+   "line": 97,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) begin",
+   "after": "if(rst_n) begin"
+  },
+  "f9d305f4aa#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.99.CST.1",
+   "operator": "CST",
+   "line": 99,
+   "description": "'0 -> '1",
+   "before": "blink_counter <= '0;",
+   "after": "blink_counter <= '1;"
+  },
+  "325482a228#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 99, blink_counter is not reset, so the first terminal count at line 104 comes at an unknown or different time. That changes when Red_LED1 blinks."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.99.SDL.1",
+   "operator": "SDL",
+   "line": 99,
+   "description": "delete 'blink_counter <= '0;'",
+   "before": "blink_counter <= '0;",
+   "after": ";"
+  },
+  "5f63e32d91#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Resetting blink to 1 at line 100 inverts the blink phase. With strike_level non-zero right after reset, Red_LED1 (line 193) reads 1 where it should read 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 12,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "the blink phase after reset is not checked: no test looks at whether Red_LED1 starts on a dark or a lit half-period"
+    }
+   ],
+   "id": "fault_LED.100.CST.1",
+   "operator": "CST",
+   "line": 100,
+   "description": "1'b0 -> 1'b1",
+   "before": "blink         <= 1'b0;",
+   "after": "blink         <= 1'b1;"
+  },
+  "bf3e985c52#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without line 100, blink is not reset and stays unknown or stale. Red_LED1 follows it at line 193 whenever strike_level is non-zero."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.100.SDL.1",
+   "operator": "SDL",
+   "line": 100,
+   "description": "delete 'blink <= 1'b0;'",
+   "before": "blink         <= 1'b0;",
+   "after": ";"
+  },
+  "1aa3682b1a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +4",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps",
+       "a_blink_toggles_on_wrap",
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.AOR.1",
+   "operator": "AOR",
+   "line": 104,
+   "description": "- -> +",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS+1)) begin"
+  },
+  "56e35f2d5a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_wraps +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_wraps",
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.BDL.1",
+   "operator": "BDL",
+   "line": 104,
+   "description": "empty the 2-statement body of the if at line 104",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin end"
+  },
+  "7806ce7b5a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +2",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps",
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.CSK.1",
+   "operator": "CSK",
+   "line": 104,
+   "description": "if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) -> if (1'b0): never taken",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (1'b0) begin"
+  },
+  "d8b93cd575#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.CSK.2",
+   "operator": "CSK",
+   "line": 104,
+   "description": "if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) -> if (1'b1): always taken",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (1'b1) begin"
+  },
+  "a16f66da6c#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +4",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps",
+       "a_blink_toggles_on_wrap",
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.CST.1",
+   "operator": "CST",
+   "line": 104,
+   "description": "1 -> 0",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-0)) begin"
+  },
+  "59b32d2596#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.CST.2",
+   "operator": "CST",
+   "line": 104,
+   "description": "1 -> 2",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-2)) begin"
+  },
+  "bb01f4b64b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.EDL.1",
+   "operator": "EDL",
+   "line": 104,
+   "description": "delete the else branch at line 104",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": ""
+  },
+  "7ae5142b84#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances",
+       "a_blink_stable_otherwise"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.104.ROR.1",
+   "operator": "ROR",
+   "line": 104,
+   "description": "== -> !=",
+   "before": "else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+   "after": "else if (blink_counter != BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin"
+  },
+  "f9d305f4aa#2": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.106.CST.1",
+   "operator": "CST",
+   "line": 106,
+   "description": "'0 -> '1",
+   "before": "blink_counter <= '0;",
+   "after": "blink_counter <= '1;"
+  },
+  "325482a228#2": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_wraps",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_wraps"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.106.SDL.1",
+   "operator": "SDL",
+   "line": 106,
+   "description": "delete 'blink_counter <= '0;'",
+   "before": "blink_counter <= '0;",
+   "after": ";"
+  },
+  "8e115de601#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.SDL.1",
+   "operator": "SDL",
+   "line": 107,
+   "description": "delete 'blink <= ~blink;'",
+   "before": "blink         <= ~blink;",
+   "after": ";"
+  },
+  "e7af381d6d#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.STK.1",
+   "operator": "STK",
+   "line": 107,
+   "description": "blink stuck at all-zeros (was '~blink')",
+   "before": "blink         <= ~blink;",
+   "after": "blink         <= '0;"
+  },
+  "324fca1c66#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.STK.2",
+   "operator": "STK",
+   "line": 107,
+   "description": "blink stuck at all-ones (was '~blink')",
+   "before": "blink         <= ~blink;",
+   "after": "blink         <= '1;"
+  },
+  "aa94ac57bd#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_toggles_on_wrap",
+     "killed_by": {
+      "assertions": [
+       "a_blink_toggles_on_wrap"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.107.UOD.1",
+   "operator": "UOD",
+   "line": 107,
+   "description": "drop the '~' before blink",
+   "before": "blink         <= ~blink;",
+   "after": "blink         <= blink;"
+  },
+  "6aa1c9970b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.AOR.1",
+   "operator": "AOR",
+   "line": 111,
+   "description": "+ -> -",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else blink_counter <= blink_counter - 1'b1;"
+  },
+  "4697343470#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.CST.1",
+   "operator": "CST",
+   "line": 111,
+   "description": "1'b1 -> 1'b0",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else blink_counter <= blink_counter + 1'b0;"
+  },
+  "1f1d3b7280#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.SDL.1",
+   "operator": "SDL",
+   "line": 111,
+   "description": "delete 'blink_counter <= blink_counter + 1'b1;'",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else ;"
+  },
+  "3e431314d2#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_advances",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.STK.1",
+   "operator": "STK",
+   "line": 111,
+   "description": "blink_counter stuck at all-zeros (was 'blink_counter + 1'b1')",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else blink_counter <= '0;"
+  },
+  "368823a846#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.STK.2",
+   "operator": "STK",
+   "line": 111,
+   "description": "blink_counter stuck at all-ones (was 'blink_counter + 1'b1')",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else blink_counter <= '1;"
+  },
+  "f284f191d2#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_blink_counter_in_range +1",
+     "killed_by": {
+      "assertions": [
+       "a_blink_counter_in_range",
+       "a_blink_counter_advances"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.111.VNG.1",
+   "operator": "VNG",
+   "line": 111,
+   "description": "blink_counter inverted (was 'blink_counter + 1'b1')",
+   "before": "else blink_counter <= blink_counter + 1'b1;",
+   "after": "else blink_counter <= ~(blink_counter + 1'b1);"
+  },
+  "d7ea7b96af#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTD.1",
+   "operator": "CTD",
+   "line": 133,
+   "description": "drop the term 'otp_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (uvlo_state || latch_state || latch_assert);"
+  },
+  "092ee97031#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTD.2",
+   "operator": "CTD",
+   "line": 133,
+   "description": "drop the term 'uvlo_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || latch_state || latch_assert);"
+  },
+  "b80625f07b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTD.3",
+   "operator": "CTD",
+   "line": 133,
+   "description": "drop the term 'latch_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_assert);"
+  },
+  "ee7c6cf3a4#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTD.4",
+   "operator": "CTD",
+   "line": 133,
+   "description": "drop the term 'latch_assert'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_state);"
+  },
+  "d8d4d2ad3b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTN.1",
+   "operator": "CTN",
+   "line": 133,
+   "description": "negate the term 'otp_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (!(otp_state) || uvlo_state || latch_state || latch_assert);"
+  },
+  "1064dbc382#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTN.2",
+   "operator": "CTN",
+   "line": 133,
+   "description": "negate the term 'uvlo_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || !(uvlo_state) || latch_state || latch_assert);"
+  },
+  "92bab2f501#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTN.3",
+   "operator": "CTN",
+   "line": 133,
+   "description": "negate the term 'latch_state'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || !(latch_state) || latch_assert);"
+  },
+  "4f69728386#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.CTN.4",
+   "operator": "CTN",
+   "line": 133,
+   "description": "negate the term 'latch_assert'",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_state || !(latch_assert));"
+  },
+  "bb739b55c6#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.LCR.1",
+   "operator": "LCR",
+   "line": 133,
+   "description": "|| -> &&",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state && uvlo_state || latch_state || latch_assert);"
+  },
+  "c1e6a894aa#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.LCR.2",
+   "operator": "LCR",
+   "line": 133,
+   "description": "|| -> &&",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state && latch_state || latch_assert);"
+  },
+  "90bcb196ba#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.LCR.3",
+   "operator": "LCR",
+   "line": 133,
+   "description": "|| -> &&",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_state && latch_assert);"
+  },
+  "6311302e4d#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNDRIVEN"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SDL.1",
+   "operator": "SDL",
+   "line": 133,
+   "description": "delete 'currently_faulted = (otp_state || uvlo_state || latch_state '",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": ";"
+  },
+  "1aed07b036#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.1",
+   "operator": "SIB",
+   "line": 133,
+   "description": "otp_state -> latch_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (latch_state || uvlo_state || latch_state || latch_assert);"
+  },
+  "bfa64aadd9#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.2",
+   "operator": "SIB",
+   "line": 133,
+   "description": "otp_state -> uvlo_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (uvlo_state || uvlo_state || latch_state || latch_assert);"
+  },
+  "51beffea89#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.3",
+   "operator": "SIB",
+   "line": 133,
+   "description": "uvlo_state -> latch_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || latch_state || latch_state || latch_assert);"
+  },
+  "b9384faf11#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.4",
+   "operator": "SIB",
+   "line": 133,
+   "description": "uvlo_state -> otp_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || otp_state || latch_state || latch_assert);"
+  },
+  "d60eba993b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.5",
+   "operator": "SIB",
+   "line": 133,
+   "description": "latch_state -> otp_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || otp_state || latch_assert);"
+  },
+  "0a057f2b83#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.6",
+   "operator": "SIB",
+   "line": 133,
+   "description": "latch_state -> uvlo_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || uvlo_state || latch_assert);"
+  },
+  "23a9f47d15#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.SIB.7",
+   "operator": "SIB",
+   "line": 133,
+   "description": "latch_assert -> latch_state",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_state);"
+  },
+  "183f2148ff#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.STK.1",
+   "operator": "STK",
+   "line": 133,
+   "description": "currently_faulted stuck at all-zeros (was '(otp_state || uvlo_state || latch_state ')",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = '0;"
+  },
+  "cbc35a66f3#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.STK.2",
+   "operator": "STK",
+   "line": 133,
+   "description": "currently_faulted stuck at all-ones (was '(otp_state || uvlo_state || latch_state ')",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = '1;"
+  },
+  "de0fd62e66#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.133.VNG.1",
+   "operator": "VNG",
+   "line": 133,
+   "description": "currently_faulted inverted (was '(otp_state || uvlo_state || latch_state ')",
+   "before": "currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);",
+   "after": "currently_faulted = ~((otp_state || uvlo_state || latch_state || latch_assert));"
+  },
+  "495af01178#2": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.138.EDG.1",
+   "operator": "EDG",
+   "line": 138,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "bf7f703aa3#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.148.CSK.1",
+   "operator": "CSK",
+   "line": 148,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) Green_LED <= 1'b0;",
+   "after": "if(1'b0) Green_LED <= 1'b0;"
+  },
+  "4ca05b3baf#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.148.CSK.2",
+   "operator": "CSK",
+   "line": 148,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) Green_LED <= 1'b0;",
+   "after": "if(1'b1) Green_LED <= 1'b0;"
+  },
+  "990367500f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.148.CST.1",
+   "operator": "CST",
+   "line": 148,
+   "description": "1'b0 -> 1'b1",
+   "before": "if(!rst_n) Green_LED <= 1'b0;",
+   "after": "if(!rst_n) Green_LED <= 1'b1;"
+  },
+  "2bd99a0c10#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.148.SDL.1",
+   "operator": "SDL",
+   "line": 148,
+   "description": "delete 'Green_LED <= 1'b0;'",
+   "before": "if(!rst_n) Green_LED <= 1'b0;",
+   "after": "if(!rst_n) ;"
+  },
+  "df767ad3e5#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running +1",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running",
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.148.UOD.1",
+   "operator": "UOD",
+   "line": 148,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) Green_LED <= 1'b0;",
+   "after": "if(rst_n) Green_LED <= 1'b0;"
+  },
+  "640851f4cb#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTD.1",
+   "operator": "CTD",
+   "line": 149,
+   "description": "drop the term '(ss_active || run_active)'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= !currently_faulted;"
+  },
+  "7b8d2a6c89#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTD.2",
+   "operator": "CTD",
+   "line": 149,
+   "description": "drop the term 'ss_active'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (run_active) && !currently_faulted;"
+  },
+  "642ac32b19#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTD.3",
+   "operator": "CTD",
+   "line": 149,
+   "description": "drop the term 'run_active'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active) && !currently_faulted;"
+  },
+  "1a17f96c11#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTD.4",
+   "operator": "CTD",
+   "line": 149,
+   "description": "drop the term '!currently_faulted'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active);"
+  },
+  "e44d13c4c6#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTN.1",
+   "operator": "CTN",
+   "line": 149,
+   "description": "negate the term '(ss_active || run_active)'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= !((ss_active || run_active)) && !currently_faulted;"
+  },
+  "ab66988195#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTN.2",
+   "operator": "CTN",
+   "line": 149,
+   "description": "negate the term 'ss_active'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (!(ss_active) || run_active) && !currently_faulted;"
+  },
+  "c4a8aaeb2a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.CTN.3",
+   "operator": "CTN",
+   "line": 149,
+   "description": "negate the term 'run_active'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || !(run_active)) && !currently_faulted;"
+  },
+  "ca0607ef2e#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.LCR.1",
+   "operator": "LCR",
+   "line": 149,
+   "description": "|| -> &&",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active && run_active) && !currently_faulted;"
+  },
+  "bda2bb179f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.LCR.2",
+   "operator": "LCR",
+   "line": 149,
+   "description": "&& -> ||",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active) || !currently_faulted;"
+  },
+  "87ca8a5f36#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.SDL.1",
+   "operator": "SDL",
+   "line": 149,
+   "description": "delete 'Green_LED <= (ss_active || run_active) && !currently_faulted'",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       ;"
+  },
+  "22ab66cf4b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.SIB.1",
+   "operator": "SIB",
+   "line": 149,
+   "description": "ss_active -> run_active",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (run_active || run_active) && !currently_faulted;"
+  },
+  "33a8ba1005#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.SIB.2",
+   "operator": "SIB",
+   "line": 149,
+   "description": "run_active -> ss_active",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || ss_active) && !currently_faulted;"
+  },
+  "6a8d76b802#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.STK.1",
+   "operator": "STK",
+   "line": 149,
+   "description": "Green_LED stuck at all-zeros (was '(ss_active || run_active) && !currently_')",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= '0;"
+  },
+  "f389f47b9a#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.STK.2",
+   "operator": "STK",
+   "line": 149,
+   "description": "Green_LED stuck at all-ones (was '(ss_active || run_active) && !currently_')",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= '1;"
+  },
+  "0071deb0ac#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.UOD.1",
+   "operator": "UOD",
+   "line": 149,
+   "description": "drop the '!' before currently_faulted",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= (ss_active || run_active) && currently_faulted;"
+  },
+  "476aaaeacb#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_green_shows_healthy_running",
+     "killed_by": {
+      "assertions": [
+       "a_green_shows_healthy_running"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.149.VNG.1",
+   "operator": "VNG",
+   "line": 149,
+   "description": "Green_LED inverted (was '(ss_active || run_active) && !currently_')",
+   "before": "else       Green_LED <= (ss_active || run_active) && !currently_faulted;",
+   "after": "else       Green_LED <= ~((ss_active || run_active) && !currently_faulted);"
+  },
+  "495af01178#3": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.154.EDG.1",
+   "operator": "EDG",
+   "line": 154,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "ae0faef750#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.162.CSK.1",
+   "operator": "CSK",
+   "line": 162,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) pgood_LED <= 1'b0;",
+   "after": "if(1'b0) pgood_LED <= 1'b0;"
+  },
+  "3343159ea3#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.162.CSK.2",
+   "operator": "CSK",
+   "line": 162,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) pgood_LED <= 1'b0;",
+   "after": "if(1'b1) pgood_LED <= 1'b0;"
+  },
+  "17566fe664#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.162.CST.1",
+   "operator": "CST",
+   "line": 162,
+   "description": "1'b0 -> 1'b1",
+   "before": "if(!rst_n) pgood_LED <= 1'b0;",
+   "after": "if(!rst_n) pgood_LED <= 1'b1;"
+  },
+  "5149f90c8c#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.162.SDL.1",
+   "operator": "SDL",
+   "line": 162,
+   "description": "delete 'pgood_LED <= 1'b0;'",
+   "before": "if(!rst_n) pgood_LED <= 1'b0;",
+   "after": "if(!rst_n) ;"
+  },
+  "b8a002643c#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood +1",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood",
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.162.UOD.1",
+   "operator": "UOD",
+   "line": 162,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) pgood_LED <= 1'b0;",
+   "after": "if(rst_n) pgood_LED <= 1'b0;"
+  },
+  "a2b8914650#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.SDL.1",
+   "operator": "SDL",
+   "line": 163,
+   "description": "delete 'pgood_LED <= pgood;'",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       ;"
+  },
+  "c81bd901b7#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.STK.1",
+   "operator": "STK",
+   "line": 163,
+   "description": "pgood_LED stuck at all-zeros (was 'pgood')",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= '0;"
+  },
+  "8f5605bb74#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.STK.2",
+   "operator": "STK",
+   "line": 163,
+   "description": "pgood_LED stuck at all-ones (was 'pgood')",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= '1;"
+  },
+  "45abb83059#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_pgood_led_follows_pgood",
+     "killed_by": {
+      "assertions": [
+       "a_pgood_led_follows_pgood"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.163.VNG.1",
+   "operator": "VNG",
+   "line": 163,
+   "description": "pgood_LED inverted (was 'pgood')",
+   "before": "else       pgood_LED <= pgood;",
+   "after": "else       pgood_LED <= ~(pgood);"
+  },
+  "495af01178#4": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.168.EDG.1",
+   "operator": "EDG",
+   "line": 168,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "130e585b0f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset at line 189 disabled, Red_LED1 is not cleared during reset; at negedge rst_n or on clocks during reset it takes the else branches instead, for example 1 if latch_state is high."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.189.CSK.1",
+   "operator": "CSK",
+   "line": 189,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+   "after": "if(1'b0)                            Red_LED1 <= 1'b0;"
+  },
+  "5fee7b979b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.189.CSK.2",
+   "operator": "CSK",
+   "line": 189,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+   "after": "if(1'b1)                            Red_LED1 <= 1'b0;"
+  },
+  "57c3c4ec60#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.189.CST.1",
+   "operator": "CST",
+   "line": 189,
+   "description": "1'b0 -> 1'b1",
+   "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+   "after": "if(!rst_n)                            Red_LED1 <= 1'b1;"
+  },
+  "3f0fcce655#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the reset assignment at line 189, Red_LED1 keeps its unknown or previous value through reset instead of going to 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.189.SDL.1",
+   "operator": "SDL",
+   "line": 189,
+   "description": "delete 'Red_LED1 <= 1'b0;'",
+   "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+   "after": "if(!rst_n)                            ;"
+  },
+  "a9f017fef4#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.189.UOD.1",
+   "operator": "UOD",
+   "line": 189,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n)                            Red_LED1 <= 1'b0;",
+   "after": "if(rst_n)                            Red_LED1 <= 1'b0;"
+  },
+  "5aa0671bf0#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +2",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CND.1",
+   "operator": "CND",
+   "line": 191,
+   "description": "if (latch_state || latch_assert) -> if (!(...))",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (!(latch_state || latch_assert)) Red_LED1 <= 1'b1;"
+  },
+  "fdbdf022f3#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CSK.1",
+   "operator": "CSK",
+   "line": 191,
+   "description": "if (latch_state || latch_assert) -> if (1'b0): never taken",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (1'b0) Red_LED1 <= 1'b1;"
+  },
+  "d4a8389f30#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CSK.2",
+   "operator": "CSK",
+   "line": 191,
+   "description": "if (latch_state || latch_assert) -> if (1'b1): always taken",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (1'b1) Red_LED1 <= 1'b1;"
+  },
+  "95d75730b9#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CST.1",
+   "operator": "CST",
+   "line": 191,
+   "description": "1'b1 -> 1'b0",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_assert) Red_LED1 <= 1'b0;"
+  },
+  "4f4418f571#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CTD.1",
+   "operator": "CTD",
+   "line": 191,
+   "description": "drop the term 'latch_state'",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_assert) Red_LED1 <= 1'b1;"
+  },
+  "83e23dd3c8#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CTD.2",
+   "operator": "CTD",
+   "line": 191,
+   "description": "drop the term 'latch_assert'",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state) Red_LED1 <= 1'b1;"
+  },
+  "a534a684fc#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +2",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CTN.1",
+   "operator": "CTN",
+   "line": 191,
+   "description": "negate the term 'latch_state'",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (!(latch_state) || latch_assert) Red_LED1 <= 1'b1;"
+  },
+  "c30ce1ac43#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +2",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_blinks_on_strikes",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.CTN.2",
+   "operator": "CTN",
+   "line": 191,
+   "description": "negate the term 'latch_assert'",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || !(latch_assert)) Red_LED1 <= 1'b1;"
+  },
+  "c06695aef9#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.EDL.1",
+   "operator": "EDL",
+   "line": 191,
+   "description": "delete the else branch at line 191",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": ""
+  },
+  "36044ea35f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.LCR.1",
+   "operator": "LCR",
+   "line": 191,
+   "description": "|| -> &&",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state && latch_assert) Red_LED1 <= 1'b1;"
+  },
+  "201d12e85b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.SDL.1",
+   "operator": "SDL",
+   "line": 191,
+   "description": "delete 'Red_LED1 <= 1'b1;'",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_assert) ;"
+  },
+  "ac2539917e#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.SIB.1",
+   "operator": "SIB",
+   "line": 191,
+   "description": "latch_state -> otp_state",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (otp_state || latch_assert) Red_LED1 <= 1'b1;"
+  },
+  "ed8959d6de#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.SIB.2",
+   "operator": "SIB",
+   "line": 191,
+   "description": "latch_state -> uvlo_state",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (uvlo_state || latch_assert) Red_LED1 <= 1'b1;"
+  },
+  "dbe59446d3#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_solid_on_latch",
+     "killed_by": {
+      "assertions": [
+       "a_red1_solid_on_latch"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.191.SIB.3",
+   "operator": "SIB",
+   "line": 191,
+   "description": "latch_assert -> latch_state",
+   "before": "else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+   "after": "else if (latch_state || latch_state) Red_LED1 <= 1'b1;"
+  },
+  "9fc14e8fd1#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.CSK.1",
+   "operator": "CSK",
+   "line": 193,
+   "description": "if (strike_level != '0) -> if (1'b0): never taken",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (1'b0)          Red_LED1 <= blink;"
+  },
+  "387960fa53#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.CSK.2",
+   "operator": "CSK",
+   "line": 193,
+   "description": "if (strike_level != '0) -> if (1'b1): always taken",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (1'b1)          Red_LED1 <= blink;"
+  },
+  "0915d2d503#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.CST.1",
+   "operator": "CST",
+   "line": 193,
+   "description": "'0 -> '1",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '1)          Red_LED1 <= blink;"
+  },
+  "7dc4036b68#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "lint",
+     "detail": "make lint: UNUSEDSIGNAL"
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.EDL.1",
+   "operator": "EDL",
+   "line": 193,
+   "description": "delete the else branch at line 193",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": ""
+  },
+  "c111b78113#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean +1",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean",
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.ROR.1",
+   "operator": "ROR",
+   "line": 193,
+   "description": "!= -> ==",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level == '0)          Red_LED1 <= blink;"
+  },
+  "c464e37ff1#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.SDL.1",
+   "operator": "SDL",
+   "line": 193,
+   "description": "delete 'Red_LED1 <= blink;'",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          ;"
+  },
+  "2ef67bbee4#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.STK.1",
+   "operator": "STK",
+   "line": 193,
+   "description": "Red_LED1 stuck at all-zeros (was 'blink')",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= '0;"
+  },
+  "50fb5c1a1b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.STK.2",
+   "operator": "STK",
+   "line": 193,
+   "description": "Red_LED1 stuck at all-ones (was 'blink')",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= '1;"
+  },
+  "c22b494497#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_blinks_on_strikes",
+     "killed_by": {
+      "assertions": [
+       "a_red1_blinks_on_strikes"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.193.VNG.1",
+   "operator": "VNG",
+   "line": 193,
+   "description": "Red_LED1 inverted (was 'blink')",
+   "before": "else if (strike_level != '0)          Red_LED1 <= blink;",
+   "after": "else if (strike_level != '0)          Red_LED1 <= ~(blink);"
+  },
+  "fdf876a3ec#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red1_dark_when_clean",
+     "killed_by": {
+      "assertions": [
+       "a_red1_dark_when_clean"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.195.CST.1",
+   "operator": "CST",
+   "line": 195,
+   "description": "1'b0 -> 1'b1",
+   "before": "else                                  Red_LED1 <= 1'b0;",
+   "after": "else                                  Red_LED1 <= 1'b1;"
+  },
+  "adfe3ff03f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Deleting the clear at line 195 makes Red_LED1 hold its value, so it stays at 1 after the latch or strikes clear, while the original drives 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 14,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "Red_LED1 is never checked to go dark again: no test clears the strikes (or the latch) while Red_LED1 is lit and checks it falls on the next clock"
+    }
+   ],
+   "id": "fault_LED.195.SDL.1",
+   "operator": "SDL",
+   "line": 195,
+   "description": "delete 'Red_LED1 <= 1'b0;'",
+   "before": "else                                  Red_LED1 <= 1'b0;",
+   "after": "else                                  ;"
+  },
+  "495af01178#5": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.200.EDG.1",
+   "operator": "EDG",
+   "line": 200,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "a800f5c215#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset at line 209 disabled, Red_LED2 follows otp_state during reset (and at negedge rst_n) instead of being held at 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.209.CSK.1",
+   "operator": "CSK",
+   "line": 209,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+   "after": "if(1'b0) Red_LED2 <= 1'b0;"
+  },
+  "6e0f6a6f8d#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.209.CSK.2",
+   "operator": "CSK",
+   "line": 209,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+   "after": "if(1'b1) Red_LED2 <= 1'b0;"
+  },
+  "8366fd1642#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.209.CST.1",
+   "operator": "CST",
+   "line": 209,
+   "description": "1'b0 -> 1'b1",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+   "after": "if(!rst_n) Red_LED2 <= 1'b1;"
+  },
+  "c3686d9b5b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the reset assignment at line 209, Red_LED2 keeps its unknown or previous value through reset instead of 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.209.SDL.1",
+   "operator": "SDL",
+   "line": 209,
+   "description": "delete 'Red_LED2 <= 1'b0;'",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+   "after": "if(!rst_n) ;"
+  },
+  "90d1d45664#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.209.UOD.1",
+   "operator": "UOD",
+   "line": 209,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) Red_LED2 <= 1'b0;",
+   "after": "if(rst_n) Red_LED2 <= 1'b0;"
+  },
+  "13b70a9ce2#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.SDL.1",
+   "operator": "SDL",
+   "line": 210,
+   "description": "delete 'Red_LED2 <= otp_state;'",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       ;"
+  },
+  "5432f6673e#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.SIB.1",
+   "operator": "SIB",
+   "line": 210,
+   "description": "otp_state -> latch_state",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= latch_state;"
+  },
+  "71b1375246#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.SIB.2",
+   "operator": "SIB",
+   "line": 210,
+   "description": "otp_state -> uvlo_state",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= uvlo_state;"
+  },
+  "fa983cfc95#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.STK.1",
+   "operator": "STK",
+   "line": 210,
+   "description": "Red_LED2 stuck at all-zeros (was 'otp_state')",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= '0;"
+  },
+  "19067c9038#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.STK.2",
+   "operator": "STK",
+   "line": 210,
+   "description": "Red_LED2 stuck at all-ones (was 'otp_state')",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= '1;"
+  },
+  "4e1bf70231#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red2_follows_otp",
+     "killed_by": {
+      "assertions": [
+       "a_red2_follows_otp"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.210.VNG.1",
+   "operator": "VNG",
+   "line": 210,
+   "description": "Red_LED2 inverted (was 'otp_state')",
+   "before": "else       Red_LED2 <= otp_state;",
+   "after": "else       Red_LED2 <= ~(otp_state);"
+  },
+  "495af01178#6": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.215.EDG.1",
+   "operator": "EDG",
+   "line": 215,
+   "description": "posedge clk -> negedge clk",
+   "before": "always_ff @ (posedge clk or negedge rst_n) begin",
+   "after": "always_ff @ (negedge clk or negedge rst_n) begin"
+  },
+  "e657c31b76#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "With the reset at line 224 disabled, Red_LED3 follows uvlo_state during reset instead of being held at 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.224.CSK.1",
+   "operator": "CSK",
+   "line": 224,
+   "description": "if (!rst_n) -> if (1'b0): never taken",
+   "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+   "after": "if(1'b0) Red_LED3 <= 1'b0;"
+  },
+  "3f273c9d4c#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.224.CSK.2",
+   "operator": "CSK",
+   "line": 224,
+   "description": "if (!rst_n) -> if (1'b1): always taken",
+   "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+   "after": "if(1'b1) Red_LED3 <= 1'b0;"
+  },
+  "382cbb5c7f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_all_leds_dark_in_reset",
+     "killed_by": {
+      "assertions": [
+       "a_all_leds_dark_in_reset"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.224.CST.1",
+   "operator": "CST",
+   "line": 224,
+   "description": "1'b0 -> 1'b1",
+   "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+   "after": "if(!rst_n) Red_LED3 <= 1'b1;"
+  },
+  "26b3c33070#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "survived"
+    }
+   ],
+   "judgements": [
+    {
+     "run": 10,
+     "verdict": "plausible",
+     "confidence": "high",
+     "reason": "Without the reset assignment at line 224, Red_LED3 keeps its unknown or previous value through reset instead of 0."
+    }
+   ],
+   "decisions": [
+    {
+     "run": 11,
+     "date": "2026-11-27",
+     "decision": "gap",
+     "reason": "reset values of the blink timebase and the red LEDs untested: reset only at time zero, where a two-state simulator holds 0; needs a reset applied mid-run with the LEDs lit"
+    }
+   ],
+   "id": "fault_LED.224.SDL.1",
+   "operator": "SDL",
+   "line": 224,
+   "description": "delete 'Red_LED3 <= 1'b0;'",
+   "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+   "after": "if(!rst_n) ;"
+  },
+  "ba80209d03#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.224.UOD.1",
+   "operator": "UOD",
+   "line": 224,
+   "description": "drop the '!' before rst_n",
+   "before": "if(!rst_n) Red_LED3 <= 1'b0;",
+   "after": "if(rst_n) Red_LED3 <= 1'b0;"
+  },
+  "6f3d395a7b#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.SDL.1",
+   "operator": "SDL",
+   "line": 225,
+   "description": "delete 'Red_LED3 <= uvlo_state;'",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       ;"
+  },
+  "652f129e2f#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.SIB.1",
+   "operator": "SIB",
+   "line": 225,
+   "description": "uvlo_state -> latch_state",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= latch_state;"
+  },
+  "afb0d45162#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.SIB.2",
+   "operator": "SIB",
+   "line": 225,
+   "description": "uvlo_state -> otp_state",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= otp_state;"
+  },
+  "bfe4a20b32#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.STK.1",
+   "operator": "STK",
+   "line": 225,
+   "description": "Red_LED3 stuck at all-zeros (was 'uvlo_state')",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= '0;"
+  },
+  "e9829cf66c#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.STK.2",
+   "operator": "STK",
+   "line": 225,
+   "description": "Red_LED3 stuck at all-ones (was 'uvlo_state')",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= '1;"
+  },
+  "8ce3fd1ad8#1": {
+   "outcomes": [
+    {
+     "run": 9,
+     "status": "killed",
+     "detail": "assertion a_red3_follows_uvlo",
+     "killed_by": {
+      "assertions": [
+       "a_red3_follows_uvlo"
+      ],
+      "tests": [],
+      "checks": 0
+     }
+    }
+   ],
+   "judgements": [],
+   "decisions": [],
+   "id": "fault_LED.225.VNG.1",
+   "operator": "VNG",
+   "line": 225,
+   "description": "Red_LED3 inverted (was 'uvlo_state')",
+   "before": "else       Red_LED3 <= uvlo_state;",
+   "after": "else       Red_LED3 <= ~(uvlo_state);"
+  }
+ }
+}

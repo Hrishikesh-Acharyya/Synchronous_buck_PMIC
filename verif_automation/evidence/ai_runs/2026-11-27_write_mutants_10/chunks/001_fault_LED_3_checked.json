@@ -1,0 +1,81 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin"
+   ],
+   "after": [
+    "    else if (ss_active) begin",
+    "",
+    "        blink_counter <= '0;",
+    "",
+    "    end",
+    "",
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "Blink timebase is held in reset through every soft-start so the retry's pattern 'starts on a fresh period', which freezes the blink phase for the whole of S_SS",
+   "reason": "During a retry soft-start with strikes outstanding, Red_LED1 should keep blinking. With this fault it stays fixed at whatever phase blink had when S_SS was entered, and the blink resumes only once the converter reaches S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.104.AIM.38"
+ },
+ {
+  "proposal": {
+   "line": 111,
+   "before": [
+    "    else blink_counter <= blink_counter + 1'b1;"
+   ],
+   "after": [
+    "    else begin",
+    "",
+    "        blink_counter <= blink_counter + 1'b1;",
+    "        if (strike_level == '0) blink <= 1'b0;",
+    "",
+    "    end"
+   ],
+   "category": "reset_init",
+   "description": "Blink phase is cleared to dark while no strikes are outstanding, so the timebase is no longer a free-running square wave and the first strike always starts on a dark half",
+   "reason": "When strike_level first goes non-zero at a moment when the free-running blink would be high, the correct Red_LED1 lights at once. With the fault it stays dark until the next terminal count, and the first visible half-period is the wrong length."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.111.AIM.39"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state && !uvlo_state;"
+   ],
+   "category": "priority",
+   "description": "Over-temperature indicator is suppressed while input undervoltage is live, as if UVLO outranked OTP on the panel, when the two indicators are meant to be independent",
+   "reason": "When OTP and UVLO are both live, Red_LED2 should be lit beside Red_LED3. With the fault Red_LED2 stays dark until UVLO clears."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.40"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state || (Red_LED3 && !run_active);"
+   ],
+   "category": "other",
+   "description": "Undervoltage indicator is stretched until the converter is running again, as though the UVLO comparator needed stretching, instead of showing the live condition",
+   "reason": "After an input undervoltage clears, Red_LED3 should go dark on the next clock. With the fault it stays lit while the converter is in S_OFF and through soft-start, and goes dark only when run_active rises, or never if the converter does not restart."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.41"
+ }
+]

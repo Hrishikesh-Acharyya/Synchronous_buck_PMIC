@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0)          Red_LED1 <= (ss_active || run_active) ? 1'b1 : blink;"
+   ],
+   "category": "missing_case",
+   "description": "Outstanding strikes are shown solid while the converter is switching (the retry soft-start and the clean-run window) and blink only during the hiccup off-time, because the designer read 'working through a problem' as the hiccup itself",
+   "reason": "With strike_level non-zero and no latch, Red_LED1 stays lit solid through S_SS and the whole clean-run part of S_RUN instead of following blink. From the front panel this looks the same as a latched trip, although the board is recovering."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.74"
+ }
+]

@@ -1,0 +1,86 @@
+[
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if ((latch_state || latch_assert) && !(ss_active || run_active)) Red_LED1 <= 1'b1;"
+   ],
+   "category": "sequencing",
+   "description": "Latched-trip solid indication waits until the supervisor has left the switching states, as if a latch only counted once the converter had stopped, so the CPLD's own trip in S_SS/S_RUN is not shown solid at once",
+   "reason": "When latch_assert (or latch_state) rises while ss_active or run_active is still high, Red_LED1 shows the strike blink or stays dark instead of going solid on the next clock. It goes solid only after the supervisor leaves S_SS/S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.78"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active || pgood) && !currently_faulted;"
+   ],
+   "category": "wrong_event",
+   "description": "Running indication takes 'running' from the power-good comparator instead of run_active, mixing up 'output in regulation' with 'converter switching'",
+   "reason": "Green_LED stays lit in S_OFF or S_HICCUP for as long as pgood is still high (for example while the rail decays after a hiccup entry), and goes dark in S_RUN whenever pgood drops, though the converter is running with no fault."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state && !(ss_active || run_active);"
+   ],
+   "category": "missing_case",
+   "description": "Undervoltage indicator is shown only while the converter is not switching, as if input UVLO only mattered once it was holding the converter off",
+   "reason": "If uvlo_state rises while the supervisor is in S_SS or S_RUN, Red_LED3 stays dark until the supervisor leaves those states, though the header says it follows the input undervoltage condition."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.79"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active && !currently_faulted) || run_active;"
+   ],
+   "category": "missing_case",
+   "description": "Live-fault mask on Green is applied only during soft-start, because the designer stretched the window-trip argument ('a fault takes the supervisor out of S_RUN on the next edge') to cover every fault in S_RUN",
+   "reason": "When OTP, UVLO, latch_state or latch_assert goes live while run_active is high, Green_LED stays lit until the supervisor leaves S_RUN, instead of going dark on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.80"
+ },
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if (latch_state || latch_assert || otp_state) Red_LED1 <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature is treated as a terminal latched trip and lights Red_LED1 solid, as if a thermal shutdown always fired the SCR",
+   "reason": "While otp_state is live and no latch is set, Red_LED1 is lit solid instead of dark, or instead of blinking when strikes are outstanding. This hides the strike pattern and shows a non-latched OTP as a board that has given up."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.81"
+ }
+]

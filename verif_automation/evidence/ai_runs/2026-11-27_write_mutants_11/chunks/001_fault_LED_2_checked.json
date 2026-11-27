@@ -1,0 +1,90 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin"
+   ],
+   "after": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS/2-1)) begin"
+   ],
+   "category": "boundary",
+   "description": "The half-period is halved a second time (as if LED_BLINK_HALF_CLKS were the full period), so the blink square wave toggles every quarter of the intended period and runs at 8 Hz",
+   "reason": "While strike_level is non-zero and no latch is set, Red_LED1 toggles every LED_BLINK_HALF_CLKS/2 clocks instead of every LED_BLINK_HALF_CLKS clocks."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.104.AIM.46"
+ },
+ {
+  "proposal": {
+   "line": 111,
+   "before": [
+    "    else blink_counter <= blink_counter + 1'b1;"
+   ],
+   "after": [
+    "    else if (strike_level != '0) blink_counter <= blink_counter + 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "Blink timebase only advances while strikes are outstanding and is frozen (not cleared) otherwise, so it is no longer free-running and keeps its phase from one strike episode to the next",
+   "reason": "When strikes appear, the Red_LED1 blink starts from wherever the counter stopped (counter 0 after reset, or the remainder left by the previous episode), not at the free-running phase. Its edges come at different clocks from the intended design."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.111.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state && (ss_active || run_active);"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature indicator is shown only while the converter is soft-starting or running, so an OTP that holds the converter off in S_OFF or S_HICCUP leaves Red_LED2 dark",
+   "reason": "With otp_state high while neither ss_active nor run_active is set, which is the normal case during a thermal shutdown, Red_LED2 is 0 instead of 1."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.48"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(!rst_n) Red_LED2 <= 1'b0;",
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    if(!rst_n)           Red_LED2 <= 1'b0;",
+    "    else if (otp_state)  Red_LED2 <= 1'b1;",
+    "    else if (run_active) Red_LED2 <= 1'b0;"
+   ],
+   "category": "wrong_event",
+   "description": "Over-temperature indicator is cleared only when the converter is back in S_RUN, treating it as a thermal-shutdown history to keep until restart, instead of showing the live OTP condition",
+   "reason": "After otp_state falls while the converter is in S_OFF, S_HICCUP or S_SS, Red_LED2 stays lit until run_active rises, though the board is no longer too hot."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.209.AIM.49"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else if (uvlo_state) Red_LED3 <= 1'b1;"
+   ],
+   "category": "reset_init",
+   "description": "Undervoltage indicator is made a brown-out history bit, set by UVLO and cleared only by reset, instead of following the live input-undervoltage condition",
+   "reason": "After any uvlo_state pulse, Red_LED3 stays at 1 after the input recovers and until rst_n, instead of going back to 0 one clock after uvlo_state falls."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.50"
+ }
+]

@@ -1,0 +1,72 @@
+[
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted && ((strike_level == '0) || !blink);"
+   ],
+   "category": "other",
+   "description": "While strikes are outstanding, Green_LED flashes in antiphase with the Red_LED1 strike blink instead of staying solid, because the designer read 'show both' as 'alternate them'",
+   "reason": "During the clean-run window (strike_level non-zero, S_SS or S_RUN, no live fault), Green_LED goes dark on every lit half of the blink, where the header requires Green and Red_LED1 to be lit together."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.64"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= currently_faulted;"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature indicator is driven by the coarse any-fault summary instead of the OTP condition alone",
+   "reason": "When UVLO is live or the latch is set (latch_state or latch_assert) and OTP is not, Red_LED2 lights and reports over-temperature that is not there."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.65"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state || latch_state;"
+   ],
+   "category": "missing_case",
+   "description": "Undervoltage indicator is also lit by the SCR latch readback, as if a latched board had lost its input",
+   "reason": "When latch_state is set and input UVLO is not live, Red_LED3 lights next to the solid Red_LED1, which falsely reports input undervoltage."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.66"
+ },
+ {
+  "proposal": {
+   "line": 162,
+   "before": [
+    "    if(!rst_n) pgood_LED <= 1'b0;",
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    if(!rst_n) pgood_LED <= 1'b0;",
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) pgood_LED <= pgood;"
+   ],
+   "category": "wrong_event",
+   "description": "Power-good LED samples the comparator only at each blink half-period terminal count, to hide chatter, instead of following it on every clock",
+   "reason": "A change on pgood reaches pgood_LED up to LED_BLINK_HALF_CLKS clocks late, and a pgood pulse or dropout shorter than a half-period that falls between terminal counts never shows."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.67"
+ }
+]

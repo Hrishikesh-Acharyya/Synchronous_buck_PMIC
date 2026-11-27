@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 163,
+   "before": [
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    else       pgood_LED <= pgood || run_active;"
+   ],
+   "category": "other",
+   "description": "Power-good LED is also lit for the whole of S_RUN, on the belief that the supervisor only reaches S_RUN once the rail is in regulation, instead of following the comparator alone",
+   "reason": "With run_active high and pgood low (the rail drops out of regulation while the converter is in S_RUN), pgood_LED stays lit instead of going dark on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.59"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0)          Red_LED1 <= (ss_active || run_active) ? blink : 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "Outstanding strikes are shown solid while the converter is not switching (hiccup off-time, S_OFF) and blink only during the retry and run, so Red_LED1 looks like a latched trip during every hiccup",
+   "reason": "With strike_level non-zero, no latch, and ss_active and run_active both low (S_HICCUP), Red_LED1 stays solidly lit instead of following the blink square wave."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.60"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state && blink;"
+   ],
+   "category": "field",
+   "description": "Undervoltage indicator blinks with the strike timebase instead of being lit solid while input UVLO is live, the indicator map misremembered",
+   "reason": "While uvlo_state stays high for longer than one blink half-period, Red_LED3 turns off and on with the blink square wave instead of staying lit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.61"
+ }
+]

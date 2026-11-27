@@ -1,0 +1,125 @@
+[
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if ((strike_level != '0) && !pgood) Red_LED1 <= blink;"
+   ],
+   "category": "wrong_event",
+   "description": "Strike blink stops once the rail is back in regulation, as if power-good meant the strikes were resolved, instead of lasting until clean_run_target clears them",
+   "reason": "During the clean-run window after a hiccup (S_RUN, pgood high, strike_level non-zero, no latch), Red_LED1 goes dark when it should keep blinking until the strikes clear."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.31"
+ },
+ {
+  "proposal": {
+   "line": 163,
+   "before": [
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    else       pgood_LED <= pgood && (strike_level == '0);"
+   ],
+   "category": "missing_case",
+   "description": "Power-good LED is held off while strikes are outstanding, as if regulation did not count until the board had earned its clear",
+   "reason": "While recovering in S_RUN with pgood high and strike_level non-zero, pgood_LED stays low instead of following the comparator."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state && (ss_active || run_active);"
+   ],
+   "category": "missing_case",
+   "description": "Undervoltage indicator is shown only while the converter is soft-starting or running, so the case UVLO most often produces - a converter held off in S_OFF - is left dark",
+   "reason": "With uvlo_state high while the supervisor is in S_OFF (ss_active and run_active both low), Red_LED3 stays low instead of lighting."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state || !pgood;"
+   ],
+   "category": "other",
+   "description": "Undervoltage indicator is also lit by loss of output power-good, confusing input undervoltage with an output rail out of regulation",
+   "reason": "Whenever pgood is low with uvlo_state low (S_OFF, soft-start, hiccup), Red_LED3 lights although there is no input undervoltage."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active || run_active || (strike_level != '0)) && !currently_faulted;"
+   ],
+   "category": "missing_case",
+   "description": "Running indication treats outstanding strikes as an active state, so Green stays lit through the hiccup off-time instead of going dark in S_HICCUP",
+   "reason": "In S_HICCUP with strike_level non-zero and no OTP/UVLO/latch live, Green_LED is lit although the converter is not switching."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.35"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state && blink;"
+   ],
+   "category": "field",
+   "description": "Over-temperature indicator blinks with the strike timebase instead of being lit solid, the indicator map misremembered",
+   "reason": "While otp_state is held high, Red_LED2 goes low during every low half of the blink square wave instead of staying solid."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.36"
+ },
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;",
+    "",
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (latch_state)                 Red_LED1 <= 1'b1;",
+    "",
+    "    else if (latch_assert || (strike_level != '0)) Red_LED1 <= blink;"
+   ],
+   "category": "priority",
+   "description": "The CPLD's own trip into the latch is shown blinking until the SCR readback confirms it, instead of solid from the moment latch_assert rises",
+   "reason": "In the clocks where latch_assert is high but the debounced latch_state has not yet risen, Red_LED1 follows blink instead of being driven solid high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.37"
+ }
+]

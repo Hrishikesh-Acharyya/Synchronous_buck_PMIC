@@ -1,0 +1,86 @@
+[
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink_counter[BLINK_W-1];"
+   ],
+   "category": "field",
+   "description": "Strike blink is taken from the half-period counter's MSB instead of from the toggled blink square wave, so the pattern repeats every half-period with an uneven duty cycle",
+   "reason": "Whenever strikes are outstanding and no latch is present, Red_LED1 turns on and off at twice the intended rate and is lit for only part of each half-period (about 2.06 M of 6.25 M clocks at the default setting), instead of being a 50% square wave with period 2*LED_BLINK_HALF_CLKS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+    "",
+    "        blink_counter <= '0;",
+    "        blink         <= ~blink;",
+    "",
+    "    end",
+    "",
+    "    else blink_counter <= blink_counter + 1'b1;"
+   ],
+   "after": [
+    "    else if (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) begin",
+    "",
+    "        blink_counter <= '0;",
+    "",
+    "    end",
+    "",
+    "    else begin",
+    "        blink_counter <= blink_counter + 1'b1;",
+    "        if (blink_counter == '0) blink <= ~blink;",
+    "    end"
+   ],
+   "category": "sequencing",
+   "description": "Blink is toggled as the counter leaves zero, at the start of each half-period instead of at its terminal count, so the first half-period after reset lasts one clock",
+   "reason": "After reset the blink phase is shifted by LED_BLINK_HALF_CLKS-1 clocks: if strikes are outstanding, Red_LED1 lights one clock after reset instead of a full half-period later, and every later edge of the strike blink comes early by that amount."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.107.AIM.52"
+ },
+ {
+  "proposal": {
+   "line": 111,
+   "before": [
+    "    else blink_counter <= blink_counter + 1'b1;"
+   ],
+   "after": [
+    "    else if (ss_active || run_active) blink_counter <= blink_counter + 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "Blink timebase only counts while the converter is switching (S_SS or S_RUN), as if it shared the converter's enable, so it stops in S_OFF and S_HICCUP instead of running freely",
+   "reason": "During the hiccup off-time strikes are outstanding but the converter is not switching. The counter freezes, so Red_LED1 stays at its last blink level, solid on or dark, for the whole hiccup instead of blinking."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.111.AIM.53"
+ },
+ {
+  "proposal": {
+   "line": 163,
+   "before": [
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    else       pgood_LED <= pgood && !ss_active;"
+   ],
+   "category": "missing_case",
+   "description": "Power-good LED is held dark during soft-start, as if the comparator could not be trusted until the ramp finishes, instead of following it in every state",
+   "reason": "If the power-good comparator asserts while the supervisor is still in S_SS, pgood_LED stays dark until the converter enters S_RUN. It should light on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.163.AIM.54"
+ }
+]

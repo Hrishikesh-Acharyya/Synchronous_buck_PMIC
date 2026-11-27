@@ -1,0 +1,72 @@
+[
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if ((latch_state || latch_assert) && strike_level != '0) Red_LED1 <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "Latched-trip solid indication is shown only while strikes are outstanding, misreading 'after a latch strike_level stays non-zero' as 'every latch comes with strikes', so a latch tripped by the hardware OVP path with no hiccup history is not shown",
+   "reason": "When latch_state rises while strike_level is zero (an SCR trip from the external OVP comparator, not the strike counter), Red_LED1 stays dark instead of lit solid."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.55"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (run_active || (ss_active && blink)) && !currently_faulted;"
+   ],
+   "category": "other",
+   "description": "Green_LED blinks with the strike timebase during soft-start instead of being lit solid whenever the converter is switching unfaulted, the indicator map misremembered",
+   "reason": "With ss_active high, no live fault, and blink in its dark half, Green_LED goes dark where it should be lit; it toggles at the blink rate through every soft-start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.56"
+ },
+ {
+  "proposal": {
+   "line": 133,
+   "before": [
+    "    currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);"
+   ],
+   "after": [
+    "    currently_faulted = (otp_state || (uvlo_state && !ss_active) || latch_state || latch_assert);"
+   ],
+   "category": "missing_case",
+   "description": "Green's fault summary ignores input undervoltage during soft-start, treating an input sag under start-up inrush as expected rather than a live fault",
+   "reason": "With ss_active high and uvlo_state high (and no other fault), Green_LED stays lit instead of going dark; in the full design this shows as Green lit on the clock UVLO arrives in S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.133.AIM.57"
+ },
+ {
+  "proposal": {
+   "line": 162,
+   "before": [
+    "    if(!rst_n) pgood_LED <= 1'b0;",
+    "    else       pgood_LED <= pgood;"
+   ],
+   "after": [
+    "    if(!rst_n)                        pgood_LED <= 1'b0;",
+    "    else if (ss_active || run_active) pgood_LED <= pgood;"
+   ],
+   "category": "wrong_event",
+   "description": "Power-good LED samples the comparator only while the converter is switching and holds its last reading otherwise, as if the comparator were meaningless with the converter off, instead of following it in every state",
+   "reason": "If the converter leaves S_RUN (fault, hiccup or disable) with pgood high and pgood then falls, pgood_LED stays lit through S_OFF/S_HICCUP/S_LATCHED instead of going dark; likewise a pgood change while not switching is not shown."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.162.AIM.58"
+ }
+]

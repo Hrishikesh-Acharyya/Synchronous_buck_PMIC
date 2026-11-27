@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level != '0)          Red_LED1 <= (blink_counter == BLINK_W'(LED_BLINK_HALF_CLKS-1)) ? ~blink : blink;"
+   ],
+   "category": "sequencing",
+   "description": "The strike blink takes the blink wave's next value (it looks ahead at the half-period terminal count) to 'make up for' Red_LED1's register stage, so the displayed pattern runs one clock ahead of the blink timebase",
+   "reason": "While strikes are outstanding and no latch is set, every Red_LED1 edge comes one clock earlier than the registered blink square wave, and a strike that appears on the terminal-count clock shows the phase after the toggle. The lit and dark halves stay the right length, but they are shifted against the timebase."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.77"
+ }
+]

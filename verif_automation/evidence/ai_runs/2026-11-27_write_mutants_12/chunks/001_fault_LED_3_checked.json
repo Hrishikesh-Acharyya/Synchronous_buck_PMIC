@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 195,
+   "before": [
+    "    else                                  Red_LED1 <= 1'b0;"
+   ],
+   "after": [
+    "    else                                  Red_LED1 <= Red_LED1 && blink;"
+   ],
+   "category": "sequencing",
+   "description": "When strikes clear, Red_LED1 stays lit to the end of the current lit blink half-period, to 'finish the pattern cleanly', instead of going dark on the next clock",
+   "reason": "Suppose clean_run_target cycles clear strike_level while the blink is in its lit half. Red_LED1 then stays high for up to a whole half-period (125 ms) after strike_level reaches zero, when it should drop one clock later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.195.AIM.62"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= ((ss_active && (strike_level == '0)) || run_active) && !currently_faulted;"
+   ],
+   "category": "missing_case",
+   "description": "Running indication is held dark during a retry soft-start while strikes are outstanding, as if a retry were not yet 'running', though Green must be lit in S_SS and S_RUN whenever no fault is live",
+   "reason": "After a hiccup, the converter retries through S_SS with strike_level non-zero and no live fault. Green_LED stays dark for that whole soft-start and lights only on entry to S_RUN, when it should be lit for the whole retry soft-start too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.63"
+ }
+]

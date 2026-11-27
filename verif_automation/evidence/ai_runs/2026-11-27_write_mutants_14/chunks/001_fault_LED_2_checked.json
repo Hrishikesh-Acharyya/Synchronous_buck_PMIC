@@ -1,0 +1,38 @@
+[
+ {
+  "proposal": {
+   "line": 148,
+   "before": [
+    "    if(!rst_n) Green_LED <= 1'b0;",
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    if(!rst_n) Green_LED <= 1'b0;",
+    "    else if (ss_active || run_active) Green_LED <= !currently_faulted;"
+   ],
+   "category": "missing_case",
+   "description": "Green_LED is updated only while the converter is switching and keeps its last value in S_OFF, S_HICCUP and S_LATCHED, instead of going dark whenever the converter is not switching",
+   "reason": "A window trip is left out of currently_faulted, so it takes the supervisor from S_RUN to S_HICCUP while Green_LED is lit. With this fault Green_LED then stays lit through the whole hiccup off-time. It also stays lit in S_OFF after a fault-free shutdown."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.75"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level == STRIKE_W'(1)) Red_LED1 <= blink;"
+   ],
+   "category": "boundary",
+   "description": "Strike blink is shown only while exactly one strike is outstanding, as if strike_level were a single strike flag rather than a count",
+   "reason": "If a second hiccup happens before clean_run_target clears the strikes, strike_level reaches 2 or more. Red_LED1 then goes dark instead of blinking, while strikes are still outstanding and no latch is set."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.76"
+ }
+]

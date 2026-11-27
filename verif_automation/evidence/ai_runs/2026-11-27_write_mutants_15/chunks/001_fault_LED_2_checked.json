@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 191,
+   "before": [
+    "    else if (latch_state || latch_assert) Red_LED1 <= 1'b1;"
+   ],
+   "after": [
+    "    else if ((latch_state || latch_assert) && !otp_state) Red_LED1 <= 1'b1;"
+   ],
+   "category": "priority",
+   "description": "The latched-trip solid indication gives way to a live over-temperature, as if a thermal latch were already explained by Red_LED2, so Red_LED1 is not solid while OTP is live",
+   "reason": "With the latch set (latch_state or latch_assert) and otp_state high, Red_LED1 falls to the strike branch. It blinks if strikes are outstanding and is dark if none are, where it should be solid. It becomes solid only once the board cools."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.191.AIM.82"
+ },
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= (ss_active || (run_active && Green_LED)) && !currently_faulted;"
+   ],
+   "category": "reset_init",
+   "description": "Green_LED, once dark in S_RUN, is relit only by a new soft-start, as if 'running unfaulted' meant 'unfaulted since the last start' instead of 'no fault live now'",
+   "reason": "If a live fault (OTP, UVLO or latch) rises and clears while run_active stays high, Green_LED should relight on the next clock but stays dark until ss_active is asserted again. Green_LED also never lights if run_active is asserted without a soft-start first."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.83"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state || (Red_LED2 && latch_state);"
+   ],
+   "category": "field",
+   "description": "Over-temperature indicator is held lit after the board cools for as long as the SCR readback is set, to keep a thermal latch's cause on the panel, which mixes up the fault_cause history with the live condition",
+   "reason": "After OTP rises and then clears while latch_state is high, Red_LED2 stays lit until latch_state drops. It should go dark on the clock after otp_state falls."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.84"
+ }
+]

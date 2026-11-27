@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 133,
+   "before": [
+    "    currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);"
+   ],
+   "after": [
+    "    currently_faulted = (Red_LED2 || Red_LED3 || latch_state || latch_assert);"
+   ],
+   "category": "sequencing",
+   "description": "Green's fault summary reads the registered over-temperature and undervoltage indicators instead of the live OTP/UVLO conditions, so it uses values one clock old",
+   "reason": "When otp_state or uvlo_state rises while the converter is running, Green_LED stays lit one clock longer than it should. When the condition clears, Green_LED comes back one clock late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.133.AIM.20"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if (strike_level > STRIKE_W'(1)) Red_LED1 <= blink;"
+   ],
+   "category": "boundary",
+   "description": "Strike blink starts only from the second outstanding strike, as if strike_level counted from one hiccup before the first",
+   "reason": "With strike_level == 1 (after the first hiccup, through the retry and the clean-run window) and no latch, Red_LED1 stays dark instead of blinking."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.21"
+ },
+ {
+  "proposal": {
+   "line": 193,
+   "before": [
+    "    else if (strike_level != '0)          Red_LED1 <= blink;"
+   ],
+   "after": [
+    "    else if ((strike_level != '0) || ss_active) Red_LED1 <= blink;"
+   ],
+   "category": "wrong_event",
+   "description": "Strike blink is also shown during every soft-start, treating a normal start-up like recovery from a fault",
+   "reason": "On a clean power-up with strike_level == 0 and ss_active high, Red_LED1 blinks for the whole soft-start when it should stay dark."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.193.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state || latch_state;"
+   ],
+   "category": "other",
+   "description": "Over-temperature indicator is also lit by the SCR latch readback, as if every latched trip were thermal",
+   "reason": "After a non-thermal trip (latch_state high, otp_state low), Red_LED2 lights and reports an over-temperature that is not there."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.23"
+ },
+ {
+  "proposal": {
+   "line": 225,
+   "before": [
+    "    else       Red_LED3 <= uvlo_state;"
+   ],
+   "after": [
+    "    else       Red_LED3 <= uvlo_state && !(latch_state || latch_assert);"
+   ],
+   "category": "priority",
+   "description": "Undervoltage indicator is suppressed while the latch is set, as if the latched-trip display outranked it the way it outranks the strike blink",
+   "reason": "With uvlo_state live while latch_state or latch_assert is high, Red_LED3 stays dark, though the header says each red indicator must show its own condition."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.225.AIM.24"
+ }
+]

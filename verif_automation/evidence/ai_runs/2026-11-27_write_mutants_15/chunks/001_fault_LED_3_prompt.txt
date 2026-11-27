@@ -1,0 +1,242 @@
+# Task: write mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small fault put into it on
+purpose. Each mutant is then simulated against the module's testbench: if the
+testbench still passes, the behaviour that fault broke is not being checked.
+
+A program already makes the mechanical mutants - one operator swapped, one
+constant changed, one statement deleted (the list is below). It cannot make a
+fault that needs an understanding of what the module is for. Those are yours
+to write.
+
+## What you are given
+
+- This file.
+- The name of **one module** and its file, and how many mutants are asked
+  for.
+- The mechanical operators, so that you do not repeat them.
+- The mutants already written for this module, and the proposals a program
+  has already refused (with the check each failed), so that you do not repeat
+  those either.
+- Read access to the RTL in `rtl-systemverilog/` and to the project's
+  documents. Read the module's own file in full first - its header states
+  what it must do, and every block has a Purpose comment. Read
+  `pkg/pmic_types_pkg.sv` for constants and types, and the modules that
+  drive or read this one when a fault's effect depends on them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to: you return the mutants as data, and a program checks and
+stores them. The testbenches and checkers are deliberately not readable. A
+mutant is a fault a designer could have made, written from the design alone -
+not one aimed at what the tests happen to miss.
+
+## What a good mutant is
+
+A fault that:
+
+1. **a designer could really have made** while writing or changing this
+   module - a rule misremembered, one case forgotten, an event confused with
+   a similar one;
+2. **changes what the module does at its ports**, in some state it can
+   reach, for some input sequence its header allows - say which, in `reason`;
+3. **needs the design's meaning to write**. If one mechanical operator on
+   one token makes the same fault, do not write it;
+4. is still **legal code that lint accepts**: every signal still driven and
+   still used, no width changed, no latch made.
+
+Kinds of fault to look for - use these as `category`:
+
+| Category | The fault |
+|---|---|
+| `wrong_event` | something is captured, counted or cleared on the wrong event, or in the wrong state: a snapshot taken at the end of a transaction instead of its start, a counter cleared on entry instead of exit |
+| `missing_case` | a rule that forgets one state, one address, one mode or one source: a write-reject rule that lets one register through, a fault source left out of a summary bit |
+| `priority` | two conditions answered in the wrong order: an `if` / `else if` chain reordered, a later assignment that should lose winning |
+| `boundary` | a limit wrong for one case only: saturating one count early, wrapping instead of saturating, a threshold compared with the wrong one of two limits |
+| `protocol` | the serial interface's framing: bit order, which clock phase a bit is taken on, the bit or byte count that ends a field, what an aborted transaction leaves behind |
+| `field` | a register's contents mapped wrongly: bytes of a multi-byte value in the wrong order, a field read from the live value instead of the snapshot, a read-only bit made writable |
+| `sequencing` | right value, wrong clock: a flag raised one clock early or late, a stale value used, a handshake that does not wait |
+| `reset_init` | state that is not put back: a register missing from one of several clear conditions, a value that survives a re-entry it should not |
+| `other` | a design-aware fault that fits none of these |
+
+## What not to write
+
+- An edit that only changes a comment, spacing or a name.
+- An edit to the module's ports, its header parameters, or the width of any
+  declaration.
+- An edit that leaves a signal undriven or unused, or assigns a signal from
+  two blocks - lint rejects those before any test runs. Lint also rejects a
+  flop whose asynchronous reset is made synchronous, or dropped from its
+  sensitivity list.
+- An edit that one mechanical operator already makes, in any spelling. In
+  particular: replacing the whole value of one assignment by a constant 0 or
+  1 is STK, and inverting it is VNG - `x <= 1'b0` in place of `x <= y` is
+  STK's mutant even though STK writes it `'0`.
+- A different circuit. Replacing a synchroniser by an edge detector, a
+  latch or a filter is not a slip a designer makes while writing a
+  synchroniser; it is another design.
+- Two mutants that are the same fault written twice.
+- A fault that cannot change anything at the ports. If you cannot say what
+  changes and when, leave it out.
+
+## The form of a mutant
+
+One mutant is **one edit to one place**: some consecutive whole lines of the
+file replaced by other lines.
+
+- `line` - the number of the first line you replace, as the Read tool shows
+  it.
+- `before` - those lines, copied exactly from the file, one string per line,
+  in order. Whole lines. At most 12.
+- `after` - the lines that take their place. At most 16. Keep the house
+  layout: `begin` / `end` on every block, the same indentation as the lines
+  around it.
+- Change as little as the fault needs: at most 6 lines may differ between
+  `before` and `after`. Lines you include only for context must be identical
+  in both.
+- `description` - one line saying what the fault is, in the design's terms:
+  "FCOUNT_RUN is cleared by a write to FCOUNT_SS", not "changed line 512".
+- `reason` - one or two sentences: which behaviour at the ports changes, and
+  in which situation.
+
+## Rules
+
+1. Write the number of mutants asked for if the module has that many
+   distinct design-aware faults in it. A small module may not: fewer good
+   mutants are better than the number made up with weak ones.
+2. Spread them over the module - every block that holds a decision, not
+   five variations on one line.
+3. Each mutant stands alone: it is applied to the unmodified file, never on
+   top of another.
+4. Judge the module with the parameter values this design uses (the defaults
+   in its header and the package).
+5. Do not explain or summarise outside the structured answer.
+
+## The module
+
+`fault_LED`, in `rtl-systemverilog/status/fault_LED.sv`. Write up to 10 mutants.
+
+## The mechanical operators
+
+These are already made for this module (138 mutants). Do not write an edit that one of them makes.
+
+- ROR: relational: boundary (< <-> <=, > <-> >=), direction (< <-> >, <= <-> >=), equality (== <-> !=)
+- LCR: logical connective: && <-> ||, binary & <-> |, binary ^ -> |
+- CTD: a term dropped from a condition: a && b -> a, and -> b (also ||, and binary & and |)
+- CTN: a term of a condition negated: a && b -> !a && b, and a && !b (a polarity mix-up)
+- AOR: arithmetic: binary + <-> -
+- SHF: shift direction: << <-> >>
+- CND: negate an if condition: if (c) -> if (!(c))
+- CSK: an if condition stuck: if (c) -> if (1'b1), and -> if (1'b0)
+- UOD: drop a unary negation: !x -> x, ~x -> x
+- RDX: reduction swapped: &x <-> |x (all bits set <-> any bit set)
+- TRN: swap the branches of a ?: - c ? a : b -> c ? b : a
+- CST: constant: 1'b0 <-> 1'b1, '0 <-> '1, any other integer literal +1 and -1
+- ENM: an enum constant replaced by the next member of its enum (an FSM state, say)
+- DLY: a signal swapped with its one-clock-delayed copy: x <-> x_d
+- BSL: wrong bit or field: a constant select moved by one - x[3] -> x[2], x[6:4] -> x[7:5]
+- CIS: the labels of two adjacent case items swapped
+- CID: one case item deleted, so its value takes the default branch (a forgotten decode)
+- CCS: the first two elements of a concatenation swapped: {a, b} -> {b, a}
+- SIB: a signal swapped with a sibling of the same type whose name differs in one part: temp_0 <-> temp_1, trip_run <-> trip_ss (a copy-paste slip)
+- STK: an assignment's value stuck at all-zeros, and at all-ones
+- VNG: an assignment's value inverted: x <= y -> x <= ~(y)
+- EDG: a flop clocked on the other edge: posedge clk <-> negedge clk
+- BDL: a whole multi-statement block emptied (the body of an if, or of a case item)
+- SDL: delete one procedural assignment statement
+- EDL: delete an else branch
+- ICS: wrong wire: two same-type inputs, or two same-type outputs, of one instance swapped, or the same input of two instances of one module swapped
+
+## Mutants already written for this module
+
+- line 111: Blink timebase is held in reset while no strikes are outstanding, so it is started by the first strike instead of running freely
+- line 104: Blink counter is not reloaded at the half-period terminal count and wraps at 2^BLINK_W, so only the first half-period is the right length
+- line 133: Loss of power-good is treated as a live fault, which puts out the running indicator
+- line 149: Green LED is turned off while strikes are outstanding, against the rule that Green and Red_LED1 are both lit during the clean-run window
+- line 191: Strike blink outranks the latched-trip solid indication
+- line 193: Strike blink is shown only while the converter is not switching, not for the whole time strikes are outstanding
+- line 195: Red_LED1 holds its last value when neither a latch nor strikes are present, instead of being cleared
+- line 210: Over-temperature indicator is made sticky until reset, like a fault_cause history bit, instead of showing the live condition
+- line 225: Undervoltage indicator is chained after over-temperature and suppressed while OTP is live, instead of being independent
+- line 163: Power-good LED is gated by run_active, so it ignores the comparator in every state except S_RUN
+- line 104: Blink terminal count is taken from the full blink period instead of the half-period, so each half of the square wave lasts the whole period
+- line 104: Blink counter is reloaded to 1 instead of 0 at the half-period terminal count, so every half-period after the first is one clock short
+- line 191: Red_LED1 solid indication is driven by any live fault instead of only a latched trip
+- line 191: Strike level at its maximum is treated as a latched trip and shown solid instead of blinking
+- line 193: Strike blink is suppressed while an OTP or UVLO fault is live, though strikes are still outstanding
+- line 149: Running indication additionally requires power-good, conflating 'switching' with 'in regulation', so Green stays dark through soft-start
+- line 163: Power-good LED is masked by any live fault instead of following the comparator directly
+- line 210: Over-temperature indicator is shown only once the converter has left S_RUN, not for the whole time OTP is live
+- line 225: Undervoltage indicator is driven by the coarse any-fault summary instead of the UVLO condition alone
+- line 133: Green's fault summary reads the registered over-temperature and undervoltage indicators instead of the live OTP/UVLO conditions, so it uses values one clock old
+- line 193: Strike blink starts only from the second outstanding strike, as if strike_level counted from one hiccup before the first
+- line 193: Strike blink is also shown during every soft-start, treating a normal start-up like recovery from a fault
+- line 210: Over-temperature indicator is also lit by the SCR latch readback, as if every latched trip were thermal
+- line 225: Undervoltage indicator is suppressed while the latch is set, as if the latched-trip display outranked it the way it outranks the strike blink
+- line 191: Red_LED1 patterns swapped: a latched trip blinks and outstanding strikes show solid, the indicator map misremembered
+- line 133: Green's fault summary takes the latch term from the Red_LED1 indicator instead of the live latch_state/latch_assert inputs
+- line 225: Undervoltage indicator is masked during soft-start, as if an input sag during start-up inrush were expected and not worth showing
+- line 163: Power-good LED latches on once regulation is first reached and is cleared only by reset, instead of following the comparator
+- line 104: Blink is made a one-clock tick at each half-period terminal count instead of a square wave toggled there
+- line 193: Strike blink is shown only while the converter is switching, so Red_LED1 goes dark during the hiccup off-time though strikes are outstanding
+- line 193: Strike blink stops once the rail is back in regulation, as if power-good meant the strikes were resolved, instead of lasting until clean_run_target clears them
+- line 163: Power-good LED is held off while strikes are outstanding, as if regulation did not count until the board had earned its clear
+- line 225: Undervoltage indicator is shown only while the converter is soft-starting or running, so the case UVLO most often produces - a converter held off in S_OFF - is left dark
+- line 225: Undervoltage indicator is also lit by loss of output power-good, confusing input undervoltage with an output rail out of regulation
+- line 149: Running indication treats outstanding strikes as an active state, so Green stays lit through the hiccup off-time instead of going dark in S_HICCUP
+- line 210: Over-temperature indicator blinks with the strike timebase instead of being lit solid, the indicator map misremembered
+- line 191: The CPLD's own trip into the latch is shown blinking until the SCR readback confirms it, instead of solid from the moment latch_assert rises
+- line 104: Blink timebase is held in reset through every soft-start so the retry's pattern 'starts on a fresh period', which freezes the blink phase for the whole of S_SS
+- line 111: Blink phase is cleared to dark while no strikes are outstanding, so the timebase is no longer a free-running square wave and the first strike always starts on a dark half
+- line 210: Over-temperature indicator is suppressed while input undervoltage is live, as if UVLO outranked OTP on the panel, when the two indicators are meant to be independent
+- line 225: Undervoltage indicator is stretched until the converter is running again, as though the UVLO comparator needed stretching, instead of showing the live condition
+- line 149: Parentheses lost around the active-state term, so the live-fault mask applies only to S_RUN and Green stays lit through soft-start whatever fault is live
+- line 133: Green's fault summary leaves out OTP and UVLO, misapplying the window-trip argument that the supervisor leaves S_RUN on its own
+- line 133: Green's fault summary leaves out the latch terms, as if Red_LED1 showing the latch made masking Green unnecessary
+- line 210: Over-temperature indicator is suppressed while the latch is set, as if the latched-trip display outranked every other red indicator
+- line 104: The half-period is halved a second time (as if LED_BLINK_HALF_CLKS were the full period), so the blink square wave toggles every quarter of the intended period and runs at 8 Hz
+- line 111: Blink timebase only advances while strikes are outstanding and is frozen (not cleared) otherwise, so it is no longer free-running and keeps its phase from one strike episode to the next
+- line 210: Over-temperature indicator is shown only while the converter is soft-starting or running, so an OTP that holds the converter off in S_OFF or S_HICCUP leaves Red_LED2 dark
+- line 209: Over-temperature indicator is cleared only when the converter is back in S_RUN, treating it as a thermal-shutdown history to keep until restart, instead of showing the live OTP condition
+- line 225: Undervoltage indicator is made a brown-out history bit, set by UVLO and cleared only by reset, instead of following the live input-undervoltage condition
+- line 193: Strike blink is taken from the half-period counter's MSB instead of from the toggled blink square wave, so the pattern repeats every half-period with an uneven duty cycle
+- line 104: Blink is toggled as the counter leaves zero, at the start of each half-period instead of at its terminal count, so the first half-period after reset lasts one clock
+- line 111: Blink timebase only counts while the converter is switching (S_SS or S_RUN), as if it shared the converter's enable, so it stops in S_OFF and S_HICCUP instead of running freely
+- line 163: Power-good LED is held dark during soft-start, as if the comparator could not be trusted until the ramp finishes, instead of following it in every state
+- line 191: Latched-trip solid indication is shown only while strikes are outstanding, misreading 'after a latch strike_level stays non-zero' as 'every latch comes with strikes', so a latch tripped by the hardware OVP path with no hiccup history is not shown
+- line 149: Green_LED blinks with the strike timebase during soft-start instead of being lit solid whenever the converter is switching unfaulted, the indicator map misremembered
+- line 133: Green's fault summary ignores input undervoltage during soft-start, treating an input sag under start-up inrush as expected rather than a live fault
+- line 162: Power-good LED samples the comparator only while the converter is switching and holds its last reading otherwise, as if the comparator were meaningless with the converter off, instead of following it in every state
+- line 163: Power-good LED is also lit for the whole of S_RUN, on the belief that the supervisor only reaches S_RUN once the rail is in regulation, instead of following the comparator alone
+- line 193: Outstanding strikes are shown solid while the converter is not switching (hiccup off-time, S_OFF) and blink only during the retry and run, so Red_LED1 looks like a latched trip during every hiccup
+- line 225: Undervoltage indicator blinks with the strike timebase instead of being lit solid while input UVLO is live, the indicator map misremembered
+- line 195: When strikes clear, Red_LED1 stays lit to the end of the current lit blink half-period, to 'finish the pattern cleanly', instead of going dark on the next clock
+- line 149: Running indication is held dark during a retry soft-start while strikes are outstanding, as if a retry were not yet 'running', though Green must be lit in S_SS and S_RUN whenever no fault is live
+- line 149: While strikes are outstanding, Green_LED flashes in antiphase with the Red_LED1 strike blink instead of staying solid, because the designer read 'show both' as 'alternate them'
+- line 210: Over-temperature indicator is driven by the coarse any-fault summary instead of the OTP condition alone
+- line 225: Undervoltage indicator is also lit by the SCR latch readback, as if a latched board had lost its input
+- line 162: Power-good LED samples the comparator only at each blink half-period terminal count, to hide chatter, instead of following it on every clock
+- line 193: Strike blink stops as soon as the supervisor re-enters S_RUN, as if a successful retry ended the strikes, instead of lasting through the clean-run window until clean_run_target clears strike_level
+- line 225: Undervoltage indicator is suppressed while the output is in regulation, as if an input UVLO with the rail still good had to be a comparator glitch
+- line 191: Latched-trip solid indication is made sticky until reset (the SCR 'cannot be un-tripped'), so once Red_LED1 is lit with no strikes outstanding it never clears from the latch inputs
+- line 209: Over-temperature indicator is updated only at each blink half-period terminal count, to keep it in step with the panel blink, instead of following the live OTP condition on every clock
+- line 162: Power-good LED is held dark while the latch is set or being asserted, as if a board that has given up could not be in regulation, instead of following the comparator straight through
+- line 111: Blink timebase is frozen while the latch is set, on the reasoning that the solid latched indication masks the blink anyway, so it no longer runs freely
+- line 193: Outstanding strikes are shown solid while the converter is switching (the retry soft-start and the clean-run window) and blink only during the hiccup off-time, because the designer read 'working through a problem' as the hiccup itself
+- line 148: Green_LED is updated only while the converter is switching and keeps its last value in S_OFF, S_HICCUP and S_LATCHED, instead of going dark whenever the converter is not switching
+- line 193: Strike blink is shown only while exactly one strike is outstanding, as if strike_level were a single strike flag rather than a count
+- line 193: The strike blink takes the blink wave's next value (it looks ahead at the half-period terminal count) to 'make up for' Red_LED1's register stage, so the displayed pattern runs one clock ahead of the blink timebase
+- line 191: Latched-trip solid indication waits until the supervisor has left the switching states, as if a latch only counted once the converter had stopped, so the CPLD's own trip in S_SS/S_RUN is not shown solid at once
+- line 225: Undervoltage indicator is shown only while the converter is not switching, as if input UVLO only mattered once it was holding the converter off
+- line 149: Live-fault mask on Green is applied only during soft-start, because the designer stretched the window-trip argument ('a fault takes the supervisor out of S_RUN on the next edge') to cover every fault in S_RUN
+- line 191: Over-temperature is treated as a terminal latched trip and lights Red_LED1 solid, as if a thermal shutdown always fired the SCR
+- line 191: The latched-trip solid indication gives way to a live over-temperature, as if a thermal latch were already explained by Red_LED2, so Red_LED1 is not solid while OTP is live
+- line 149: Green_LED, once dark in S_RUN, is relit only by a new soft-start, as if 'running unfaulted' meant 'unfaulted since the last start' instead of 'no fault live now'
+- line 210: Over-temperature indicator is held lit after the board cools for as long as the SCR readback is set, to keep a thermal latch's cause on the panel, which mixes up the fault_cause history with the live condition
+
+## Proposals already refused for this module
+
+Do not write these again, in any wording. If the design-aware faults left are all of a kind that is refused, return fewer mutants.
+
+- Outstanding strikes are detected from the LSB of strike_level alone, so a level of 2 counts as no strikes - refused: make lint already catches it: make lint: UNUSEDSIGNAL
+- Running indication takes 'running' from the power-good comparator instead of run_active, mixing up 'output in regulation' with 'converter switching' - refused: make lint already catches it: make lint: UNUSEDSIGNAL

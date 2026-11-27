@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 149,
+   "before": [
+    "    else       Green_LED <= (ss_active || run_active) && !currently_faulted;"
+   ],
+   "after": [
+    "    else       Green_LED <= ss_active || run_active && !currently_faulted;"
+   ],
+   "category": "priority",
+   "description": "Parentheses lost around the active-state term, so the live-fault mask applies only to S_RUN and Green stays lit through soft-start whatever fault is live",
+   "reason": "If OTP, UVLO or a latch trip goes live while the supervisor is in S_SS, Green_LED stays lit on the next clock instead of going dark. In the fault-free design it is dark."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.149.AIM.42"
+ },
+ {
+  "proposal": {
+   "line": 133,
+   "before": [
+    "    currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);"
+   ],
+   "after": [
+    "    currently_faulted = (latch_state || latch_assert);"
+   ],
+   "category": "missing_case",
+   "description": "Green's fault summary leaves out OTP and UVLO, misapplying the window-trip argument that the supervisor leaves S_RUN on its own",
+   "reason": "When otp_state or uvlo_state rises while the converter is in S_SS or S_RUN, Green_LED stays lit until the supervisor actually leaves the active state. It should go dark on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.133.AIM.43"
+ },
+ {
+  "proposal": {
+   "line": 133,
+   "before": [
+    "    currently_faulted = (otp_state || uvlo_state || latch_state || latch_assert);"
+   ],
+   "after": [
+    "    currently_faulted = (otp_state || uvlo_state);"
+   ],
+   "category": "missing_case",
+   "description": "Green's fault summary leaves out the latch terms, as if Red_LED1 showing the latch made masking Green unnecessary",
+   "reason": "When latch_assert or latch_state rises while ss_active or run_active is still high, Green_LED stays lit together with a solid Red_LED1. The design blanks Green on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.133.AIM.44"
+ },
+ {
+  "proposal": {
+   "line": 210,
+   "before": [
+    "    else       Red_LED2 <= otp_state;"
+   ],
+   "after": [
+    "    else       Red_LED2 <= otp_state && !(latch_state || latch_assert);"
+   ],
+   "category": "priority",
+   "description": "Over-temperature indicator is suppressed while the latch is set, as if the latched-trip display outranked every other red indicator",
+   "reason": "When the board is over temperature after a latched trip (or while latch_assert is high), Red_LED2 is dark instead of following otp_state, so the cause of a thermal latch-up is hidden on the panel."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_LED.210.AIM.45"
+ }
+]
