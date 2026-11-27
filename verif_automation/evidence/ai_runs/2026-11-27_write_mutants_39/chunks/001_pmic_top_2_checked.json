@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 271,
+   "before": [
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "                        .window_trip(window_trip_SS),"
+   ],
+   "category": "missing_case",
+   "description": "Supervisor's S_RUN overcurrent exit is wired to the soft-start window trip window_trip_SS, so a RUN window trip never sends the FSM from S_RUN to S_HICCUP",
+   "reason": "fault_arbiter only raises window_trip_SS in S_SS. With this fault, sustained overcurrent on CP_trig in S_RUN leaves En high and the converter in S_RUN with no hiccup, no strike and no latch_out, where the real design drops En and starts a hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.271.AIM.70"
+ },
+ {
+  "proposal": {
+   "line": 264,
+   "before": [
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "                        .SS_done(SS_done & PGOOD_comp_sync),"
+   ],
+   "category": "other",
+   "description": "Supervisor leaves soft start only when the ramp is done and the output comparator also reports the rail in window, as if 'soft start finished' meant 'output is up'",
+   "reason": "If PGOOD_comp is low when soft_start raises SS_done, the FSM stays in S_SS instead of moving to S_RUN. PGOOD and switch_supply never assert, and the RUN overcurrent window is never armed, until the comparator goes high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.264.AIM.71"
+ },
+ {
+  "proposal": {
+   "line": 436,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(PGOOD),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_cause's capture gate takes the qualified PGOOD as 'running' instead of run_active, so a fault in S_RUN before PGOOD has qualified, or during a rail dip, is not logged",
+   "reason": "Say OTP, UVLO or a latch trip shuts the converter down from S_RUN within PGOOD_DELAY_CYCLES of entering it, or while PGOOD_comp is low. The fault-cause register (0x1D) and fault_time then stay empty when the host reads them, where the real design records the cause."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.436.AIM.72"
+ },
+ {
+  "proposal": {
+   "line": 398,
+   "before": [
+    "                          .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                          .timestamp_ms(fault_time),"
+   ],
+   "category": "field",
+   "description": "reg_file's live TIME registers are fed fault_cause's episode-start snapshot fault_time instead of the free-running timestamp_ms",
+   "reason": "A host read of TIME_0..TIME_2 (0x18-0x1A) returns zero when no fault is logged, or the frozen episode start time after one, instead of a millisecond count that keeps advancing."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.398.AIM.73"
+ },
+ {
+  "proposal": {
+   "line": 431,
+   "before": [
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                                .latch_state(latch_stat_sync),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause infers OVP from the synchronised but undebounced SCR read-back instead of the debounced copy the supervisor and LEDs act on",
+   "reason": "While the converter is in S_SS or S_RUN, a latch_stat pulse shorter than the 1 ms debounce sets the OVP bit and fault_time in the fault-cause register. The supervisor ignores the same pulse and does not shut down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.431.AIM.74"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.RESET_VALUE(1'b0)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "category": "reset_init",
+   "description": "OTP debouncer is given the enable's fail-safe-low reset value, so over-temperature reads clear out of reset while its synchroniser resets high",
+   "reason": "After reset with OTP_trig low, Red_LED2 and the OTP status bit read low at once, where the real design holds them high for the 200 us release time. If OTP_trig is high at reset, the hot condition is not reported for the first 1 ms."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.138.AIM.75"
+ }
+]

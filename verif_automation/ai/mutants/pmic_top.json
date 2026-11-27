@@ -1,0 +1,1455 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 267,
+   "category": "other",
+   "description": "Supervisor's latch read-back is wired to the CPLD's own trip drive latch_out instead of the debounced SCR read-back latch_stat_sync_db",
+   "reason": "When the analog side fires the shared SCR latch (latch_stat high, e.g. OVP) while strike_counter has not asserted latch_out, En stays high and the FSM keeps running instead of going to S_OFF.",
+   "before": [
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_out),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 2,
+   "line": 269,
+   "category": "other",
+   "description": "Supervisor's OTP input takes the synchronised but undebounced OTP flag, bypassing input_debounce",
+   "reason": "An OTP_trig pulse shorter than the 1 ms assert qualification drops En and forces S_OFF at once, and a real OTP shuts down about 1 ms earlier than the debounced design does.",
+   "before": [
+    "                        .OTP(OTP_sync_db),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 3,
+   "line": 491,
+   "category": "other",
+   "description": "fault_LED's UVLO indication is fed from the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on",
+   "reason": "Red_LED3 lights for UVLO_trig glitches shorter than the debounce time, and follows a real UVLO without the 1 ms / 200 us delay, so the LED disagrees with what the supervisor is acting on.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 4,
+   "line": 254,
+   "category": "wrong_event",
+   "description": "The switch edge detector fires on the falling edge of the debounced switch (release) instead of the rising edge (press)",
+   "reason": "After the host clears spi_enable over SPI, pressing the switch no longer re-asserts spi_enable, so the converter stays off; spi_enable is re-armed on the switch release instead.",
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = en_from_switch_sync_db_d & ~en_from_switch_sync_db;"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 5,
+   "line": 526,
+   "category": "other",
+   "description": "switch_supply follows the raw synchronised output comparator instead of the qualified PGOOD from pgood_gen",
+   "reason": "The housekeeping rail changes over as soon as PGOOD_comp is high, including in S_OFF/S_SS and before the 9 ms in-regulation qualification, so switch_supply and PGOOD differ.",
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = PGOOD_comp_sync;"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 6,
+   "line": 499,
+   "category": "other",
+   "description": "fault_LED's power-good input is wired to the synchronised comparator instead of the qualified PGOOD",
+   "reason": "pgood_LED lights whenever PGOOD_comp is high, even outside S_RUN and during the qualification delay, while PGOOD itself is still low.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .pgood(PGOOD),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .pgood(PGOOD_comp_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 7,
+   "line": 427,
+   "category": "field",
+   "description": "fault_cause's SCR read-back input is wired to the CPLD's own trip latch_out, so it can no longer tell an external latch from a strike latch",
+   "reason": "An analog-fired latch (latch_stat high, latch_out low) is never logged as OVP in fault_reg, which the host sees when it reads 0x20.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_out),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 8,
+   "line": 419,
+   "category": "other",
+   "description": "pwm_stats measures the masked PWM_out instead of the synchronised modulator PWM",
+   "reason": "In S_OFF/S_HICCUP and during soft start pwm_mask truncates each pulse to max_on_counts, so duty_count read over SPI shows the clipped on-time and not the modulator's duty, against its stated purpose.",
+   "before": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(PWM_out),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 9,
+   "line": 133,
+   "category": "boundary",
+   "description": "The enable switch debouncer gets the fault-flag asymmetric release time (assert/5, 4 ms) instead of the symmetric 20 ms",
+   "reason": "Turning the switch off drops En after 4 ms instead of 20 ms, and contact bounce with low gaps between 4 and 20 ms releases the enable and cuts off a running converter.",
+   "before": [
+    "                 .RELEASE_CLKS(ms_to_clks(20)),"
+   ],
+   "after": [
+    "                 .RELEASE_CLKS(ms_to_clks(20) / 5),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 10,
+   "line": 139,
+   "category": "reset_init",
+   "description": "The UVLO debouncer is given the enable's fail-safe-low reset value instead of fault-asserted high, so it disagrees with its high-resetting synchroniser",
+   "reason": "After reset the debounced UVLO reads healthy instead of faulted: Red_LED3 stays dark for the first 200 us when the pin is low, and with UVLO_trig high it shows the fault only after the 1 ms assert qualification instead of at once.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.RESET_VALUE(1'b0)) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 11,
+   "line": 96,
+   "category": "reset_init",
+   "description": "The PWM synchroniser gets the fault inputs' fail-safe-high reset value, as if the PWM were a fault flag",
+   "reason": "For the first clocks after reset Osc_sync reads high while Osc_in is low, so pwm_mask (pulse_allowed resets to 1) drives a spurious high pulse on PWM_out.",
+   "before": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "after": [
+    "input_sync #(.RESET_VALUE(1'b1)) u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 12,
+   "line": 157,
+   "category": "protocol",
+   "description": "The SCK filter is instanced with the fault-flag debounce defaults instead of the short symmetric SPI_FILTER_CLKS",
+   "reason": "SCK must hold high for 1 ms before the filtered clock rises, so no SCK edge of a 1 MHz transaction reaches spi_slave: writes never take effect and MISO never carries read data.",
+   "before": [
+    "if (TELEMETRY_EN) begin : g_spi_filt",
+    "",
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))"
+   ],
+   "after": [
+    "if (TELEMETRY_EN) begin : g_spi_filt",
+    "",
+    "    input_debounce #(.RESET_VALUE(1'b0))"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 13,
+   "line": 350,
+   "category": "protocol",
+   "description": "MISO idles high outside the read-data phase (open-drain pull-up convention) instead of held low",
+   "reason": "MISO is high during the command and CRC phases, between transactions and after reset, where the design specifies it is held low; only during S_READ does it carry the read data.",
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = ~sdio_oe | sdio_out;"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 14,
+   "line": 266,
+   "category": "wrong_event",
+   "description": "Supervisor's enable input takes the switch-press edge pulse en_switch_rise instead of the debounced switch level",
+   "reason": "With the switch held on, g_en is high for only the one clock of the press pulse, so the supervisor leaves OFF to S_SS and drops back almost at once. En never stays high and the converter never reaches S_RUN or PGOOD.",
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_switch_rise),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 15,
+   "line": 254,
+   "category": "sequencing",
+   "description": "Switch-press edge detector compares the delayed debounced copy with the synchronised but undebounced switch",
+   "reason": "en_switch_rise is high for the whole 20 ms debounce interval and on any bounce, even one the debouncer rejects. reg_file then re-asserts spi_enable after a host disable on a bounce that never registers as a press, so the converter can restart.",
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync;"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 16,
+   "line": 287,
+   "category": "missing_case",
+   "description": "CP_trig goes through the fault-flag input_debounce like OTP and UVLO, though the header says fault_arbiter's rolling window is its only filter",
+   "reason": "Valley-current events last part of one switching cycle, far shorter than the debounce assert time, so they never reach fault_arbiter. Repeated overcurrent then never raises window_trip, and the supervisor never goes to S_HICCUP; En stays high.",
+   "before": [
+    "fault_arbiter u_fault_arbiter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),",
+    "                                .fault_count_run_out(fault_count_run),",
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "logic CP_sync_db;",
+    "input_debounce u_CP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(CP_sync), .flag_out(CP_sync_db));",
+    "fault_arbiter u_fault_arbiter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),",
+    "                                .fault_count_run_out(fault_count_run),",
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .cp_sync(CP_sync_db),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 17,
+   "line": 469,
+   "category": "sequencing",
+   "description": "PGOOD_comp is debounced before pgood_gen, so the deassert the header requires to be immediate is delayed by the debounce release time",
+   "reason": "When the output comparator leaves the window during S_RUN, PGOOD and switch_supply stay high for the debounce release time instead of dropping on the next clocks. PGOOD also rises later after the comparator first enters the window.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "logic PGOOD_comp_sync_db;",
+    "input_debounce #(.RESET_VALUE(1'b0)) u_PGOOD_comp_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(PGOOD_comp_sync), .flag_out(PGOOD_comp_sync_db));",
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync_db),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 18,
+   "line": 472,
+   "category": "missing_case",
+   "description": "pgood_gen is qualified on the gate-driver enable En instead of run_active, so soft-start counts as running",
+   "reason": "En is also high in S_SS. If PGOOD_comp is in window during soft-start for the qualify delay, PGOOD and switch_supply assert before SS_done moves the supervisor to S_RUN.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 19,
+   "line": 313,
+   "category": "reset_init",
+   "description": "strike_counter's clean-run streak is gated on En instead of run_active, so it is not broken by soft-start time",
+   "reason": "After a hiccup, cycles in S_SS already count toward clean_run_target. strike_level clears earlier than it should, so Red_LED1 stops blinking early and the next hiccup cool-down is shorter.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 20,
+   "line": 303,
+   "category": "field",
+   "description": "Hiccup back-off is scaled by the configured strike limit max_strikes instead of the current strike_level",
+   "reason": "Even the first hiccup after a clean history uses the longest back-off. The time En stays low in S_HICCUP before returning to S_SS is longer than the base cool-down.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(max_strikes),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 21,
+   "line": 384,
+   "category": "field",
+   "description": "reg_file's status PGOOD bit reports the synchronised output comparator instead of the qualified PGOOD",
+   "reason": "A host status read during soft-start, in hiccup, or inside the qualify delay shows PGOOD set while the PGOOD pin is low.",
+   "before": [
+    "                          .sup_state(sup_state),",
+    "                          .pgood(PGOOD),"
+   ],
+   "after": [
+    "                          .sup_state(sup_state),",
+    "                          .pgood(PGOOD_comp_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 22,
+   "line": 389,
+   "category": "sequencing",
+   "description": "reg_file's over-temperature status bit takes the undebounced OTP flag, unlike the debounced one the supervisor acts on",
+   "reason": "A status read during the OTP debounce interval, or after a glitch the debouncer rejects, reports OTP while En is still high and Red_LED2 is off. The header requires telemetry to match what the supervisor acts on.",
+   "before": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 23,
+   "line": 385,
+   "category": "wrong_event",
+   "description": "reg_file's latch status bit reports the CPLD's own trip drive latch_out instead of the SCR latch read-back",
+   "reason": "When the external SCR latch is set by analog protection without a strike trip, En is forced low but a host status read shows no latch.",
+   "before": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_out),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 24,
+   "line": 434,
+   "category": "wrong_event",
+   "description": "fault_cause's capture gate takes the gate-driver enable En as 'running' instead of the supervisor's run_active, so a hard fault in S_RUN is never logged",
+   "reason": "En is cleared combinationally by OTP, UVLO, latch_state and latch_assert on the same clock they rise, so when a hard fault stops the converter in S_RUN, convertor_running is already low and the cause bit and fault_time are never captured. An SPI read of the fault register after an OTP or UVLO shutdown from regulation returns 0 for that cause.",
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 25,
+   "line": 294,
+   "category": "wrong_event",
+   "description": "fault_arbiter's run window is qualified on the gate-driver enable En instead of run_active, so soft-start samples go into the RUN window",
+   "reason": "En is also high in S_SS, and the run branch comes first. So during soft start every valley sample goes into the 16-cycle RUN window, the SS window never counts, and window_trip_SS never asserts: sustained overcurrent during the ramp no longer sends the supervisor to S_HICCUP, and FCOUNT_SS reads 0 over SPI.",
+   "before": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 26,
+   "line": 138,
+   "category": "other",
+   "description": "OTP debouncer copied from the enable-switch instance above it: symmetric 20 ms qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "An over-temperature assertion must now last 20 ms instead of 1 ms before En drops and Red_LED2 lights, so an OTP_trig pulse of 1 to 20 ms no longer shuts the converter down. A cleared OTP also takes 20 ms instead of 200 us before the converter may restart.",
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)))",
+    "u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 27,
+   "line": 389,
+   "category": "field",
+   "description": "The FAULT_FLAGS register's current-protection bit reports the RUN overcurrent window trip instead of the live synchronised CP comparator",
+   "reason": "Reading FAULT_FLAGS over SPI while CP_trig is high in S_OFF, S_SS or S_HICCUP, or in S_RUN before the window reaches trip_run, returns the CP bit as 0 instead of 1, unlike the OTP and UVLO bits next to it, which show the live flags.",
+   "before": [
+    "                          .cp_state(CP_sync),"
+   ],
+   "after": [
+    "                          .cp_state(window_trip),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 28,
+   "line": 242,
+   "category": "wrong_event",
+   "description": "The switch-press edge detector's delayed copy is taken from the undebounced synchronised switch instead of the debounced one it is compared with",
+   "reason": "The debounced switch rises only after the synchronised level has been high for 20 ms, so the delayed copy is already 1 and en_switch_rise never fires. After the host clears spi_enable, turning the physical switch off and on again no longer re-enables the converter, and En stays low.",
+   "before": [
+    "            en_from_switch_sync_db_d <= en_from_switch_sync_db;"
+   ],
+   "after": [
+    "            en_from_switch_sync_db_d <= en_from_switch_sync;"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 29,
+   "line": 313,
+   "category": "wrong_event",
+   "description": "strike_counter's clean-run streak is gated on the qualified PGOOD instead of run_active, so 'clean running' is taken to mean 'rail in regulation'",
+   "reason": "The streak cannot start until PGOOD has qualified, about 9 ms into S_RUN, and a dip on PGOOD_comp breaks it while still in S_RUN. Strikes therefore clear later than clean_run_target cycles after reaching S_RUN, or never on a rail that dips. This shows in Red_LED1 blinking longer, in the STRIKE_LEVEL read, and in the next hiccup's back-off and the latch trip.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(PGOOD),"
+   ],
+   "run": "2026-11-27_write_mutants_36"
+  },
+  {
+   "key": 30,
+   "line": 271,
+   "category": "missing_case",
+   "description": "Supervisor's latch_assert input is wired to the debounced SCR read-back instead of strike_counter's own trip latch_out, so the CPLD's strike latch is no longer a hard fault to the FSM",
+   "reason": "When strike_counter raises latch_out on the MAX_STRIKES-th hiccup entry and the SCR read-back latch_stat does not (yet) follow, the original forces En low and goes to S_OFF; the mutant finishes the cool-down, returns to S_SS and drives En high again.",
+   "before": [
+    "                        .window_trip(window_trip),",
+    "                        .latch_assert(latch_out),"
+   ],
+   "after": [
+    "                        .window_trip(window_trip),",
+    "                        .latch_assert(latch_stat_sync_db),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 31,
+   "line": 526,
+   "category": "sequencing",
+   "description": "switch_supply is driven from the registered pgood_LED indicator copy instead of PGOOD itself, adding a clock to the changeover hand-back",
+   "reason": "When PGOOD drops (comparator out of window or leaving S_RUN), switch_supply now deasserts one clock later than PGOOD instead of on the same clock, breaking the immediate hand-back the header requires; assertion is likewise a clock late.",
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = pgood_LED;"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 32,
+   "line": 472,
+   "category": "sequencing",
+   "description": "pgood_gen is qualified on soft_start's SS_done ('ramp finished') instead of the supervisor's run_active",
+   "reason": "SS_done is registered in soft_start and only clears a clock after the FSM leaves S_RUN, so on a window trip or hard fault PGOOD and switch_supply drop one clock late instead of immediately; qualification also starts one clock before S_RUN is entered.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(SS_done),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 33,
+   "line": 139,
+   "category": "boundary",
+   "description": "UVLO debouncer's asymmetry is reversed (fast 200 us assert, slow 1 ms release), the usual 'trip fast, clear slow' rule misapplied where the header wants assert to be the longer qualification",
+   "reason": "A UVLO_trig pulse lasting between 200 us and 1 ms now shuts the converter down (En low, Red_LED3 on) where it was rejected before, and every UVLO release, including the one after reset, takes 1 ms instead of 200 us before the converter may start.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 34,
+   "line": 140,
+   "category": "boundary",
+   "description": "The latch read-back debouncer is given the short symmetric SPI glitch-filter length (8 clocks) instead of the fault-flag 1 ms / 200 us qualification",
+   "reason": "A latch_stat pulse longer than 160 ns but shorter than 1 ms (switching-node pickup) now forces En low and the FSM to S_OFF, lights Red_LED1 solid, and its release is accepted after 8 clocks instead of 200 us.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 35,
+   "line": 294,
+   "category": "missing_case",
+   "description": "fault_arbiter's RUN window is enabled by the qualified PGOOD instead of run_active, so overcurrent in S_RUN is only counted while the rail is in regulation",
+   "reason": "In S_RUN before PGOOD has qualified, or once a short has pulled the rail out of window and dropped PGOOD, the RUN window is held cleared and window_trip never fires, so a sustained CP_trig never sends the converter to hiccup: En stays high where it should go low.",
+   "before": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(PGOOD),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 36,
+   "line": 387,
+   "category": "field",
+   "description": "reg_file's enable-switch status bit is fed from the gate-driver enable En instead of the debounced switch level",
+   "reason": "With the switch on but the converter held off (S_OFF on OTP/UVLO, S_HICCUP, or host-disabled), an SPI read of the status register reports the switch as off; it reports on only while the gate driver is actually enabled.",
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(En),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 37,
+   "line": 319,
+   "category": "sequencing",
+   "description": "soft_start counts its ramp steps on falling edges of the masked PWM_out instead of the synchronised modulator PWM, so each step lands when pwm_mask truncates the pulse rather than after the pulse ends",
+   "reason": "In S_SS the modulator asks for more on-time than the ceiling, so PWM_out falls in the middle of the Osc pulse. On a step cycle max_on_counts then widens while pwm_mask is parked mid-pulse, which re-opens the envelope, so PWM_out gives a second one-clock pulse in the same switching cycle.",
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "soft_start u_soft_start ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 38,
+   "line": 427,
+   "category": "other",
+   "description": "fault_cause's latch_assert input is fed from the debounced SCR read-back instead of the CPLD's own trip latch_out, so the OVP inference (latch set with latch_assert clear) can never be true",
+   "reason": "If the analog OVP comparator trips the shared latch while the converter is in S_SS or S_RUN, the fault-cause register read over SPI shows the LATCH bit instead of the OVP bit, and the OVP bit is never set.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),",
+    "                                .latch_assert(latch_out),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),",
+    "                                .latch_assert(latch_stat_sync_db),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 39,
+   "line": 312,
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on every entry into soft start (each retry, and the first power-up) instead of on each entry into S_HICCUP",
+   "reason": "A healthy power-up already gives strike_level 1, so Red_LED1 blinks until the clean-run clear. Under a persistent overcurrent, latch_out asserts on the second retry's entry into S_SS instead of the third hiccup entry, and the hiccup cool-down lengths change.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(ss_active),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 40,
+   "line": 497,
+   "category": "wrong_event",
+   "description": "fault_LED's soft-start input is wired to soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS')",
+   "reason": "Green_LED stays dark for the whole soft-start ramp of a healthy, unfaulted start-up, and only lights once S_RUN is reached, where the header wants it lit while the converter is switching.",
+   "before": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(SS_done),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 41,
+   "line": 434,
+   "category": "missing_case",
+   "description": "fault_cause's episode scope is wired to hiccup_active instead of ss_active, so it counts S_HICCUP as running and leaves S_SS out",
+   "reason": "An overcurrent that trips window_trip_SS during soft start, or an OTP/UVLO that arrives during S_SS, is never logged in the fault-cause register. A UVLO that arrives during the hiccup cool-down is logged even though the converter was not running.",
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(hiccup_active),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 42,
+   "line": 254,
+   "category": "wrong_event",
+   "description": "The switch-press detector fires on any change of the debounced switch (press and release) instead of on the press only",
+   "reason": "If the host disables the converter over SPI and the user then turns the switch off, the release sets spi_enable back to 1, so CONTROL/STATUS read over MISO show the host veto gone without a fresh switch press.",
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = en_from_switch_sync_db_d ^ en_from_switch_sync_db;"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 43,
+   "line": 526,
+   "category": "sequencing",
+   "description": "The housekeeping changeover drive is gated by the gate-driver enable as well as PGOOD, so it no longer carries the same value as PGOOD",
+   "reason": "When a hard fault (OTP, UVLO, latch) or a host disable hits in S_RUN with PGOOD high, En drops on the same clock but run_active and PGOOD drop only on the next edge. switch_supply therefore falls one clock before PGOOD, which the header says it should match.",
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = PGOOD & En;"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 44,
+   "line": 321,
+   "category": "missing_case",
+   "description": "soft_start's ramp branch is enabled by the gate-driver enable En instead of ss_active, so the ramp and clamp logic also runs through S_RUN",
+   "reason": "If the host lowers MAX_ON_LIMIT during S_RUN, max_on_counts is clamped at once and PWM_out on-time is cut under the running loop. The header says the new limit applies only at the next ramp.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 45,
+   "line": 294,
+   "category": "missing_case",
+   "description": "fault_arbiter's soft-start gate is wired to the gate-driver enable En, so window_trip_SS is not limited to S_SS and can assert in S_RUN from the frozen soft-start count",
+   "reason": "If TRIP_SS is lowered during S_RUN below the soft-start count held from the ramp, window_trip_SS goes high in S_RUN. fault_cause then logs an overcurrent that never happened, and it shows in the fault-cause register read over SPI.",
+   "before": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(En),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 46,
+   "line": 269,
+   "category": "missing_case",
+   "description": "Supervisor's soft-start overcurrent input is wired to the RUN window trip, so the S_SS -> S_HICCUP exit is driven by a trip that fault_arbiter only raises in S_RUN",
+   "reason": "With CP_trig asserted on enough cycles in S_SS to reach trip_ss, the reference leaves S_SS for S_HICCUP and drops En. The mutant stays in S_SS with En high and PWM_out switching, and never counts a strike.",
+   "before": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 47,
+   "line": 433,
+   "category": "missing_case",
+   "description": "fault_cause's soft-start overcurrent cause is fed from the RUN window trip, so an overcurrent hiccup out of S_SS is not logged",
+   "reason": "After a window_trip_SS hiccup in S_SS, a host read of the fault-cause register (0x20) gives an OC bit of 0 and a fault_time of 0, where the reference reports OC set and the timestamp of the trip.",
+   "before": [
+    "                                .window_trip(window_trip),",
+    "                                .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                                .window_trip(window_trip),",
+    "                                .window_trip_SS(window_trip),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 48,
+   "line": 321,
+   "category": "wrong_event",
+   "description": "soft_start holds its ramped ceiling while PGOOD is asserted instead of while the supervisor is in S_RUN, so 'running' is taken to mean 'rail qualified good'",
+   "reason": "After SS_done the FSM enters S_RUN, but PGOOD is still qualifying, so soft_start falls into its reset branch and drops max_on_counts back to MIN_ON_COUNTS. Until PGOOD asserts, and again after any PGOOD_comp dip, PWM_out pulses are cut to the minimum on-time instead of max_on_limit.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(PGOOD),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 49,
+   "line": 427,
+   "category": "field",
+   "description": "fault_cause logs the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on",
+   "reason": "A UVLO_trig pulse in S_SS or S_RUN that is shorter than the debounce assert time does not stop the converter, but the mutant sets the UVLO bit and fault_time in the fault-cause register. The reference logs nothing.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 50,
+   "line": 312,
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on every gate-driver shutdown (En falling, or low at reset) instead of on each entry into S_HICCUP",
+   "reason": "Right after reset, and on every switch-off, OTP or UVLO shutdown, strike_level steps up with no hiccup. Red_LED1 blinks, the next hiccup's back-off is longer, and enough plain switch off/on cycles assert latch_out.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(~En),"
+   ],
+   "run": "2026-11-27_write_mutants_37"
+  },
+  {
+   "key": 51,
+   "line": 432,
+   "category": "wrong_event",
+   "description": "fault_cause logs the overcurrent cause from the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so a single valley-current excursion counts as an overcurrent fault",
+   "reason": "In S_SS or S_RUN, a CP_trig pulse too short to reach trip_run sets FAULT_REG bit 0 and latches fault_time. In the original, nothing is logged because the supervisor never left S_RUN.",
+   "before": [
+    "                                .latch_assert(latch_out),",
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_out),",
+    "                                .window_trip(CP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 52,
+   "line": 313,
+   "category": "wrong_event",
+   "description": "strike_counter breaks its clean-run streak on any CP comparator assertion instead of on the window trip, so 'fault-free' is taken to mean no overcurrent cycle at all",
+   "reason": "After a hiccup, isolated CP_trig pulses in S_RUN that stay below trip_run keep resetting clean_counter, so strike_level is never cleared. Red_LED1 keeps blinking, the STRIKE_LEVEL read stays non-zero, later cool-downs are longer, and latch_out trips one hiccup sooner than it should.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(CP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 53,
+   "line": 496,
+   "category": "field",
+   "description": "fault_LED's strikes-outstanding input is wired to the configured strike limit max_strikes instead of the accumulated strike_level",
+   "reason": "With the default non-zero max_strikes and no latch, Red_LED1 blinks from reset onward, even with no hiccup. It also never reflects real strikes when the host has set the limit to 0.",
+   "before": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(max_strikes),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 54,
+   "line": 497,
+   "category": "wrong_event",
+   "description": "fault_LED's running input takes the qualified PGOOD instead of run_active, so the green LED treats 'rail in regulation' as 'running'",
+   "reason": "From entering S_RUN until pgood_gen finishes PGOOD_DELAY_CYCLES qualifying cycles, and whenever PGOOD_comp dips in S_RUN, Green_LED is dark. In the original it stays lit.",
+   "before": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(PGOOD),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 55,
+   "line": 497,
+   "category": "wrong_event",
+   "description": "fault_LED's soft-start input is wired to hiccup_active, so the green 'running' LED covers the hiccup cool-down instead of soft start",
+   "reason": "In S_HICCUP with no live hard fault, Green_LED lights although En is low. Through all of S_SS it stays dark, while the original lights it.",
+   "before": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(hiccup_active),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 56,
+   "line": 321,
+   "category": "reset_init",
+   "description": "soft_start's hold branch is keyed on its own SS_done ('ramp finished') instead of S_RUN, so once a ramp completes it is never reset to the floor",
+   "reason": "After a first ramp and a later hiccup or turn-off, SS_done stays high and max_on_counts stays at max_on_limit. The retry's S_SS goes straight to S_RUN on the next clock, and PWM_out is passed at full ceiling with no re-ramp.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(SS_done),"
+   ],
+   "run": "2026-11-27_write_mutants_38"
+  },
+  {
+   "key": 57,
+   "line": 266,
+   "category": "other",
+   "description": "Supervisor's enable input takes the synchronised but undebounced switch, bypassing the 20 ms symmetric switch debouncer",
+   "reason": "En now follows the switch two clocks after it moves instead of 20 ms later, and a bouncing contact starts and abandons a soft-start ramp on every bounce, which shows up as En and PWM activity at the ports.",
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_from_switch_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 58,
+   "line": 273,
+   "category": "other",
+   "description": "Supervisor's UVLO input takes the synchronised but undebounced UVLO flag, so input-rail sags shorter than the 1 ms assert qualification shut the converter down",
+   "reason": "A UVLO_trig glitch of a few clocks while running pulls En low at once and sends the FSM to S_OFF, and a UVLO release re-enables after 2 clocks instead of 200 us.",
+   "before": [
+    "                        .UVLO(UVLO_sync_db),"
+   ],
+   "after": [
+    "                        .UVLO(UVLO_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 59,
+   "line": 267,
+   "category": "other",
+   "description": "Supervisor's SCR latch read-back takes the synchronised but undebounced latch_stat, unlike the debounced copy the header routes to it",
+   "reason": "A short latch_stat glitch while in S_SS or S_RUN drops En on the same clock and forces S_OFF, though the debounced read-back would have ignored it. After reset the supervisor can also leave S_OFF before the latch read-back has qualified low.",
+   "before": [
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 60,
+   "line": 294,
+   "category": "sequencing",
+   "description": "fault_arbiter's current flag is wired to the raw CP_trig pin instead of its synchronised copy, while its cycle boundary still comes from the synchronised PWM",
+   "reason": "The CP history is now two clocks ahead of pwm_rise, so the valley sample comes from BLANK_CLKS+2 clocks before the edge. A CP_trig pulse that ends close to the PWM rising edge is counted or missed differently, which changes when window_trip pulls En low.",
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_trig),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 61,
+   "line": 330,
+   "category": "sequencing",
+   "description": "pwm_mask is fed the raw Osc_in pin instead of the synchronised PWM that every other block uses for the cycle",
+   "reason": "PWM_out edges move two clocks earlier relative to Osc_in, and the on-time ceiling is measured on a different copy of the PWM than the one soft_start and fault_arbiter count, so PWM_out timing at the port changes on every cycle.",
+   "before": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_in),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 62,
+   "line": 391,
+   "category": "field",
+   "description": "reg_file's strike-level status is fed the configured strike limit max_strikes instead of the accumulated strike_level",
+   "reason": "An SPI read of the strike count returns the limit (3 by default) whether or not any hiccup has happened, and it does not change after a hiccup or a clean-run clear.",
+   "before": [
+    "                          .uvlo_state(UVLO_sync_db),",
+    "                          .strike_level(strike_level),"
+   ],
+   "after": [
+    "                          .uvlo_state(UVLO_sync_db),",
+    "                          .strike_level(max_strikes),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 63,
+   "line": 389,
+   "category": "other",
+   "description": "reg_file's UVLO status bit reports the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on",
+   "reason": "An SPI status read taken during a short UVLO_trig glitch, or within the 1 ms assert qualification, reports undervoltage that the supervisor has not acted on, and it reports release before the debounced flag clears.",
+   "before": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),",
+    "                          .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),",
+    "                          .uvlo_state(UVLO_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 64,
+   "line": 387,
+   "category": "other",
+   "description": "reg_file's enable-switch status bit is fed the undebounced synchronised switch instead of the debounced level that gates the supervisor",
+   "reason": "For 20 ms after a switch change, an SPI status read shows the new switch position while the supervisor is still acting on the old one, and contact bounce shows up in the register.",
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_from_switch_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 65,
+   "line": 427,
+   "category": "other",
+   "description": "fault_cause logs over-temperature from the undebounced synchronised OTP flag instead of the debounced copy the supervisor acts on",
+   "reason": "An OTP_trig glitch shorter than the 1 ms qualification while running is recorded in fault_reg and timestamped as an over-temperature fault, which the host reads over SPI, even though the converter never shut down for it.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 66,
+   "line": 491,
+   "category": "other",
+   "description": "fault_LED's over-temperature indication is fed the undebounced synchronised OTP flag instead of the debounced one",
+   "reason": "Red_LED2 lights on OTP_trig glitches the supervisor ignores. Out of reset it shows the synchroniser's high reset for only two clocks, not until the flag qualifies low, and on release it goes out 200 us earlier than the debounced flag.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 67,
+   "line": 491,
+   "category": "missing_case",
+   "description": "fault_LED's latch indication takes the CPLD's own trip latch_out instead of the SCR read-back, so an external (OVP) latch trip is not shown",
+   "reason": "When latch_stat goes high because the analog OVP tripped the SCR, with latch_out still low, Red_LED1 does not go solid. It stays dark or blinks with outstanding strikes.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_out),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 68,
+   "line": 491,
+   "category": "missing_case",
+   "description": "fault_LED's latch_assert input is fed the debounced SCR read-back instead of strike_counter's latch_out, so the CPLD's own strike latch is not shown until the SCR read-back follows",
+   "reason": "When strike_counter raises latch_out and latch_stat has not yet come back high, Red_LED1 blinks for the outstanding strikes instead of going solid. Green_LED's fault term also misses the strike latch.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),",
+    "                                .latch_assert(latch_out),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),",
+    "                                .latch_assert(latch_stat_sync_db),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 69,
+   "line": 162,
+   "category": "protocol",
+   "description": "The CS_n glitch filter is instanced with the fault-flag debounce defaults (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS",
+   "reason": "After CS_n falls, the filtered chip select stays deasserted for 200 us, so every SCK edge of a normal 1 MHz transaction falls outside the frame. Writes never commit and MISO never shows read data.",
+   "before": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))",
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));"
+   ],
+   "after": [
+    "    input_debounce",
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 70,
+   "line": 270,
+   "category": "missing_case",
+   "description": "Supervisor's S_RUN overcurrent exit is wired to the soft-start window trip window_trip_SS, so a RUN window trip never sends the FSM from S_RUN to S_HICCUP",
+   "reason": "fault_arbiter only raises window_trip_SS in S_SS. With this fault, sustained overcurrent on CP_trig in S_RUN leaves En high and the converter in S_RUN with no hiccup, no strike and no latch_out, where the real design drops En and starts a hiccup.",
+   "before": [
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip_SS),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 71,
+   "line": 264,
+   "category": "other",
+   "description": "Supervisor leaves soft start only when the ramp is done and the output comparator also reports the rail in window, as if 'soft start finished' meant 'output is up'",
+   "reason": "If PGOOD_comp is low when soft_start raises SS_done, the FSM stays in S_SS instead of moving to S_RUN. PGOOD and switch_supply never assert, and the RUN overcurrent window is never armed, until the comparator goes high.",
+   "before": [
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "                        .SS_done(SS_done & PGOOD_comp_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 72,
+   "line": 434,
+   "category": "wrong_event",
+   "description": "fault_cause's capture gate takes the qualified PGOOD as 'running' instead of run_active, so a fault in S_RUN before PGOOD has qualified, or during a rail dip, is not logged",
+   "reason": "Say OTP, UVLO or a latch trip shuts the converter down from S_RUN within PGOOD_DELAY_CYCLES of entering it, or while PGOOD_comp is low. The fault-cause register (0x1D) and fault_time then stay empty when the host reads them, where the real design records the cause.",
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(PGOOD),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 73,
+   "line": 397,
+   "category": "field",
+   "description": "reg_file's live TIME registers are fed fault_cause's episode-start snapshot fault_time instead of the free-running timestamp_ms",
+   "reason": "A host read of TIME_0..TIME_2 (0x18-0x1A) returns zero when no fault is logged, or the frozen episode start time after one, instead of a millisecond count that keeps advancing.",
+   "before": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(fault_time),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 74,
+   "line": 427,
+   "category": "missing_case",
+   "description": "fault_cause infers OVP from the synchronised but undebounced SCR read-back instead of the debounced copy the supervisor and LEDs act on",
+   "reason": "While the converter is in S_SS or S_RUN, a latch_stat pulse shorter than the 1 ms debounce sets the OVP bit and fault_time in the fault-cause register. The supervisor ignores the same pulse and does not shut down.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 75,
+   "line": 138,
+   "category": "reset_init",
+   "description": "OTP debouncer is given the enable's fail-safe-low reset value, so over-temperature reads clear out of reset while its synchroniser resets high",
+   "reason": "After reset with OTP_trig low, Red_LED2 and the OTP status bit read low at once, where the real design holds them high for the 200 us release time. If OTP_trig is high at reset, the hot condition is not reported for the first 1 ms.",
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.RESET_VALUE(1'b0)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 76,
+   "line": 132,
+   "category": "boundary",
+   "description": "The enable-switch debounce time is converted with ms_to_sw_cycles instead of ms_to_clks, so the debouncer, which counts clk ticks, gets 9000 clocks (180 us) instead of 20 ms",
+   "reason": "After a switch press, en_from_switch_sync_db, and so En and the start of soft start, follows about 180 us after the switch settles instead of 20 ms. Contact bounce longer than 180 us now passes through as separate presses and releases, which toggles En and restarts the ramp.",
+   "before": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)),"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_sw_cycles(20)),",
+    "                 .RELEASE_CLKS(ms_to_sw_cycles(20)),"
+   ],
+   "run": "2026-11-27_write_mutants_39"
+  },
+  {
+   "key": 77,
+   "line": 385,
+   "category": "missing_case",
+   "description": "reg_file's SCR latch status bit takes the synchronised but undebounced latch_stat instead of the debounced copy the supervisor acts on",
+   "reason": "If latch_stat glitches high for less than the 1 ms assert qualification, a host read of the status register shows the latch as set even though the supervisor never saw it. A real latch release also shows up 200 us before the supervisor acts on it, so telemetry no longer matches what the supervisor is acting on.",
+   "before": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync),"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 78,
+   "line": 387,
+   "category": "wrong_event",
+   "description": "reg_file's enable-switch status bit is fed the switch-press edge pulse en_switch_rise instead of the debounced switch level",
+   "reason": "While the switch is held on, a host read of the status register shows the enable switch as off. It reads as on only during the single clock after a debounced press.",
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_switch_rise),"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 79,
+   "line": 491,
+   "category": "missing_case",
+   "description": "fault_LED's latch indication is fed the synchronised but undebounced SCR read-back instead of the debounced copy",
+   "reason": "A latch_stat pulse shorter than the 1 ms assert qualification lights Red_LED1 solid even though the supervisor ignores it. A real latch also shows on Red_LED1 up to 1 ms before the supervisor shuts down.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),",
+    "                                .latch_state(latch_stat_sync),"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 80,
+   "line": 140,
+   "category": "reset_init",
+   "description": "The latch read-back debouncer is given the enable's fail-safe-low reset value, so the SCR latch reads clear out of reset although its synchroniser resets high",
+   "reason": "If the SCR is still latched when reset is released, Red_LED1 and the latch status bit stay off for the first 1 ms instead of showing the latch at once. If the pin is low, the 200 us of latched indication that follows reset is missing.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.RESET_VALUE(1'b0)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 81,
+   "line": 138,
+   "category": "boundary",
+   "description": "The OTP debouncer's asymmetry is reversed: 200 us to assert and 1 ms to release, the 'trip fast, clear slow' habit applied where the design wants assert to be the longer qualification",
+   "reason": "An OTP_trig pulse between 200 us and 1 ms long now shuts the converter down (En falls, Red_LED2 lights), when it should be rejected. Recovery after over-temperature clears is also delayed from 200 us to 1 ms.",
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 82,
+   "line": 163,
+   "category": "protocol",
+   "description": "The MOSI glitch filter is instanced with the fault-flag debounce times (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS, so it no longer matches the SCK filter",
+   "reason": "At 1 MHz SCK no MOSI bit is held for 1 ms, so every bit spi_slave shifts in reads as 0. Every command fails its CRC: host writes to CONTROL and the limit registers are discarded, and reads return the wrong register or nothing.",
+   "before": [
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));",
+    "",
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))"
+   ],
+   "after": [
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));",
+    "",
+    "    input_debounce #(.RESET_VALUE(1'b0))"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 83,
+   "line": 139,
+   "category": "other",
+   "description": "The UVLO debouncer is copied from the enable-switch instance above it, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "An input-rail sag on UVLO_trig lasting between 1 ms and 20 ms no longer drops En or lights Red_LED3. After a real UVLO, the converter also waits 20 ms instead of 200 us before it can restart and Red_LED3 goes out.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(ms_to_clks(20)), .RELEASE_CLKS(ms_to_clks(20))) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 84,
+   "line": 140,
+   "category": "other",
+   "description": "The SCR latch read-back debouncer has its asymmetry reversed: it asserts after 200 us and releases after 1 ms, the 'trip fast, clear slow' habit applied where the fault flags want assert to be the longer qualification",
+   "reason": "A latch_stat pulse that lasts between 200 us and 1 ms now counts as a latched trip. It drops En, sends the FSM to S_OFF and lights Red_LED1 solid, where the original filters it out. Once latch_stat goes low, the trip also stays asserted 1 ms instead of 200 us.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 85,
+   "line": 350,
+   "category": "protocol",
+   "description": "MISO is enabled whenever the slave is selected (CS_n low), the usual 4-wire convention, instead of only during the read-data phase (S_READ)",
+   "reason": "While CS_n is low, MISO now shows whatever sdio_out holds outside the read phase. That is the last bit of the previous read during the next command byte, and rdata[7] already in the second half of the turnaround byte. The original holds MISO low through both.",
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = (sdio_oe | ~cs_n_filt) & sdio_out;"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 86,
+   "line": 312,
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike when the hiccup cool-down finishes (hiccup_done) instead of when S_HICCUP is entered",
+   "reason": "Each strike now lands at the end of its cool-down. hiccup_timer therefore times every cool-down at the previous strike level: 5 ms instead of 10 ms for the first hiccup, 10 ms instead of 20 ms for the second, so En comes back early. latch_out also asserts at the end of the third cool-down instead of on entry to it, and a hiccup cut short by a hard fault counts no strike at all.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_done),"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 87,
+   "line": 140,
+   "category": "other",
+   "description": "The SCR latch read-back debouncer is copied from the enable-switch instance, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "Suppose the analog OVP sets the SCR latch, so latch_stat goes high while latch_out stays low. The supervisor, Red_LED1 and the STATUS latch bit now see it only after 20 ms instead of 1 ms, so En stays high and the FSM stays in S_SS/S_RUN for about 19 ms longer. A cleared latch also takes 20 ms instead of 200 us to release.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)))",
+    "u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 88,
+   "line": 138,
+   "category": "other",
+   "description": "The OTP debouncer is copied from the SPI glitch filters, so over-temperature is qualified in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release",
+   "reason": "An OTP_trig pulse longer than 8 clocks but shorter than 1 ms now drives the supervisor to S_OFF and pulls En low, and it lights Red_LED2. The correct design ignores such a pulse. After a real over-temperature, OTP also clears 160 ns after the comparator drops instead of 200 us later.",
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants"
+  }
+ ],
+ "unit": "pmic_top",
+ "file": "rtl-systemverilog/pmic_top.sv",
+ "last_key": 88
+}

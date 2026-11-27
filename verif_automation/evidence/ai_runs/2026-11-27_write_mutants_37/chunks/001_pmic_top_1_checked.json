@@ -1,0 +1,121 @@
+[
+ {
+  "proposal": {
+   "line": 272,
+   "before": [
+    "                        .latch_assert(latch_out),"
+   ],
+   "after": [
+    "                        .latch_assert(latch_stat_sync_db),"
+   ],
+   "category": "missing_case",
+   "description": "Supervisor's latch_assert input is wired to the debounced SCR read-back instead of strike_counter's own trip latch_out, so the CPLD's strike latch is no longer a hard fault to the FSM",
+   "reason": "When strike_counter raises latch_out on the MAX_STRIKES-th hiccup entry and the SCR read-back latch_stat does not (yet) follow, the original forces En low and goes to S_OFF; the mutant finishes the cool-down, returns to S_SS and drives En high again."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.272.AIM.30"
+ },
+ {
+  "proposal": {
+   "line": 526,
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = pgood_LED;"
+   ],
+   "category": "sequencing",
+   "description": "switch_supply is driven from the registered pgood_LED indicator copy instead of PGOOD itself, adding a clock to the changeover hand-back",
+   "reason": "When PGOOD drops (comparator out of window or leaving S_RUN), switch_supply now deasserts one clock later than PGOOD instead of on the same clock, breaking the immediate hand-back the header requires; assertion is likewise a clock late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.526.AIM.31"
+ },
+ {
+  "proposal": {
+   "line": 473,
+   "before": [
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .run_active(SS_done),"
+   ],
+   "category": "sequencing",
+   "description": "pgood_gen is qualified on soft_start's SS_done ('ramp finished') instead of the supervisor's run_active",
+   "reason": "SS_done is registered in soft_start and only clears a clock after the FSM leaves S_RUN, so on a window trip or hard fault PGOOD and switch_supply drop one clock late instead of immediately; qualification also starts one clock before S_RUN is entered."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.473.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "category": "boundary",
+   "description": "UVLO debouncer's asymmetry is reversed (fast 200 us assert, slow 1 ms release), the usual 'trip fast, clear slow' rule misapplied where the header wants assert to be the longer qualification",
+   "reason": "A UVLO_trig pulse lasting between 200 us and 1 ms now shuts the converter down (En low, Red_LED3 on) where it was rejected before, and every UVLO release, including the one after reset, takes 1 ms instead of 200 us before the converter may start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.139.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "category": "boundary",
+   "description": "The latch read-back debouncer is given the short symmetric SPI glitch-filter length (8 clocks) instead of the fault-flag 1 ms / 200 us qualification",
+   "reason": "A latch_stat pulse longer than 160 ns but shorter than 1 ms (switching-node pickup) now forces En low and the FSM to S_OFF, lights Red_LED1 solid, and its release is accepted after 8 clocks instead of 200 us."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.140.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 296,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(PGOOD),"
+   ],
+   "category": "missing_case",
+   "description": "fault_arbiter's RUN window is enabled by the qualified PGOOD instead of run_active, so overcurrent in S_RUN is only counted while the rail is in regulation",
+   "reason": "In S_RUN before PGOOD has qualified, or once a short has pulled the rail out of window and dropped PGOOD, the RUN window is held cleared and window_trip never fires, so a sustained CP_trig never sends the converter to hiccup: En stays high where it should go low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.296.AIM.35"
+ },
+ {
+  "proposal": {
+   "line": 387,
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(En),"
+   ],
+   "category": "field",
+   "description": "reg_file's enable-switch status bit is fed from the gate-driver enable En instead of the debounced switch level",
+   "reason": "With the switch on but the converter held off (S_OFF on OTP/UVLO, S_HICCUP, or host-disabled), an SPI read of the status register reports the switch as off; it reports on only while the gate driver is actually enabled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.387.AIM.36"
+ }
+]

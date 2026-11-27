@@ -1,0 +1,155 @@
+[
+ {
+  "proposal": {
+   "line": 321,
+   "before": [
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "category": "sequencing",
+   "description": "soft_start counts its ramp steps on falling edges of the masked PWM_out instead of the synchronised modulator PWM, so each step lands when pwm_mask truncates the pulse rather than after the pulse ends",
+   "reason": "In S_SS the modulator asks for more on-time than the ceiling, so PWM_out falls in the middle of the Osc pulse. On a step cycle max_on_counts then widens while pwm_mask is parked mid-pulse, which re-opens the envelope, so PWM_out gives a second one-clock pulse in the same switching cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.321.AIM.37"
+ },
+ {
+  "proposal": {
+   "line": 432,
+   "before": [
+    "                                .latch_assert(latch_out),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_stat_sync_db),"
+   ],
+   "category": "other",
+   "description": "fault_cause's latch_assert input is fed from the debounced SCR read-back instead of the CPLD's own trip latch_out, so the OVP inference (latch set with latch_assert clear) can never be true",
+   "reason": "If the analog OVP comparator trips the shared latch while the converter is in S_SS or S_RUN, the fault-cause register read over SPI shows the LATCH bit instead of the OVP bit, and the OVP bit is never set."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.432.AIM.38"
+ },
+ {
+  "proposal": {
+   "line": 313,
+   "before": [
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(ss_active),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on every entry into soft start (each retry, and the first power-up) instead of on each entry into S_HICCUP",
+   "reason": "A healthy power-up already gives strike_level 1, so Red_LED1 blinks until the clean-run clear. Under a persistent overcurrent, latch_out asserts on the second retry's entry into S_SS instead of the third hiccup entry, and the hiccup cool-down lengths change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.313.AIM.39"
+ },
+ {
+  "proposal": {
+   "line": 498,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(SS_done),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_LED's soft-start input is wired to soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS')",
+   "reason": "Green_LED stays dark for the whole soft-start ramp of a healthy, unfaulted start-up, and only lights once S_RUN is reached, where the header wants it lit while the converter is switching."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.498.AIM.40"
+ },
+ {
+  "proposal": {
+   "line": 435,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(hiccup_active),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's episode scope is wired to hiccup_active instead of ss_active, so it counts S_HICCUP as running and leaves S_SS out",
+   "reason": "An overcurrent that trips window_trip_SS during soft start, or an OTP/UVLO that arrives during S_SS, is never logged in the fault-cause register. A UVLO that arrives during the hiccup cool-down is logged even though the converter was not running."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.435.AIM.41"
+ },
+ {
+  "proposal": {
+   "line": 254,
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = en_from_switch_sync_db_d ^ en_from_switch_sync_db;"
+   ],
+   "category": "wrong_event",
+   "description": "The switch-press detector fires on any change of the debounced switch (press and release) instead of on the press only",
+   "reason": "If the host disables the converter over SPI and the user then turns the switch off, the release sets spi_enable back to 1, so CONTROL/STATUS read over MISO show the host veto gone without a fresh switch press."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.254.AIM.42"
+ },
+ {
+  "proposal": {
+   "line": 526,
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = PGOOD & En;"
+   ],
+   "category": "sequencing",
+   "description": "The housekeeping changeover drive is gated by the gate-driver enable as well as PGOOD, so it no longer carries the same value as PGOOD",
+   "reason": "When a hard fault (OTP, UVLO, latch) or a host disable hits in S_RUN with PGOOD high, En drops on the same clock but run_active and PGOOD drop only on the next edge. switch_supply therefore falls one clock before PGOOD, which the header says it should match."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.526.AIM.43"
+ },
+ {
+  "proposal": {
+   "line": 322,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(En),"
+   ],
+   "category": "missing_case",
+   "description": "soft_start's ramp branch is enabled by the gate-driver enable En instead of ss_active, so the ramp and clamp logic also runs through S_RUN",
+   "reason": "If the host lowers MAX_ON_LIMIT during S_RUN, max_on_counts is clamped at once and PWM_out on-time is cut under the running loop. The header says the new limit applies only at the next ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.322.AIM.44"
+ },
+ {
+  "proposal": {
+   "line": 295,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(En),"
+   ],
+   "category": "missing_case",
+   "description": "fault_arbiter's soft-start gate is wired to the gate-driver enable En, so window_trip_SS is not limited to S_SS and can assert in S_RUN from the frozen soft-start count",
+   "reason": "If TRIP_SS is lowered during S_RUN below the soft-start count held from the ramp, window_trip_SS goes high in S_RUN. fault_cause then logs an overcurrent that never happened, and it shows in the fault-cause register read over SPI."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.295.AIM.45"
+ }
+]

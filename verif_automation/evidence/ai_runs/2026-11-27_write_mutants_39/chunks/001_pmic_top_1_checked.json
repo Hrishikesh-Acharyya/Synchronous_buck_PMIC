@@ -1,0 +1,225 @@
+[
+ {
+  "proposal": {
+   "line": 266,
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_from_switch_sync),"
+   ],
+   "category": "other",
+   "description": "Supervisor's enable input takes the synchronised but undebounced switch, bypassing the 20 ms symmetric switch debouncer",
+   "reason": "En now follows the switch two clocks after it moves instead of 20 ms later, and a bouncing contact starts and abandons a soft-start ramp on every bounce, which shows up as En and PWM activity at the ports."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.266.AIM.57"
+ },
+ {
+  "proposal": {
+   "line": 273,
+   "before": [
+    "                        .UVLO(UVLO_sync_db),"
+   ],
+   "after": [
+    "                        .UVLO(UVLO_sync),"
+   ],
+   "category": "other",
+   "description": "Supervisor's UVLO input takes the synchronised but undebounced UVLO flag, so input-rail sags shorter than the 1 ms assert qualification shut the converter down",
+   "reason": "A UVLO_trig glitch of a few clocks while running pulls En low at once and sends the FSM to S_OFF, and a UVLO release re-enables after 2 clocks instead of 200 us."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.273.AIM.58"
+ },
+ {
+  "proposal": {
+   "line": 268,
+   "before": [
+    "                        .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                        .latch_state(latch_stat_sync),"
+   ],
+   "category": "other",
+   "description": "Supervisor's SCR latch read-back takes the synchronised but undebounced latch_stat, unlike the debounced copy the header routes to it",
+   "reason": "A short latch_stat glitch while in S_SS or S_RUN drops En on the same clock and forces S_OFF, though the debounced read-back would have ignored it. After reset the supervisor can also leave S_OFF before the latch read-back has qualified low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.268.AIM.59"
+ },
+ {
+  "proposal": {
+   "line": 294,
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_trig),"
+   ],
+   "category": "sequencing",
+   "description": "fault_arbiter's current flag is wired to the raw CP_trig pin instead of its synchronised copy, while its cycle boundary still comes from the synchronised PWM",
+   "reason": "The CP history is now two clocks ahead of pwm_rise, so the valley sample comes from BLANK_CLKS+2 clocks before the edge. A CP_trig pulse that ends close to the PWM rising edge is counted or missed differently, which changes when window_trip pulls En low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.294.AIM.60"
+ },
+ {
+  "proposal": {
+   "line": 332,
+   "before": [
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                        .pwm_sync(Osc_in),"
+   ],
+   "category": "sequencing",
+   "description": "pwm_mask is fed the raw Osc_in pin instead of the synchronised PWM that every other block uses for the cycle",
+   "reason": "PWM_out edges move two clocks earlier relative to Osc_in, and the on-time ceiling is measured on a different copy of the PWM than the one soft_start and fault_arbiter count, so PWM_out timing at the port changes on every cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.332.AIM.61"
+ },
+ {
+  "proposal": {
+   "line": 392,
+   "before": [
+    "                          .strike_level(strike_level),"
+   ],
+   "after": [
+    "                          .strike_level(max_strikes),"
+   ],
+   "category": "field",
+   "description": "reg_file's strike-level status is fed the configured strike limit max_strikes instead of the accumulated strike_level",
+   "reason": "An SPI read of the strike count returns the limit (3 by default) whether or not any hiccup has happened, and it does not change after a hiccup or a clean-run clear."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.392.AIM.62"
+ },
+ {
+  "proposal": {
+   "line": 391,
+   "before": [
+    "                          .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                          .uvlo_state(UVLO_sync),"
+   ],
+   "category": "other",
+   "description": "reg_file's UVLO status bit reports the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on",
+   "reason": "An SPI status read taken during a short UVLO_trig glitch, or within the 1 ms assert qualification, reports undervoltage that the supervisor has not acted on, and it reports release before the debounced flag clears."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.391.AIM.63"
+ },
+ {
+  "proposal": {
+   "line": 387,
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_from_switch_sync),"
+   ],
+   "category": "other",
+   "description": "reg_file's enable-switch status bit is fed the undebounced synchronised switch instead of the debounced level that gates the supervisor",
+   "reason": "For 20 ms after a switch change, an SPI status read shows the new switch position while the supervisor is still acting on the old one, and contact bounce shows up in the register."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.387.AIM.64"
+ },
+ {
+  "proposal": {
+   "line": 429,
+   "before": [
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .otp_state(OTP_sync),"
+   ],
+   "category": "other",
+   "description": "fault_cause logs over-temperature from the undebounced synchronised OTP flag instead of the debounced copy the supervisor acts on",
+   "reason": "An OTP_trig glitch shorter than the 1 ms qualification while running is recorded in fault_reg and timestamped as an over-temperature fault, which the host reads over SPI, even though the converter never shut down for it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.429.AIM.65"
+ },
+ {
+  "proposal": {
+   "line": 493,
+   "before": [
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .otp_state(OTP_sync),"
+   ],
+   "category": "other",
+   "description": "fault_LED's over-temperature indication is fed the undebounced synchronised OTP flag instead of the debounced one",
+   "reason": "Red_LED2 lights on OTP_trig glitches the supervisor ignores. Out of reset it shows the synchroniser's high reset for only two clocks, not until the flag qualifies low, and on release it goes out 200 us earlier than the debounced flag."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.493.AIM.66"
+ },
+ {
+  "proposal": {
+   "line": 495,
+   "before": [
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                                .latch_state(latch_out),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's latch indication takes the CPLD's own trip latch_out instead of the SCR read-back, so an external (OVP) latch trip is not shown",
+   "reason": "When latch_stat goes high because the analog OVP tripped the SCR, with latch_out still low, Red_LED1 does not go solid. It stays dark or blinks with outstanding strikes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.495.AIM.67"
+ },
+ {
+  "proposal": {
+   "line": 496,
+   "before": [
+    "                                .latch_assert(latch_out),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_stat_sync_db),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's latch_assert input is fed the debounced SCR read-back instead of strike_counter's latch_out, so the CPLD's own strike latch is not shown until the SCR read-back follows",
+   "reason": "When strike_counter raises latch_out and latch_stat has not yet come back high, Red_LED1 blinks for the outstanding strikes instead of going solid. Green_LED's fault term also misses the strike latch."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.496.AIM.68"
+ },
+ {
+  "proposal": {
+   "line": 162,
+   "before": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))",
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));"
+   ],
+   "after": [
+    "    input_debounce",
+    "        u_cs_filt   (.clk(clk), .rst_n(rst_n), .flag_in(cs_n_sync), .flag_out(cs_n_filt));"
+   ],
+   "category": "protocol",
+   "description": "The CS_n glitch filter is instanced with the fault-flag debounce defaults (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS",
+   "reason": "After CS_n falls, the filtered chip select stays deasserted for 200 us, so every SCK edge of a normal 1 MHz transaction falls outside the frame. Writes never commit and MISO never shows read data."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.162.AIM.69"
+ }
+]

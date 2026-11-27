@@ -1,0 +1,120 @@
+[
+ {
+  "proposal": {
+   "line": 386,
+   "before": [
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .latch_state(latch_stat_sync),"
+   ],
+   "category": "missing_case",
+   "description": "reg_file's SCR latch status bit takes the synchronised but undebounced latch_stat instead of the debounced copy the supervisor acts on",
+   "reason": "If latch_stat glitches high for less than the 1 ms assert qualification, a host read of the status register shows the latch as set even though the supervisor never saw it. A real latch release also shows up 200 us before the supervisor acts on it, so telemetry no longer matches what the supervisor is acting on."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.386.AIM.77"
+ },
+ {
+  "proposal": {
+   "line": 387,
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_switch_rise),"
+   ],
+   "category": "wrong_event",
+   "description": "reg_file's enable-switch status bit is fed the switch-press edge pulse en_switch_rise instead of the debounced switch level",
+   "reason": "While the switch is held on, a host read of the status register shows the enable switch as off. It reads as on only during the single clock after a debounced press."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.387.AIM.78"
+ },
+ {
+  "proposal": {
+   "line": 495,
+   "before": [
+    "                                .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                                .latch_state(latch_stat_sync),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's latch indication is fed the synchronised but undebounced SCR read-back instead of the debounced copy",
+   "reason": "A latch_stat pulse shorter than the 1 ms assert qualification lights Red_LED1 solid even though the supervisor ignores it. A real latch also shows on Red_LED1 up to 1 ms before the supervisor shuts down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.495.AIM.79"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.RESET_VALUE(1'b0)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "category": "reset_init",
+   "description": "The latch read-back debouncer is given the enable's fail-safe-low reset value, so the SCR latch reads clear out of reset although its synchroniser resets high",
+   "reason": "If the SCR is still latched when reset is released, Red_LED1 and the latch status bit stay off for the first 1 ms instead of showing the latch at once. If the pin is low, the 200 us of latched indication that follows reset is missing."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.140.AIM.80"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "category": "boundary",
+   "description": "The OTP debouncer's asymmetry is reversed: 200 us to assert and 1 ms to release, the 'trip fast, clear slow' habit applied where the design wants assert to be the longer qualification",
+   "reason": "An OTP_trig pulse between 200 us and 1 ms long now shuts the converter down (En falls, Red_LED2 lights), when it should be rejected. Recovery after over-temperature clears is also delayed from 200 us to 1 ms."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.138.AIM.81"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))"
+   ],
+   "after": [
+    "    input_debounce #(.RESET_VALUE(1'b0))"
+   ],
+   "category": "protocol",
+   "description": "The MOSI glitch filter is instanced with the fault-flag debounce times (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS, so it no longer matches the SCK filter",
+   "reason": "At 1 MHz SCK no MOSI bit is held for 1 ms, so every bit spi_slave shifts in reads as 0. Every command fails its CRC: host writes to CONTROL and the limit registers are discarded, and reads return the wrong register or nothing."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.165.AIM.82"
+ },
+ {
+  "proposal": {
+   "line": 472,
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp),"
+   ],
+   "category": "sequencing",
+   "description": "pgood_gen takes the raw asynchronous PGOOD_comp pin instead of its synchronised copy, breaking the rule that no submodule sees a raw pin",
+   "reason": "In S_RUN, PGOOD and switch_supply drop on the clock after PGOOD_comp falls instead of after the two-flop synchroniser delay. Qualification also starts on the unsynchronised level, so PGOOD asserts two clocks earlier."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ }
+]

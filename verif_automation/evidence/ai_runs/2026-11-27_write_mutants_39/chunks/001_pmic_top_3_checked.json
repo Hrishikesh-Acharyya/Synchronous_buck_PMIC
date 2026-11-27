@@ -1,0 +1,21 @@
+[
+ {
+  "proposal": {
+   "line": 132,
+   "before": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)),"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_sw_cycles(20)),",
+    "                 .RELEASE_CLKS(ms_to_sw_cycles(20)),"
+   ],
+   "category": "boundary",
+   "description": "The enable-switch debounce time is converted with ms_to_sw_cycles instead of ms_to_clks, so the debouncer, which counts clk ticks, gets 9000 clocks (180 us) instead of 20 ms",
+   "reason": "After a switch press, en_from_switch_sync_db, and so En and the start of soft start, follows about 180 us after the switch settles instead of 20 ms. Contact bounce longer than 180 us now passes through as separate presses and releases, which toggles En and restarts the ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.132.AIM.76"
+ }
+]

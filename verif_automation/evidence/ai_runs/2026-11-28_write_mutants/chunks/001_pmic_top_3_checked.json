@@ -1,0 +1,55 @@
+[
+ {
+  "proposal": {
+   "line": 313,
+   "before": [
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_done),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike when the hiccup cool-down finishes (hiccup_done) instead of when S_HICCUP is entered",
+   "reason": "Each strike now lands at the end of its cool-down. hiccup_timer therefore times every cool-down at the previous strike level: 5 ms instead of 10 ms for the first hiccup, 10 ms instead of 20 ms for the second, so En comes back early. latch_out also asserts at the end of the third cool-down instead of on entry to it, and a hiccup cut short by a hard fault counts no strike at all."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.313.AIM.86"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)))",
+    "u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "category": "other",
+   "description": "The SCR latch read-back debouncer is copied from the enable-switch instance, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "Suppose the analog OVP sets the SCR latch, so latch_stat goes high while latch_out stays low. The supervisor, Red_LED1 and the STATUS latch bit now see it only after 20 ms instead of 1 ms, so En stays high and the FSM stays in S_SS/S_RUN for about 19 ms longer. A cleared latch also takes 20 ms instead of 200 us to release."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.140.AIM.87"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "category": "other",
+   "description": "The OTP debouncer is copied from the SPI glitch filters, so over-temperature is qualified in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release",
+   "reason": "An OTP_trig pulse longer than 8 clocks but shorter than 1 ms now drives the supervisor to S_OFF and pulls En low, and it lights Red_LED2. The correct design ignores such a pulse. After a real over-temperature, OTP also clears 160 ns after the comparator drops instead of 200 us later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.138.AIM.88"
+ }
+]

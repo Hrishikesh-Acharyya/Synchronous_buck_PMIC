@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 433,
+   "before": [
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .window_trip(CP_sync),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_cause logs the overcurrent cause from the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so a single valley-current excursion counts as an overcurrent fault",
+   "reason": "In S_SS or S_RUN, a CP_trig pulse too short to reach trip_run sets FAULT_REG bit 0 and latches fault_time. In the original, nothing is logged because the supervisor never left S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.433.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 315,
+   "before": [
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .window_trip(CP_sync),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter breaks its clean-run streak on any CP comparator assertion instead of on the window trip, so 'fault-free' is taken to mean no overcurrent cycle at all",
+   "reason": "After a hiccup, isolated CP_trig pulses in S_RUN that stay below trip_run keep resetting clean_counter, so strike_level is never cleared. Red_LED1 keeps blinking, the STRIKE_LEVEL read stays non-zero, later cool-downs are longer, and latch_out trips one hiccup sooner than it should."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.315.AIM.52"
+ },
+ {
+  "proposal": {
+   "line": 497,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(max_strikes),"
+   ],
+   "category": "field",
+   "description": "fault_LED's strikes-outstanding input is wired to the configured strike limit max_strikes instead of the accumulated strike_level",
+   "reason": "With the default non-zero max_strikes and no latch, Red_LED1 blinks from reset onward, even with no hiccup. It also never reflects real strikes when the host has set the limit to 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.497.AIM.53"
+ },
+ {
+  "proposal": {
+   "line": 499,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(PGOOD),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_LED's running input takes the qualified PGOOD instead of run_active, so the green LED treats 'rail in regulation' as 'running'",
+   "reason": "From entering S_RUN until pgood_gen finishes PGOOD_DELAY_CYCLES qualifying cycles, and whenever PGOOD_comp dips in S_RUN, Green_LED is dark. In the original it stays lit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.499.AIM.54"
+ },
+ {
+  "proposal": {
+   "line": 498,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(hiccup_active),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_LED's soft-start input is wired to hiccup_active, so the green 'running' LED covers the hiccup cool-down instead of soft start",
+   "reason": "In S_HICCUP with no live hard fault, Green_LED lights although En is low. Through all of S_SS it stays dark, while the original lights it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.498.AIM.55"
+ },
+ {
+  "proposal": {
+   "line": 323,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(SS_done),"
+   ],
+   "category": "reset_init",
+   "description": "soft_start's hold branch is keyed on its own SS_done ('ramp finished') instead of S_RUN, so once a ramp completes it is never reset to the floor",
+   "reason": "After a first ramp and a later hiccup or turn-off, SS_done stays high and max_on_counts stays at max_on_limit. The retry's S_SS goes straight to S_RUN on the next clock, and PWM_out is passed at full ceiling with no re-ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.323.AIM.56"
+ }
+]

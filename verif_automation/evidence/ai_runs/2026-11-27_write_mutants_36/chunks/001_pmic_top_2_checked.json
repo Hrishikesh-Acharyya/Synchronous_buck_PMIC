@@ -1,0 +1,198 @@
+[
+ {
+  "proposal": {
+   "line": 266,
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_switch_rise),"
+   ],
+   "category": "wrong_event",
+   "description": "Supervisor's enable input takes the switch-press edge pulse en_switch_rise instead of the debounced switch level",
+   "reason": "With the switch held on, g_en is high for only the one clock of the press pulse, so the supervisor leaves OFF to S_SS and drops back almost at once. En never stays high and the converter never reaches S_RUN or PGOOD."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.266.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 254,
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync;"
+   ],
+   "category": "sequencing",
+   "description": "Switch-press edge detector compares the delayed debounced copy with the synchronised but undebounced switch",
+   "reason": "en_switch_rise is high for the whole 20 ms debounce interval and on any bounce, even one the debouncer rejects. reg_file then re-asserts spi_enable after a host disable on a bounce that never registers as a press, so the converter can restart."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.254.AIM.15"
+ },
+ {
+  "proposal": {
+   "line": 287,
+   "before": [
+    "fault_arbiter u_fault_arbiter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),",
+    "                                .fault_count_run_out(fault_count_run),",
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "logic CP_sync_db;",
+    "input_debounce u_CP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(CP_sync), .flag_out(CP_sync_db));",
+    "fault_arbiter u_fault_arbiter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),",
+    "                                .fault_count_run_out(fault_count_run),",
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .cp_sync(CP_sync_db),"
+   ],
+   "category": "missing_case",
+   "description": "CP_trig goes through the fault-flag input_debounce like OTP and UVLO, though the header says fault_arbiter's rolling window is its only filter",
+   "reason": "Valley-current events last part of one switching cycle, far shorter than the debounce assert time, so they never reach fault_arbiter. Repeated overcurrent then never raises window_trip, and the supervisor never goes to S_HICCUP; En stays high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.287.AIM.16"
+ },
+ {
+  "proposal": {
+   "line": 469,
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "logic PGOOD_comp_sync_db;",
+    "input_debounce #(.RESET_VALUE(1'b0)) u_PGOOD_comp_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(PGOOD_comp_sync), .flag_out(PGOOD_comp_sync_db));",
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync_db),"
+   ],
+   "category": "sequencing",
+   "description": "PGOOD_comp is debounced before pgood_gen, so the deassert the header requires to be immediate is delayed by the debounce release time",
+   "reason": "When the output comparator leaves the window during S_RUN, PGOOD and switch_supply stay high for the debounce release time instead of dropping on the next clocks. PGOOD also rises later after the comparator first enters the window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.469.AIM.17"
+ },
+ {
+  "proposal": {
+   "line": 473,
+   "before": [
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .run_active(En),"
+   ],
+   "category": "missing_case",
+   "description": "pgood_gen is qualified on the gate-driver enable En instead of run_active, so soft-start counts as running",
+   "reason": "En is also high in S_SS. If PGOOD_comp is in window during soft-start for the qualify delay, PGOOD and switch_supply assert before SS_done moves the supervisor to S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.473.AIM.18"
+ },
+ {
+  "proposal": {
+   "line": 313,
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(En),"
+   ],
+   "category": "reset_init",
+   "description": "strike_counter's clean-run streak is gated on En instead of run_active, so it is not broken by soft-start time",
+   "reason": "After a hiccup, cycles in S_SS already count toward clean_run_target. strike_level clears earlier than it should, so Red_LED1 stops blinking early and the next hiccup cool-down is shorter."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.314.AIM.19"
+ },
+ {
+  "proposal": {
+   "line": 304,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(max_strikes),"
+   ],
+   "category": "field",
+   "description": "Hiccup back-off is scaled by the configured strike limit max_strikes instead of the current strike_level",
+   "reason": "Even the first hiccup after a clean history uses the longest back-off. The time En stays low in S_HICCUP before returning to S_SS is longer than the base cool-down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.304.AIM.20"
+ },
+ {
+  "proposal": {
+   "line": 385,
+   "before": [
+    "                          .pgood(PGOOD),"
+   ],
+   "after": [
+    "                          .pgood(PGOOD_comp_sync),"
+   ],
+   "category": "field",
+   "description": "reg_file's status PGOOD bit reports the synchronised output comparator instead of the qualified PGOOD",
+   "reason": "A host status read during soft-start, in hiccup, or inside the qualify delay shows PGOOD set while the PGOOD pin is low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.385.AIM.21"
+ },
+ {
+  "proposal": {
+   "line": 390,
+   "before": [
+    "                          .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                          .otp_state(OTP_sync),"
+   ],
+   "category": "sequencing",
+   "description": "reg_file's over-temperature status bit takes the undebounced OTP flag, unlike the debounced one the supervisor acts on",
+   "reason": "A status read during the OTP debounce interval, or after a glitch the debouncer rejects, reports OTP while En is still high and Red_LED2 is off. The header requires telemetry to match what the supervisor acts on."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.390.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 386,
+   "before": [
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .latch_state(latch_out),"
+   ],
+   "category": "wrong_event",
+   "description": "reg_file's latch status bit reports the CPLD's own trip drive latch_out instead of the SCR latch read-back",
+   "reason": "When the external SCR latch is set by analog protection without a strike trip, En is forced low but a host status read shows no latch."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.386.AIM.23"
+ }
+]

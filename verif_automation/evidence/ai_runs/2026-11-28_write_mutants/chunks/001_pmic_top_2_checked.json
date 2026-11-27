@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(ms_to_clks(20)), .RELEASE_CLKS(ms_to_clks(20))) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "category": "other",
+   "description": "The UVLO debouncer is copied from the enable-switch instance above it, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "An input-rail sag on UVLO_trig lasting between 1 ms and 20 ms no longer drops En or lights Red_LED3. After a real UVLO, the converter also waits 20 ms instead of 200 us before it can restart and Red_LED3 goes out."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.139.AIM.83"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(DEBOUNCE_RELEASE_CLKS), .RELEASE_CLKS(DEBOUNCE_ASSERT_CLKS)) u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "category": "other",
+   "description": "The SCR latch read-back debouncer has its asymmetry reversed: it asserts after 200 us and releases after 1 ms, the 'trip fast, clear slow' habit applied where the fault flags want assert to be the longer qualification",
+   "reason": "A latch_stat pulse that lasts between 200 us and 1 ms now counts as a latched trip. It drops En, sends the FSM to S_OFF and lights Red_LED1 solid, where the original filters it out. Once latch_stat goes low, the trip also stays asserted 1 ms instead of 200 us."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.140.AIM.84"
+ },
+ {
+  "proposal": {
+   "line": 350,
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = (sdio_oe | ~cs_n_filt) & sdio_out;"
+   ],
+   "category": "protocol",
+   "description": "MISO is enabled whenever the slave is selected (CS_n low), the usual 4-wire convention, instead of only during the read-data phase (S_READ)",
+   "reason": "While CS_n is low, MISO now shows whatever sdio_out holds outside the read phase. That is the last bit of the previous read during the next command byte, and rdata[7] already in the second half of the turnaround byte. The original holds MISO low through both."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.350.AIM.85"
+ }
+]

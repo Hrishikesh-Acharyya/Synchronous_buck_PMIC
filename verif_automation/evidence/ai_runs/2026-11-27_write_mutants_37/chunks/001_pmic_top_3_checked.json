@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 270,
+   "before": [
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .window_trip_SS(window_trip),"
+   ],
+   "category": "missing_case",
+   "description": "Supervisor's soft-start overcurrent input is wired to the RUN window trip, so the S_SS -> S_HICCUP exit is driven by a trip that fault_arbiter only raises in S_RUN",
+   "reason": "With CP_trig asserted on enough cycles in S_SS to reach trip_ss, the reference leaves S_SS for S_HICCUP and drops En. The mutant stays in S_SS with En high and PWM_out switching, and never counts a strike."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.270.AIM.46"
+ },
+ {
+  "proposal": {
+   "line": 434,
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's soft-start overcurrent cause is fed from the RUN window trip, so an overcurrent hiccup out of S_SS is not logged",
+   "reason": "After a window_trip_SS hiccup in S_SS, a host read of the fault-cause register (0x20) gives an OC bit of 0 and a fault_time of 0, where the reference reports OC set and the timestamp of the trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.434.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 323,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(PGOOD),"
+   ],
+   "category": "wrong_event",
+   "description": "soft_start holds its ramped ceiling while PGOOD is asserted instead of while the supervisor is in S_RUN, so 'running' is taken to mean 'rail qualified good'",
+   "reason": "After SS_done the FSM enters S_RUN, but PGOOD is still qualifying, so soft_start falls into its reset branch and drops max_on_counts back to MIN_ON_COUNTS. Until PGOOD asserts, and again after any PGOOD_comp dip, PWM_out pulses are cut to the minimum on-time instead of max_on_limit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.323.AIM.48"
+ },
+ {
+  "proposal": {
+   "line": 430,
+   "before": [
+    "                                .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                                .uvlo_state(UVLO_sync),"
+   ],
+   "category": "field",
+   "description": "fault_cause logs the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on",
+   "reason": "A UVLO_trig pulse in S_SS or S_RUN that is shorter than the debounce assert time does not stop the converter, but the mutant sets the UVLO bit and fault_time in the fault-cause register. The reference logs nothing."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.430.AIM.49"
+ },
+ {
+  "proposal": {
+   "line": 313,
+   "before": [
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(~En),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on every gate-driver shutdown (En falling, or low at reset) instead of on each entry into S_HICCUP",
+   "reason": "Right after reset, and on every switch-off, OTP or UVLO shutdown, strike_level steps up with no hiccup. Red_LED1 blinks, the next hiccup's back-off is longer, and enough plain switch off/on cycles assert latch_out."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.313.AIM.50"
+ }
+]

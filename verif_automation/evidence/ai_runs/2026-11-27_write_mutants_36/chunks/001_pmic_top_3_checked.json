@@ -1,0 +1,106 @@
+[
+ {
+  "proposal": {
+   "line": 436,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(En),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_cause's capture gate takes the gate-driver enable En as 'running' instead of the supervisor's run_active, so a hard fault in S_RUN is never logged",
+   "reason": "En is cleared combinationally by OTP, UVLO, latch_state and latch_assert on the same clock they rise, so when a hard fault stops the converter in S_RUN, convertor_running is already low and the cause bit and fault_time are never captured. An SPI read of the fault register after an OTP or UVLO shutdown from regulation returns 0 for that cause."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.436.AIM.24"
+ },
+ {
+  "proposal": {
+   "line": 296,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(En),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_arbiter's run window is qualified on the gate-driver enable En instead of run_active, so soft-start samples go into the RUN window",
+   "reason": "En is also high in S_SS, and the run branch comes first. So during soft start every valley sample goes into the 16-cycle RUN window, the SS window never counts, and window_trip_SS never asserts: sustained overcurrent during the ramp no longer sends the supervisor to S_HICCUP, and FCOUNT_SS reads 0 over SPI."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.296.AIM.25"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS (ms_to_clks(20)),",
+    "                 .RELEASE_CLKS(ms_to_clks(20)))",
+    "u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "category": "other",
+   "description": "OTP debouncer copied from the enable-switch instance above it: symmetric 20 ms qualification instead of the fault-flag default of 1 ms assert and 200 us release",
+   "reason": "An over-temperature assertion must now last 20 ms instead of 1 ms before En drops and Red_LED2 lights, so an OTP_trig pulse of 1 to 20 ms no longer shuts the converter down. A cleared OTP also takes 20 ms instead of 200 us before the converter may restart."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.138.AIM.26"
+ },
+ {
+  "proposal": {
+   "line": 389,
+   "before": [
+    "                          .cp_state(CP_sync),"
+   ],
+   "after": [
+    "                          .cp_state(window_trip),"
+   ],
+   "category": "field",
+   "description": "The FAULT_FLAGS register's current-protection bit reports the RUN overcurrent window trip instead of the live synchronised CP comparator",
+   "reason": "Reading FAULT_FLAGS over SPI while CP_trig is high in S_OFF, S_SS or S_HICCUP, or in S_RUN before the window reaches trip_run, returns the CP bit as 0 instead of 1, unlike the OTP and UVLO bits next to it, which show the live flags."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.389.AIM.27"
+ },
+ {
+  "proposal": {
+   "line": 242,
+   "before": [
+    "            en_from_switch_sync_db_d <= en_from_switch_sync_db;"
+   ],
+   "after": [
+    "            en_from_switch_sync_db_d <= en_from_switch_sync;"
+   ],
+   "category": "wrong_event",
+   "description": "The switch-press edge detector's delayed copy is taken from the undebounced synchronised switch instead of the debounced one it is compared with",
+   "reason": "The debounced switch rises only after the synchronised level has been high for 20 ms, so the delayed copy is already 1 and en_switch_rise never fires. After the host clears spi_enable, turning the physical switch off and on again no longer re-enables the converter, and En stays low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.242.AIM.28"
+ },
+ {
+  "proposal": {
+   "line": 314,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(PGOOD),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter's clean-run streak is gated on the qualified PGOOD instead of run_active, so 'clean running' is taken to mean 'rail in regulation'",
+   "reason": "The streak cannot start until PGOOD has qualified, about 9 ms into S_RUN, and a dip on PGOOD_comp breaks it while still in S_RUN. Strikes therefore clear later than clean_run_target cycles after reaching S_RUN, or never on a rail that dips. This shows in Red_LED1 blinking longer, in the STRIKE_LEVEL read, and in the next hiccup's back-off and the latch trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.314.AIM.29"
+ }
+]
