@@ -1,0 +1,55 @@
+[
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(ovp && run_active)               fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OVP is recorded only in S_RUN, on the assumption that overvoltage can only occur once the output is regulated, so an OVP overshoot during soft start is not recorded",
+   "reason": "An analog OVP trip (latch_state high, latch_assert low) during S_SS leaves fault_reg[4] clear. episode_start still fires on ovp, so fault_time is latched while fault_reg reads empty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.208.AIM.37"
+ },
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 3;",
+    "localparam int BIT_LATCH = 4;"
+   ],
+   "category": "field",
+   "description": "The OVP and LATCH_ASSERT cause bits are laid out in swapped positions, with the CPLD's measured trip misremembered as outranking the inferred OVP",
+   "reason": "An analog OVP trip while running sets fault_reg bit 3 (10000 expected, 01000 read), and a latch_assert captured while running sets bit 4, so the host reads the wrong cause."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.82.AIM.38"
+ },
+ {
+  "proposal": {
+   "line": 118,
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_assert & ~latch_state) ovp = 1'b1;"
+   ],
+   "category": "other",
+   "description": "OVP is inferred with the two latch signals confused: CPLD trip asserted while the SCR readback is still clear, instead of readback set without a CPLD trip",
+   "reason": "An analog OVP trip while running (latch_state high, latch_assert low) no longer sets fault_reg[4] or opens an episode. A CPLD trip seen while running before the debounced readback follows is wrongly recorded as OVP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.118.AIM.39"
+ }
+]

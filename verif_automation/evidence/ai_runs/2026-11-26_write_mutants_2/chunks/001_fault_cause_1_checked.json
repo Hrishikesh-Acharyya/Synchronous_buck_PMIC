@@ -1,0 +1,106 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = !convertor_running && (fault_reg != '0) && (fault_time == '0);"
+   ],
+   "category": "wrong_event",
+   "description": "fault_time records when the converter stopped with a non-empty record (the shutdown) instead of when the first cause of the episode was captured",
+   "reason": "If a cause is captured in S_SS or S_RUN and the converter then stops, fault_time holds the timestamp of the first stopped clock instead of the first cause's clock; if the converter keeps running after the cause, fault_time stays 0 until it stops."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.27"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done)     fault_time <= timestamp_ms;"
+   ],
+   "category": "wrong_event",
+   "description": "A host read stamps fault_time with the read time instead of clearing it, so an empty record reports when it was last read",
+   "reason": "After any host read with no new episode following it, fault_time reads as the timestamp of the read instead of 0; an empty fault_reg no longer goes with a zero fault_time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.28"
+ },
+ {
+  "proposal": {
+   "line": 82,
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 0;",
+    "localparam int BIT_LATCH = 1;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 3;",
+    "localparam int BIT_OC    = 4;"
+   ],
+   "category": "field",
+   "description": "Cause bit positions laid out LSB-first (OVP in bit 0, OVERCURRENT in bit 4), with the priority order misremembered as LSB highest",
+   "reason": "Any recorded OVP, LATCH_ASSERT, UVLO or overcurrent cause appears in the wrong bit of fault_reg: an overcurrent window trip during S_RUN sets bit 4, which the host reads as OVP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.82.AIM.29"
+ },
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(!convertor_running) begin",
+    "    fault_reg <= '0;",
+    "  end",
+    "  else begin"
+   ],
+   "category": "reset_init",
+   "description": "fault_reg is cleared when the converter stops, like the supervisor's window state, instead of being held until the host reads it",
+   "reason": "After a fault shuts the converter down (S_RUN or S_SS to stopped), fault_reg reads back as 0 one clock later, so the cause of the shutdown is lost while fault_time still holds the episode start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.30"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state || uvlo_state || ovp || latch_assert || window_trip || window_trip_SS) begin",
+    "      fault_reg <= {ovp, latch_assert, otp_state, uvlo_state, (window_trip || window_trip_SS)};",
+    "    end"
+   ],
+   "category": "other",
+   "description": "While running, any live cause overwrites the record with a snapshot of the currently live causes instead of OR-accumulating into it",
+   "reason": "If one cause (say OTP) is captured and goes away, and a different cause (say UVLO) is then live while still in S_SS/S_RUN, fault_reg loses the OTP bit and reports only UVLO."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.31"
+ }
+]

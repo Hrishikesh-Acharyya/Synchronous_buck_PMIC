@@ -1,0 +1,59 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    "                && ((otp_state && !fault_reg[BIT_OTP]) || (uvlo_state && !fault_reg[BIT_UVLO])",
+    "                    || (ovp && !fault_reg[BIT_OVP]) || (latch_assert && !fault_reg[BIT_LATCH])",
+    "                    || ((window_trip || window_trip_SS) && !fault_reg[BIT_OC]));"
+   ],
+   "category": "wrong_event",
+   "description": "fault_time is re-latched every time a cause not yet in the record is captured, so it holds the time of the most recent new cause instead of the start of the episode",
+   "reason": "If OTP is captured while running and then a different cause such as UVLO arrives before the host reads, fault_time shows the later UVLO time instead of the OTP time. With only one cause per episode it gives the same result as the correct design."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.24"
+ },
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running || (fault_reg != '0)) begin"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate only scopes the start of an episode: once fault_reg holds a cause, further causes are added even after the converter has stopped",
+   "reason": "Suppose an OTP shutdown is recorded and the converter goes to S_OFF. If UVLO then asserts during the routine power-down, or OVP or the latch asserts while stopped, the UVLO, OVP or LATCH bit is also set before the host reads, though the header says conditions arising while stopped are not captured."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.25"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert);"
+   ],
+   "category": "missing_case",
+   "description": "Episode start leaves out the overcurrent window trips, on the assumption that an overcurrent episode only starts when latch_assert trips, so the accumulator and the episode detector disagree",
+   "reason": "If the first cause of an episode is a window_trip in S_RUN or a window_trip_SS in S_SS, the OVERCURRENT bit is set but fault_time stays 0. Because fault_reg is then no longer empty, a later OTP, UVLO or latch cause in the same episode does not latch the start time either."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.139.AIM.26"
+ }
+]

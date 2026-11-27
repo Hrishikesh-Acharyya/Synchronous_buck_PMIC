@@ -1,0 +1,37 @@
+[
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running || latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate is held open while the CPLD's latch trip is asserted, so the trip that stops the converter is sure to be seen. Because latch_assert is held until reset, the gate never closes after a latch trip.",
+   "reason": "latch_assert stays high until rst_n after a strike-out trip, while the supervisor sits in S_OFF. If the host reads fault_reg in that state, the original stays empty, but the mutant sets LATCH_ASSERT again on the next clock. Any OTP or UVLO that arrives later, such as a power-down UVLO, is also recorded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.40"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && !(otp_state || uvlo_state || ovp || latch_assert",
+    "                                    || window_trip || window_trip_SS)) fault_time <= '0;"
+   ],
+   "category": "reset_init",
+   "description": "A host read clears fault_time only when no cause is live. The episode is treated as still open while any cause persists, so its start time survives the read even though fault_reg is cleared.",
+   "reason": "After a latch trip, latch_assert stays high with the converter stopped. A host read then empties fault_reg, and in the original fault_time goes to 0. In the mutant fault_time keeps the old episode start time next to an empty fault_reg, and no new episode can re-stamp it while the converter is stopped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.41"
+ }
+]

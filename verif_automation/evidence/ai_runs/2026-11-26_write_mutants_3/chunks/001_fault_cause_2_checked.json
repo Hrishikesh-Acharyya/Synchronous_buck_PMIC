@@ -1,0 +1,57 @@
+[
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert || latch_state)     fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "The LATCH_ASSERT bit is set whenever the protection latch reads back set, so an analog OVP trip is recorded as both OVP and LATCH_ASSERT (OCP/SCP)",
+   "reason": "Suppose an analog OVP trips the shared latch during S_SS or S_RUN while latch_assert stays low. fault_reg should read 10000 but reads 11000, which reports an overcurrent trip that never happened."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.209.AIM.42"
+ },
+ {
+  "proposal": {
+   "line": 118,
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~fault_reg[BIT_OC]) ovp = 1'b1;"
+   ],
+   "category": "wrong_event",
+   "description": "OVP is inferred as a latch trip with no recorded overcurrent, as if every CPLD trip is shown by a recorded window trip, instead of a latch trip without the CPLD's latch_assert",
+   "reason": "Suppose a host read clears the OVERCURRENT bit and the strikes then reach a CPLD latch trip while the converter is running. The OVP bit is set wrongly. In the other direction, an analog OVP trip in an episode that has already recorded a window trip leaves the OVP bit clear."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.118.AIM.43"
+ },
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    "                && ({ovp, latch_assert, otp_state, uvlo_state,",
+    "                    (window_trip || window_trip_SS)} > fault_reg);"
+   ],
+   "category": "wrong_event",
+   "description": "fault_time is re-latched whenever a live cause outranks every cause already recorded, so it gives the time of the highest-priority cause instead of the start of the episode",
+   "reason": "Suppose a window trip opens an episode in S_RUN and an OTP or a latch trip follows it while the converter is still running. fault_time moves to the time of the later cause, where it should keep the time the episode began."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.138.AIM.44"
+ }
+]

@@ -355,6 +355,594 @@
     "  if(latch_state ^ latch_assert) ovp = 1'b1;"
    ],
    "run": "2026-11-14_write_mutants_4"
+  },
+  {
+   "key": 24,
+   "line": 138,
+   "category": "wrong_event",
+   "description": "fault_time is re-latched every time a cause not yet in the record is captured, so it holds the time of the most recent new cause instead of the start of the episode",
+   "reason": "If OTP is captured while running and then a different cause such as UVLO arrives before the host reads, fault_time shows the later UVLO time instead of the OTP time. With only one cause per episode it gives the same result as the correct design.",
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    "                && ((otp_state && !fault_reg[BIT_OTP]) || (uvlo_state && !fault_reg[BIT_UVLO])",
+    "                    || (ovp && !fault_reg[BIT_OVP]) || (latch_assert && !fault_reg[BIT_LATCH])",
+    "                    || ((window_trip || window_trip_SS) && !fault_reg[BIT_OC]));"
+   ],
+   "run": "2026-11-26_write_mutants"
+  },
+  {
+   "key": 25,
+   "line": 203,
+   "category": "missing_case",
+   "description": "The capture gate only scopes the start of an episode: once fault_reg holds a cause, further causes are added even after the converter has stopped",
+   "reason": "Suppose an OTP shutdown is recorded and the converter goes to S_OFF. If UVLO then asserts during the routine power-down, or OVP or the latch asserts while stopped, the UVLO, OVP or LATCH bit is also set before the host reads, though the header says conditions arising while stopped are not captured.",
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running || (fault_reg != '0)) begin"
+   ],
+   "run": "2026-11-26_write_mutants"
+  },
+  {
+   "key": 26,
+   "line": 139,
+   "category": "missing_case",
+   "description": "Episode start leaves out the overcurrent window trips, on the assumption that an overcurrent episode only starts when latch_assert trips, so the accumulator and the episode detector disagree",
+   "reason": "If the first cause of an episode is a window_trip in S_RUN or a window_trip_SS in S_SS, the OVERCURRENT bit is set but fault_time stays 0. Because fault_reg is then no longer empty, a later OTP, UVLO or latch cause in the same episode does not latch the start time either.",
+   "before": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert);"
+   ],
+   "run": "2026-11-26_write_mutants"
+  },
+  {
+   "key": 27,
+   "line": 138,
+   "category": "wrong_event",
+   "description": "fault_time records when the converter stopped with a non-empty record (the shutdown) instead of when the first cause of the episode was captured",
+   "reason": "If a cause is captured in S_SS or S_RUN and the converter then stops, fault_time holds the timestamp of the first stopped clock instead of the first cause's clock; if the converter keeps running after the cause, fault_time stays 0 until it stops.",
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = !convertor_running && (fault_reg != '0) && (fault_time == '0);"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 28,
+   "line": 165,
+   "category": "wrong_event",
+   "description": "A host read stamps fault_time with the read time instead of clearing it, so an empty record reports when it was last read",
+   "reason": "After any host read with no new episode following it, fault_time reads as the timestamp of the read instead of 0; an empty fault_reg no longer goes with a zero fault_time.",
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done)     fault_time <= timestamp_ms;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 29,
+   "line": 82,
+   "category": "field",
+   "description": "Cause bit positions laid out LSB-first (OVP in bit 0, OVERCURRENT in bit 4), with the priority order misremembered as LSB highest",
+   "reason": "Any recorded OVP, LATCH_ASSERT, UVLO or overcurrent cause appears in the wrong bit of fault_reg: an overcurrent window trip during S_RUN sets bit 4, which the host reads as OVP.",
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 0;",
+    "localparam int BIT_LATCH = 1;",
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 3;",
+    "localparam int BIT_OC    = 4;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 30,
+   "line": 203,
+   "category": "reset_init",
+   "description": "fault_reg is cleared when the converter stops, like the supervisor's window state, instead of being held until the host reads it",
+   "reason": "After a fault shuts the converter down (S_RUN or S_SS to stopped), fault_reg reads back as 0 one clock later, so the cause of the shutdown is lost while fault_time still holds the episode start.",
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(!convertor_running) begin",
+    "    fault_reg <= '0;",
+    "  end",
+    "  else begin"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 31,
+   "line": 205,
+   "category": "other",
+   "description": "While running, any live cause overwrites the record with a snapshot of the currently live causes instead of OR-accumulating into it",
+   "reason": "If one cause (say OTP) is captured and goes away, and a different cause (say UVLO) is then live while still in S_SS/S_RUN, fault_reg loses the OTP bit and reports only UVLO.",
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;",
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;",
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state || uvlo_state || ovp || latch_assert || window_trip || window_trip_SS) begin",
+    "      fault_reg <= {ovp, latch_assert, otp_state, uvlo_state, (window_trip || window_trip_SS)};",
+    "    end"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 32,
+   "line": 203,
+   "category": "missing_case",
+   "description": "The accumulator's capture gate is S_RUN only, while episode_start still uses convertor_running (S_SS or S_RUN), so the two blocks no longer agree during soft start",
+   "reason": "A cause that is live during soft start (for example window_trip_SS or OTP while ss_active) is not recorded in fault_reg. Because fault_reg stays empty, episode_start fires on every clock, so fault_time keeps following timestamp_ms while fault_reg reads 0.",
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(run_active) begin"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 33,
+   "line": 207,
+   "category": "missing_case",
+   "description": "OVERCURRENT is recorded only when the window trip has already led to a CPLD latch trip, as if an overcurrent only counts once strikes reach the trip",
+   "reason": "A window_trip or window_trip_SS that does not (yet) assert latch_assert, i.e. one strike below the limit, leaves bit 0 of fault_reg clear. The original records it on the first window trip.",
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "after": [
+    "    if((window_trip || window_trip_SS) && latch_assert) fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 34,
+   "line": 209,
+   "category": "missing_case",
+   "description": "LATCH_ASSERT is recorded only in S_RUN, on the assumption that the CPLD trips the latch only from run-time strikes, so a latch trip during soft start is forgotten",
+   "reason": "If latch_assert rises while ss_active is high (an overcurrent in soft start), bit 3 of fault_reg is not set. The original records it whenever the converter is in S_SS or S_RUN.",
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert && run_active)      fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 35,
+   "line": 207,
+   "category": "field",
+   "description": "A soft-start overcurrent window trip is filed under the LATCH_ASSERT (OCP/SCP) bit instead of the OVERCURRENT bit",
+   "reason": "When window_trip_SS asserts during soft start with latch_assert low, fault_reg reads 01000 instead of 00001.",
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(window_trip)                     fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert || window_trip_SS)  fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 36,
+   "line": 84,
+   "category": "field",
+   "description": "The OTP and UVLO cause bits are laid out in swapped positions, with the priority order between them misremembered",
+   "reason": "An over-temperature while running sets fault_reg bit 1 instead of bit 2, and an undervoltage sets bit 2 instead of bit 1, so the host reads 00010 for OTP and 00100 for UVLO.",
+   "before": [
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;"
+   ],
+   "after": [
+    "localparam int BIT_OTP   = 1;",
+    "localparam int BIT_UVLO  = 2;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 37,
+   "line": 208,
+   "category": "missing_case",
+   "description": "OVP is recorded only in S_RUN, on the assumption that overvoltage can only occur once the output is regulated, so an OVP overshoot during soft start is not recorded",
+   "reason": "An analog OVP trip (latch_state high, latch_assert low) during S_SS leaves fault_reg[4] clear. episode_start still fires on ovp, so fault_time is latched while fault_reg reads empty.",
+   "before": [
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(ovp && run_active)               fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 38,
+   "line": 82,
+   "category": "field",
+   "description": "The OVP and LATCH_ASSERT cause bits are laid out in swapped positions, with the CPLD's measured trip misremembered as outranking the inferred OVP",
+   "reason": "An analog OVP trip while running sets fault_reg bit 3 (10000 expected, 01000 read), and a latch_assert captured while running sets bit 4, so the host reads the wrong cause.",
+   "before": [
+    "localparam int BIT_OVP   = 4;",
+    "localparam int BIT_LATCH = 3;"
+   ],
+   "after": [
+    "localparam int BIT_OVP   = 3;",
+    "localparam int BIT_LATCH = 4;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 39,
+   "line": 118,
+   "category": "other",
+   "description": "OVP is inferred with the two latch signals confused: CPLD trip asserted while the SCR readback is still clear, instead of readback set without a CPLD trip",
+   "reason": "An analog OVP trip while running (latch_state high, latch_assert low) no longer sets fault_reg[4] or opens an episode. A CPLD trip seen while running before the debounced readback follows is wrongly recorded as OVP.",
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_assert & ~latch_state) ovp = 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_2"
+  },
+  {
+   "key": 40,
+   "line": 203,
+   "category": "missing_case",
+   "description": "The capture gate is held open while the CPLD's latch trip is asserted, so the trip that stops the converter is sure to be seen. Because latch_assert is held until reset, the gate never closes after a latch trip.",
+   "reason": "latch_assert stays high until rst_n after a strike-out trip, while the supervisor sits in S_OFF. If the host reads fault_reg in that state, the original stays empty, but the mutant sets LATCH_ASSERT again on the next clock. Any OTP or UVLO that arrives later, such as a power-down UVLO, is also recorded.",
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running || latch_assert) begin"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 41,
+   "line": 165,
+   "category": "reset_init",
+   "description": "A host read clears fault_time only when no cause is live. The episode is treated as still open while any cause persists, so its start time survives the read even though fault_reg is cleared.",
+   "reason": "After a latch trip, latch_assert stays high with the converter stopped. A host read then empties fault_reg, and in the original fault_time goes to 0. In the mutant fault_time keeps the old episode start time next to an empty fault_reg, and no new episode can re-stamp it while the converter is stopped.",
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && !(otp_state || uvlo_state || ovp || latch_assert",
+    "                                    || window_trip || window_trip_SS)) fault_time <= '0;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 42,
+   "line": 209,
+   "category": "missing_case",
+   "description": "The LATCH_ASSERT bit is set whenever the protection latch reads back set, so an analog OVP trip is recorded as both OVP and LATCH_ASSERT (OCP/SCP)",
+   "reason": "Suppose an analog OVP trips the shared latch during S_SS or S_RUN while latch_assert stays low. fault_reg should read 10000 but reads 11000, which reports an overcurrent trip that never happened.",
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert || latch_state)     fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 43,
+   "line": 118,
+   "category": "wrong_event",
+   "description": "OVP is inferred as a latch trip with no recorded overcurrent, as if every CPLD trip is shown by a recorded window trip, instead of a latch trip without the CPLD's latch_assert",
+   "reason": "Suppose a host read clears the OVERCURRENT bit and the strikes then reach a CPLD latch trip while the converter is running. The OVP bit is set wrongly. In the other direction, an analog OVP trip in an episode that has already recorded a window trip leaves the OVP bit clear.",
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~fault_reg[BIT_OC]) ovp = 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 44,
+   "line": 138,
+   "category": "wrong_event",
+   "description": "fault_time is re-latched whenever a live cause outranks every cause already recorded, so it gives the time of the highest-priority cause instead of the start of the episode",
+   "reason": "Suppose a window trip opens an episode in S_RUN and an OTP or a latch trip follows it while the converter is still running. fault_time moves to the time of the later cause, where it should keep the time the episode began.",
+   "before": [
+    "  episode_start = convertor_running && (fault_reg == '0)",
+    "                && (otp_state || uvlo_state || ovp || latch_assert",
+    "                    || window_trip || window_trip_SS);"
+   ],
+   "after": [
+    "  episode_start = convertor_running",
+    "                && ({ovp, latch_assert, otp_state, uvlo_state,",
+    "                    (window_trip || window_trip_SS)} > fault_reg);"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 45,
+   "line": 197,
+   "category": "reset_init",
+   "description": "fault_reg is cleared all through soft start, as if each restart began a new record, as well as on a host read",
+   "reason": "After a hiccup or other restart, the causes recorded in the previous episode are wiped as soon as the converter enters S_SS, before the host has read them. Causes that occur during soft start (OTP, UVLO, a window_trip_SS) also never appear in fault_reg until S_RUN.",
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done || ss_active) begin"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 46,
+   "line": 205,
+   "category": "priority",
+   "description": "OTP is recorded only when UVLO is not live, as if a brown-out made the OTP reading unreliable and UVLO took precedence",
+   "reason": "If OTP and UVLO are both asserted while the converter is running, and OTP clears before UVLO, fault_reg shows only the UVLO bit and the OTP cause is lost.",
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && !uvlo_state)        fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 47,
+   "line": 85,
+   "category": "field",
+   "description": "The UVLO and OVERCURRENT cause bits are laid out in swapped positions, so overcurrent is ranked above UVLO",
+   "reason": "A UVLO captured while running shows up in fault_reg as 00001 instead of 00010. A window_trip or window_trip_SS overcurrent shows up as 00010 instead of 00001.",
+   "before": [
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_UVLO  = 0;",
+    "localparam int BIT_OC    = 1;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 48,
+   "line": 165,
+   "category": "sequencing",
+   "description": "fault_time is cleared when it sees the record empty, instead of on the host-read pulse itself, so it is cleared one clock after fault_reg",
+   "reason": "On the clock after fault_reg_read_done, fault_reg is already zero but fault_time still holds the previous episode's start time. It clears only one clock later, so for that one clock the outputs give an empty record with a non-zero time.",
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg == '0 && !episode_start) fault_time <= '0;"
+   ],
+   "run": "2026-11-26_write_mutants_3"
+  },
+  {
+   "key": 49,
+   "line": 83,
+   "category": "field",
+   "description": "The LATCH_ASSERT and OTP cause bits are laid out in swapped positions, so OTP is ranked above the CPLD's latch trip",
+   "reason": "An OTP while running sets fault_reg bit 3 instead of bit 2, and a CPLD latch trip sets bit 2 instead of bit 3, so the host decodes each of these causes as the other.",
+   "before": [
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;"
+   ],
+   "after": [
+    "localparam int BIT_LATCH = 2;",
+    "localparam int BIT_OTP   = 3;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 50,
+   "line": 203,
+   "category": "missing_case",
+   "description": "The capture gate closes as soon as the protection latch reads back set, treating a set latch as a converter that has already stopped",
+   "reason": "An analog OVP trip while running (latch_state high, latch_assert low) is never recorded in fault_reg bit 4. episode_start still fires, so fault_time keeps being re-latched while the record stays empty. Causes that arrive after a CPLD trip's readback follows are also dropped.",
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running && !latch_state) begin"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 51,
+   "line": 208,
+   "category": "other",
+   "description": "The OVP bit is recorded from the raw latch readback instead of the inferred ovp, so every CPLD-originated latch trip is also recorded as OVP",
+   "reason": "After an overcurrent CPLD trip while running, once the SCR readback follows latch_assert, fault_reg shows OVP (bit 4) as well as LATCH_ASSERT (bit 3), even though no analog overvoltage happened.",
+   "before": [
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_state)                     fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 52,
+   "line": 209,
+   "category": "missing_case",
+   "description": "OVP is recorded even while the converter is stopped, on the assumption that the analog comparator can trip the latch at any time and should always be logged",
+   "reason": "If the latch is set by an analog trip and the converter is stopped, a host read does not leave the record empty: bit 4 is set again on the next clock. episode_start does not fire, so fault_time stays 0 next to a non-empty record.",
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;",
+    "",
+    "  end",
+    "",
+    "  else if(ovp) begin",
+    "",
+    "    fault_reg[BIT_OVP] <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 53,
+   "line": 209,
+   "category": "other",
+   "description": "Recording the LATCH_ASSERT (OCP/SCP) trip withdraws the OVERCURRENT bit, on the assumption that the latch bit already covers the window trips that led to it",
+   "reason": "When window trips run up strikes until the CPLD asserts latch_assert while running, fault_reg ends up with only bit 3 set. The OVERCURRENT bit 0, recorded earlier, is lost, although bits are meant never to be cleared individually.",
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert) begin",
+    "      fault_reg[BIT_LATCH] <= 1'b1;",
+    "      fault_reg[BIT_OC]    <= 1'b0;",
+    "    end"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 54,
+   "line": 104,
+   "category": "other",
+   "description": "The capture gate is closed whenever UVLO is live, so every UVLO is treated as a routine power-down rather than only the ones that come after the converter has stopped",
+   "reason": "If UVLO asserts while the converter is in S_SS or S_RUN, the UVLO bit is never set. Any cause that is live on the same clock (OTP, OVP, latch_assert, window trip) is lost too, and so is the episode start time: fault_reg stays empty and fault_time stays 0 where the original records them.",
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active) && !uvlo_state;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 55,
+   "line": 206,
+   "category": "missing_case",
+   "description": "UVLO is recorded only during soft start, on the belief that a UVLO in S_RUN is the routine power-down the capture gate is there to ignore",
+   "reason": "A UVLO that interrupts S_RUN leaves the UVLO bit clear in fault_reg. If UVLO is the only cause, the record stays empty, but fault_time is still latched because episode_start still counts uvlo_state. A UVLO during S_SS is recorded as before.",
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state && ss_active)         fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 56,
+   "line": 205,
+   "category": "missing_case",
+   "description": "OTP is recorded only in S_RUN, on the assumption that the board can only overheat under regulated load current, so an over-temperature during soft start is forgotten",
+   "reason": "If otp_state asserts while ss_active is high and run_active is low, the OTP bit is not set. episode_start still fires on otp_state, so fault_time is stamped while fault_reg stays empty, or holds only the other causes.",
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && run_active)         fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 57,
+   "line": 118,
+   "category": "other",
+   "description": "OVP inference is suppressed while UVLO is live, on the assumption that the SCR readback is not trustworthy during a brown-out",
+   "reason": "If, while running, the latch reads back set with latch_assert low on a clock where uvlo_state is also high, the original records both OVP and UVLO. The mutant records UVLO only, so the analog overvoltage trip is missing from fault_reg.",
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~latch_assert & ~uvlo_state) ovp = 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 58,
+   "line": 104,
+   "category": "missing_case",
+   "description": "The capture gate is held open while UVLO is asserted, so the brown-out that stops the converter is sure to be recorded. The side effect is that every routine power-down is logged as a UVLO episode.",
+   "reason": "On a normal power-down the converter is already stopped when UVLO asserts. The mutant then sets fault_reg[UVLO] and latches fault_time, and the bit sets again after every host read while Vin stays low. The correct design leaves both at zero.",
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active||uvlo_state);"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 59,
+   "line": 165,
+   "category": "reset_init",
+   "description": "fault_time is cleared all through soft start, as if each restart opened a new episode, while fault_reg keeps its record until the host reads it",
+   "reason": "Suppose a record from an earlier episode has not been read when the converter restarts: its fault_time drops to 0 during S_SS. A first cause captured during soft start is also left with fault_time 0, because the stamp is cleared and no new episode starts afterwards.",
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done || ss_active)     fault_time <= '0;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 60,
+   "line": 118,
+   "category": "missing_case",
+   "description": "OVP is inferred only into an empty record, on the belief that an analog latch trip after any other recorded cause must be a consequence of that cause",
+   "reason": "Example: an OTP or soft-start overcurrent is recorded and not yet read, the converter restarts, and then the analog OVP trips the latch while it is running. fault_reg[OVP] never sets, so the shutdown cause is missing from the record.",
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~latch_assert & (fault_reg == '0)) ovp = 1'b1;"
+   ],
+   "run": "2026-11-26_write_mutants_4"
+  },
+  {
+   "key": 61,
+   "line": 197,
+   "category": "wrong_event",
+   "description": "A host read clears fault_reg only while the converter is running, so the cause of a shutdown cannot be read away until the converter restarts",
+   "reason": "After the converter has stopped, firmware's normal read returns the record, but fault_reg keeps its bits instead of clearing. fault_time is cleared by the same read, so a non-empty record is left with fault_time 0.",
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && convertor_running) begin"
+   ],
+   "run": "2026-11-26_write_mutants_4"
   }
- ]
+ ],
+ "last_key": 61
 }

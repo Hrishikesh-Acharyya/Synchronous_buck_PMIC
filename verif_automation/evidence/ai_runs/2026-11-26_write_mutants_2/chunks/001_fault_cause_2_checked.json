@@ -1,0 +1,109 @@
+[
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(run_active) begin"
+   ],
+   "category": "missing_case",
+   "description": "The accumulator's capture gate is S_RUN only, while episode_start still uses convertor_running (S_SS or S_RUN), so the two blocks no longer agree during soft start",
+   "reason": "A cause that is live during soft start (for example window_trip_SS or OTP while ss_active) is not recorded in fault_reg. Because fault_reg stays empty, episode_start fires on every clock, so fault_time keeps following timestamp_ms while fault_reg reads 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "                && (otp_state || uvlo_state || ovp || latch_assert"
+   ],
+   "after": [
+    "                && (otp_state || uvlo_state || ovp || latch_state"
+   ],
+   "category": "wrong_event",
+   "description": "The episode-start detector uses the debounced SCR readback latch_state where the accumulator uses the CPLD's latch_assert, so a CPLD trip opens no episode until the readback follows",
+   "reason": "When latch_assert is the first cause while running (for example right after a host read cleared the record), the accumulator sets the LATCH bit on that clock. latch_state is still low, so episode_start never fires and fault_time stays 0 while fault_reg is non-empty."
+  },
+  "accepted": false,
+  "why": "the same edit as fault_cause.139.SIB.5"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "after": [
+    "    if((window_trip || window_trip_SS) && latch_assert) fault_reg [BIT_OC]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OVERCURRENT is recorded only when the window trip has already led to a CPLD latch trip, as if an overcurrent only counts once strikes reach the trip",
+   "reason": "A window_trip or window_trip_SS that does not (yet) assert latch_assert, i.e. one strike below the limit, leaves bit 0 of fault_reg clear. The original records it on the first window trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.207.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert && run_active)      fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "LATCH_ASSERT is recorded only in S_RUN, on the assumption that the CPLD trips the latch only from run-time strikes, so a latch trip during soft start is forgotten",
+   "reason": "If latch_assert rises while ss_active is high (an overcurrent in soft start), bit 3 of fault_reg is not set. The original records it whenever the converter is in S_SS or S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.209.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "    if(window_trip || window_trip_SS)   fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(window_trip)                     fault_reg [BIT_OC]   <= 1'b1;",
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;",
+    "    if(latch_assert || window_trip_SS)  fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "category": "field",
+   "description": "A soft-start overcurrent window trip is filed under the LATCH_ASSERT (OCP/SCP) bit instead of the OVERCURRENT bit",
+   "reason": "When window_trip_SS asserts during soft start with latch_assert low, fault_reg reads 01000 instead of 00001."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.207.AIM.35"
+ },
+ {
+  "proposal": {
+   "line": 84,
+   "before": [
+    "localparam int BIT_OTP   = 2;",
+    "localparam int BIT_UVLO  = 1;"
+   ],
+   "after": [
+    "localparam int BIT_OTP   = 1;",
+    "localparam int BIT_UVLO  = 2;"
+   ],
+   "category": "field",
+   "description": "The OTP and UVLO cause bits are laid out in swapped positions, with the priority order between them misremembered",
+   "reason": "An over-temperature while running sets fault_reg bit 1 instead of bit 2, and an undervoltage sets bit 2 instead of bit 1, so the host reads 00010 for OTP and 00100 for UVLO."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.84.AIM.36"
+ }
+]

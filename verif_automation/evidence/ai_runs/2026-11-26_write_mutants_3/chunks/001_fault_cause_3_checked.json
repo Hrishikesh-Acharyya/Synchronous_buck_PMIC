@@ -1,0 +1,72 @@
+[
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done || ss_active) begin"
+   ],
+   "category": "reset_init",
+   "description": "fault_reg is cleared all through soft start, as if each restart began a new record, as well as on a host read",
+   "reason": "After a hiccup or other restart, the causes recorded in the previous episode are wiped as soon as the converter enters S_SS, before the host has read them. Causes that occur during soft start (OTP, UVLO, a window_trip_SS) also never appear in fault_reg until S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.197.AIM.45"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && !uvlo_state)        fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "category": "priority",
+   "description": "OTP is recorded only when UVLO is not live, as if a brown-out made the OTP reading unreliable and UVLO took precedence",
+   "reason": "If OTP and UVLO are both asserted while the converter is running, and OTP clears before UVLO, fault_reg shows only the UVLO bit and the OTP cause is lost."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.46"
+ },
+ {
+  "proposal": {
+   "line": 85,
+   "before": [
+    "localparam int BIT_UVLO  = 1;",
+    "localparam int BIT_OC    = 0;"
+   ],
+   "after": [
+    "localparam int BIT_UVLO  = 0;",
+    "localparam int BIT_OC    = 1;"
+   ],
+   "category": "field",
+   "description": "The UVLO and OVERCURRENT cause bits are laid out in swapped positions, so overcurrent is ranked above UVLO",
+   "reason": "A UVLO captured while running shows up in fault_reg as 00001 instead of 00010. A window_trip or window_trip_SS overcurrent shows up as 00010 instead of 00001."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.85.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg == '0 && !episode_start) fault_time <= '0;"
+   ],
+   "category": "sequencing",
+   "description": "fault_time is cleared when it sees the record empty, instead of on the host-read pulse itself, so it is cleared one clock after fault_reg",
+   "reason": "On the clock after fault_reg_read_done, fault_reg is already zero but fault_time still holds the previous episode's start time. It clears only one clock later, so for that one clock the outputs give an empty record with a non-zero time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.48"
+ }
+]

@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active) && !uvlo_state;"
+   ],
+   "category": "other",
+   "description": "The capture gate is closed whenever UVLO is live, so every UVLO is treated as a routine power-down rather than only the ones that come after the converter has stopped",
+   "reason": "If UVLO asserts while the converter is in S_SS or S_RUN, the UVLO bit is never set. Any cause that is live on the same clock (OTP, OVP, latch_assert, window trip) is lost too, and so is the episode start time: fault_reg stays empty and fault_time stays 0 where the original records them."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.54"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    if(uvlo_state)                      fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "after": [
+    "    if(uvlo_state && ss_active)         fault_reg[BIT_UVLO]  <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "UVLO is recorded only during soft start, on the belief that a UVLO in S_RUN is the routine power-down the capture gate is there to ignore",
+   "reason": "A UVLO that interrupts S_RUN leaves the UVLO bit clear in fault_reg. If UVLO is the only cause, the record stays empty, but fault_time is still latched because episode_start still counts uvlo_state. A UVLO during S_SS is recorded as before."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.206.AIM.55"
+ },
+ {
+  "proposal": {
+   "line": 205,
+   "before": [
+    "    if(otp_state)                       fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(otp_state && run_active)         fault_reg[BIT_OTP]   <= 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OTP is recorded only in S_RUN, on the assumption that the board can only overheat under regulated load current, so an over-temperature during soft start is forgotten",
+   "reason": "If otp_state asserts while ss_active is high and run_active is low, the OTP bit is not set. episode_start still fires on otp_state, so fault_time is stamped while fault_reg stays empty, or holds only the other causes."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.205.AIM.56"
+ },
+ {
+  "proposal": {
+   "line": 118,
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~latch_assert & ~uvlo_state) ovp = 1'b1;"
+   ],
+   "category": "other",
+   "description": "OVP inference is suppressed while UVLO is live, on the assumption that the SCR readback is not trustworthy during a brown-out",
+   "reason": "If, while running, the latch reads back set with latch_assert low on a clock where uvlo_state is also high, the original records both OVP and UVLO. The mutant records UVLO only, so the analog overvoltage trip is missing from fault_reg."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.118.AIM.57"
+ }
+]

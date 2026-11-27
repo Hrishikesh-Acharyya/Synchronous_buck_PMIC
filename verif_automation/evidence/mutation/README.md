@@ -4,7 +4,7 @@ One record per module, added to by every step run on it and never cut: the AI wr
 
 | Module | Mutants | AI-written | Killed | Lint | Covers | Timeout | Survived | Not run | Score | Survivors not decided | Score, explained survivors out | Steps: AI wrote / mutation / AI judged | Last step |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
-| [`fault_cause`](fault_cause.md) | 23 | 23 | 0 | 0 | 0 | 0 | 0 | 23 | - | 0 | - | 2 / 0 / 0 | 2026-11-14 664452d |
+| [`fault_cause`](fault_cause.md) | 61 | 61 | 0 | 0 | 0 | 0 | 0 | 61 | - | 0 | - | 6 / 0 / 0 | 2026-11-26 219c651 |
 | [`hiccup_timer`](hiccup_timer.md) | 55 | 12 | 38 | 11 | 0 | 0 | 6 | 0 | 89.1% | 0 | 98.0% | 6 / 1 / 1 | 2026-11-15 a1dc229 |
 | [`input_debounce`](input_debounce.md) | 85 | 16 | 73 | 3 | 2 | 0 | 7 | 0 | 91.8% | 0 | 95.1% | 4 / 1 / 1 | 2026-11-15 f71cb1f |
 | [`input_sync`](input_sync.md) | 27 | 5 | 20 | 7 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 217b430 |

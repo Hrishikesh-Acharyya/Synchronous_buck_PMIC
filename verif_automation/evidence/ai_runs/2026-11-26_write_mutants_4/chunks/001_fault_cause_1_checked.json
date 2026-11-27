@@ -1,0 +1,98 @@
+[
+ {
+  "proposal": {
+   "line": 83,
+   "before": [
+    "localparam int BIT_LATCH = 3;",
+    "localparam int BIT_OTP   = 2;"
+   ],
+   "after": [
+    "localparam int BIT_LATCH = 2;",
+    "localparam int BIT_OTP   = 3;"
+   ],
+   "category": "field",
+   "description": "The LATCH_ASSERT and OTP cause bits are laid out in swapped positions, so OTP is ranked above the CPLD's latch trip",
+   "reason": "An OTP while running sets fault_reg bit 3 instead of bit 2, and a CPLD latch trip sets bit 2 instead of bit 3, so the host decodes each of these causes as the other."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.83.AIM.49"
+ },
+ {
+  "proposal": {
+   "line": 203,
+   "before": [
+    "  else if(convertor_running) begin"
+   ],
+   "after": [
+    "  else if(convertor_running && !latch_state) begin"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate closes as soon as the protection latch reads back set, treating a set latch as a converter that has already stopped",
+   "reason": "An analog OVP trip while running (latch_state high, latch_assert low) is never recorded in fault_reg bit 4. episode_start still fires, so fault_time keeps being re-latched while the record stays empty. Causes that arrive after a CPLD trip's readback follows are also dropped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.203.AIM.50"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    if(ovp)                             fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_state)                     fault_reg[BIT_OVP]   <= 1'b1;"
+   ],
+   "category": "other",
+   "description": "The OVP bit is recorded from the raw latch readback instead of the inferred ovp, so every CPLD-originated latch trip is also recorded as OVP",
+   "reason": "After an overcurrent CPLD trip while running, once the SCR readback follows latch_assert, fault_reg shows OVP (bit 4) as well as LATCH_ASSERT (bit 3), even though no analog overvoltage happened."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.208.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 211,
+   "before": [
+    "  end"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else if(ovp) begin",
+    "",
+    "    fault_reg[BIT_OVP] <= 1'b1;",
+    "",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "OVP is recorded even while the converter is stopped, on the assumption that the analog comparator can trip the latch at any time and should always be logged",
+   "reason": "If the latch is set by an analog trip and the converter is stopped, a host read does not leave the record empty: bit 4 is set again on the next clock. episode_start does not fire, so fault_time stays 0 next to a non-empty record."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.211.AIM.52"
+ },
+ {
+  "proposal": {
+   "line": 209,
+   "before": [
+    "    if(latch_assert)                    fault_reg[BIT_LATCH] <= 1'b1;"
+   ],
+   "after": [
+    "    if(latch_assert) begin",
+    "      fault_reg[BIT_LATCH] <= 1'b1;",
+    "      fault_reg[BIT_OC]    <= 1'b0;",
+    "    end"
+   ],
+   "category": "other",
+   "description": "Recording the LATCH_ASSERT (OCP/SCP) trip withdraws the OVERCURRENT bit, on the assumption that the latch bit already covers the window trips that led to it",
+   "reason": "When window trips run up strikes until the CPLD asserts latch_assert while running, fault_reg ends up with only bit 3 set. The OVERCURRENT bit 0, recorded earlier, is lost, although bits are meant never to be cleared individually."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.209.AIM.53"
+ }
+]

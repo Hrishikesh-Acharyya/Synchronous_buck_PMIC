@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "always_comb convertor_running = (ss_active||run_active);"
+   ],
+   "after": [
+    "always_comb convertor_running = (ss_active||run_active||uvlo_state);"
+   ],
+   "category": "missing_case",
+   "description": "The capture gate is held open while UVLO is asserted, so the brown-out that stops the converter is sure to be recorded. The side effect is that every routine power-down is logged as a UVLO episode.",
+   "reason": "On a normal power-down the converter is already stopped when UVLO asserts. The mutant then sets fault_reg[UVLO] and latches fault_time, and the bit sets again after every host read while Vin stays low. The correct design leaves both at zero."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.104.AIM.58"
+ },
+ {
+  "proposal": {
+   "line": 165,
+   "before": [
+    "  else if (fault_reg_read_done)     fault_time <= '0;"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done || ss_active)     fault_time <= '0;"
+   ],
+   "category": "reset_init",
+   "description": "fault_time is cleared all through soft start, as if each restart opened a new episode, while fault_reg keeps its record until the host reads it",
+   "reason": "Suppose a record from an earlier episode has not been read when the converter restarts: its fault_time drops to 0 during S_SS. A first cause captured during soft start is also left with fault_time 0, because the stamp is cleared and no new episode starts afterwards."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.165.AIM.59"
+ },
+ {
+  "proposal": {
+   "line": 118,
+   "before": [
+    "  if(latch_state & ~latch_assert) ovp = 1'b1;"
+   ],
+   "after": [
+    "  if(latch_state & ~latch_assert & (fault_reg == '0)) ovp = 1'b1;"
+   ],
+   "category": "missing_case",
+   "description": "OVP is inferred only into an empty record, on the belief that an analog latch trip after any other recorded cause must be a consequence of that cause",
+   "reason": "Example: an OTP or soft-start overcurrent is recorded and not yet read, the converter restarts, and then the analog OVP trips the latch while it is running. fault_reg[OVP] never sets, so the shutdown cause is missing from the record."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.118.AIM.60"
+ },
+ {
+  "proposal": {
+   "line": 197,
+   "before": [
+    "  else if (fault_reg_read_done) begin"
+   ],
+   "after": [
+    "  else if (fault_reg_read_done && convertor_running) begin"
+   ],
+   "category": "wrong_event",
+   "description": "A host read clears fault_reg only while the converter is running, so the cause of a shutdown cannot be read away until the converter restarts",
+   "reason": "After the converter has stopped, firmware's normal read returns the record, but fault_reg keeps its bits instead of clearing. fault_time is cleared by the same read, so a non-empty record is left with fault_time 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_cause.197.AIM.61"
+ }
+]
