@@ -269,7 +269,8 @@ def killed_by(d):
     """
     log = (d / "run.log").read_text(errors="replace") if (d / "run.log").exists() else ""
     assertions = list(dict.fromkeys(re.findall(r"SVA FAIL: (\w+)", log)))
-    checks = re.findall(r"(?m)^\[[^\]]*\]\s+FAIL\s+(.*)$", log)
+    # testbench checks: "[t] FAIL  label" (pmic_top_tb.v) or "[t] CHECK FAIL: label" (the SV unit benches)
+    checks = re.findall(r"(?m)^\[[^\]]*\]\s+(?:CHECK\s+)?FAIL:?\s+(.*)$", log)
     tests = []
     if (d / "results.xml").exists():
         try:

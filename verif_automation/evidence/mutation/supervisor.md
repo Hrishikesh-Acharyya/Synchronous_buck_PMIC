@@ -117,6 +117,7 @@ Survivors: 12 - 12 decided equivalent, 0 accepted, 0 a gap still to close, **0 n
 | 12 | 2026-11-27 22:30 | 0ee549a | designer's decision: equivalent | supervisor.237.CID.1, supervisor.240.CID.1 - the deleted S_OFF or S_HICCUP item falls to the default, which also assigns en_from_state = 0 |
 | 13 | 2026-11-27 22:30 | 0ee549a | designer's decision: equivalent | supervisor.220.ENM.1, supervisor.220.SDL.1, supervisor.241.CST.1, supervisor.241.SDL.1 - state_t is 2 bits and S_OFF/S_SS/S_RUN/S_HICCUP use all four codes (00, 01, 10, 11), and state is only ever loaded from reset or next_state, so the default arms never run |
 | 14 | 2026-11-27 22:30 | 0ee549a | designer's decision: equivalent | supervisor.238.CIS.1 - CIS swaps both labels, S_SS and S_RUN, and both items assign en_from_state = 1, so every state decodes as before; the AI judgement read it as relabelling one line only |
+| 15 | 2026-11-27 17:04 | f2ddab0 | mutation run - ids supervisor.102.CSK.1,supervisor.104.SDL.1 | 2 mutants: 2 killed; score 100.0% |
 
 A `+` after a commit: the RTL, checkers or testbenches had uncommitted changes.
 
@@ -241,12 +242,12 @@ The outcome of every run the mutant was in, oldest first, as `step:outcome`.
 | `supervisor.88.STK.2` | g_en stuck at all-ones (was 'spi_enable & en_SW') | 9:lint | make lint: UNUSEDSIGNAL |
 | `supervisor.88.VNG.1` | g_en inverted (was 'spi_enable & en_SW') | 9:killed | a_hard_fault_holds_en_low, a_off_holds_on_fault +6 |
 | `supervisor.93.EDG.1` | posedge clk -> negedge clk | 9:killed | a_off_holds_on_fault, a_ss_holds +6 |
-| `supervisor.102.CSK.1` | if (!rst_n) -> if (1'b0): never taken | 9:killed | nothing named in the log |
+| `supervisor.102.CSK.1` | if (!rst_n) -> if (1'b0): never taken | 9:killed 15:killed | 1 testbench checks |
 | `supervisor.102.CSK.2` | if (!rst_n) -> if (1'b1): always taken | 9:killed | a_off_to_ss |
 | `supervisor.102.UOD.1` | drop the '!' before rst_n | 9:killed | a_off_to_ss, a_ss_holds |
 | `supervisor.104.AIM.33` | Reset puts the FSM in the S_HICCUP cool-down instead of S_OFF, as if power-up had to wait out a cool-down before the first start | 9:killed | a_reset_means_off |
 | `supervisor.104.ENM.1` | S_OFF -> S_SS | 9:killed | a_reset_means_off |
-| `supervisor.104.SDL.1` | delete 'state <= S_OFF;' | 9:killed | nothing named in the log |
+| `supervisor.104.SDL.1` | delete 'state <= S_OFF;' | 9:killed 15:killed | 1 testbench checks |
 | `supervisor.107.AIM.27` | The state register is clock-enabled by the converter enable, so it freezes instead of loading S_OFF when the enable is lost | 9:killed | a_hard_fault_to_off |
 | `supervisor.109.SDL.1` | delete 'state <= next_state;' | 9:lint | make lint: UNUSEDSIGNAL |
 | `supervisor.135.SDL.1` | delete 'next_state = state;' | 9:survived |  |

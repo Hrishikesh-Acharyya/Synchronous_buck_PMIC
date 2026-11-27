@@ -271,6 +271,25 @@
    "mutants": [
     "supervisor.238.CIS.1"
    ]
+  },
+  {
+   "n": 15,
+   "kind": "mutation",
+   "date": "2026-11-27",
+   "time": "17:04",
+   "commit": "f2ddab0",
+   "uncommitted": false,
+   "scope": "ids supervisor.102.CSK.1,supervisor.104.SDL.1",
+   "mutants": 2,
+   "counts": {
+    "killed": 2
+   },
+   "score": "100.0%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_supervisor": 0.666938066482544
+   }
   }
  ],
  "mutants": {
@@ -2648,6 +2667,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "1 testbench check",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 1
+     }
     }
    ],
    "judgements": [],
@@ -2742,6 +2771,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 15,
+     "status": "killed",
+     "detail": "1 testbench check",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 1
      }
     }
    ],

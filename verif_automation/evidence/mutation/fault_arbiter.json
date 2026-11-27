@@ -355,6 +355,25 @@
    "mutants": [
     "fault_arbiter.152.SDL.1"
    ]
+  },
+  {
+   "n": 21,
+   "kind": "mutation",
+   "date": "2026-11-27",
+   "time": "17:04",
+   "commit": "f2ddab0",
+   "uncommitted": false,
+   "scope": "ids fault_arbiter.126.DLY.2,fault_arbiter.131.EDG.1,fault_arbiter.144.CSK.2,fault_arbiter.144.UOD.1,fault_arbiter.150.AIM.24,fault_arbiter.150.CND.1,fault_arbiter.150.CSK.1,fault_arbiter.150.CSK.2,fault_arbiter.150.CTD.1,fault_arbiter.150.CTD.2,fault_arbiter.150.LCR.1,fault_arbiter.150.SIB.1,fault_arbiter.150.SIB.2,fault_arbiter.150.UOD.1,fault_arbiter.150.UOD.2,fault_arbiter.152.AIM.76,fault_arbiter.152.CST.1,fault_arbiter.156.AIM.100,fault_arbiter.156.AIM.109,fault_arbiter.156.AIM.2,fault_arbiter.158.AIM.126,fault_arbiter.158.AIM.127,fault_arbiter.158.AIM.14,fault_arbiter.158.AIM.78,fault_arbiter.158.CST.1,fault_arbiter.158.CST.2,fault_arbiter.158.CTD.1,fault_arbiter.158.CTN.1,fault_arbiter.158.CTN.2,fault_arbiter.158.LCR.1,fault_arbiter.158.SHF.1,fault_arbiter.158.VNG.1,fault_arbiter.195.CSK.2,fault_arbiter.195.UOD.1,fault_arbiter.204.AIM.69,fault_arbiter.204.AIM.74,fault_arbiter.204.AIM.87,fault_arbiter.204.CSK.1,fault_arbiter.206.AIM.114,fault_arbiter.206.AIM.3,fault_arbiter.206.AIM.31,fault_arbiter.206.AIM.39,fault_arbiter.206.AIM.41,fault_arbiter.206.AIM.60,fault_arbiter.206.AIM.64,fault_arbiter.206.SDL.1,fault_arbiter.206.STK.1,fault_arbiter.207.AIM.27,fault_arbiter.208.AIM.115,fault_arbiter.208.AIM.6,fault_arbiter.213.AIM.67,fault_arbiter.213.AIM.83,fault_arbiter.213.AIM.88,fault_arbiter.213.CSK.1,fault_arbiter.213.CTN.2,fault_arbiter.213.SIB.2,fault_arbiter.215.AIM.110,fault_arbiter.215.AIM.28,fault_arbiter.215.AIM.5,fault_arbiter.215.AIM.51,fault_arbiter.215.AIM.62,fault_arbiter.215.AIM.63,fault_arbiter.215.SDL.1,fault_arbiter.215.STK.1,fault_arbiter.216.AIM.36,fault_arbiter.216.AIM.42,fault_arbiter.217.AIM.116,fault_arbiter.217.AIM.56,fault_arbiter.82.EDG.1,fault_arbiter.99.STK.2",
+   "mutants": 70,
+   "counts": {
+    "killed": 70
+   },
+   "score": "100.0%",
+   "seed": 1,
+   "sim_args": "",
+   "baseline": {
+    "tb_fault_arbiter": 0.7687499523162842
+   }
   }
  ],
  "mutants": {
@@ -397,6 +416,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "20134 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 20134
+     }
     }
    ],
    "judgements": [],
@@ -421,6 +450,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "8082 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 8082
      }
     }
    ],
@@ -475,6 +514,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "6297 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 6297
+     }
     }
    ],
    "judgements": [],
@@ -499,6 +548,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11225 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11225
      }
     }
    ],
@@ -719,6 +778,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "17839 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 17839
      }
     }
    ],
@@ -996,6 +1065,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "37 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 37
+     }
     }
    ],
    "judgements": [],
@@ -1077,6 +1156,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11225 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11225
+     }
     }
    ],
    "judgements": [],
@@ -1101,6 +1190,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "9530 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 9530
      }
     }
    ],
@@ -1181,6 +1280,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10231 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10231
      }
     }
    ],
@@ -1322,6 +1431,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11411 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11411
+     }
     }
    ],
    "judgements": [],
@@ -1404,6 +1523,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "8618 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 8618
+     }
     }
    ],
    "judgements": [],
@@ -1457,6 +1586,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "5908 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 5908
+     }
     }
    ],
    "judgements": [],
@@ -1481,6 +1620,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12127 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12127
      }
     }
    ],
@@ -1744,6 +1893,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10927 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10927
+     }
     }
    ],
    "judgements": [],
@@ -1877,6 +2036,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12127 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12127
+     }
     }
    ],
    "judgements": [],
@@ -1987,6 +2156,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "17839 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 17839
+     }
     }
    ],
    "judgements": [],
@@ -2039,6 +2218,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10587 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10587
+     }
     }
    ],
    "judgements": [],
@@ -2064,6 +2253,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10839 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10839
+     }
     }
    ],
    "judgements": [],
@@ -2088,6 +2287,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10590 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10590
      }
     }
    ],
@@ -2170,6 +2379,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "6938 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 6938
+     }
     }
    ],
    "judgements": [],
@@ -2227,6 +2446,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "8269 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 8269
      }
     }
    ],
@@ -2370,6 +2599,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "9934 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 9934
+     }
     }
    ],
    "judgements": [],
@@ -2422,6 +2661,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "37 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 37
      }
     }
    ],
@@ -2476,6 +2725,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23434 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23434
      }
     }
    ],
@@ -2618,6 +2877,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10429 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10429
+     }
     }
    ],
    "judgements": [],
@@ -2730,6 +2999,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "10304 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 10304
+     }
     }
    ],
    "judgements": [],
@@ -2754,6 +3033,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11217 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11217
      }
     }
    ],
@@ -3092,6 +3381,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
+     }
     }
    ],
    "judgements": [],
@@ -3339,6 +3638,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11409 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11409
+     }
     }
    ],
    "judgements": [],
@@ -3363,6 +3672,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "9420 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 9420
      }
     }
    ],
@@ -3473,6 +3792,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "8672 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 8672
+     }
     }
    ],
    "judgements": [],
@@ -3498,6 +3827,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "5691 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 5691
+     }
     }
    ],
    "judgements": [],
@@ -3522,6 +3861,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "5878 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 5878
      }
     }
    ],
@@ -3805,6 +4154,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "21070 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 21070
+     }
     }
    ],
    "judgements": [],
@@ -3829,6 +4188,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "22743 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 22743
      }
     }
    ],
@@ -3995,6 +4364,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -4258,6 +4637,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -4388,6 +4777,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -4579,6 +4978,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "18092 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 18092
+     }
     }
    ],
    "judgements": [],
@@ -4631,6 +5040,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -4652,6 +5071,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -4735,6 +5164,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -4756,6 +5195,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "37 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 37
      }
     }
    ],
@@ -4779,6 +5228,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -4801,6 +5260,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
+     }
     }
    ],
    "judgements": [],
@@ -4822,6 +5291,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
      }
     }
    ],
@@ -4862,6 +5341,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -4883,6 +5372,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
      }
     }
    ],
@@ -4906,6 +5405,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
+     }
     }
    ],
    "judgements": [],
@@ -4927,6 +5436,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
      }
     }
    ],
@@ -4950,6 +5469,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12230 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12230
+     }
     }
    ],
    "judgements": [],
@@ -4971,6 +5500,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "37 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 37
      }
     }
    ],
@@ -5024,6 +5563,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -5046,6 +5595,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "17571 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 17571
+     }
     }
    ],
    "judgements": [],
@@ -5067,6 +5626,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -5107,6 +5676,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "22861 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 22861
+     }
     }
    ],
    "judgements": [],
@@ -5129,6 +5708,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "22861 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 22861
+     }
     }
    ],
    "judgements": [],
@@ -5150,6 +5739,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -5189,6 +5788,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -5262,6 +5871,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23434 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23434
      }
     }
    ],
@@ -5370,6 +5989,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
+     }
     }
    ],
    "judgements": [],
@@ -5391,6 +6020,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "23528 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 23528
      }
     }
    ],
@@ -5684,6 +6323,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
+     }
     }
    ],
    "judgements": [],
@@ -5941,6 +6590,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
+     }
     }
    ],
    "judgements": [],
@@ -5979,6 +6638,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "11335 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 11335
      }
     }
    ],
@@ -6453,6 +7122,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
+     }
     }
    ],
    "judgements": [],
@@ -6578,6 +7257,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
+     }
     }
    ],
    "judgements": [],
@@ -6665,6 +7354,16 @@
       "tests": [],
       "checks": 0
      }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
+     }
     }
    ],
    "judgements": [],
@@ -6711,6 +7410,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
      }
     }
    ],
@@ -6763,6 +7472,16 @@
       "assertions": [],
       "tests": [],
       "checks": 0
+     }
+    },
+    {
+     "run": 21,
+     "status": "killed",
+     "detail": "12193 testbench checks",
+     "killed_by": {
+      "assertions": [],
+      "tests": [],
+      "checks": 12193
      }
     }
    ],
