@@ -1,0 +1,57 @@
+[
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1]",
+    "                                       ^ fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "category": "other",
+   "description": "The S_RUN count is updated by 'entering XOR leaving' (the count changes only when the two bits differ) but always adds that change, forgetting the direction, so a faulted cycle leaving the run window increments fault_count_run instead of decrementing it.",
+   "reason": "In S_RUN, once a faulted cycle reaches bit WINDOW_RUN-1 and a clean sample enters on pwm_rise, fault_count_run_out goes up by one instead of down, and window_trip can assert after faulted cycles have already left the 16-cycle window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.206.AIM.93"
+ },
+ {
+  "proposal": {
+   "line": 215,
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1]",
+    "                                     ^ fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "category": "other",
+   "description": "The soft-start count is updated by 'entering XOR leaving' (the count changes only when the two bits differ) but always adds that change, so a faulted cycle leaving the 32-cycle window increments fault_count_ss instead of decrementing it.",
+   "reason": "In S_SS, after more than 32 cycles, a faulted cycle that ages out while a clean cycle enters makes fault_count_ss_out rise instead of fall. window_trip_SS can then assert on overcurrent that has already left the soft-start window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.215.AIM.94"
+ },
+ {
+  "proposal": {
+   "line": 216,
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - ((fault_count_ss == FCNT_SS_W'(WINDOW_SS)) ? FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]) : '0);"
+   ],
+   "category": "boundary",
+   "description": "The leaving bit is subtracted only when the window is 'full', but fullness is tested on the fault count (count == WINDOW_SS) rather than on the number of samples taken, so faulted cycles that leave a partly faulted soft-start window are never removed from fault_count_ss.",
+   "reason": "In a long S_SS with intermittent overcurrent (for example every other cycle for more than 32 cycles), fault_count_ss_out keeps growing as a running total past the true count in the window, which is at most 16. window_trip_SS then asserts once the total reaches trip_ss, even though the 32-cycle window never holds that many faulted cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.216.AIM.95"
+ }
+]

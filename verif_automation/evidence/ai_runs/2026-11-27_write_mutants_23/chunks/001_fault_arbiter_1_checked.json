@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && !pwm_rise && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "sequencing",
+   "description": "The S_RUN trip is masked on the cycle-boundary strobe clock, as if the run count were mid-update there, though the count is a register and is valid on that clock.",
+   "reason": "In S_RUN, once fault_count_run is at or above trip_run, window_trip drops to 0 for one clock on every pwm_rise. If the run count first reaches trip_run and the next valley falls on the same clock that S_RUN is entered or held, the trip is delayed by one clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.86"
+ }
+]

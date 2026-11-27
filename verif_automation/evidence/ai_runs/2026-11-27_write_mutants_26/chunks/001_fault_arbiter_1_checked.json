@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 195,
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "The asynchronous reset clears the two fault counts but not the two window shift registers. The designer relies on the idle clear to zero the windows after reset is released.",
+   "reason": "If ss_active (or run_active) is high on the first clock after reset is released, the idle clear never runs. The first pwm_rise then subtracts an uninitialised leaving bit from the count, so fault_count_ss_out, fault_count_run_out and the trips are wrong from the first sample."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.197.AIM.117"
+ },
+ {
+  "proposal": {
+   "line": 97,
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active || ss_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "category": "wrong_event",
+   "description": "The PWM edge detector's delayed copy pwm_sync_d is updated only while the converter is switching (S_SS or S_RUN). Through idle and hiccup it holds the PWM level from the last switching clock.",
+   "reason": "Suppose S_SS is entered while pwm_sync is already high and S_RUN was last left while it was low. The stale pwm_sync_d makes pwm_rise fire on the first S_SS clock, so the soft-start window takes a spurious sample and fault_count_ss_out and window_trip_SS change. In the opposite case a real rising edge on the entry clock is missed."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.97.AIM.118"
+ }
+]

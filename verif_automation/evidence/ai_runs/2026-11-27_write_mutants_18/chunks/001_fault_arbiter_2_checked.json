@@ -1,0 +1,96 @@
+[
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(|cp_delay)",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(|cp_delay);"
+   ],
+   "category": "field",
+   "description": "The S_RUN window takes as its sample 'cp_sync high in any of the last BLANK_CLKS clocks' (OR of the whole blanking history) instead of the one comparator value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_RUN, a CP excursion that happens in the last few clocks before pwm_rise but not at the tapped clock counts as a faulted cycle. fault_count_run_out reads higher and window_trip asserts after fewer real valley overcurrent cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.206.AIM.31"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (trip_ss != '0) && (fault_count_ss >= trip_ss);"
+   ],
+   "category": "boundary",
+   "description": "A TRIP_SS threshold of zero is treated as 'soft-start window trip disabled' instead of 'trip at any count'.",
+   "reason": "With trip_ss programmed to 0, window_trip_SS stays low for the whole of S_SS where it should be high from the first clock of S_SS. So the supervisor completes soft start instead of going to hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin window_trip_SS <= 1'b0; end",
+    "  else begin",
+    "    window_trip_SS <= ss_active && (fault_count_ss >= trip_ss);",
+    "  end",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "window_trip_SS is registered, so it follows the soft-start count and ss_active one clock late.",
+   "reason": "When the soft-start count reaches trip_ss, window_trip_SS rises one clock late. It also stays high for one clock after S_SS is left, so a trip that coincides with SS_done is seen in S_RUN and logged by fault_cause, and the hiccup is entered a clock late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss + 1'b1 >= trip_ss);"
+   ],
+   "category": "boundary",
+   "description": "The soft-start trip counts one faulted cycle too many when comparing with trip_ss, so window_trip_SS asserts when the window holds trip_ss-1 faulted cycles.",
+   "reason": "In S_SS, window_trip_SS asserts and the supervisor goes to hiccup one faulted switching cycle earlier than TRIP_SS specifies. With trip_ss of 1 it trips at once with no faulted cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) + pmic_types_pkg::TRIP_W'(pwm_rise && cp_delay[BLANK_CLKS-1]) >= trip_run);"
+   ],
+   "category": "sequencing",
+   "description": "The S_RUN trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered run count.",
+   "reason": "In S_RUN with fault_count_run at trip_run-1, a faulted sample at pwm_rise asserts window_trip one clock early. If the oldest sample leaving the window is also faulted, it raises a one-clock spurious trip that sends the supervisor to hiccup even though the count never reaches trip_run."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.35"
+ }
+]

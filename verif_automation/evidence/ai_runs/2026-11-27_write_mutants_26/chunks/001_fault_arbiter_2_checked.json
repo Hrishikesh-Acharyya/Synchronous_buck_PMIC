@@ -1,0 +1,90 @@
+[
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic ss_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) ss_active_q <= 1'b0;",
+    "  else        ss_active_q <= ss_active;",
+    "end",
+    "always_comb window_trip_SS = ss_active_q && (fault_count_ss >= trip_ss);"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start trip is gated by a registered copy of ss_active (the state from the previous clock) instead of the live ss_active, so the gate stays open for one clock after S_SS is left.",
+   "reason": "When S_SS is left, for a hiccup after a soft-start trip or for S_RUN with fault_count_ss at or above trip_ss, window_trip_SS stays high for one clock in the new state. The header forbids exactly this, because the soft-start count is frozen through S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.119"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic run_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) run_active_q <= 1'b0;",
+    "  else        run_active_q <= run_active;",
+    "end",
+    "always_comb window_trip    = run_active_q && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "sequencing",
+   "description": "The S_RUN trip is gated by a registered copy of run_active instead of the live run_active, so the gate opens one clock late and closes one clock late.",
+   "reason": "After a run-window trip sends the FSM to hiccup, the run count takes one edge to clear, so window_trip stays high for the first hiccup clock. Also, a trip_run of 0 does not assert window_trip on the first clock of S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.120"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic trip_run_hold;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) trip_run_hold <= 1'b0;",
+    "  else        trip_run_hold <= window_trip;",
+    "end",
+    "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || trip_run_hold);"
+   ],
+   "category": "other",
+   "description": "The S_RUN trip is made sticky: once window_trip fires it is latched until run_active falls, instead of following the run count against trip_run.",
+   "reason": "Say run_active stays high after a trip, and then the run count falls below trip_run as clean cycles age faulted ones out, or trip_run is raised. window_trip should drop but stays asserted."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.121"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic [pmic_types_pkg::TRIP_W-1:0] trip_run_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n)           trip_run_q <= '0;",
+    "  else if (!run_active) trip_run_q <= trip_run;",
+    "end",
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run_q);"
+   ],
+   "category": "wrong_event",
+   "description": "The S_RUN threshold is captured on entry to S_RUN and held for the run, instead of trip_run being compared live.",
+   "reason": "If trip_run changes while in S_RUN (for example it is lowered to or below the present run count), window_trip keeps using the value from before S_RUN was entered. It fails to assert, or asserts against the stale threshold."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.122"
+ }
+]

@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 216,
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_RUN-1]);"
+   ],
+   "category": "boundary",
+   "description": "The soft-start count subtracts the leaving bit at the run-window depth (bit WINDOW_RUN-1) instead of the oldest bit of the 32-cycle soft-start window, so fault_count_ss covers only the last 16 cycles.",
+   "reason": "When more than 16 faulted samples fall in the last 32 soft-start cycles, fault_count_ss_out stops at 16 instead of the real count. With trip_ss above 16, window_trip_SS then never asserts during S_SS, and with lower thresholds it asserts late or drops early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.216.AIM.36"
+ },
+ {
+  "proposal": {
+   "line": 243,
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_comb fault_count_ss_out = run_active ? FCNT_SS_W'(fault_count_run) : fault_count_ss;"
+   ],
+   "category": "field",
+   "description": "The soft-start telemetry output reports the run count of the present state while in S_RUN, instead of the soft-start count that is held through S_RUN for telemetry.",
+   "reason": "After S_SS -> S_RUN, fault_count_ss_out shows fault_count_run (0 at entry, then the run-window count) instead of the frozen soft-start count. Any soft start that saw faulted cycles shows this difference."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.243.AIM.37"
+ },
+ {
+  "proposal": {
+   "line": 242,
+   "before": [
+    "always_comb fault_count_run_out = fault_count_run;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin fault_count_run_out <= '0; end",
+    "  else begin fault_count_run_out <= fault_count_run; end",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "The run-count telemetry output is registered, so it follows fault_count_run one clock late instead of showing the live count.",
+   "reason": "Each time a faulted run sample changes fault_count_run at pwm_rise, and each time the idle clear runs after S_RUN is left, fault_count_run_out shows the old value for one more clock. For that clock it disagrees with the count that drives window_trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.242.AIM.38"
+ }
+]

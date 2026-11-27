@@ -1,0 +1,76 @@
+[
+ {
+  "proposal": {
+   "line": 97,
+   "before": [
+    "  else begin"
+   ],
+   "after": [
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    pwm_sync_d <= 0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "category": "reset_init",
+   "description": "The PWM edge detector's delayed copy pwm_sync_d is cleared along with the windows and cp_delay while neither S_SS nor S_RUN is active, so entering S_SS while pwm_sync is already high produces a false cycle-boundary strobe.",
+   "reason": "pwm_sync (Osc_sync) keeps toggling while the converter is idle. If S_SS is entered while it is high, pwm_rise fires on the first active clock and an extra (clear) sample goes into the soft-start window, which puts the window one cycle out of step. A faulted cycle then leaves the window one switching cycle early, so fault_count_ss_out and window_trip_SS fall one cycle sooner than they should."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.97.AIM.71"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= {fault_shifter_RUN[WINDOW_RUN-2:0], fault_shifter_RUN[WINDOW_RUN-1]} | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "category": "other",
+   "description": "The S_RUN window is written as a rotate instead of a shift, so the oldest sample leaving at bit WINDOW_RUN-1 comes back into bit 0 while the count still subtracts it.",
+   "reason": "After a single faulted cycle in S_RUN, the faulted bit keeps going round the window, and the count loses one each time the bit passes the top. 16 cycles later fault_count_run_out is 0, and 16 cycles after that it wraps to 31, so window_trip goes high with no overcurrent present."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.208.AIM.72"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - FCNT_RUN_W'(fault_shifter_SS[WINDOW_RUN-1]);"
+   ],
+   "category": "field",
+   "description": "Copy-paste slip: the S_RUN count takes its leaving bit from the soft-start shift register, which is frozen during S_RUN, instead of from the run shift register.",
+   "reason": "In S_RUN the subtracted bit is a constant from the soft-start history. If that bit is 0, faulted cycles are never taken off fault_count_run_out and the count builds up until window_trip asserts. If it is 1, the count drops on every cycle, wraps, and trips at once."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.207.AIM.73"
+ },
+ {
+  "proposal": {
+   "line": 204,
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && !window_trip) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The S_RUN window stops sampling once window_trip has fired, so the count is held as evidence at the trip value instead of continuing to roll.",
+   "reason": "Suppose the run count reaches trip_run while run_active stays high. fault_count_run_out then stays at that value and window_trip stays asserted, even after the overcurrent clears and the faulted cycles should have left the 16-cycle window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.204.AIM.74"
+ }
+]

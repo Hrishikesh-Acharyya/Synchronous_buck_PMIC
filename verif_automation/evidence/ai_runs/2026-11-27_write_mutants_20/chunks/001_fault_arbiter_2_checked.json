@@ -1,0 +1,38 @@
+[
+ {
+  "proposal": {
+   "line": 204,
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && (fault_count_run != FCNT_RUN_W'(WINDOW_RUN))) begin"
+   ],
+   "category": "boundary",
+   "description": "The S_RUN window stops sampling once its count reaches a full window (saturation applied to the whole run update), so a fully faulted run window is frozen instead of rolling.",
+   "reason": "With trip_run set above WINDOW_RUN (no trip), 16 faulted cycles in S_RUN followed by clear cycles leave fault_count_run_out stuck at 16 instead of falling. Lowering trip_run during the run then asserts window_trip on a history that has already cleared."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.204.AIM.69"
+ },
+ {
+  "proposal": {
+   "line": 215,
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + ((fault_count_ss == FCNT_SS_W'(WINDOW_SS)) ? FCNT_SS_W'(0) : FCNT_SS_W'(cp_delay[BLANK_CLKS-1]))",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "category": "boundary",
+   "description": "An overflow guard at the soft-start depth stops fault_count_ss from adding the entering sample once it reaches WINDOW_SS, but the leaving bit is still subtracted, so a full 32-cycle window followed by another faulted cycle drops the count to 31.",
+   "reason": "In S_SS with a sustained overcurrent of 33 or more cycles, fault_count_ss_out falls from 32 to 31 although the window is still fully faulted. With trip_ss = 32, window_trip_SS then deasserts."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.215.AIM.70"
+ }
+]

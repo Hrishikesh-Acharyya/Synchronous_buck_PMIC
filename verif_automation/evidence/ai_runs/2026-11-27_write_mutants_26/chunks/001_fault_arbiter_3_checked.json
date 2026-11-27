@@ -1,0 +1,46 @@
+[
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic window_trip_SS_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin window_trip_SS_q <= 1'b0; end",
+    "  else begin window_trip_SS_q <= window_trip_SS; end",
+    "end",
+    "always_comb window_trip_SS = ss_active  && ((fault_count_ss >= trip_ss) || window_trip_SS_q);"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start trip is made sticky: once window_trip_SS fires it stays latched until ss_active falls, instead of following fault_count_ss against trip_ss.",
+   "reason": "While the module stays in S_SS after a trip, window_trip_SS should fall once fault_count_ss drops below trip_ss, either because faulted cycles roll out of the 32-cycle window or because trip_ss is raised. With this fault it stays high for the rest of S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.123"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic [pmic_types_pkg::TRIP_W-1:0] trip_ss_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin trip_ss_q <= '0; end",
+    "  else if (!ss_active) begin trip_ss_q <= trip_ss; end",
+    "end",
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss_q);"
+   ],
+   "category": "wrong_event",
+   "description": "The soft-start threshold is captured on entry to S_SS and held for the whole soft start, instead of trip_ss being compared live.",
+   "reason": "If TRIP_SS is changed during S_SS, window_trip_SS keeps using the old value: lowering trip_ss to the present count or below does not trip, and raising it above the count does not release the trip, until S_SS is entered again."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.124"
+ }
+]

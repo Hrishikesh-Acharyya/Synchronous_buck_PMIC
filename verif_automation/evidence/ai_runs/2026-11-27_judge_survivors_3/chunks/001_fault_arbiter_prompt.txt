@@ -1,0 +1,347 @@
+# Task: triage mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small edit made to one line.
+Before any mutant is simulated, you sort them: which edits can change what
+the module does, and which cannot.
+
+## What you are given
+
+- This file.
+- A list of mutants of **one module**, as JSON: for each, its `id`, the
+  `line` it is on, the `operator` that made it, a `description`, and the line
+  `before` and `after` the edit.
+- Read access to the RTL in `rtl-systemverilog/`. Read the module's own file
+  in full before judging anything. Read `pkg/pmic_types_pkg.sv` for constants
+  and types. You may read other RTL files when a mutant's meaning depends on
+  them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to. The testbenches and checkers are deliberately not
+readable: your judgement is about the design, not about what the tests would
+catch.
+
+## The question, for each mutant
+
+Can this edit change the module's behaviour as seen at its **ports** - any
+output, on any clock edge, in any state the module can reach, for any input
+sequence the module's header does not rule out?
+
+- **`plausible`** - yes, or you are not certain it cannot. This is the
+  default. Every plausible mutant will be simulated.
+- **`equivalent`** - no. The edit changes nothing that can be observed. Use
+  this only when you can give the specific argument, for example:
+  - the edited code can never execute (say which condition is never true, and
+    why);
+  - the edited value is never used, or is overwritten before anything reads
+    it;
+  - the two forms are the same under an invariant of the module (state the
+    invariant and the lines that establish it).
+
+## Rules
+
+1. **When in doubt, `plausible`.** Calling a real behaviour change
+   "equivalent" hides a possible gap in the verification; calling an
+   equivalent mutant "plausible" only costs a simulation. The first mistake
+   is much worse than the second.
+2. Judge the module **as written, with the parameter values this design
+   uses** (the defaults in its header and the package). Do not assume
+   anything about the inputs beyond what the module's header states.
+3. An edit to a reset value, a counter bound, a comparison or a state
+   transition is almost always plausible. Do not argue such a mutant away
+   with "this case is unlikely" - unlikely is still reachable.
+4. `confidence` is how sure you are of the verdict: `high` only if you could
+   defend the argument line by line; otherwise `medium` or `low`. Only an
+   `equivalent` verdict with `high` confidence keeps a mutant out of
+   simulation - and those are audited by simulating them anyway.
+5. `reason` is one or two sentences, specific to this mutant, naming line
+   numbers. Not "this is a standard mutation".
+6. Give exactly one verdict for every `id` in the list, and no others.
+
+## Output
+
+Return only the structured result: a `verdicts` array, one object per mutant,
+with `id`, `verdict`, `confidence` and `reason`.
+
+## The module
+
+`fault_arbiter`, in `rtl-systemverilog/protect/fault_arbiter.sv`.
+
+## The mutants
+
+```json
+[
+ {
+  "id": "fault_arbiter.60.CST.2",
+  "line": 60,
+  "operator": "CST",
+  "description": "localparam FCNT_RUN_W: 1 -> 2",
+  "before": "localparam int FCNT_RUN_W = $clog2(WINDOW_RUN+1);",
+  "after": "localparam int FCNT_RUN_W = $clog2(WINDOW_RUN+2);"
+ },
+ {
+  "id": "fault_arbiter.61.CST.2",
+  "line": 61,
+  "operator": "CST",
+  "description": "localparam FCNT_SS_W: 1 -> 2",
+  "before": "localparam int FCNT_SS_W  = $clog2(WINDOW_SS+1);",
+  "after": "localparam int FCNT_SS_W  = $clog2(WINDOW_SS+2);"
+ },
+ {
+  "id": "fault_arbiter.91.CSK.1",
+  "line": 91,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "fault_arbiter.97.AIM.71",
+  "line": 97,
+  "operator": "AIM",
+  "description": "The PWM edge detector's delayed copy pwm_sync_d is cleared along with the windows and cp_delay while neither S_SS nor S_RUN is active, so entering S_SS while pwm_sync is already high produces a false cycle-boundary strobe.",
+  "before": "else begin",
+  "after": "else if (!run_active && !ss_active) begin /  / pwm_sync_d <= 0; /  / end /  / else begin"
+ },
+ {
+  "id": "fault_arbiter.93.SDL.1",
+  "line": 93,
+  "operator": "SDL",
+  "description": "delete 'pwm_sync_d <= 0;'",
+  "before": "pwm_sync_d <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.93.CST.1",
+  "line": 93,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "pwm_sync_d <= 0;",
+  "after": "pwm_sync_d <= 1;"
+ },
+ {
+  "id": "fault_arbiter.97.AIM.118",
+  "line": 97,
+  "operator": "AIM",
+  "description": "The PWM edge detector's delayed copy pwm_sync_d is updated only while the converter is switching (S_SS or S_RUN). Through idle and hiccup it holds the PWM level from the last switching clock.",
+  "before": "else begin",
+  "after": "else if (run_active || ss_active) begin"
+ },
+ {
+  "id": "fault_arbiter.144.CSK.1",
+  "line": 144,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if (!rst_n) begin",
+  "after": "if (1'b0) begin"
+ },
+ {
+  "id": "fault_arbiter.150.AIM.97",
+  "line": 150,
+  "operator": "AIM",
+  "description": "The blanking history is also cleared at high-side turn-off (falling edge of pwm_sync), so that it holds only low-side samples, instead of being cleared only while neither S_SS nor S_RUN is active.",
+  "before": "else if (!run_active && !ss_active) begin",
+  "after": "else if ((!run_active && !ss_active) || (pwm_sync_d && !pwm_sync)) begin"
+ },
+ {
+  "id": "fault_arbiter.146.SDL.1",
+  "line": 146,
+  "operator": "SDL",
+  "description": "delete 'cp_delay <= '0;'",
+  "before": "cp_delay <= '0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.146.CST.1",
+  "line": 146,
+  "operator": "CST",
+  "description": "'0 -> '1",
+  "before": "cp_delay <= '0;",
+  "after": "cp_delay <= '1;"
+ },
+ {
+  "id": "fault_arbiter.152.SDL.1",
+  "line": 152,
+  "operator": "SDL",
+  "description": "delete 'cp_delay <= '0;'",
+  "before": "cp_delay <= '0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.156.AIM.43",
+  "line": 156,
+  "operator": "AIM",
+  "description": "The blanking history only advances while PWM is low (low-side conduction), freezing during the high side, so the tap reads BLANK_CLKS low-side clocks back instead of BLANK_CLKS clocks back.",
+  "before": "else begin",
+  "after": "else if (!pwm_sync) begin"
+ },
+ {
+  "id": "fault_arbiter.158.AIM.81",
+  "line": 158,
+  "operator": "AIM",
+  "description": "The comparator flag is masked by 'PWM low' as it enters the blanking history, on the belief that CP is only valid in low-side conduction, so clocks taken while PWM was high are recorded as not faulted.",
+  "before": "cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);",
+  "after": "cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync & ~pwm_sync);"
+ },
+ {
+  "id": "fault_arbiter.197.AIM.117",
+  "line": 197,
+  "operator": "AIM",
+  "description": "The asynchronous reset clears the two fault counts but not the two window shift registers. The designer relies on the idle clear to zero the windows after reset is released.",
+  "before": "fault_shifter_RUN <= 0; / fault_shifter_SS <=0; / fault_count_run <= 0;",
+  "after": "fault_count_run <= 0;"
+ },
+ {
+  "id": "fault_arbiter.199.AIM.84",
+  "line": 199,
+  "operator": "AIM",
+  "description": "The asynchronous reset clears the two shift registers but leaves both fault counts alone, relying on the idle clear to zero them after reset is released.",
+  "before": "fault_count_run <= 0; / fault_count_ss <=0; / ",
+  "after": ""
+ },
+ {
+  "id": "fault_arbiter.195.CSK.1",
+  "line": 195,
+  "operator": "CSK",
+  "description": "if (!rst_n) -> if (1'b0): never taken",
+  "before": "if(!rst_n) begin",
+  "after": "if(1'b0) begin"
+ },
+ {
+  "id": "fault_arbiter.195.BDL.1",
+  "line": 195,
+  "operator": "BDL",
+  "description": "empty the 4-statement body of the if at line 195",
+  "before": "if(!rst_n) begin",
+  "after": "if(!rst_n) begin end"
+ },
+ {
+  "id": "fault_arbiter.197.SDL.1",
+  "line": 197,
+  "operator": "SDL",
+  "description": "delete 'fault_shifter_RUN <= 0;'",
+  "before": "fault_shifter_RUN <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.197.CST.1",
+  "line": 197,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "fault_shifter_RUN <= 0;",
+  "after": "fault_shifter_RUN <= 1;"
+ },
+ {
+  "id": "fault_arbiter.198.SDL.1",
+  "line": 198,
+  "operator": "SDL",
+  "description": "delete 'fault_shifter_SS <=0;'",
+  "before": "fault_shifter_SS <=0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.198.CST.1",
+  "line": 198,
+  "operator": "CST",
+  "description": "0 -> 1",
+  "before": "fault_shifter_SS <=0;",
+  "after": "fault_shifter_SS <=1;"
+ },
+ {
+  "id": "fault_arbiter.199.SDL.1",
+  "line": 199,
+  "operator": "SDL",
+  "description": "delete 'fault_count_run <= 0;'",
+  "before": "fault_count_run <= 0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.200.SDL.1",
+  "line": 200,
+  "operator": "SDL",
+  "description": "delete 'fault_count_ss <=0;'",
+  "before": "fault_count_ss <=0;",
+  "after": ";"
+ },
+ {
+  "id": "fault_arbiter.213.CTD.2",
+  "line": 213,
+  "operator": "CTD",
+  "description": "drop the term 'ss_active'",
+  "before": "else if (pwm_rise && ss_active) begin",
+  "after": "else if (pwm_rise) begin"
+ },
+ {
+  "id": "fault_arbiter.215.SIB.1",
+  "line": 215,
+  "operator": "SIB",
+  "description": "FCNT_SS_W -> FCNT_RUN_W",
+  "before": "fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+  "after": "fault_count_ss <= fault_count_ss + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+ },
+ {
+  "id": "fault_arbiter.216.SIB.1",
+  "line": 216,
+  "operator": "SIB",
+  "description": "FCNT_SS_W -> FCNT_RUN_W",
+  "before": "- FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+  "after": "- FCNT_RUN_W'(fault_shifter_SS[WINDOW_SS-1]);"
+ },
+ {
+  "id": "fault_arbiter.217.SIB.1",
+  "line": 217,
+  "operator": "SIB",
+  "description": "WINDOW_SS -> WINDOW_RUN",
+  "before": "fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+  "after": "fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+ },
+ {
+  "id": "fault_arbiter.240.AIM.128",
+  "line": 240,
+  "operator": "AIM",
+  "description": "window_trip is gated by 'converter switching' (S_SS or S_RUN) instead of S_RUN only, so the S_RUN window trip is also allowed through soft start.",
+  "before": "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);",
+  "after": "always_comb window_trip    = (run_active || ss_active) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+ },
+ {
+  "id": "fault_arbiter.240.AIM.22",
+  "line": 240,
+  "operator": "AIM",
+  "description": "A TRIP_RUN threshold of zero is treated as 'S_RUN window trip disabled' instead of 'trip at any count'.",
+  "before": "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);",
+  "after": "always_comb window_trip    = run_active && (trip_run != '0) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+ },
+ {
+  "id": "fault_arbiter.240.AIM.45",
+  "line": 240,
+  "operator": "AIM",
+  "description": "A TRIP_RUN threshold above WINDOW_RUN is clamped to a full window instead of never being reached, so a completely faulted run window always trips.",
+  "before": "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);",
+  "after": "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || (fault_count_run == FCNT_RUN_W'(WINDOW_RUN)));"
+ },
+ {
+  "id": "fault_arbiter.240.AIM.68",
+  "line": 240,
+  "operator": "AIM",
+  "description": "The S_RUN trip compares count and threshold as signed values, so a trip_run of 32 or more (top bit set) is read as a negative threshold.",
+  "before": "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);",
+  "after": "always_comb window_trip    = run_active && ($signed(pmic_types_pkg::TRIP_W'(fault_count_run)) >= $signed(trip_run));"
+ },
+ {
+  "id": "fault_arbiter.241.AIM.32",
+  "line": 241,
+  "operator": "AIM",
+  "description": "A TRIP_SS threshold of zero is treated as 'soft-start window trip disabled' instead of 'trip at any count'.",
+  "before": "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);",
+  "after": "always_comb window_trip_SS = ss_active  && (trip_ss != '0) && (fault_count_ss >= trip_ss);"
+ },
+ {
+  "id": "fault_arbiter.241.AIM.46",
+  "line": 241,
+  "operator": "AIM",
+  "description": "A TRIP_SS threshold above WINDOW_SS is clamped to a full soft-start window instead of never being reached, so a completely faulted soft-start window always trips.",
+  "before": "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);",
+  "after": "always_comb window_trip_SS = ss_active  && ((fault_count_ss >= trip_ss) || (fault_count_ss == FCNT_SS_W'(WINDOW_SS)));"
+ }
+]
+```

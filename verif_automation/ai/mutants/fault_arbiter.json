@@ -1,0 +1,2137 @@
+{
+ "mutants": [
+  {
+   "key": 1,
+   "line": 126,
+   "category": "wrong_event",
+   "description": "The cycle-boundary strobe fires on the falling edge of pwm_sync (high-side turn-off, the peak) instead of the rising edge (end of low-side conduction, the valley).",
+   "reason": "Each window sample is taken at PWM falling edges, so the cp_delay value BLANK_CLKS clocks before high-side turn-off is counted. When cp_sync is high only during the low-side period (or only during the high-side period), fault_count_*_out and window_trip/window_trip_SS differ from the valley-sampled reference.",
+   "before": [
+    "  pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "  pwm_rise = pwm_sync_d & ~pwm_sync;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 2,
+   "line": 152,
+   "category": "wrong_event",
+   "description": "The blanking history cp_delay advances once per switching cycle (on pwm_rise) instead of once per clock, so the lookback is BLANK_CLKS cycles rather than BLANK_CLKS clocks.",
+   "reason": "While active, the sample added at each pwm_rise is the comparator state from several switching cycles earlier, not from a few clocks before turn-on. A burst of overcurrent shows up in fault_count_*_out and the trip outputs several cycles late, and a cp_sync pulse just before one turn-on is missed.",
+   "before": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if (pwm_rise) begin"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 3,
+   "line": 206,
+   "category": "sequencing",
+   "description": "The S_RUN window samples the live cp_sync at pwm_rise instead of the blanked cp_delay[BLANK_CLKS-1] value from before high-side turn-on.",
+   "reason": "In S_RUN, a cp_sync that is high at the turn-on edge but was low BLANK_CLKS clocks earlier (or the other way round) is counted differently. fault_count_run_out and window_trip change, while the S_SS path is unaffected.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_sync)",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 4,
+   "line": 215,
+   "category": "other",
+   "description": "The soft-start count adds the live cp_sync while the SS shift register stores the blanked cp_delay sample, so the count and the window contents diverge.",
+   "reason": "In S_SS, when cp_sync at pwm_rise differs from cp_delay[BLANK_CLKS-1], the count gains or loses one against the window. fault_count_ss_out drifts, and can wrap when the bit leaves 32 cycles later, so window_trip_SS asserts or fails to assert wrongly.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_sync)"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 5,
+   "line": 215,
+   "category": "sequencing",
+   "description": "The soft-start count adds the previous cycle's sample (fault_shifter_SS[0]) as the entering bit instead of the new sample being shifted in.",
+   "reason": "In S_SS the count lags the window by one switching cycle and covers only 31 cycles. After a sustained overcurrent, window_trip_SS asserts one cycle late, and it never asserts when trip_ss equals WINDOW_SS.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(fault_shifter_SS[0])"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 6,
+   "line": 208,
+   "category": "field",
+   "description": "The S_RUN window is rewritten to insert the new sample at the MSB and shift right, but the count still subtracts bit WINDOW_RUN-1 as the leaving bit, which is now the newest sample.",
+   "reason": "In S_RUN the count subtracts the sample added one cycle earlier instead of the one 16 cycles old. fault_count_run_out never rises above 1 during sustained overcurrent (and wraps when faults stop), so window_trip does not assert for trip_run of 2 or more.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN >> 1) | (WINDOW_RUN'(cp_delay[BLANK_CLKS-1]) << (WINDOW_RUN-1));"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 7,
+   "line": 208,
+   "category": "reset_init",
+   "description": "The soft-start window and count are cleared on every S_RUN sample, instead of being held through S_RUN for telemetry.",
+   "reason": "After the S_SS -> S_RUN transition, fault_count_ss_out drops to 0 at the first pwm_rise in S_RUN. It should keep the value reached at the end of soft start.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 8,
+   "line": 217,
+   "category": "wrong_event",
+   "description": "The S_RUN window is also advanced during S_SS, so it enters S_RUN pre-loaded with soft-start overcurrent history.",
+   "reason": "fault_count_run_out becomes nonzero during S_SS when cp_delay is sampled high. On entry to S_RUN, window_trip can assert immediately because of faulted cycles that happened during the expected soft-start inrush.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 9,
+   "line": 217,
+   "category": "wrong_event",
+   "description": "The idle clear of both windows is qualified by pwm_rise like the update branches, so the windows clear only if PWM is still toggling while neither state is active.",
+   "reason": "When the converter leaves S_RUN/S_SS and pwm_sync stops (or no rising edge comes before re-entry), the counts are not cleared. fault_count_*_out keep their old values in idle, and the retry starts on the old history, so the trip asserts again early.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (pwm_rise && !run_active && !ss_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 10,
+   "line": 223,
+   "category": "reset_init",
+   "description": "The idle clear resets the two counts but leaves the two shift registers holding the faulted history from before the hiccup.",
+   "reason": "After a retry, the old 1s shift out of the window and are subtracted from a count that was cleared to 0. fault_count_*_out wrap to a large value and window_trip / window_trip_SS assert without any new overcurrent.",
+   "before": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_run <=0;"
+   ],
+   "after": [
+    "    fault_count_run <=0;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 11,
+   "line": 240,
+   "category": "missing_case",
+   "description": "window_trip is gated by 'not in soft start' instead of 'in S_RUN', so it is not suppressed in the idle states.",
+   "reason": "On the clock S_RUN is left with fault_count_run at or above trip_run, the run count is cleared only at the next edge. window_trip therefore stays high for one clock outside S_RUN.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = !ss_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 12,
+   "line": 241,
+   "category": "missing_case",
+   "description": "window_trip_SS is gated by 'converter switching' (S_SS or S_RUN) instead of S_SS only, so the frozen soft-start count can trip it during S_RUN.",
+   "reason": "If fault_count_ss reached trip_ss on the edge the FSM left S_SS, or trip_ss is lowered during S_RUN below the held count, window_trip_SS is high throughout S_RUN.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = (ss_active || run_active)  && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 13,
+   "line": 126,
+   "category": "wrong_event",
+   "description": "The cycle-boundary strobe fires on both edges of pwm_sync, so the windows take two samples per switching cycle (valley and peak) instead of one at the valley.",
+   "reason": "In S_SS and S_RUN, every switching cycle now moves each window and its count by two samples. A sustained overcurrent raises fault_count_*_out twice as fast, and window_trip / window_trip_SS assert after about half as many cycles.",
+   "before": [
+    "  pwm_rise = ~pwm_sync_d & pwm_sync;"
+   ],
+   "after": [
+    "  pwm_rise = pwm_sync_d ^ pwm_sync;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 14,
+   "line": 158,
+   "category": "sequencing",
+   "description": "The blanking history shifts toward bit 0 with cp_sync entering at the MSB, so the tapped bit cp_delay[BLANK_CLKS-1] holds cp_sync from one clock ago instead of from BLANK_CLKS clocks ago.",
+   "reason": "Suppose cp_sync changes within the BLANK_CLKS clocks before pwm_rise, for example during the high-side turn-on slew. The sample stored in the window and added to fault_count_run_out / fault_count_ss_out then takes the new value, not the earlier one, and this can raise or block window_trip.",
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay >> 1) | (BLANK_CLKS'(cp_sync) << (BLANK_CLKS-1));"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 15,
+   "line": 208,
+   "category": "missing_case",
+   "description": "The soft-start window keeps advancing during S_RUN together with the run window, instead of being frozen at its S_SS value for telemetry.",
+   "reason": "After S_SS -> S_RUN, fault_count_ss_out changes with every S_RUN sample (for example it drains to 0 when there is no overcurrent) instead of holding the count that soft start ended with.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 16,
+   "line": 223,
+   "category": "reset_init",
+   "description": "The idle clear resets the run window but leaves the soft-start window and count holding the history from before the hiccup.",
+   "reason": "After window_trip_SS sends the FSM to S_HICCUP, fault_count_ss_out stays at or above trip_ss. On the retry into S_SS, window_trip_SS asserts at once, so the part hiccups again without any new overcurrent.",
+   "before": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_run <=0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_count_run <=0;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 17,
+   "line": 223,
+   "category": "reset_init",
+   "description": "The idle clear resets the soft-start window but leaves the run window and count holding the history from before the hiccup.",
+   "reason": "After window_trip ends a run, fault_count_run_out keeps its tripped value through S_HICCUP and the next S_SS. On re-entry to S_RUN, window_trip asserts immediately even with no overcurrent.",
+   "before": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_run <=0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "after": [
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 18,
+   "line": 240,
+   "category": "sequencing",
+   "description": "window_trip is registered, so it follows the run count and run_active one clock late.",
+   "reason": "In S_RUN, window_trip rises one clock after fault_count_run_out reaches trip_run. After S_RUN is left, it stays high for one more clock even though run_active is low.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin window_trip <= 1'b0; end",
+    "  else begin window_trip <= run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run); end",
+    "end"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 19,
+   "line": 240,
+   "category": "boundary",
+   "description": "The S_RUN trip compares the run count for equality with trip_run instead of 'at or above' it.",
+   "reason": "If TRIP_RUN is lowered during S_RUN to below the current fault_count_run_out, window_trip does not assert even though the count exceeds the threshold. It asserts only if the count later falls back to exactly trip_run.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) == trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 20,
+   "line": 243,
+   "category": "field",
+   "description": "The soft-start telemetry output is gated by ss_active like window_trip_SS, so it reads 0 outside S_SS instead of reporting the held count.",
+   "reason": "After a soft start with some faulted cycles, fault_count_ss_out reads 0 throughout S_RUN instead of the frozen non-zero count.",
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_comb fault_count_ss_out = ss_active ? fault_count_ss : '0;"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 21,
+   "line": 240,
+   "category": "sequencing",
+   "description": "The S_RUN trip is evaluated only on the cycle-boundary strobe pwm_rise, as if the trip were sampled with the window, instead of following the run count continuously.",
+   "reason": "The run count takes its new value on the clock edge that ends the pwm_rise clock, so a count that reaches trip_run only raises window_trip at the next pwm_rise. That is a whole switching cycle late, and window_trip is then a one-clock pulse instead of a level held while the count is at or above trip_run in S_RUN.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && pwm_rise && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 22,
+   "line": 240,
+   "category": "boundary",
+   "description": "A TRIP_RUN threshold of zero is treated as 'S_RUN window trip disabled' instead of 'trip at any count'.",
+   "reason": "With trip_run programmed to 0, the original asserts window_trip as soon as run_active is high, because count >= 0 is always true. The mutant never asserts window_trip in S_RUN, whatever overcurrent is sampled.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (trip_run != '0) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 23,
+   "line": 241,
+   "category": "sequencing",
+   "description": "The soft-start trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered count.",
+   "reason": "In S_SS, on a pwm_rise clock where the blanked sample is faulted and fault_count_ss is trip_ss-1, window_trip_SS rises one clock early. If the bit leaving the window is also faulted, the count never actually reaches trip_ss, but window_trip_SS still pulses high for that clock.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && ((fault_count_ss + FCNT_SS_W'(pwm_rise & cp_delay[BLANK_CLKS-1])) >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 24,
+   "line": 148,
+   "category": "reset_init",
+   "description": "The blanking history cp_delay is not cleared while neither S_SS nor S_RUN is active, so it keeps tracking cp_sync through idle and hiccup.",
+   "reason": "Suppose cp_sync is high during the last BLANK_CLKS clocks before S_SS is entered (after reset the CP synchroniser resets high, or the comparator is still asserted after a trip). If a pwm_rise then comes within BLANK_CLKS clocks of S_SS entry, the soft-start window counts a faulted cycle where the original counts a clean one. This raises fault_count_ss_out and can assert window_trip_SS early.",
+   "before": [
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "run": "2026-11-27_write_mutants_17"
+  },
+  {
+   "key": 25,
+   "line": 206,
+   "category": "missing_case",
+   "description": "The S_RUN count is updated as 'increment on a faulted entering sample, else decrement on a faulted leaving sample', forgetting the case where a faulted sample enters while a faulted one leaves, so it increments instead of holding.",
+   "reason": "Once the 16-cycle run window has filled, any faulted cycle that coincides with a faulted cycle leaving the window raises the count. For example, with an overcurrent on every other cycle in S_RUN the true count is 8, but fault_count_run_out keeps climbing and window_trip asserts at trip_run even though it should not.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "    if (cp_delay[BLANK_CLKS-1]) begin",
+    "      fault_count_run <= fault_count_run + FCNT_RUN_W'(1);",
+    "    end",
+    "    else if (fault_shifter_RUN[WINDOW_RUN-1]) begin",
+    "      fault_count_run <= fault_count_run - FCNT_RUN_W'(1);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 26,
+   "line": 215,
+   "category": "priority",
+   "description": "The soft-start count tests the leaving bit before the entering bit, so a cycle where a faulted sample leaves and a faulted sample enters decrements the count instead of holding it.",
+   "reason": "With a periodic overcurrent in S_SS whose period divides 32 (every other cycle, say), fault_count_ss_out falls after the window fills, wraps below zero to a large value, and falsely asserts window_trip_SS.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    if (fault_shifter_SS[WINDOW_SS-1]) begin",
+    "      fault_count_ss <= fault_count_ss - FCNT_SS_W'(1);",
+    "    end",
+    "    else if (cp_delay[BLANK_CLKS-1]) begin",
+    "      fault_count_ss <= fault_count_ss + FCNT_SS_W'(1);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 27,
+   "line": 207,
+   "category": "field",
+   "description": "The S_RUN count subtracts the most recent stored sample (bit 0, per the 'most recent cycle in bit 0' convention) instead of the oldest sample leaving the window at bit WINDOW_RUN-1.",
+   "reason": "The count telescopes to just the latest sample (0 or 1), so in S_RUN fault_count_run_out never goes above 1. A sustained overcurrent never trips window_trip for any trip_run of 2 or more.",
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[0]);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 28,
+   "line": 215,
+   "category": "missing_case",
+   "description": "Blanking is applied only to the S_RUN window: the soft-start window and its count both take the live cp_sync at pwm_rise instead of the blanked cp_delay sample.",
+   "reason": "In S_SS, a comparator glitch present at the turn-on clock but absent BLANK_CLKS clocks earlier is counted as a faulted cycle, and a fault that ended inside the blanking interval is missed. This changes fault_count_ss_out and can falsely assert (or fail to assert) window_trip_SS.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_sync)",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 29,
+   "line": 240,
+   "category": "boundary",
+   "description": "The S_RUN trip counts one faulted cycle too many when comparing with trip_run, so window_trip asserts when the window holds trip_run-1 faulted cycles.",
+   "reason": "In S_RUN with exactly trip_run-1 faulted cycles in the window (11 with the default 12), window_trip asserts and the supervisor goes into hiccup. The correct design would keep running.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) + pmic_types_pkg::TRIP_W'(1) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 30,
+   "line": 241,
+   "category": "missing_case",
+   "description": "window_trip_SS is suppressed only in S_RUN instead of being allowed only in S_SS, so it is not gated in the idle and hiccup states.",
+   "reason": "After a soft-start trip the supervisor leaves S_SS. On the first idle clock, before the idle clear empties the window, the count is still at or above trip_ss, so window_trip_SS stays high for an extra clock outside S_SS. The same happens throughout idle if trip_ss is 0.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = !run_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 31,
+   "line": 206,
+   "category": "field",
+   "description": "The S_RUN window takes as its sample 'cp_sync high in any of the last BLANK_CLKS clocks' (OR of the whole blanking history) instead of the one comparator value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_RUN, a CP excursion that happens in the last few clocks before pwm_rise but not at the tapped clock counts as a faulted cycle. fault_count_run_out reads higher and window_trip asserts after fewer real valley overcurrent cycles.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(|cp_delay)",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(|cp_delay);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 32,
+   "line": 241,
+   "category": "boundary",
+   "description": "A TRIP_SS threshold of zero is treated as 'soft-start window trip disabled' instead of 'trip at any count'.",
+   "reason": "With trip_ss programmed to 0, window_trip_SS stays low for the whole of S_SS where it should be high from the first clock of S_SS. So the supervisor completes soft start instead of going to hiccup.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (trip_ss != '0) && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 33,
+   "line": 241,
+   "category": "sequencing",
+   "description": "window_trip_SS is registered, so it follows the soft-start count and ss_active one clock late.",
+   "reason": "When the soft-start count reaches trip_ss, window_trip_SS rises one clock late. It also stays high for one clock after S_SS is left, so a trip that coincides with SS_done is seen in S_RUN and logged by fault_cause, and the hiccup is entered a clock late.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin window_trip_SS <= 1'b0; end",
+    "  else begin",
+    "    window_trip_SS <= ss_active && (fault_count_ss >= trip_ss);",
+    "  end",
+    "end"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 34,
+   "line": 241,
+   "category": "boundary",
+   "description": "The soft-start trip counts one faulted cycle too many when comparing with trip_ss, so window_trip_SS asserts when the window holds trip_ss-1 faulted cycles.",
+   "reason": "In S_SS, window_trip_SS asserts and the supervisor goes to hiccup one faulted switching cycle earlier than TRIP_SS specifies. With trip_ss of 1 it trips at once with no faulted cycle.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss + 1'b1 >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 35,
+   "line": 240,
+   "category": "sequencing",
+   "description": "The S_RUN trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered run count.",
+   "reason": "In S_RUN with fault_count_run at trip_run-1, a faulted sample at pwm_rise asserts window_trip one clock early. If the oldest sample leaving the window is also faulted, it raises a one-clock spurious trip that sends the supervisor to hiccup even though the count never reaches trip_run.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) + pmic_types_pkg::TRIP_W'(pwm_rise && cp_delay[BLANK_CLKS-1]) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 36,
+   "line": 216,
+   "category": "boundary",
+   "description": "The soft-start count subtracts the leaving bit at the run-window depth (bit WINDOW_RUN-1) instead of the oldest bit of the 32-cycle soft-start window, so fault_count_ss covers only the last 16 cycles.",
+   "reason": "When more than 16 faulted samples fall in the last 32 soft-start cycles, fault_count_ss_out stops at 16 instead of the real count. With trip_ss above 16, window_trip_SS then never asserts during S_SS, and with lower thresholds it asserts late or drops early.",
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_RUN-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 37,
+   "line": 243,
+   "category": "field",
+   "description": "The soft-start telemetry output reports the run count of the present state while in S_RUN, instead of the soft-start count that is held through S_RUN for telemetry.",
+   "reason": "After S_SS -> S_RUN, fault_count_ss_out shows fault_count_run (0 at entry, then the run-window count) instead of the frozen soft-start count. Any soft start that saw faulted cycles shows this difference.",
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_comb fault_count_ss_out = run_active ? FCNT_SS_W'(fault_count_run) : fault_count_ss;"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 38,
+   "line": 242,
+   "category": "sequencing",
+   "description": "The run-count telemetry output is registered, so it follows fault_count_run one clock late instead of showing the live count.",
+   "reason": "Each time a faulted run sample changes fault_count_run at pwm_rise, and each time the idle clear runs after S_RUN is left, fault_count_run_out shows the old value for one more clock. For that clock it disagrees with the count that drives window_trip.",
+   "before": [
+    "always_comb fault_count_run_out = fault_count_run;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin fault_count_run_out <= '0; end",
+    "  else begin fault_count_run_out <= fault_count_run; end",
+    "end"
+   ],
+   "run": "2026-11-27_write_mutants_18"
+  },
+  {
+   "key": 39,
+   "line": 206,
+   "category": "other",
+   "description": "The S_RUN window records the start of an overcurrent excursion (faulted cycle following a clear one) instead of the comparator level, so a sustained fault is logged only on every other cycle.",
+   "reason": "With cp_sync held high through S_RUN the run window fills 1,0,1,0..., so fault_count_run_out reaches only 8 and window_trip asserts later, or never when trip_run is above 8, where the original trips after trip_run cycles.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1] & ~fault_shifter_RUN[0])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1] & ~fault_shifter_RUN[0]);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 40,
+   "line": 206,
+   "category": "field",
+   "description": "The S_RUN count adds the live cp_sync while the S_RUN shift register stores the blanked cp_delay sample, so the run count and the run window contents diverge.",
+   "reason": "In S_RUN, when the comparator at high-side turn-on differs from its value BLANK_CLKS clocks earlier (for example a slew glitch at pwm_rise), fault_count_run_out and window_trip change while the stored window does not, and the count later drifts or wraps when those bits leave.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_sync)"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 41,
+   "line": 206,
+   "category": "sequencing",
+   "description": "The S_RUN count adds the previous cycle's stored sample (fault_shifter_RUN[0]) as the entering bit instead of the new blanked sample being shifted in.",
+   "reason": "In S_RUN the run count lags the window by one switching cycle, so fault_count_run_out and window_trip respond one cycle late to the onset of an overcurrent and miss the first faulted cycle entirely if it is the most recent.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(fault_shifter_RUN[0])"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 42,
+   "line": 216,
+   "category": "field",
+   "description": "The soft-start count subtracts the most recent stored sample (bit 0) instead of the oldest sample leaving the 32-cycle window at bit WINDOW_SS-1.",
+   "reason": "During S_SS a sustained overcurrent leaves fault_count_ss stuck at 1 instead of climbing, so window_trip_SS does not assert for trip_ss above 1, and an isolated faulted cycle makes the count wrap to all-ones on the following cycle.",
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[0]);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 43,
+   "line": 156,
+   "category": "wrong_event",
+   "description": "The blanking history only advances while PWM is low (low-side conduction), freezing during the high side, so the tap reads BLANK_CLKS low-side clocks back instead of BLANK_CLKS clocks back.",
+   "reason": "In S_SS or S_RUN at high duty cycle, when the low-side period is shorter than BLANK_CLKS clocks, the sample at pwm_rise comes from the previous cycle's low-side period instead of the comparator BLANK_CLKS clocks earlier, so faulted or clear cycles are logged differently in the counts and trips.",
+   "before": [
+    "  else begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "  else if (!pwm_sync) begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 44,
+   "line": 242,
+   "category": "wrong_event",
+   "description": "The run-count telemetry output is gated by run_active, so it reads 0 on the clock after S_RUN is left instead of reporting the run count before the idle clear.",
+   "reason": "When the supervisor leaves S_RUN (to S_HICCUP or S_OFF) with a non-zero run count, the original shows that count for one clock until the idle clear, and the mutant shows 0.",
+   "before": [
+    "always_comb fault_count_run_out = fault_count_run;"
+   ],
+   "after": [
+    "always_comb fault_count_run_out = run_active ? fault_count_run : '0;"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 45,
+   "line": 240,
+   "category": "boundary",
+   "description": "A TRIP_RUN threshold above WINDOW_RUN is clamped to a full window instead of never being reached, so a completely faulted run window always trips.",
+   "reason": "With trip_run set from 17 to 63 and 16 consecutive faulted cycles in S_RUN, the mutant asserts window_trip while the original never does.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || (fault_count_run == FCNT_RUN_W'(WINDOW_RUN)));"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 46,
+   "line": 241,
+   "category": "boundary",
+   "description": "A TRIP_SS threshold above WINDOW_SS is clamped to a full soft-start window instead of never being reached, so a completely faulted soft-start window always trips.",
+   "reason": "With trip_ss set from 33 to 63 and 32 consecutive faulted cycles in S_SS, the mutant asserts window_trip_SS while the original never does.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && ((fault_count_ss >= trip_ss) || (fault_count_ss == FCNT_SS_W'(WINDOW_SS)));"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 47,
+   "line": 240,
+   "category": "field",
+   "description": "The 5-bit run count is widened to the 6-bit threshold width by putting the pad bit on the wrong (LSB) side, so the S_RUN trip compares twice the faulted-cycle count with trip_run.",
+   "reason": "In S_RUN with trip_run = N, window_trip asserts once the run window holds ceil(N/2) faulted cycles instead of N, e.g. at 4 faulted cycles for trip_run = 8.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ({fault_count_run, 1'b0} >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 48,
+   "line": 206,
+   "category": "field",
+   "description": "The entering sample is replicated across the run-count width instead of zero-extended, so a faulted cycle entering the S_RUN window adds all-ones (-1) to the count instead of +1.",
+   "reason": "On the first faulted valley sample in S_RUN, fault_count_run_out wraps from 0 to 31 instead of rising to 1, and window_trip asserts for any trip_run up to 31.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + {FCNT_RUN_W{cp_delay[BLANK_CLKS-1]}}"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 49,
+   "line": 216,
+   "category": "field",
+   "description": "The bit leaving the soft-start window is replicated across the count width instead of zero-extended, so a faulted cycle leaving the 32-cycle window adds one to fault_count_ss instead of subtracting one.",
+   "reason": "In a soft start longer than 32 cycles, once a faulted sample ages out of the window fault_count_ss_out rises by 1 (rather than falling by 1), so the count overstates the window and window_trip_SS can assert with fewer than trip_ss faulted cycles present.",
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - {FCNT_SS_W{fault_shifter_SS[WINDOW_SS-1]}};"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 50,
+   "line": 217,
+   "category": "field",
+   "description": "The new soft-start sample is replicated across the whole window register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the soft-start window as faulted.",
+   "reason": "After one faulted valley sample in S_SS, the next sample sees a faulted bit leaving at WINDOW_SS-1 and decrements fault_count_ss (wrapping to 63 from 0), so fault_count_ss_out and window_trip_SS go wrong from the next cycle on.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | {WINDOW_SS{cp_delay[BLANK_CLKS-1]}};"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 51,
+   "line": 215,
+   "category": "other",
+   "description": "The soft-start window counts a cycle as faulted only if the comparator was high on every clock of the blanking history (a debounce), instead of reading the one value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_SS, if cp_sync is high BLANK_CLKS clocks before pwm rises but drops in any later clock before turn-on, the cycle is not counted, so fault_count_ss_out stays lower and window_trip_SS asserts late or not at all.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(&cp_delay)",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(&cp_delay);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 52,
+   "line": 213,
+   "category": "wrong_event",
+   "description": "The soft-start window is sampled at high-side turn-off (the falling edge of pwm_sync, the peak) while the run window keeps using the valley at pwm_rise.",
+   "reason": "In S_SS the sample reads the comparator from BLANK_CLKS clocks before PWM falls (during high-side conduction), so a comparator that is high only near the peak, or only at the valley, gives a different fault_count_ss_out and window_trip_SS than valley sampling does.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_sync_d && !pwm_sync && ss_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 53,
+   "line": 241,
+   "category": "boundary",
+   "description": "The soft-start trip compares count and threshold as signed values, so a trip_ss of 32 or more (top bit set) is read as a negative threshold.",
+   "reason": "With trip_ss = 32 (a full-window threshold), window_trip_SS asserts as soon as S_SS is entered with zero faulted cycles, because 0 >= -32 is true.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && ($signed(fault_count_ss) >= $signed(trip_ss));"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 54,
+   "line": 241,
+   "category": "boundary",
+   "description": "The soft-start trip line is copied from the run-trip line and widens the soft-start count from the run-count width (FCNT_RUN_W), so a full 32-cycle soft-start count loses its top bit and reads as 0.",
+   "reason": "When trip_ss is 32 (the highest value reg_file allows), a completely faulted soft-start window gives a count of 32 that compares as 0, so window_trip_SS never asserts. With a lower trip_ss, window_trip_SS drops again when the count reaches 32.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (pmic_types_pkg::TRIP_W'(fault_count_ss[FCNT_RUN_W-1:0]) >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 55,
+   "line": 241,
+   "category": "sequencing",
+   "description": "The soft-start trip is checked only on the cycle-boundary strobe pwm_rise, as if it were sampled together with the window, instead of following the soft-start count all the time.",
+   "reason": "In S_SS with the count at or above trip_ss, window_trip_SS pulses for one clock at each PWM rising edge instead of staying high. It also reacts at the next edge, not at once, when trip_ss is lowered.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && pwm_rise && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 56,
+   "line": 217,
+   "category": "field",
+   "description": "The soft-start window is rewritten to put the new sample in at the MSB and shift right, but the count still subtracts bit WINDOW_SS-1 as the leaving bit, and that bit is now the newest sample.",
+   "reason": "In S_SS each faulted cycle is taken off again on the next pwm_rise, so fault_count_ss never builds above about 1 under a sustained overcurrent. window_trip_SS never fires for trip_ss >= 2, and the soft-start telemetry is wrong.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS >> 1) | {cp_delay[BLANK_CLKS-1], {(WINDOW_SS-1){1'b0}}};"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 57,
+   "line": 223,
+   "category": "reset_init",
+   "description": "The idle clear resets the two shift registers but leaves both counts holding their values from before the hiccup.",
+   "reason": "After a window trip and hiccup, the run count keeps its old value, for example trip_run. Because the cleared window has no faulted bits left to take off, window_trip asserts as soon as S_RUN is entered again. In the same way, the soft-start count makes window_trip_SS fire on re-entry to S_SS, and both telemetry counts stay non-zero in idle.",
+   "before": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_run <=0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 58,
+   "line": 215,
+   "category": "other",
+   "description": "The sample entering the soft-start window is copied across the count width instead of zero-extended, so a faulted cycle entering the window adds all-ones (-1) to fault_count_ss instead of +1.",
+   "reason": "In S_SS a faulted cycle makes fault_count_ss go down, wrapping below zero to large values. window_trip_SS then asserts on the first faulted cycle when the count wraps to 63 from 0, and fault_count_ss_out reports nonsense.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + {FCNT_SS_W{cp_delay[BLANK_CLKS-1]}}"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 59,
+   "line": 208,
+   "category": "field",
+   "description": "The new run-window sample is copied across the whole run shift register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the run window as faulted.",
+   "reason": "In S_RUN, a single faulted cycle followed by clean cycles fills the window with ones, so fault_count_run goes down by one for each of the next 16 cycles even though it was only raised once. The count wraps and goes wrong, which changes fault_count_run_out and window_trip.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | {WINDOW_RUN{cp_delay[BLANK_CLKS-1]}};"
+   ],
+   "run": "2026-11-27_write_mutants_19"
+  },
+  {
+   "key": 60,
+   "line": 206,
+   "category": "field",
+   "description": "Both windows tap the blanking history at the newest end (cp_delay[0], one clock back) instead of the oldest bit cp_delay[BLANK_CLKS-1], so there is in effect no blanking.",
+   "reason": "In S_SS or S_RUN, when cp_sync is high only in the clock just before pwm_rise (during high-side turn-on), or high 5 clocks before and low just before, the cycle is logged the opposite way, so fault_count_run_out / fault_count_ss_out and the trips change.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);",
+    "",
+    "  end",
+    "",
+    "",
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[0])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[0]);",
+    "",
+    "  end",
+    "",
+    "",
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[0])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[0]);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 61,
+   "line": 204,
+   "category": "wrong_event",
+   "description": "The S_RUN window is sampled at high-side turn-off (the falling edge of pwm_sync, the peak), while the soft-start window keeps using the valley at pwm_rise.",
+   "reason": "In S_RUN the run window takes the blanked comparator value from BLANK_CLKS clocks before the PWM falling edge instead of before the rising edge, so a CP pulse during the low-side period near the valley but not near the turn-off is counted wrongly in fault_count_run_out and window_trip.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_sync_d && !pwm_sync && run_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 62,
+   "line": 215,
+   "category": "other",
+   "description": "The soft-start window records the start of an overcurrent excursion (a faulted cycle after a clear one) instead of the comparator level, so a sustained fault in S_SS is logged only on every other cycle.",
+   "reason": "With cp_sync held high through S_SS, fault_count_ss_out rises at half the rate, and window_trip_SS asserts later or never (for trip_ss above 16).",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1] & ~fault_shifter_SS[0])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1] & ~fault_shifter_SS[0]);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 63,
+   "line": 215,
+   "category": "field",
+   "description": "The soft-start window takes as its sample 'cp_sync high in any of the last BLANK_CLKS clocks' instead of the one comparator value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_SS, a CP pulse in the last few clocks before pwm_rise (inside the blanking interval) counts as a faulted cycle, so fault_count_ss_out is too high and window_trip_SS can assert early.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(|cp_delay)",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(|cp_delay);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 64,
+   "line": 206,
+   "category": "field",
+   "description": "The S_RUN window counts a cycle as faulted only if the comparator was high on every clock of the blanking history (a debounce), instead of the one value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_RUN, a cycle where cp_sync was high BLANK_CLKS clocks before pwm_rise but dropped in between is not counted, so fault_count_run_out is low and window_trip is missed.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(&cp_delay)",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(&cp_delay);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 65,
+   "line": 206,
+   "category": "boundary",
+   "description": "An overflow guard stops the run count adding the entering sample once it reaches WINDOW_RUN, but the leaving bit is still subtracted, so a full window followed by another faulted cycle drops the count to 15.",
+   "reason": "After more than 16 consecutive faulted cycles in S_RUN, fault_count_run_out reads 15 instead of 16 (and window_trip drops for trip_run=16); when the faults then clear the count wraps below zero to 31.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + ((fault_count_run < FCNT_RUN_W'(WINDOW_RUN)) ? FCNT_RUN_W'(cp_delay[BLANK_CLKS-1]) : '0)"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 66,
+   "line": 215,
+   "category": "boundary",
+   "description": "The soft-start count's overflow guard is compared with the run-window depth (WINDOW_RUN, 16) instead of WINDOW_SS, so the count stops adding entering samples at 16 while still subtracting leaving ones.",
+   "reason": "With more than 16 faulted cycles in S_SS, fault_count_ss_out stops at 16 (then drifts lower), so window_trip_SS never asserts for a trip_ss above 16, and the count wraps when the faults leave the window.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + ((fault_count_ss < FCNT_SS_W'(WINDOW_RUN)) ? FCNT_SS_W'(cp_delay[BLANK_CLKS-1]) : '0)"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 67,
+   "line": 213,
+   "category": "boundary",
+   "description": "The soft-start window stops sampling once its count reaches a full window (saturation applied to the whole update), so a fully faulted window is frozen instead of rolling.",
+   "reason": "After 32 consecutive faulted cycles in S_SS, later clear cycles no longer reduce the count: fault_count_ss_out stays at 32 and window_trip_SS stays high for the rest of soft start.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && ss_active && (fault_count_ss != FCNT_SS_W'(WINDOW_SS))) begin"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 68,
+   "line": 240,
+   "category": "boundary",
+   "description": "The S_RUN trip compares count and threshold as signed values, so a trip_run of 32 or more (top bit set) is read as a negative threshold.",
+   "reason": "In S_RUN with trip_run set to 32..63 (meant as 'never trip'), window_trip asserts at once with no faulted cycles.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ($signed(pmic_types_pkg::TRIP_W'(fault_count_run)) >= $signed(trip_run));"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 69,
+   "line": 204,
+   "category": "boundary",
+   "description": "The S_RUN window stops sampling once its count reaches a full window (saturation applied to the whole run update), so a fully faulted run window is frozen instead of rolling.",
+   "reason": "With trip_run set above WINDOW_RUN (no trip), 16 faulted cycles in S_RUN followed by clear cycles leave fault_count_run_out stuck at 16 instead of falling. Lowering trip_run during the run then asserts window_trip on a history that has already cleared.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && (fault_count_run != FCNT_RUN_W'(WINDOW_RUN))) begin"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 70,
+   "line": 215,
+   "category": "boundary",
+   "description": "An overflow guard at the soft-start depth stops fault_count_ss from adding the entering sample once it reaches WINDOW_SS, but the leaving bit is still subtracted, so a full 32-cycle window followed by another faulted cycle drops the count to 31.",
+   "reason": "In S_SS with a sustained overcurrent of 33 or more cycles, fault_count_ss_out falls from 32 to 31 although the window is still fully faulted. With trip_ss = 32, window_trip_SS then deasserts.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + ((fault_count_ss == FCNT_SS_W'(WINDOW_SS)) ? FCNT_SS_W'(0) : FCNT_SS_W'(cp_delay[BLANK_CLKS-1]))",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 71,
+   "line": 93,
+   "category": "reset_init",
+   "description": "The PWM edge detector's delayed copy pwm_sync_d is cleared along with the windows and cp_delay while neither S_SS nor S_RUN is active, so entering S_SS while pwm_sync is already high produces a false cycle-boundary strobe.",
+   "reason": "pwm_sync (Osc_sync) keeps toggling while the converter is idle. If S_SS is entered while it is high, pwm_rise fires on the first active clock and an extra (clear) sample goes into the soft-start window, which puts the window one cycle out of step. A faulted cycle then leaves the window one switching cycle early, so fault_count_ss_out and window_trip_SS fall one cycle sooner than they should.",
+   "before": [
+    "      pwm_sync_d <= 0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "      pwm_sync_d <= 0;",
+    "",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    pwm_sync_d <= 0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 72,
+   "line": 208,
+   "category": "other",
+   "description": "The S_RUN window is written as a rotate instead of a shift, so the oldest sample leaving at bit WINDOW_RUN-1 comes back into bit 0 while the count still subtracts it.",
+   "reason": "After a single faulted cycle in S_RUN, the faulted bit keeps going round the window, and the count loses one each time the bit passes the top. 16 cycles later fault_count_run_out is 0, and 16 cycles after that it wraps to 31, so window_trip goes high with no overcurrent present.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= {fault_shifter_RUN[WINDOW_RUN-2:0], fault_shifter_RUN[WINDOW_RUN-1]} | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 73,
+   "line": 207,
+   "category": "field",
+   "description": "Copy-paste slip: the S_RUN count takes its leaving bit from the soft-start shift register, which is frozen during S_RUN, instead of from the run shift register.",
+   "reason": "In S_RUN the subtracted bit is a constant from the soft-start history. If that bit is 0, faulted cycles are never taken off fault_count_run_out and the count builds up until window_trip asserts. If it is 1, the count drops on every cycle, wraps, and trips at once.",
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - FCNT_RUN_W'(fault_shifter_SS[WINDOW_RUN-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 74,
+   "line": 204,
+   "category": "wrong_event",
+   "description": "The S_RUN window stops sampling once window_trip has fired, so the count is held as evidence at the trip value instead of continuing to roll.",
+   "reason": "Suppose the run count reaches trip_run while run_active stays high. fault_count_run_out then stays at that value and window_trip stays asserted, even after the overcurrent clears and the faulted cycles should have left the 16-cycle window.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && !window_trip) begin"
+   ],
+   "run": "2026-11-27_write_mutants_20"
+  },
+  {
+   "key": 75,
+   "line": 216,
+   "category": "field",
+   "description": "Copy-paste slip: the soft-start count takes its leaving bit from the run shift register, which is held clear during S_SS, instead of from the oldest bit of the soft-start window.",
+   "reason": "In S_SS, faulted cycles that leave the 32-cycle window are never subtracted. Once a faulted cycle is more than 32 cycles old, fault_count_ss_out stays too high and window_trip_SS can assert even though the trailing window holds fewer than trip_ss faulted cycles.",
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - FCNT_SS_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 76,
+   "line": 150,
+   "category": "reset_init",
+   "description": "While neither S_SS nor S_RUN is active, the blanking history is preloaded with the current comparator level instead of being cleared, so a CP flag that is high in idle or hiccup carries into the new attempt.",
+   "reason": "Suppose cp_sync is high when the supervisor enters S_SS, for example after reset because the synchroniser resets high, or because the overcurrent persisted through hiccup. A pwm_rise within BLANK_CLKS clocks of entry then samples a faulted cycle that was never seen while switching, and fault_count_ss_out and window_trip_SS change.",
+   "before": [
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    cp_delay <= '0;"
+   ],
+   "after": [
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    cp_delay <= {BLANK_CLKS{cp_sync}};"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 77,
+   "line": 217,
+   "category": "wrong_event",
+   "description": "The windows and counts are cleared when a window trip fires instead of whenever neither S_SS nor S_RUN is active.",
+   "reason": "If S_RUN or S_SS is left without an overcurrent trip (g_en low, UVLO, OTP), the counts stay nonzero on fault_count_run_out and fault_count_ss_out through S_OFF, and the next soft start begins with the old history. On a trip, the counts are cleared one clock after it fires while the state is still active.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (window_trip || window_trip_SS) begin"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 78,
+   "line": 158,
+   "category": "other",
+   "description": "The current-protection flag is treated as active-low when it enters the blanking history, so a cycle with the comparator low is counted as faulted.",
+   "reason": "While switching with CP_trig low, every switching cycle is logged as faulted, so the counts climb and window_trip_SS or window_trip fires. A real overcurrent (CP high) is logged as a clean cycle.",
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(!cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 79,
+   "line": 240,
+   "category": "missing_case",
+   "description": "The S_RUN trip also fires when the soft-start count, which is held through S_RUN only for telemetry, is at or above trip_ss.",
+   "reason": "In S_RUN with no run-window faults, suppose the held fault_count_ss is at or above trip_ss: it reached the threshold on the edge the FSM left S_SS, or TRIP_SS was lowered during S_RUN. window_trip then asserts and sends the supervisor to hiccup.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || (fault_count_ss >= trip_ss));"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 80,
+   "line": 242,
+   "category": "field",
+   "description": "The run-count telemetry output reports the count of the present state, so outside S_RUN it shows the soft-start count instead of the run window's count.",
+   "reason": "During S_SS, after faulted cycles have been sampled, fault_count_run_out shows the (truncated) soft-start count instead of 0, because the run window is held clear in S_SS.",
+   "before": [
+    "always_comb fault_count_run_out = fault_count_run;"
+   ],
+   "after": [
+    "always_comb fault_count_run_out = run_active ? fault_count_run : FCNT_RUN_W'(fault_count_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 81,
+   "line": 158,
+   "category": "other",
+   "description": "The comparator flag is masked by 'PWM low' as it enters the blanking history, on the belief that CP is only valid in low-side conduction, so clocks taken while PWM was high are recorded as not faulted.",
+   "reason": "If the PWM low time is shorter than BLANK_CLKS clocks (high duty), the tap read at pwm_rise falls in the previous high period. A cp_sync that was high there is counted as a faulted cycle by the original but as clear by the mutant, so fault_count_run_out/fault_count_ss_out and window_trip/window_trip_SS differ.",
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync & ~pwm_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 82,
+   "line": 217,
+   "category": "field",
+   "description": "The soft-start window is written as a rotate instead of a shift, so the oldest sample leaving at bit WINDOW_SS-1 comes back into bit 0 while fault_count_ss still subtracts it.",
+   "reason": "In an S_SS longer than 32 cycles that contains a faulted cycle followed by clear ones, the faulted bit goes round the window again and is subtracted a second time. fault_count_ss_out then wraps below zero to a large value, and window_trip_SS asserts when it should not.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= {fault_shifter_SS[WINDOW_SS-2:0], fault_shifter_SS[WINDOW_SS-1]} | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 83,
+   "line": 213,
+   "category": "wrong_event",
+   "description": "The soft-start window stops sampling once window_trip_SS has fired, so its count is held at the trip value as evidence instead of continuing to roll.",
+   "reason": "If ss_active stays high after window_trip_SS asserts and later cycles are clear, the original count falls as faulted samples leave and window_trip_SS drops. The mutant freezes fault_count_ss_out at the trip value and keeps window_trip_SS high.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && ss_active && !window_trip_SS) begin"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 84,
+   "line": 195,
+   "category": "reset_init",
+   "description": "The asynchronous reset clears the two shift registers but leaves both fault counts alone, relying on the idle clear to zero them after reset is released.",
+   "reason": "If rst_n is asserted while the converter is running with faulted cycles counted, fault_count_run_out and fault_count_ss_out keep showing the old counts for the whole reset, where they should read 0. They stay that way until the first clock after release, and at power-up they start undefined.",
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 85,
+   "line": 240,
+   "category": "other",
+   "description": "The S_RUN window trip is also qualified by the live comparator flag ('overcurrent still present'), so a run window that holds trip_run faulted cycles does not trip while cp_sync is low.",
+   "reason": "In S_RUN, once fault_count_run reaches trip_run, window_trip should assert and stay high. With this fault it is held low whenever cp_sync is low, so an intermittent overcurrent that fills the window trips late, or never trips if cp_sync is low whenever the count is at or above the threshold.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && cp_sync && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_21"
+  },
+  {
+   "key": 86,
+   "line": 240,
+   "category": "sequencing",
+   "description": "The S_RUN trip is masked on the cycle-boundary strobe clock, as if the run count were mid-update there, though the count is a register and is valid on that clock.",
+   "reason": "In S_RUN, once fault_count_run is at or above trip_run, window_trip drops to 0 for one clock on every pwm_rise. If the run count first reaches trip_run and the next valley falls on the same clock that S_RUN is entered or held, the trip is delayed by one clock.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && !pwm_rise && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 87,
+   "line": 204,
+   "category": "wrong_event",
+   "description": "The S_RUN window advances only on cycles whose blanked sample is faulted, so clean cycles never push older faulted cycles out of the run window.",
+   "reason": "In S_RUN, an intermittent overcurrent (for example one faulted cycle in four) makes fault_count_run_out keep climbing instead of settling near a quarter of the window. window_trip then asserts once the total reaches trip_run, which a true trailing 16-cycle window would never reach.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && cp_delay[BLANK_CLKS-1]) begin"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 88,
+   "line": 213,
+   "category": "wrong_event",
+   "description": "The soft-start window advances only on cycles whose blanked sample is faulted, so clean soft-start cycles never age faulted cycles out of the 32-cycle window.",
+   "reason": "In S_SS with sparse overcurrent cycles, fault_count_ss_out grows with the total number of faulted cycles since entry instead of the number in the trailing 32. window_trip_SS asserts once that total reaches trip_ss.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && ss_active && cp_delay[BLANK_CLKS-1]) begin"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 89,
+   "line": 204,
+   "category": "sequencing",
+   "description": "Only the run shift register is qualified by the cycle-boundary strobe. The run count is updated on every clock in S_RUN, so one faulted switching cycle is counted once per clock instead of once per cycle.",
+   "reason": "In S_RUN, while the blanked comparator sample is high, fault_count_run_out goes up on every clock and wraps. window_trip asserts within a few clocks of the first faulted cycle instead of after trip_run faulted cycles.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    if (pwm_rise) begin",
+    "      fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 90,
+   "line": 213,
+   "category": "sequencing",
+   "description": "Only the soft-start shift register is qualified by the cycle-boundary strobe. fault_count_ss is updated on every clock in S_SS, so one faulted cycle is counted once per clock.",
+   "reason": "In S_SS, while the blanked comparator sample is high, fault_count_ss_out goes up on every clock. window_trip_SS asserts a few clocks after the first faulted cycle instead of after trip_ss faulted cycles.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    if (pwm_rise) begin",
+    "      fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 91,
+   "line": 241,
+   "category": "sequencing",
+   "description": "The soft-start trip is masked on the cycle-boundary strobe clock, as if fault_count_ss were mid-update there, although the count is a register and is valid on that clock.",
+   "reason": "In S_SS, when the soft-start count is at or above trip_ss (for example after trip_ss is lowered, or while the supervisor has not yet left S_SS), window_trip_SS drops low for one clock on every rising edge of pwm_sync instead of staying high.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && !pwm_rise && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 92,
+   "line": 241,
+   "category": "other",
+   "description": "The soft-start window trip is also qualified by the live comparator flag ('overcurrent still present'), so a soft-start window that holds trip_ss faulted cycles does not trip while cp_sync is low.",
+   "reason": "In S_SS, after the window count reaches trip_ss on a valley sample, window_trip_SS stays low while cp_sync is low, for example once the comparator has released after high-side turn-on. It asserts only when the comparator is high again, instead of as soon as the count reaches trip_ss.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && cp_sync && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 93,
+   "line": 206,
+   "category": "other",
+   "description": "The S_RUN count is updated by 'entering XOR leaving' (the count changes only when the two bits differ) but always adds that change, forgetting the direction, so a faulted cycle leaving the run window increments fault_count_run instead of decrementing it.",
+   "reason": "In S_RUN, once a faulted cycle reaches bit WINDOW_RUN-1 and a clean sample enters on pwm_rise, fault_count_run_out goes up by one instead of down, and window_trip can assert after faulted cycles have already left the 16-cycle window.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1]",
+    "                                       ^ fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 94,
+   "line": 215,
+   "category": "other",
+   "description": "The soft-start count is updated by 'entering XOR leaving' (the count changes only when the two bits differ) but always adds that change, so a faulted cycle leaving the 32-cycle window increments fault_count_ss instead of decrementing it.",
+   "reason": "In S_SS, after more than 32 cycles, a faulted cycle that ages out while a clean cycle enters makes fault_count_ss_out rise instead of fall. window_trip_SS can then assert on overcurrent that has already left the soft-start window.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1]",
+    "                                     ^ fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 95,
+   "line": 216,
+   "category": "boundary",
+   "description": "The leaving bit is subtracted only when the window is 'full', but fullness is tested on the fault count (count == WINDOW_SS) rather than on the number of samples taken, so faulted cycles that leave a partly faulted soft-start window are never removed from fault_count_ss.",
+   "reason": "In a long S_SS with intermittent overcurrent (for example every other cycle for more than 32 cycles), fault_count_ss_out keeps growing as a running total past the true count in the window, which is at most 16. window_trip_SS then asserts once the total reaches trip_ss, even though the 32-cycle window never holds that many faulted cycles.",
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - ((fault_count_ss == FCNT_SS_W'(WINDOW_SS)) ? FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]) : '0);"
+   ],
+   "run": "2026-11-27_write_mutants_23"
+  },
+  {
+   "key": 96,
+   "line": 240,
+   "category": "other",
+   "description": "window_trip is written as an 'any window tripped' summary that also carries the soft-start trip, instead of reporting only the S_RUN window.",
+   "reason": "In S_SS, when fault_count_ss reaches trip_ss, window_trip asserts together with window_trip_SS, although window_trip must stay low outside S_RUN. Downstream logic would then see a run-window overcurrent during soft start.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = (run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run)) || window_trip_SS;"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 97,
+   "line": 146,
+   "category": "wrong_event",
+   "description": "The blanking history is also cleared at high-side turn-off (falling edge of pwm_sync), so that it holds only low-side samples, instead of being cleared only while neither S_SS nor S_RUN is active.",
+   "reason": "At a high duty cycle, where pwm_sync stays low for fewer than BLANK_CLKS clocks, the bit tapped at pwm_rise is the cleared 0 and not the comparator value from BLANK_CLKS clocks earlier. A cycle with CP high is then counted as clean, so fault_count_run_out and fault_count_ss_out stay at 0 and window_trip / window_trip_SS never assert.",
+   "before": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if ((!run_active && !ss_active) || (pwm_sync_d && !pwm_sync)) begin"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 98,
+   "line": 207,
+   "category": "field",
+   "description": "The bit leaving the run window is copied across the whole count width instead of zero-extended, so a faulted cycle that leaves the 16-cycle run window adds one to fault_count_run instead of taking one off.",
+   "reason": "In S_RUN, once a faulted cycle reaches the end of the 16-cycle window and leaves, fault_count_run_out goes up instead of down. Overcurrent that has already aged out of the window can then hold window_trip high or make it trip.",
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - {FCNT_RUN_W{fault_shifter_RUN[WINDOW_RUN-1]}};"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 99,
+   "line": 217,
+   "category": "wrong_event",
+   "description": "The run window and count are also cleared on the clock after window_trip fires, as if the trip itself should start a clean window, instead of being cleared only when neither S_SS nor S_RUN is active.",
+   "reason": "After the run count reaches trip_run in S_RUN, fault_count_run_out drops to 0 on the next clock without a pwm_rise, and window_trip falls while run_active is still high. In the correct design the count and the trip hold until the supervisor leaves S_RUN.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (window_trip) begin",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_count_run <= 0;",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 100,
+   "line": 156,
+   "category": "missing_case",
+   "description": "The blanking history cp_delay only advances in S_RUN and forgets S_SS, so through soft start it holds the zero left by the idle clear and every soft-start sample reads as not faulted.",
+   "reason": "In S_SS, if cp_sync stays high over trip_ss switching cycles, fault_count_ss_out stays 0 and window_trip_SS never asserts. In the original design both rise.",
+   "before": [
+    "  else begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 101,
+   "line": 208,
+   "category": "field",
+   "description": "The S_RUN shift register stores the live cp_sync at pwm_rise, while the run count adds the blanked cp_delay sample, so the bit later subtracted as leaving is not the bit that was added.",
+   "reason": "In S_RUN, take a cycle where the comparator was low BLANK_CLKS clocks before turn-on but is high at pwm_rise. WINDOW_RUN cycles later that cycle's bit leaves the window and is subtracted although it was never added, so fault_count_run_out wraps below zero and window_trip asserts falsely. The opposite case leaves counts stuck in the window.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 102,
+   "line": 217,
+   "category": "field",
+   "description": "The soft-start shift register stores the live cp_sync at pwm_rise, while fault_count_ss adds the blanked cp_delay sample, so the bit later subtracted as leaving is not the bit that was added.",
+   "reason": "In S_SS, take a cycle where the blanked sample is clear and cp_sync is high at pwm_rise (or the reverse). When that cycle's bit leaves the 32-cycle window, fault_count_ss_out is decremented for a fault it never counted (or keeps a fault forever), so the count drifts and window_trip_SS asserts wrongly or too late.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 103,
+   "line": 243,
+   "category": "sequencing",
+   "description": "The soft-start telemetry output is registered, so fault_count_ss_out shows fault_count_ss one clock late instead of the live count.",
+   "reason": "On the clock after a pwm_rise in S_SS that changes the count, fault_count_ss_out still shows the old value. On the clock after the idle clear it still shows the pre-hiccup count instead of 0.",
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin fault_count_ss_out <= '0; end",
+    "  else begin fault_count_ss_out <= fault_count_ss; end",
+    "end"
+   ],
+   "run": "2026-11-27_write_mutants_24"
+  },
+  {
+   "key": 104,
+   "line": 206,
+   "category": "boundary",
+   "description": "The leaving bit of the S_RUN window is subtracted only when the window is 'full', and fullness is tested on the fault count (count == WINDOW_RUN) instead of the number of samples taken, so faulted cycles leaving a partly faulted run window are never removed from fault_count_run.",
+   "reason": "In S_RUN with intermittent overcurrent (for example one faulted cycle in four over more than 16 cycles), fault_count_run_out keeps rising past the number of faulted cycles in the last 16, and window_trip asserts once the faulted cycles since S_RUN was entered reach trip_run, even though the trailing 16-cycle window holds fewer.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - ((fault_count_run == FCNT_RUN_W'(WINDOW_RUN)) ? FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]) : FCNT_RUN_W'(0));"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 105,
+   "line": 206,
+   "category": "priority",
+   "description": "The S_RUN count is updated as 'decrement on a faulted leaving sample, else increment on a faulted entering sample', so a cycle where a faulted sample leaves and a faulted one enters decrements the count instead of holding it.",
+   "reason": "With trip_run set above 16 and a sustained overcurrent in S_RUN, the run window fills to 16, and from the 17th faulted cycle on fault_count_run_out falls by one per cycle instead of staying at 16. Any pattern where a faulted cycle enters while a faulted one leaves undercounts, so window_trip is late or missing.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "    if (fault_shifter_RUN[WINDOW_RUN-1]) begin",
+    "      fault_count_run <= fault_count_run - FCNT_RUN_W'(1);",
+    "    end",
+    "    else if (cp_delay[BLANK_CLKS-1]) begin",
+    "      fault_count_run <= fault_count_run + FCNT_RUN_W'(1);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 106,
+   "line": 215,
+   "category": "priority",
+   "description": "The soft-start count is updated as 'increment on a faulted entering sample, else decrement on a faulted leaving sample', forgetting the case where a faulted sample enters while a faulted one leaves, so it increments instead of holding.",
+   "reason": "With trip_ss above 32 and overcurrent sustained through more than 32 soft-start cycles, fault_count_ss_out climbs past 32 (33, 34, ...) instead of holding at 32, and window_trip_SS asserts when it reaches trip_ss although a 32-cycle window can never hold that many faulted cycles.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "    if (cp_delay[BLANK_CLKS-1]) begin",
+    "      fault_count_ss <= fault_count_ss + FCNT_SS_W'(1);",
+    "    end",
+    "    else if (fault_shifter_SS[WINDOW_SS-1]) begin",
+    "      fault_count_ss <= fault_count_ss - FCNT_SS_W'(1);",
+    "    end"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 107,
+   "line": 241,
+   "category": "boundary",
+   "description": "The soft-start trip compares fault_count_ss for equality with trip_ss instead of 'at or above' it.",
+   "reason": "In S_SS, if trip_ss is lowered below the count the soft-start window already holds, window_trip_SS stays low (and the supervisor stays in S_SS) instead of asserting at once. It also drops again if the count steps past trip_ss.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss == trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 108,
+   "line": 241,
+   "category": "other",
+   "description": "window_trip_SS is written as an 'any overcurrent window tripped' summary that also carries the S_RUN trip, instead of reporting only the soft-start window.",
+   "reason": "In S_RUN, when the run window reaches trip_run, window_trip_SS asserts together with window_trip, although the converter is not in soft start and window_trip_SS must be low outside S_SS.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = (ss_active  && (fault_count_ss >= trip_ss)) || window_trip;"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 109,
+   "line": 152,
+   "category": "missing_case",
+   "description": "The blanking history cp_delay advances only in S_SS and forgets S_RUN, so through S_RUN it stays frozen at the comparator history from the end of soft start.",
+   "reason": "In S_RUN, every run-window sample reads the frozen bit cp_delay[BLANK_CLKS-1] left from the last S_SS clocks. An overcurrent that starts in S_RUN is never counted, so window_trip never asserts. If the comparator was high at the end of soft start, every run cycle counts as faulted.",
+   "before": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else if (ss_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 110,
+   "line": 215,
+   "category": "boundary",
+   "description": "The soft-start window and its count take the blanked comparator sample from BLANK_CLKS-1 clocks before high-side turn-on instead of BLANK_CLKS clocks before, so the soft-start lookback is one clock short while the run window keeps the full lookback.",
+   "reason": "In S_SS, a comparator level that is high exactly BLANK_CLKS-1 clocks before pwm_rise but low BLANK_CLKS clocks before (or the reverse) is counted the opposite way. This changes fault_count_ss_out and when window_trip_SS asserts.",
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-2])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-2]);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 111,
+   "line": 243,
+   "category": "field",
+   "description": "The soft-start telemetry output is copied from the run-count line and passes on only the run-count width (FCNT_RUN_W bits) of fault_count_ss, so a full 32-cycle soft-start count reads 0 on fault_count_ss_out.",
+   "reason": "When all 32 soft-start cycles in the window are faulted (fault_count_ss = 32, which is possible if trip_ss is above 32 or before the trip ends S_SS), fault_count_ss_out reads 0 instead of 32. It keeps reading 0 through S_RUN while the count is held for telemetry. window_trip_SS does not change.",
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_comb fault_count_ss_out = FCNT_SS_W'(fault_count_ss[FCNT_RUN_W-1:0]);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 112,
+   "line": 204,
+   "category": "wrong_event",
+   "description": "Only the S_RUN count is qualified by the cycle-boundary strobe. The run shift register shifts on every clock in S_RUN, so the window ages by clocks rather than by switching cycles, and the bit the count subtracts as leaving is not a sample that the count added.",
+   "reason": "In S_RUN with a switching period longer than 16 clocks, the bit at WINDOW_RUN-1 on a pwm_rise is the blanked comparator value from 16 clocks earlier, not the sample from 16 cycles earlier. fault_count_run and fault_count_run_out then drift from the real number of faulted cycles and can underflow, and window_trip fires or fails to fire because of that wrong count.",
+   "before": [
+    "  else if (pwm_rise && run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    if (pwm_rise) begin",
+    "      fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                         - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    end",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 113,
+   "line": 213,
+   "category": "wrong_event",
+   "description": "Only the soft-start count is qualified by the cycle-boundary strobe. The soft-start shift register shifts on every clock in S_SS, so the 32-bit window holds clocks rather than switching cycles, and the leaving bit fault_count_ss subtracts is not a sample that the count added.",
+   "reason": "In S_SS with a switching period longer than 32 clocks and the comparator high for part of a cycle, the bit subtracted at pwm_rise is the blanked comparator value from 32 clocks earlier. fault_count_ss and fault_count_ss_out then drift from the real number of faulted cycles and can underflow, and window_trip_SS fires or fails to fire because of that wrong count.",
+   "before": [
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    if (pwm_rise) begin",
+    "      fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    end",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 114,
+   "line": 206,
+   "category": "boundary",
+   "description": "The S_RUN window and its count both take the blanked comparator sample from BLANK_CLKS-1 clocks before high-side turn-on instead of BLANK_CLKS clocks before, so the run lookback is one clock short while soft start keeps the full lookback.",
+   "reason": "In S_RUN, if cp_sync changes exactly BLANK_CLKS clocks before a PWM rising edge, the run window records the wrong level for that cycle. fault_count_run_out and window_trip then change.",
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-2])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-2]);"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 115,
+   "line": 208,
+   "category": "boundary",
+   "description": "Parenthesis slip in the S_RUN window update: the new sample is ORed in before the shift, so it lands in bit 1. Each sample reaches the leaving bit WINDOW_RUN-1 one cycle early, and the run window spans 15 cycles instead of 16.",
+   "reason": "With a sustained overcurrent in S_RUN, fault_count_run tops out at 15 instead of 16. A trip_run of 16 never asserts window_trip, and faulted cycles leave fault_count_run_out one cycle early.",
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN | WINDOW_RUN'(cp_delay[BLANK_CLKS-1])) << 1;"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 116,
+   "line": 217,
+   "category": "boundary",
+   "description": "Parenthesis slip in the soft-start window update: the new sample is ORed in before the shift, so it lands in bit 1 and leaves at bit WINDOW_SS-1 one cycle early. The soft-start window spans 31 cycles instead of 32.",
+   "reason": "With a sustained overcurrent through S_SS, fault_count_ss tops out at 31 instead of 32. A trip_ss of 32 never asserts window_trip_SS, and fault_count_ss_out drops a faulted cycle one cycle early.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS | WINDOW_SS'(cp_delay[BLANK_CLKS-1])) << 1;"
+   ],
+   "run": "2026-11-27_write_mutants_25"
+  },
+  {
+   "key": 117,
+   "line": 195,
+   "category": "reset_init",
+   "description": "The asynchronous reset clears the two fault counts but not the two window shift registers. The designer relies on the idle clear to zero the windows after reset is released.",
+   "reason": "If ss_active (or run_active) is high on the first clock after reset is released, the idle clear never runs. The first pwm_rise then subtracts an uninitialised leaving bit from the count, so fault_count_ss_out, fault_count_run_out and the trips are wrong from the first sample.",
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 118,
+   "line": 97,
+   "category": "wrong_event",
+   "description": "The PWM edge detector's delayed copy pwm_sync_d is updated only while the converter is switching (S_SS or S_RUN). Through idle and hiccup it holds the PWM level from the last switching clock.",
+   "reason": "Suppose S_SS is entered while pwm_sync is already high and S_RUN was last left while it was low. The stale pwm_sync_d makes pwm_rise fire on the first S_SS clock, so the soft-start window takes a spurious sample and fault_count_ss_out and window_trip_SS change. In the opposite case a real rising edge on the entry clock is missed.",
+   "before": [
+    "  else begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active || ss_active) begin",
+    "",
+    "    pwm_sync_d <= pwm_sync;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 119,
+   "line": 241,
+   "category": "sequencing",
+   "description": "The soft-start trip is gated by a registered copy of ss_active (the state from the previous clock) instead of the live ss_active, so the gate stays open for one clock after S_SS is left.",
+   "reason": "When S_SS is left, for a hiccup after a soft-start trip or for S_RUN with fault_count_ss at or above trip_ss, window_trip_SS stays high for one clock in the new state. The header forbids exactly this, because the soft-start count is frozen through S_RUN.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic ss_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) ss_active_q <= 1'b0;",
+    "  else        ss_active_q <= ss_active;",
+    "end",
+    "always_comb window_trip_SS = ss_active_q && (fault_count_ss >= trip_ss);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 120,
+   "line": 240,
+   "category": "sequencing",
+   "description": "The S_RUN trip is gated by a registered copy of run_active instead of the live run_active, so the gate opens one clock late and closes one clock late.",
+   "reason": "After a run-window trip sends the FSM to hiccup, the run count takes one edge to clear, so window_trip stays high for the first hiccup clock. Also, a trip_run of 0 does not assert window_trip on the first clock of S_RUN.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic run_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) run_active_q <= 1'b0;",
+    "  else        run_active_q <= run_active;",
+    "end",
+    "always_comb window_trip    = run_active_q && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 121,
+   "line": 240,
+   "category": "other",
+   "description": "The S_RUN trip is made sticky: once window_trip fires it is latched until run_active falls, instead of following the run count against trip_run.",
+   "reason": "Say run_active stays high after a trip, and then the run count falls below trip_run as clean cycles age faulted ones out, or trip_run is raised. window_trip should drop but stays asserted.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic trip_run_hold;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) trip_run_hold <= 1'b0;",
+    "  else        trip_run_hold <= window_trip;",
+    "end",
+    "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || trip_run_hold);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 122,
+   "line": 240,
+   "category": "wrong_event",
+   "description": "The S_RUN threshold is captured on entry to S_RUN and held for the run, instead of trip_run being compared live.",
+   "reason": "If trip_run changes while in S_RUN (for example it is lowered to or below the present run count), window_trip keeps using the value from before S_RUN was entered. It fails to assert, or asserts against the stale threshold.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "logic [pmic_types_pkg::TRIP_W-1:0] trip_run_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n)           trip_run_q <= '0;",
+    "  else if (!run_active) trip_run_q <= trip_run;",
+    "end",
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run_q);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 123,
+   "line": 241,
+   "category": "sequencing",
+   "description": "The soft-start trip is made sticky: once window_trip_SS fires it stays latched until ss_active falls, instead of following fault_count_ss against trip_ss.",
+   "reason": "While the module stays in S_SS after a trip, window_trip_SS should fall once fault_count_ss drops below trip_ss, either because faulted cycles roll out of the 32-cycle window or because trip_ss is raised. With this fault it stays high for the rest of S_SS.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic window_trip_SS_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin window_trip_SS_q <= 1'b0; end",
+    "  else begin window_trip_SS_q <= window_trip_SS; end",
+    "end",
+    "always_comb window_trip_SS = ss_active  && ((fault_count_ss >= trip_ss) || window_trip_SS_q);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 124,
+   "line": 241,
+   "category": "wrong_event",
+   "description": "The soft-start threshold is captured on entry to S_SS and held for the whole soft start, instead of trip_ss being compared live.",
+   "reason": "If TRIP_SS is changed during S_SS, window_trip_SS keeps using the old value: lowering trip_ss to the present count or below does not trip, and raising it above the count does not release the trip, until S_SS is entered again.",
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "logic [pmic_types_pkg::TRIP_W-1:0] trip_ss_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin trip_ss_q <= '0; end",
+    "  else if (!ss_active) begin trip_ss_q <= trip_ss; end",
+    "end",
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss_q);"
+   ],
+   "run": "2026-11-27_write_mutants_26"
+  },
+  {
+   "key": 125,
+   "line": 217,
+   "category": "reset_init",
+   "description": "The soft-start window and count are also cleared on the clock after window_trip_SS fires, as if the trip itself should start a clean soft-start window, instead of being cleared only when neither S_SS nor S_RUN is active.",
+   "reason": "In S_SS, once fault_count_ss reaches trip_ss, window_trip_SS is high for one clock only and then drops, even though the window still holds trip_ss faulted cycles. On the next clock fault_count_ss_out reads 0 instead of the trip count, and through S_RUN it keeps reading 0 instead of the held soft-start count.",
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "  ",
+    "  end ",
+    "",
+    "  else if (window_trip_SS) begin",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_ss <= 0;",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "run": "2026-11-27_write_mutants_27"
+  },
+  {
+   "key": 126,
+   "line": 158,
+   "category": "other",
+   "description": "The comparator flag entering the blanking history is copied across the whole cp_delay register instead of being zero-extended into bit 0, so a high cp_sync reaches the tap cp_delay[BLANK_CLKS-1] on the next clock instead of BLANK_CLKS clocks later.",
+   "reason": "In S_SS or S_RUN, a cp_sync pulse in the last BLANK_CLKS-1 clocks before pwm_rise (the switch-node slew the blanking exists to ignore) is counted as a faulted cycle. fault_count_run_out / fault_count_ss_out rise, and window_trip / window_trip_SS can assert, where the original reads the comparator from BLANK_CLKS clocks earlier and records a clean cycle.",
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | {BLANK_CLKS{cp_sync}};"
+   ],
+   "run": "2026-11-27_write_mutants_27"
+  },
+  {
+   "key": 127,
+   "line": 158,
+   "category": "other",
+   "description": "The blanking history is written as a rotate instead of a shift, so the oldest comparator bit at cp_delay[BLANK_CLKS-1] comes back into bit 0 instead of being dropped.",
+   "reason": "Once cp_sync is high for one clock in S_SS or S_RUN, the set bit keeps going round cp_delay, so every later pwm_rise sample reads as faulted until the next idle clear. The fault counts climb to a full window and window_trip / window_trip_SS assert after a single brief comparator pulse.",
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | (cp_delay >> (BLANK_CLKS-1)) | BLANK_CLKS'(cp_sync);"
+   ],
+   "run": "2026-11-27_write_mutants_27"
+  },
+  {
+   "key": 128,
+   "line": 240,
+   "category": "missing_case",
+   "description": "window_trip is gated by 'converter switching' (S_SS or S_RUN) instead of S_RUN only, so the S_RUN window trip is also allowed through soft start.",
+   "reason": "With TRIP_RUN programmed to 0 (trip at any count), window_trip now asserts throughout S_SS, where the run count sits at 0 and the run trip must be held low; in the original it can assert only in S_RUN.",
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = (run_active || ss_active) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "run": "2026-11-27_write_mutants_27"
+  }
+ ],
+ "unit": "fault_arbiter",
+ "file": "rtl-systemverilog/protect/fault_arbiter.sv",
+ "last_key": 128
+}

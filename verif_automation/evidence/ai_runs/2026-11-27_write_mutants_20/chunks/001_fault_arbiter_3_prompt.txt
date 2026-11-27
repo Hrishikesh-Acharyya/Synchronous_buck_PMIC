@@ -1,0 +1,229 @@
+# Task: write mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small fault put into it on
+purpose. Each mutant is then simulated against the module's testbench: if the
+testbench still passes, the behaviour that fault broke is not being checked.
+
+A program already makes the mechanical mutants - one operator swapped, one
+constant changed, one statement deleted (the list is below). It cannot make a
+fault that needs an understanding of what the module is for. Those are yours
+to write.
+
+## What you are given
+
+- This file.
+- The name of **one module** and its file, and how many mutants are asked
+  for.
+- The mechanical operators, so that you do not repeat them.
+- The mutants already written for this module, and the proposals a program
+  has already refused (with the check each failed), so that you do not repeat
+  those either.
+- Read access to the RTL in `rtl-systemverilog/` and to the project's
+  documents. Read the module's own file in full first - its header states
+  what it must do, and every block has a Purpose comment. Read
+  `pkg/pmic_types_pkg.sv` for constants and types, and the modules that
+  drive or read this one when a fault's effect depends on them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to: you return the mutants as data, and a program checks and
+stores them. The testbenches and checkers are deliberately not readable. A
+mutant is a fault a designer could have made, written from the design alone -
+not one aimed at what the tests happen to miss.
+
+## What a good mutant is
+
+A fault that:
+
+1. **a designer could really have made** while writing or changing this
+   module - a rule misremembered, one case forgotten, an event confused with
+   a similar one;
+2. **changes what the module does at its ports**, in some state it can
+   reach, for some input sequence its header allows - say which, in `reason`;
+3. **needs the design's meaning to write**. If one mechanical operator on
+   one token makes the same fault, do not write it;
+4. is still **legal code that lint accepts**: every signal still driven and
+   still used, no width changed, no latch made.
+
+Kinds of fault to look for - use these as `category`:
+
+| Category | The fault |
+|---|---|
+| `wrong_event` | something is captured, counted or cleared on the wrong event, or in the wrong state: a snapshot taken at the end of a transaction instead of its start, a counter cleared on entry instead of exit |
+| `missing_case` | a rule that forgets one state, one address, one mode or one source: a write-reject rule that lets one register through, a fault source left out of a summary bit |
+| `priority` | two conditions answered in the wrong order: an `if` / `else if` chain reordered, a later assignment that should lose winning |
+| `boundary` | a limit wrong for one case only: saturating one count early, wrapping instead of saturating, a threshold compared with the wrong one of two limits |
+| `protocol` | the serial interface's framing: bit order, which clock phase a bit is taken on, the bit or byte count that ends a field, what an aborted transaction leaves behind |
+| `field` | a register's contents mapped wrongly: bytes of a multi-byte value in the wrong order, a field read from the live value instead of the snapshot, a read-only bit made writable |
+| `sequencing` | right value, wrong clock: a flag raised one clock early or late, a stale value used, a handshake that does not wait |
+| `reset_init` | state that is not put back: a register missing from one of several clear conditions, a value that survives a re-entry it should not |
+| `other` | a design-aware fault that fits none of these |
+
+## What not to write
+
+- An edit that only changes a comment, spacing or a name.
+- An edit to the module's ports, its header parameters, or the width of any
+  declaration.
+- An edit that leaves a signal undriven or unused, or assigns a signal from
+  two blocks - lint rejects those before any test runs. Lint also rejects a
+  flop whose asynchronous reset is made synchronous, or dropped from its
+  sensitivity list.
+- An edit that one mechanical operator already makes, in any spelling. In
+  particular: replacing the whole value of one assignment by a constant 0 or
+  1 is STK, and inverting it is VNG - `x <= 1'b0` in place of `x <= y` is
+  STK's mutant even though STK writes it `'0`.
+- A different circuit. Replacing a synchroniser by an edge detector, a
+  latch or a filter is not a slip a designer makes while writing a
+  synchroniser; it is another design.
+- Two mutants that are the same fault written twice.
+- A fault that cannot change anything at the ports. If you cannot say what
+  changes and when, leave it out.
+
+## The form of a mutant
+
+One mutant is **one edit to one place**: some consecutive whole lines of the
+file replaced by other lines.
+
+- `line` - the number of the first line you replace, as the Read tool shows
+  it.
+- `before` - those lines, copied exactly from the file, one string per line,
+  in order. Whole lines. At most 12.
+- `after` - the lines that take their place. At most 16. Keep the house
+  layout: `begin` / `end` on every block, the same indentation as the lines
+  around it.
+- Change as little as the fault needs: at most 6 lines may differ between
+  `before` and `after`. Lines you include only for context must be identical
+  in both.
+- `description` - one line saying what the fault is, in the design's terms:
+  "FCOUNT_RUN is cleared by a write to FCOUNT_SS", not "changed line 512".
+- `reason` - one or two sentences: which behaviour at the ports changes, and
+  in which situation.
+
+## Rules
+
+1. Write the number of mutants asked for if the module has that many
+   distinct design-aware faults in it. A small module may not: fewer good
+   mutants are better than the number made up with weak ones.
+2. Spread them over the module - every block that holds a decision, not
+   five variations on one line.
+3. Each mutant stands alone: it is applied to the unmodified file, never on
+   top of another.
+4. Judge the module with the parameter values this design uses (the defaults
+   in its header and the package).
+5. Do not explain or summarise outside the structured answer.
+
+## The module
+
+`fault_arbiter`, in `rtl-systemverilog/protect/fault_arbiter.sv`. Write up to 10 mutants.
+
+## The mechanical operators
+
+These are already made for this module (193 mutants). Do not write an edit that one of them makes.
+
+- ROR: relational: boundary (< <-> <=, > <-> >=), direction (< <-> >, <= <-> >=), equality (== <-> !=)
+- LCR: logical connective: && <-> ||, binary & <-> |, binary ^ -> |
+- CTD: a term dropped from a condition: a && b -> a, and -> b (also ||, and binary & and |)
+- CTN: a term of a condition negated: a && b -> !a && b, and a && !b (a polarity mix-up)
+- AOR: arithmetic: binary + <-> -
+- SHF: shift direction: << <-> >>
+- CND: negate an if condition: if (c) -> if (!(c))
+- CSK: an if condition stuck: if (c) -> if (1'b1), and -> if (1'b0)
+- UOD: drop a unary negation: !x -> x, ~x -> x
+- RDX: reduction swapped: &x <-> |x (all bits set <-> any bit set)
+- TRN: swap the branches of a ?: - c ? a : b -> c ? b : a
+- CST: constant: 1'b0 <-> 1'b1, '0 <-> '1, any other integer literal +1 and -1
+- ENM: an enum constant replaced by the next member of its enum (an FSM state, say)
+- DLY: a signal swapped with its one-clock-delayed copy: x <-> x_d
+- BSL: wrong bit or field: a constant select moved by one - x[3] -> x[2], x[6:4] -> x[7:5]
+- CIS: the labels of two adjacent case items swapped
+- CID: one case item deleted, so its value takes the default branch (a forgotten decode)
+- CCS: the first two elements of a concatenation swapped: {a, b} -> {b, a}
+- SIB: a signal swapped with a sibling of the same type whose name differs in one part: temp_0 <-> temp_1, trip_run <-> trip_ss (a copy-paste slip)
+- STK: an assignment's value stuck at all-zeros, and at all-ones
+- VNG: an assignment's value inverted: x <= y -> x <= ~(y)
+- EDG: a flop clocked on the other edge: posedge clk <-> negedge clk
+- BDL: a whole multi-statement block emptied (the body of an if, or of a case item)
+- SDL: delete one procedural assignment statement
+- EDL: delete an else branch
+- ICS: wrong wire: two same-type inputs, or two same-type outputs, of one instance swapped, or the same input of two instances of one module swapped
+
+## Mutants already written for this module
+
+- line 126: The cycle-boundary strobe fires on the falling edge of pwm_sync (high-side turn-off, the peak) instead of the rising edge (end of low-side conduction, the valley).
+- line 152: The blanking history cp_delay advances once per switching cycle (on pwm_rise) instead of once per clock, so the lookback is BLANK_CLKS cycles rather than BLANK_CLKS clocks.
+- line 206: The S_RUN window samples the live cp_sync at pwm_rise instead of the blanked cp_delay[BLANK_CLKS-1] value from before high-side turn-on.
+- line 215: The soft-start count adds the live cp_sync while the SS shift register stores the blanked cp_delay sample, so the count and the window contents diverge.
+- line 215: The soft-start count adds the previous cycle's sample (fault_shifter_SS[0]) as the entering bit instead of the new sample being shifted in.
+- line 208: The S_RUN window is rewritten to insert the new sample at the MSB and shift right, but the count still subtracts bit WINDOW_RUN-1 as the leaving bit, which is now the newest sample.
+- line 208: The soft-start window and count are cleared on every S_RUN sample, instead of being held through S_RUN for telemetry.
+- line 217: The S_RUN window is also advanced during S_SS, so it enters S_RUN pre-loaded with soft-start overcurrent history.
+- line 217: The idle clear of both windows is qualified by pwm_rise like the update branches, so the windows clear only if PWM is still toggling while neither state is active.
+- line 223: The idle clear resets the two counts but leaves the two shift registers holding the faulted history from before the hiccup.
+- line 240: window_trip is gated by 'not in soft start' instead of 'in S_RUN', so it is not suppressed in the idle states.
+- line 241: window_trip_SS is gated by 'converter switching' (S_SS or S_RUN) instead of S_SS only, so the frozen soft-start count can trip it during S_RUN.
+- line 126: The cycle-boundary strobe fires on both edges of pwm_sync, so the windows take two samples per switching cycle (valley and peak) instead of one at the valley.
+- line 158: The blanking history shifts toward bit 0 with cp_sync entering at the MSB, so the tapped bit cp_delay[BLANK_CLKS-1] holds cp_sync from one clock ago instead of from BLANK_CLKS clocks ago.
+- line 208: The soft-start window keeps advancing during S_RUN together with the run window, instead of being frozen at its S_SS value for telemetry.
+- line 223: The idle clear resets the run window but leaves the soft-start window and count holding the history from before the hiccup.
+- line 223: The idle clear resets the soft-start window but leaves the run window and count holding the history from before the hiccup.
+- line 240: window_trip is registered, so it follows the run count and run_active one clock late.
+- line 240: The S_RUN trip compares the run count for equality with trip_run instead of 'at or above' it.
+- line 243: The soft-start telemetry output is gated by ss_active like window_trip_SS, so it reads 0 outside S_SS instead of reporting the held count.
+- line 240: The S_RUN trip is evaluated only on the cycle-boundary strobe pwm_rise, as if the trip were sampled with the window, instead of following the run count continuously.
+- line 240: A TRIP_RUN threshold of zero is treated as 'S_RUN window trip disabled' instead of 'trip at any count'.
+- line 241: The soft-start trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered count.
+- line 148: The blanking history cp_delay is not cleared while neither S_SS nor S_RUN is active, so it keeps tracking cp_sync through idle and hiccup.
+- line 206: The S_RUN count is updated as 'increment on a faulted entering sample, else decrement on a faulted leaving sample', forgetting the case where a faulted sample enters while a faulted one leaves, so it increments instead of holding.
+- line 215: The soft-start count tests the leaving bit before the entering bit, so a cycle where a faulted sample leaves and a faulted sample enters decrements the count instead of holding it.
+- line 207: The S_RUN count subtracts the most recent stored sample (bit 0, per the 'most recent cycle in bit 0' convention) instead of the oldest sample leaving the window at bit WINDOW_RUN-1.
+- line 215: Blanking is applied only to the S_RUN window: the soft-start window and its count both take the live cp_sync at pwm_rise instead of the blanked cp_delay sample.
+- line 240: The S_RUN trip counts one faulted cycle too many when comparing with trip_run, so window_trip asserts when the window holds trip_run-1 faulted cycles.
+- line 241: window_trip_SS is suppressed only in S_RUN instead of being allowed only in S_SS, so it is not gated in the idle and hiccup states.
+- line 206: The S_RUN window takes as its sample 'cp_sync high in any of the last BLANK_CLKS clocks' (OR of the whole blanking history) instead of the one comparator value from BLANK_CLKS clocks before high-side turn-on.
+- line 241: A TRIP_SS threshold of zero is treated as 'soft-start window trip disabled' instead of 'trip at any count'.
+- line 241: window_trip_SS is registered, so it follows the soft-start count and ss_active one clock late.
+- line 241: The soft-start trip counts one faulted cycle too many when comparing with trip_ss, so window_trip_SS asserts when the window holds trip_ss-1 faulted cycles.
+- line 240: The S_RUN trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered run count.
+- line 216: The soft-start count subtracts the leaving bit at the run-window depth (bit WINDOW_RUN-1) instead of the oldest bit of the 32-cycle soft-start window, so fault_count_ss covers only the last 16 cycles.
+- line 243: The soft-start telemetry output reports the run count of the present state while in S_RUN, instead of the soft-start count that is held through S_RUN for telemetry.
+- line 242: The run-count telemetry output is registered, so it follows fault_count_run one clock late instead of showing the live count.
+- line 206: The S_RUN window records the start of an overcurrent excursion (faulted cycle following a clear one) instead of the comparator level, so a sustained fault is logged only on every other cycle.
+- line 206: The S_RUN count adds the live cp_sync while the S_RUN shift register stores the blanked cp_delay sample, so the run count and the run window contents diverge.
+- line 206: The S_RUN count adds the previous cycle's stored sample (fault_shifter_RUN[0]) as the entering bit instead of the new blanked sample being shifted in.
+- line 216: The soft-start count subtracts the most recent stored sample (bit 0) instead of the oldest sample leaving the 32-cycle window at bit WINDOW_SS-1.
+- line 156: The blanking history only advances while PWM is low (low-side conduction), freezing during the high side, so the tap reads BLANK_CLKS low-side clocks back instead of BLANK_CLKS clocks back.
+- line 242: The run-count telemetry output is gated by run_active, so it reads 0 on the clock after S_RUN is left instead of reporting the run count before the idle clear.
+- line 240: A TRIP_RUN threshold above WINDOW_RUN is clamped to a full window instead of never being reached, so a completely faulted run window always trips.
+- line 241: A TRIP_SS threshold above WINDOW_SS is clamped to a full soft-start window instead of never being reached, so a completely faulted soft-start window always trips.
+- line 240: The 5-bit run count is widened to the 6-bit threshold width by putting the pad bit on the wrong (LSB) side, so the S_RUN trip compares twice the faulted-cycle count with trip_run.
+- line 206: The entering sample is replicated across the run-count width instead of zero-extended, so a faulted cycle entering the S_RUN window adds all-ones (-1) to the count instead of +1.
+- line 216: The bit leaving the soft-start window is replicated across the count width instead of zero-extended, so a faulted cycle leaving the 32-cycle window adds one to fault_count_ss instead of subtracting one.
+- line 217: The new soft-start sample is replicated across the whole window register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the soft-start window as faulted.
+- line 215: The soft-start window counts a cycle as faulted only if the comparator was high on every clock of the blanking history (a debounce), instead of reading the one value from BLANK_CLKS clocks before high-side turn-on.
+- line 213: The soft-start window is sampled at high-side turn-off (the falling edge of pwm_sync, the peak) while the run window keeps using the valley at pwm_rise.
+- line 241: The soft-start trip compares count and threshold as signed values, so a trip_ss of 32 or more (top bit set) is read as a negative threshold.
+- line 241: The soft-start trip line is copied from the run-trip line and widens the soft-start count from the run-count width (FCNT_RUN_W), so a full 32-cycle soft-start count loses its top bit and reads as 0.
+- line 241: The soft-start trip is checked only on the cycle-boundary strobe pwm_rise, as if it were sampled together with the window, instead of following the soft-start count all the time.
+- line 217: The soft-start window is rewritten to put the new sample in at the MSB and shift right, but the count still subtracts bit WINDOW_SS-1 as the leaving bit, and that bit is now the newest sample.
+- line 223: The idle clear resets the two shift registers but leaves both counts holding their values from before the hiccup.
+- line 215: The sample entering the soft-start window is copied across the count width instead of zero-extended, so a faulted cycle entering the window adds all-ones (-1) to fault_count_ss instead of +1.
+- line 208: The new run-window sample is copied across the whole run shift register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the run window as faulted.
+- line 206: Both windows tap the blanking history at the newest end (cp_delay[0], one clock back) instead of the oldest bit cp_delay[BLANK_CLKS-1], so there is in effect no blanking.
+- line 204: The S_RUN window is sampled at high-side turn-off (the falling edge of pwm_sync, the peak), while the soft-start window keeps using the valley at pwm_rise.
+- line 215: The soft-start window records the start of an overcurrent excursion (a faulted cycle after a clear one) instead of the comparator level, so a sustained fault in S_SS is logged only on every other cycle.
+- line 215: The soft-start window takes as its sample 'cp_sync high in any of the last BLANK_CLKS clocks' instead of the one comparator value from BLANK_CLKS clocks before high-side turn-on.
+- line 206: The S_RUN window counts a cycle as faulted only if the comparator was high on every clock of the blanking history (a debounce), instead of the one value from BLANK_CLKS clocks before high-side turn-on.
+- line 206: An overflow guard stops the run count adding the entering sample once it reaches WINDOW_RUN, but the leaving bit is still subtracted, so a full window followed by another faulted cycle drops the count to 15.
+- line 215: The soft-start count's overflow guard is compared with the run-window depth (WINDOW_RUN, 16) instead of WINDOW_SS, so the count stops adding entering samples at 16 while still subtracting leaving ones.
+- line 213: The soft-start window stops sampling once its count reaches a full window (saturation applied to the whole update), so a fully faulted window is frozen instead of rolling.
+- line 240: The S_RUN trip compares count and threshold as signed values, so a trip_run of 32 or more (top bit set) is read as a negative threshold.
+- line 204: The S_RUN window stops sampling once its count reaches a full window (saturation applied to the whole run update), so a fully faulted run window is frozen instead of rolling.
+- line 215: An overflow guard at the soft-start depth stops fault_count_ss from adding the entering sample once it reaches WINDOW_SS, but the leaving bit is still subtracted, so a full 32-cycle window followed by another faulted cycle drops the count to 31.
+
+## Proposals already refused for this module
+
+Do not write these again, in any wording. If the design-aware faults left are all of a kind that is refused, return fewer mutants.
+
+- The S_RUN threshold is truncated to the 5-bit run-count width instead of the count being widened to TRIP_W, so trip_run values of 32 and above lose their top bit. - refused: make lint already catches it: make lint: UNUSEDSIGNAL
+- The S_RUN window and its count both take the blanked sample from the comparator BLANK_CLKS-1 clocks before high-side turn-on instead of BLANK_CLKS clocks before, so the run lookback is one clock short while soft start keeps the full lookback. - refused: not legal code: %Error: protect/fault_arbiter.sv:210:3: syntax error, unexpected end
+- The bit leaving the run window is copied across the whole count width instead of zero-extended, so a faulted cycle that leaves the 16-cycle run window adds one to fault_count_run instead of taking one off. - refused: not legal code: %Error: protect/fault_arbiter.sv:207:87: syntax error, unexpected ')'

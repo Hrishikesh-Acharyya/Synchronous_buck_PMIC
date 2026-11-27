@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = (run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run)) || window_trip_SS;"
+   ],
+   "category": "other",
+   "description": "window_trip is written as an 'any window tripped' summary that also carries the soft-start trip, instead of reporting only the S_RUN window.",
+   "reason": "In S_SS, when fault_count_ss reaches trip_ss, window_trip asserts together with window_trip_SS, although window_trip must stay low outside S_RUN. Downstream logic would then see a run-window overcurrent during soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.96"
+ },
+ {
+  "proposal": {
+   "line": 150,
+   "before": [
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "  else if ((!run_active && !ss_active) || (pwm_sync_d && !pwm_sync)) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The blanking history is also cleared at high-side turn-off (falling edge of pwm_sync), so that it holds only low-side samples, instead of being cleared only while neither S_SS nor S_RUN is active.",
+   "reason": "At a high duty cycle, where pwm_sync stays low for fewer than BLANK_CLKS clocks, the bit tapped at pwm_rise is the cleared 0 and not the comparator value from BLANK_CLKS clocks earlier. A cycle with CP high is then counted as clean, so fault_count_run_out and fault_count_ss_out stay at 0 and window_trip / window_trip_SS never assert."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.150.AIM.97"
+ }
+]

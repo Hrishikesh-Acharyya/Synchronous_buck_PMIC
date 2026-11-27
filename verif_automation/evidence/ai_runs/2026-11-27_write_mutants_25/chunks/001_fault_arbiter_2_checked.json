@@ -1,0 +1,73 @@
+[
+ {
+  "proposal": {
+   "line": 243,
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_comb fault_count_ss_out = FCNT_SS_W'(fault_count_ss[FCNT_RUN_W-1:0]);"
+   ],
+   "category": "field",
+   "description": "The soft-start telemetry output is copied from the run-count line and passes on only the run-count width (FCNT_RUN_W bits) of fault_count_ss, so a full 32-cycle soft-start count reads 0 on fault_count_ss_out.",
+   "reason": "When all 32 soft-start cycles in the window are faulted (fault_count_ss = 32, which is possible if trip_ss is above 32 or before the trip ends S_SS), fault_count_ss_out reads 0 instead of 32. It keeps reading 0 through S_RUN while the count is held for telemetry. window_trip_SS does not change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.243.AIM.111"
+ },
+ {
+  "proposal": {
+   "line": 204,
+   "before": [
+    "  else if (pwm_rise && run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    if (pwm_rise) begin",
+    "      fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                         - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    end",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "category": "wrong_event",
+   "description": "Only the S_RUN count is qualified by the cycle-boundary strobe. The run shift register shifts on every clock in S_RUN, so the window ages by clocks rather than by switching cycles, and the bit the count subtracts as leaving is not a sample that the count added.",
+   "reason": "In S_RUN with a switching period longer than 16 clocks, the bit at WINDOW_RUN-1 on a pwm_rise is the blanked comparator value from 16 clocks earlier, not the sample from 16 cycles earlier. fault_count_run and fault_count_run_out then drift from the real number of faulted cycles and can underflow, and window_trip fires or fails to fire because of that wrong count."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.204.AIM.112"
+ },
+ {
+  "proposal": {
+   "line": 213,
+   "before": [
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    if (pwm_rise) begin",
+    "      fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    end",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "category": "wrong_event",
+   "description": "Only the soft-start count is qualified by the cycle-boundary strobe. The soft-start shift register shifts on every clock in S_SS, so the 32-bit window holds clocks rather than switching cycles, and the leaving bit fault_count_ss subtracts is not a sample that the count added.",
+   "reason": "In S_SS with a switching period longer than 32 clocks and the comparator high for part of a cycle, the bit subtracted at pwm_rise is the blanked comparator value from 32 clocks earlier. fault_count_ss and fault_count_ss_out then drift from the real number of faulted cycles and can underflow, and window_trip_SS fires or fails to fire because of that wrong count."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.213.AIM.113"
+ }
+]

@@ -5,6 +5,7 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | Module | Mutants | AI-written | Killed | Lint | Covers | Timeout | Survived | Not run | Score | Survivors not decided | Score, explained survivors out | Steps: AI wrote / mutation / AI judged | Last step |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
 | [`fault_LED`](fault_LED.md) | 224 | 86 | 162 | 18 | 0 | 0 | 44 | 0 | 80.4% | 0 | 80.7% | 7 / 1 / 1 | 2026-11-27 001df27 |
+| [`fault_arbiter`](fault_arbiter.md) | 321 | 128 | 256 | 31 | 0 | 0 | 34 | 0 | 89.4% | 0 | 99.7% | 10 / 1 / 1 | 2026-11-27 13c1372 |
 | [`fault_cause`](fault_cause.md) | 246 | 110 | 186 | 22 | 0 | 0 | 38 | 0 | 84.6% | 0 | 87.0% | 13 / 1 / 1 | 2026-11-27 8d82e7e |
 | [`hiccup_timer`](hiccup_timer.md) | 55 | 12 | 38 | 11 | 0 | 0 | 6 | 0 | 89.1% | 0 | 98.0% | 6 / 1 / 1 | 2026-11-15 a1dc229 |
 | [`input_debounce`](input_debounce.md) | 85 | 16 | 73 | 3 | 2 | 0 | 7 | 0 | 91.8% | 0 | 95.1% | 4 / 1 / 1 | 2026-11-15 f71cb1f |

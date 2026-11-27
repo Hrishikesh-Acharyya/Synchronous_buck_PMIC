@@ -1,0 +1,81 @@
+[
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "  else begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);",
+    "",
+    "  end"
+   ],
+   "category": "missing_case",
+   "description": "The blanking history cp_delay only advances in S_RUN and forgets S_SS, so through soft start it holds the zero left by the idle clear and every soft-start sample reads as not faulted.",
+   "reason": "In S_SS, if cp_sync stays high over trip_ss switching cycles, fault_count_ss_out stays 0 and window_trip_SS never asserts. In the original design both rise."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.156.AIM.100"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_sync);"
+   ],
+   "category": "field",
+   "description": "The S_RUN shift register stores the live cp_sync at pwm_rise, while the run count adds the blanked cp_delay sample, so the bit later subtracted as leaving is not the bit that was added.",
+   "reason": "In S_RUN, take a cycle where the comparator was low BLANK_CLKS clocks before turn-on but is high at pwm_rise. WINDOW_RUN cycles later that cycle's bit leaves the window and is subtracted although it was never added, so fault_count_run_out wraps below zero and window_trip asserts falsely. The opposite case leaves counts stuck in the window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.208.AIM.101"
+ },
+ {
+  "proposal": {
+   "line": 217,
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_sync);"
+   ],
+   "category": "field",
+   "description": "The soft-start shift register stores the live cp_sync at pwm_rise, while fault_count_ss adds the blanked cp_delay sample, so the bit later subtracted as leaving is not the bit that was added.",
+   "reason": "In S_SS, take a cycle where the blanked sample is clear and cp_sync is high at pwm_rise (or the reverse). When that cycle's bit leaves the 32-cycle window, fault_count_ss_out is decremented for a fault it never counted (or keeps a fault forever), so the count drifts and window_trip_SS asserts wrongly or too late."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.217.AIM.102"
+ },
+ {
+  "proposal": {
+   "line": 243,
+   "before": [
+    "always_comb fault_count_ss_out = fault_count_ss;"
+   ],
+   "after": [
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "  if (!rst_n) begin fault_count_ss_out <= '0; end",
+    "  else begin fault_count_ss_out <= fault_count_ss; end",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start telemetry output is registered, so fault_count_ss_out shows fault_count_ss one clock late instead of the live count.",
+   "reason": "On the clock after a pwm_rise in S_SS that changes the count, fault_count_ss_out still shows the old value. On the clock after the idle clear it still shows the pre-hiccup count instead of 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.243.AIM.103"
+ }
+]

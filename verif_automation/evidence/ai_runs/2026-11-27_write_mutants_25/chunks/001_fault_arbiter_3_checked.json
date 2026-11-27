@@ -1,0 +1,77 @@
+[
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_sync)",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_sync);"
+   ],
+   "category": "missing_case",
+   "description": "Blanking is applied only to the soft-start window: the S_RUN window and its count both take the live cp_sync at pwm_rise instead of the blanked cp_delay sample.",
+   "reason": "In S_RUN, a cycle where the comparator is high at high-side turn-on but was low BLANK_CLKS clocks before (or the other way round) is counted wrongly. fault_count_run_out and window_trip then differ from the blanked count."
+  },
+  "accepted": false,
+  "why": "the same edit as fault_arbiter.206.AIM.3"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-2])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-2]);"
+   ],
+   "category": "boundary",
+   "description": "The S_RUN window and its count both take the blanked comparator sample from BLANK_CLKS-1 clocks before high-side turn-on instead of BLANK_CLKS clocks before, so the run lookback is one clock short while soft start keeps the full lookback.",
+   "reason": "In S_RUN, if cp_sync changes exactly BLANK_CLKS clocks before a PWM rising edge, the run window records the wrong level for that cycle. fault_count_run_out and window_trip then change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.206.AIM.114"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN | WINDOW_RUN'(cp_delay[BLANK_CLKS-1])) << 1;"
+   ],
+   "category": "boundary",
+   "description": "Parenthesis slip in the S_RUN window update: the new sample is ORed in before the shift, so it lands in bit 1. Each sample reaches the leaving bit WINDOW_RUN-1 one cycle early, and the run window spans 15 cycles instead of 16.",
+   "reason": "With a sustained overcurrent in S_RUN, fault_count_run tops out at 15 instead of 16. A trip_run of 16 never asserts window_trip, and faulted cycles leave fault_count_run_out one cycle early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.208.AIM.115"
+ },
+ {
+  "proposal": {
+   "line": 217,
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS | WINDOW_SS'(cp_delay[BLANK_CLKS-1])) << 1;"
+   ],
+   "category": "boundary",
+   "description": "Parenthesis slip in the soft-start window update: the new sample is ORed in before the shift, so it lands in bit 1 and leaves at bit WINDOW_SS-1 one cycle early. The soft-start window spans 31 cycles instead of 32.",
+   "reason": "With a sustained overcurrent through S_SS, fault_count_ss tops out at 31 instead of 32. A trip_ss of 32 never asserts window_trip_SS, and fault_count_ss_out drops a faulted cycle one cycle early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.217.AIM.116"
+ }
+]

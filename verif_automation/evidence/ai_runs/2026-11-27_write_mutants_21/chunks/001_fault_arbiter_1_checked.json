@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 216,
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - FCNT_SS_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "category": "field",
+   "description": "Copy-paste slip: the soft-start count takes its leaving bit from the run shift register, which is held clear during S_SS, instead of from the oldest bit of the soft-start window.",
+   "reason": "In S_SS, faulted cycles that leave the 32-cycle window are never subtracted. Once a faulted cycle is more than 32 cycles old, fault_count_ss_out stays too high and window_trip_SS can assert even though the trailing window holds fewer than trip_ss faulted cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.216.AIM.75"
+ },
+ {
+  "proposal": {
+   "line": 152,
+   "before": [
+    "    cp_delay <= '0;"
+   ],
+   "after": [
+    "    cp_delay <= {BLANK_CLKS{cp_sync}};"
+   ],
+   "category": "reset_init",
+   "description": "While neither S_SS nor S_RUN is active, the blanking history is preloaded with the current comparator level instead of being cleared, so a CP flag that is high in idle or hiccup carries into the new attempt.",
+   "reason": "Suppose cp_sync is high when the supervisor enters S_SS, for example after reset because the synchroniser resets high, or because the overcurrent persisted through hiccup. A pwm_rise within BLANK_CLKS clocks of entry then samples a faulted cycle that was never seen while switching, and fault_count_ss_out and window_trip_SS change."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.152.AIM.76"
+ },
+ {
+  "proposal": {
+   "line": 221,
+   "before": [
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "  else if (window_trip || window_trip_SS) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The windows and counts are cleared when a window trip fires instead of whenever neither S_SS nor S_RUN is active.",
+   "reason": "If S_RUN or S_SS is left without an overcurrent trip (g_en low, UVLO, OTP), the counts stay nonzero on fault_count_run_out and fault_count_ss_out through S_OFF, and the next soft start begins with the old history. On a trip, the counts are cleared one clock after it fires while the state is still active."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.221.AIM.77"
+ },
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(!cp_sync);"
+   ],
+   "category": "other",
+   "description": "The current-protection flag is treated as active-low when it enters the blanking history, so a cycle with the comparator low is counted as faulted.",
+   "reason": "While switching with CP_trig low, every switching cycle is logged as faulted, so the counts climb and window_trip_SS or window_trip fires. A real overcurrent (CP high) is logged as a clean cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.158.AIM.78"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ((pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run) || (fault_count_ss >= trip_ss));"
+   ],
+   "category": "missing_case",
+   "description": "The S_RUN trip also fires when the soft-start count, which is held through S_RUN only for telemetry, is at or above trip_ss.",
+   "reason": "In S_RUN with no run-window faults, suppose the held fault_count_ss is at or above trip_ss: it reached the threshold on the edge the FSM left S_SS, or TRIP_SS was lowered during S_RUN. window_trip then asserts and sends the supervisor to hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.79"
+ },
+ {
+  "proposal": {
+   "line": 242,
+   "before": [
+    "always_comb fault_count_run_out = fault_count_run;"
+   ],
+   "after": [
+    "always_comb fault_count_run_out = run_active ? fault_count_run : FCNT_RUN_W'(fault_count_ss);"
+   ],
+   "category": "field",
+   "description": "The run-count telemetry output reports the count of the present state, so outside S_RUN it shows the soft-start count instead of the run window's count.",
+   "reason": "During S_SS, after faulted cycles have been sampled, fault_count_run_out shows the (truncated) soft-start count instead of 0, because the run window is held clear in S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.242.AIM.80"
+ }
+]

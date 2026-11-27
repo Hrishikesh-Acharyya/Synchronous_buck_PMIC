@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | {BLANK_CLKS{cp_sync}};"
+   ],
+   "category": "other",
+   "description": "The comparator flag entering the blanking history is copied across the whole cp_delay register instead of being zero-extended into bit 0, so a high cp_sync reaches the tap cp_delay[BLANK_CLKS-1] on the next clock instead of BLANK_CLKS clocks later.",
+   "reason": "In S_SS or S_RUN, a cp_sync pulse in the last BLANK_CLKS-1 clocks before pwm_rise (the switch-node slew the blanking exists to ignore) is counted as a faulted cycle. fault_count_run_out / fault_count_ss_out rise, and window_trip / window_trip_SS can assert, where the original reads the comparator from BLANK_CLKS clocks earlier and records a clean cycle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.158.AIM.126"
+ },
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | (cp_delay >> (BLANK_CLKS-1)) | BLANK_CLKS'(cp_sync);"
+   ],
+   "category": "other",
+   "description": "The blanking history is written as a rotate instead of a shift, so the oldest comparator bit at cp_delay[BLANK_CLKS-1] comes back into bit 0 instead of being dropped.",
+   "reason": "Once cp_sync is high for one clock in S_SS or S_RUN, the set bit keeps going round cp_delay, so every later pwm_rise sample reads as faulted until the next idle clear. The fault counts climb to a full window and window_trip / window_trip_SS assert after a single brief comparator pulse."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.158.AIM.127"
+ }
+]

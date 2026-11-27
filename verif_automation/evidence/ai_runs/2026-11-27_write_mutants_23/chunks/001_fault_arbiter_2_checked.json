@@ -1,0 +1,124 @@
+[
+ {
+  "proposal": {
+   "line": 204,
+   "before": [
+    "  else if (pwm_rise && run_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && run_active && cp_delay[BLANK_CLKS-1]) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The S_RUN window advances only on cycles whose blanked sample is faulted, so clean cycles never push older faulted cycles out of the run window.",
+   "reason": "In S_RUN, an intermittent overcurrent (for example one faulted cycle in four) makes fault_count_run_out keep climbing instead of settling near a quarter of the window. window_trip then asserts once the total reaches trip_run, which a true trailing 16-cycle window would never reach."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.204.AIM.87"
+ },
+ {
+  "proposal": {
+   "line": 213,
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && ss_active && cp_delay[BLANK_CLKS-1]) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The soft-start window advances only on cycles whose blanked sample is faulted, so clean soft-start cycles never age faulted cycles out of the 32-cycle window.",
+   "reason": "In S_SS with sparse overcurrent cycles, fault_count_ss_out grows with the total number of faulted cycles since entry instead of the number in the trailing 32. window_trip_SS asserts once that total reaches trip_ss."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.213.AIM.88"
+ },
+ {
+  "proposal": {
+   "line": 204,
+   "before": [
+    "  else if (pwm_rise && run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (run_active) begin",
+    "",
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    if (pwm_rise) begin",
+    "      fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);",
+    "    end"
+   ],
+   "category": "sequencing",
+   "description": "Only the run shift register is qualified by the cycle-boundary strobe. The run count is updated on every clock in S_RUN, so one faulted switching cycle is counted once per clock instead of once per cycle.",
+   "reason": "In S_RUN, while the blanked comparator sample is high, fault_count_run_out goes up on every clock and wraps. window_trip asserts within a few clocks of the first faulted cycle instead of after trip_run faulted cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.204.AIM.89"
+ },
+ {
+  "proposal": {
+   "line": 213,
+   "before": [
+    "  else if (pwm_rise && ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "  else if (ss_active) begin",
+    "",
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    if (pwm_rise) begin",
+    "      fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);",
+    "    end"
+   ],
+   "category": "sequencing",
+   "description": "Only the soft-start shift register is qualified by the cycle-boundary strobe. fault_count_ss is updated on every clock in S_SS, so one faulted cycle is counted once per clock.",
+   "reason": "In S_SS, while the blanked comparator sample is high, fault_count_ss_out goes up on every clock. window_trip_SS asserts a few clocks after the first faulted cycle instead of after trip_ss faulted cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.213.AIM.90"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && !pwm_rise && (fault_count_ss >= trip_ss);"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start trip is masked on the cycle-boundary strobe clock, as if fault_count_ss were mid-update there, although the count is a register and is valid on that clock.",
+   "reason": "In S_SS, when the soft-start count is at or above trip_ss (for example after trip_ss is lowered, or while the supervisor has not yet left S_SS), window_trip_SS drops low for one clock on every rising edge of pwm_sync instead of staying high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.91"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && cp_sync && (fault_count_ss >= trip_ss);"
+   ],
+   "category": "other",
+   "description": "The soft-start window trip is also qualified by the live comparator flag ('overcurrent still present'), so a soft-start window that holds trip_ss faulted cycles does not trip while cp_sync is low.",
+   "reason": "In S_SS, after the window count reaches trip_ss on a valley sample, window_trip_SS stays low while cp_sync is low, for example once the comparator has released after high-side turn-on. It asserts only when the comparator is high again, instead of as soon as the count reaches trip_ss."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.92"
+ }
+]

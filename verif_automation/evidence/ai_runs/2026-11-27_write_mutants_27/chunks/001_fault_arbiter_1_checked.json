@@ -1,0 +1,28 @@
+[
+ {
+  "proposal": {
+   "line": 219,
+   "before": [
+    "  end ",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "  end ",
+    "",
+    "  else if (window_trip_SS) begin",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_ss <= 0;",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "category": "reset_init",
+   "description": "The soft-start window and count are also cleared on the clock after window_trip_SS fires, as if the trip itself should start a clean soft-start window, instead of being cleared only when neither S_SS nor S_RUN is active.",
+   "reason": "In S_SS, once fault_count_ss reaches trip_ss, window_trip_SS is high for one clock only and then drops, even though the window still holds trip_ss faulted cycles. On the next clock fault_count_ss_out reads 0 instead of the trip count, and through S_RUN it keeps reading 0 instead of the held soft-start count."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.221.AIM.125"
+ }
+]

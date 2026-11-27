@@ -1,0 +1,125 @@
+[
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && ({fault_count_run, 1'b0} >= trip_run);"
+   ],
+   "category": "field",
+   "description": "The 5-bit run count is widened to the 6-bit threshold width by putting the pad bit on the wrong (LSB) side, so the S_RUN trip compares twice the faulted-cycle count with trip_run.",
+   "reason": "In S_RUN with trip_run = N, window_trip asserts once the run window holds ceil(N/2) faulted cycles instead of N, e.g. at 4 faulted cycles for trip_run = 8."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + {FCNT_RUN_W{cp_delay[BLANK_CLKS-1]}}"
+   ],
+   "category": "field",
+   "description": "The entering sample is replicated across the run-count width instead of zero-extended, so a faulted cycle entering the S_RUN window adds all-ones (-1) to the count instead of +1.",
+   "reason": "On the first faulted valley sample in S_RUN, fault_count_run_out wraps from 0 to 31 instead of rising to 1, and window_trip asserts for any trip_run up to 31."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.206.AIM.48"
+ },
+ {
+  "proposal": {
+   "line": 216,
+   "before": [
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);"
+   ],
+   "after": [
+    "                                     - {FCNT_SS_W{fault_shifter_SS[WINDOW_SS-1]}};"
+   ],
+   "category": "field",
+   "description": "The bit leaving the soft-start window is replicated across the count width instead of zero-extended, so a faulted cycle leaving the 32-cycle window adds one to fault_count_ss instead of subtracting one.",
+   "reason": "In a soft start longer than 32 cycles, once a faulted sample ages out of the window fault_count_ss_out rises by 1 (rather than falling by 1), so the count overstates the window and window_trip_SS can assert with fewer than trip_ss faulted cycles present."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.216.AIM.49"
+ },
+ {
+  "proposal": {
+   "line": 217,
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | {WINDOW_SS{cp_delay[BLANK_CLKS-1]}};"
+   ],
+   "category": "field",
+   "description": "The new soft-start sample is replicated across the whole window register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the soft-start window as faulted.",
+   "reason": "After one faulted valley sample in S_SS, the next sample sees a faulted bit leaving at WINDOW_SS-1 and decrements fault_count_ss (wrapping to 63 from 0), so fault_count_ss_out and window_trip_SS go wrong from the next cycle on."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.217.AIM.50"
+ },
+ {
+  "proposal": {
+   "line": 215,
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(&cp_delay)",
+    "                                     - FCNT_SS_W'(fault_shifter_SS[WINDOW_SS-1]);",
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(&cp_delay);"
+   ],
+   "category": "other",
+   "description": "The soft-start window counts a cycle as faulted only if the comparator was high on every clock of the blanking history (a debounce), instead of reading the one value from BLANK_CLKS clocks before high-side turn-on.",
+   "reason": "In S_SS, if cp_sync is high BLANK_CLKS clocks before pwm rises but drops in any later clock before turn-on, the cycle is not counted, so fault_count_ss_out stays lower and window_trip_SS asserts late or not at all."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.215.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 213,
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_sync_d && !pwm_sync && ss_active) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The soft-start window is sampled at high-side turn-off (the falling edge of pwm_sync, the peak) while the run window keeps using the valley at pwm_rise.",
+   "reason": "In S_SS the sample reads the comparator from BLANK_CLKS clocks before PWM falls (during high-side conduction), so a comparator that is high only near the peak, or only at the valley, gives a different fault_count_ss_out and window_trip_SS than valley sampling does."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.213.AIM.52"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && ($signed(fault_count_ss) >= $signed(trip_ss));"
+   ],
+   "category": "boundary",
+   "description": "The soft-start trip compares count and threshold as signed values, so a trip_ss of 32 or more (top bit set) is read as a negative threshold.",
+   "reason": "With trip_ss = 32 (a full-window threshold), window_trip_SS asserts as soon as S_SS is entered with zero faulted cycles, because 0 >= -32 is true."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.53"
+ }
+]

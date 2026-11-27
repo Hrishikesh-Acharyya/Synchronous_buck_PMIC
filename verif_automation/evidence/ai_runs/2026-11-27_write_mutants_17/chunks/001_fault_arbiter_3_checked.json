@@ -1,0 +1,80 @@
+[
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && pwm_rise && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "sequencing",
+   "description": "The S_RUN trip is evaluated only on the cycle-boundary strobe pwm_rise, as if the trip were sampled with the window, instead of following the run count continuously.",
+   "reason": "The run count takes its new value on the clock edge that ends the pwm_rise clock, so a count that reaches trip_run only raises window_trip at the next pwm_rise. That is a whole switching cycle late, and window_trip is then a one-clock pulse instead of a level held while the count is at or above trip_run in S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.21"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && (trip_run != '0) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "boundary",
+   "description": "A TRIP_RUN threshold of zero is treated as 'S_RUN window trip disabled' instead of 'trip at any count'.",
+   "reason": "With trip_run programmed to 0, the original asserts window_trip as soon as run_active is high, because count >= 0 is always true. The mutant never asserts window_trip in S_RUN, whatever overcurrent is sampled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.22"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && ((fault_count_ss + FCNT_SS_W'(pwm_rise & cp_delay[BLANK_CLKS-1])) >= trip_ss);"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start trip looks ahead at the sample being taken on pwm_rise, adding the entering bit without subtracting the leaving bit, instead of comparing the registered count.",
+   "reason": "In S_SS, on a pwm_rise clock where the blanked sample is faulted and fault_count_ss is trip_ss-1, window_trip_SS rises one clock early. If the bit leaving the window is also faulted, the count never actually reaches trip_ss, but window_trip_SS still pulses high for that clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.23"
+ },
+ {
+  "proposal": {
+   "line": 148,
+   "before": [
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin",
+    "",
+    "    cp_delay <= '0;",
+    "",
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "after": [
+    "  end",
+    "",
+    "  else begin"
+   ],
+   "category": "reset_init",
+   "description": "The blanking history cp_delay is not cleared while neither S_SS nor S_RUN is active, so it keeps tracking cp_sync through idle and hiccup.",
+   "reason": "Suppose cp_sync is high during the last BLANK_CLKS clocks before S_SS is entered (after reset the CP synchroniser resets high, or the comparator is still asserted after a trip). If a pwm_rise then comes within BLANK_CLKS clocks of S_SS entry, the soft-start window counts a faulted cycle where the original counts a clean one. This raises fault_count_ss_out and can assert window_trip_SS early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.150.AIM.24"
+ }
+]

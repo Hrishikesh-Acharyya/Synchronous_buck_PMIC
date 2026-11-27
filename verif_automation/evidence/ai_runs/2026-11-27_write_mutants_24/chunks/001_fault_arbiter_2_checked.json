@@ -1,0 +1,63 @@
+[
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-1])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_count_run <= fault_count_run + FCNT_RUN_W'(cp_delay[BLANK_CLKS-2])",
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);",
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-2])"
+   ],
+   "category": "boundary",
+   "description": "The S_RUN window and its count both take the blanked comparator sample from BLANK_CLKS-1 clocks before high-side turn-on instead of BLANK_CLKS clocks before, so the run lookback is one clock short while soft start keeps the full lookback.",
+   "reason": "In S_RUN, if cp_sync changes exactly BLANK_CLKS clocks before a pwm_sync rising edge (high 5 clocks back, low 4 clocks back, or the reverse), the run window records the wrong value for that cycle. fault_count_run_out and window_trip then differ from the correct design."
+  },
+  "accepted": false,
+  "why": "not legal code: %Error: protect/fault_arbiter.sv:210:3: syntax error, unexpected end"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - {FCNT_RUN_W{fault_shifter_RUN[WINDOW_RUN-1]}};"
+   ],
+   "category": "field",
+   "description": "The bit leaving the run window is copied across the whole count width instead of zero-extended, so a faulted cycle that leaves the 16-cycle run window adds one to fault_count_run instead of taking one off.",
+   "reason": "In S_RUN, once a faulted cycle reaches the end of the 16-cycle window and leaves, fault_count_run_out goes up instead of down. Overcurrent that has already aged out of the window can then hold window_trip high or make it trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.207.AIM.98"
+ },
+ {
+  "proposal": {
+   "line": 220,
+   "before": [
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "after": [
+    "",
+    "  else if (window_trip) begin",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_count_run <= 0;",
+    "  end",
+    "",
+    "  else if (!run_active && !ss_active) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The run window and count are also cleared on the clock after window_trip fires, as if the trip itself should start a clean window, instead of being cleared only when neither S_SS nor S_RUN is active.",
+   "reason": "After the run count reaches trip_run in S_RUN, fault_count_run_out drops to 0 on the next clock without a pwm_rise, and window_trip falls while run_active is still high. In the correct design the count and the trip hold until the supervisor leaves S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.221.AIM.99"
+ }
+]

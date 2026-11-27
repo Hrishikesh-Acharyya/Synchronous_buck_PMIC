@@ -1,0 +1,124 @@
+[
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && (pmic_types_pkg::TRIP_W'(fault_count_ss[FCNT_RUN_W-1:0]) >= trip_ss);"
+   ],
+   "category": "boundary",
+   "description": "The soft-start trip line is copied from the run-trip line and widens the soft-start count from the run-count width (FCNT_RUN_W), so a full 32-cycle soft-start count loses its top bit and reads as 0.",
+   "reason": "When trip_ss is 32 (the highest value reg_file allows), a completely faulted soft-start window gives a count of 32 that compares as 0, so window_trip_SS never asserts. With a lower trip_ss, window_trip_SS drops again when the count reaches 32."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.54"
+ },
+ {
+  "proposal": {
+   "line": 241,
+   "before": [
+    "always_comb window_trip_SS = ss_active  && (fault_count_ss >= trip_ss);"
+   ],
+   "after": [
+    "always_comb window_trip_SS = ss_active  && pwm_rise && (fault_count_ss >= trip_ss);"
+   ],
+   "category": "sequencing",
+   "description": "The soft-start trip is checked only on the cycle-boundary strobe pwm_rise, as if it were sampled together with the window, instead of following the soft-start count all the time.",
+   "reason": "In S_SS with the count at or above trip_ss, window_trip_SS pulses for one clock at each PWM rising edge instead of staying high. It also reacts at the next edge, not at once, when trip_ss is lowered."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.241.AIM.55"
+ },
+ {
+  "proposal": {
+   "line": 217,
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= (fault_shifter_SS >> 1) | {cp_delay[BLANK_CLKS-1], {(WINDOW_SS-1){1'b0}}};"
+   ],
+   "category": "field",
+   "description": "The soft-start window is rewritten to put the new sample in at the MSB and shift right, but the count still subtracts bit WINDOW_SS-1 as the leaving bit, and that bit is now the newest sample.",
+   "reason": "In S_SS each faulted cycle is taken off again on the next pwm_rise, so fault_count_ss never builds above about 1 under a sustained overcurrent. window_trip_SS never fires for trip_ss >= 2, and the soft-start telemetry is wrong."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.217.AIM.56"
+ },
+ {
+  "proposal": {
+   "line": 207,
+   "before": [
+    "                                       - FCNT_RUN_W'(fault_shifter_RUN[WINDOW_RUN-1]);"
+   ],
+   "after": [
+    "                                       - {FCNT_RUN_W{fault_shifter_RUN[WINDOW_RUN-1]}});"
+   ],
+   "category": "other",
+   "description": "The bit leaving the run window is copied across the whole count width instead of zero-extended, so a faulted cycle that leaves the 16-cycle run window adds one to fault_count_run instead of taking one off.",
+   "reason": "In S_RUN, once a faulted cycle is older than 16 cycles, fault_count_run goes up instead of down. fault_count_run_out goes above the real number of faulted cycles, and window_trip can assert, or stay asserted, after the overcurrent has ended."
+  },
+  "accepted": false,
+  "why": "not legal code: %Error: protect/fault_arbiter.sv:207:87: syntax error, unexpected ')'"
+ },
+ {
+  "proposal": {
+   "line": 223,
+   "before": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;",
+    "    fault_count_run <=0;",
+    "    fault_count_ss <= 0;"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <= 0;"
+   ],
+   "category": "reset_init",
+   "description": "The idle clear resets the two shift registers but leaves both counts holding their values from before the hiccup.",
+   "reason": "After a window trip and hiccup, the run count keeps its old value, for example trip_run. Because the cleared window has no faulted bits left to take off, window_trip asserts as soon as S_RUN is entered again. In the same way, the soft-start count makes window_trip_SS fire on re-entry to S_SS, and both telemetry counts stay non-zero in idle."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.224.AIM.57"
+ },
+ {
+  "proposal": {
+   "line": 215,
+   "before": [
+    "    fault_count_ss <= fault_count_ss + FCNT_SS_W'(cp_delay[BLANK_CLKS-1])"
+   ],
+   "after": [
+    "    fault_count_ss <= fault_count_ss + {FCNT_SS_W{cp_delay[BLANK_CLKS-1]}}"
+   ],
+   "category": "other",
+   "description": "The sample entering the soft-start window is copied across the count width instead of zero-extended, so a faulted cycle entering the window adds all-ones (-1) to fault_count_ss instead of +1.",
+   "reason": "In S_SS a faulted cycle makes fault_count_ss go down, wrapping below zero to large values. window_trip_SS then asserts on the first faulted cycle when the count wraps to 63 from 0, and fault_count_ss_out reports nonsense."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.215.AIM.58"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | WINDOW_RUN'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_RUN <= (fault_shifter_RUN << 1) | {WINDOW_RUN{cp_delay[BLANK_CLKS-1]}};"
+   ],
+   "category": "field",
+   "description": "The new run-window sample is copied across the whole run shift register instead of being zero-extended into bit 0, so one faulted cycle marks every slot of the run window as faulted.",
+   "reason": "In S_RUN, a single faulted cycle followed by clean cycles fills the window with ones, so fault_count_run goes down by one for each of the next 16 cycles even though it was only raised once. The count wraps and goes wrong, which changes fault_count_run_out and window_trip."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.208.AIM.59"
+ }
+]

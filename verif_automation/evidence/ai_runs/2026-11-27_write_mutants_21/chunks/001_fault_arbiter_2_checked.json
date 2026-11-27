@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 158,
+   "before": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync);"
+   ],
+   "after": [
+    "    cp_delay <= (cp_delay << 1) | BLANK_CLKS'(cp_sync & ~pwm_sync);"
+   ],
+   "category": "other",
+   "description": "The comparator flag is masked by 'PWM low' as it enters the blanking history, on the belief that CP is only valid in low-side conduction, so clocks taken while PWM was high are recorded as not faulted.",
+   "reason": "If the PWM low time is shorter than BLANK_CLKS clocks (high duty), the tap read at pwm_rise falls in the previous high period. A cp_sync that was high there is counted as a faulted cycle by the original but as clear by the mutant, so fault_count_run_out/fault_count_ss_out and window_trip/window_trip_SS differ."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.158.AIM.81"
+ },
+ {
+  "proposal": {
+   "line": 217,
+   "before": [
+    "    fault_shifter_SS <= (fault_shifter_SS << 1) | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "after": [
+    "    fault_shifter_SS <= {fault_shifter_SS[WINDOW_SS-2:0], fault_shifter_SS[WINDOW_SS-1]} | WINDOW_SS'(cp_delay[BLANK_CLKS-1]);"
+   ],
+   "category": "field",
+   "description": "The soft-start window is written as a rotate instead of a shift, so the oldest sample leaving at bit WINDOW_SS-1 comes back into bit 0 while fault_count_ss still subtracts it.",
+   "reason": "In an S_SS longer than 32 cycles that contains a faulted cycle followed by clear ones, the faulted bit goes round the window again and is subtracted a second time. fault_count_ss_out then wraps below zero to a large value, and window_trip_SS asserts when it should not."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.217.AIM.82"
+ },
+ {
+  "proposal": {
+   "line": 213,
+   "before": [
+    "  else if (pwm_rise && ss_active) begin"
+   ],
+   "after": [
+    "  else if (pwm_rise && ss_active && !window_trip_SS) begin"
+   ],
+   "category": "wrong_event",
+   "description": "The soft-start window stops sampling once window_trip_SS has fired, so its count is held at the trip value as evidence instead of continuing to roll.",
+   "reason": "If ss_active stays high after window_trip_SS asserts and later cycles are clear, the original count falls as faulted samples leave and window_trip_SS drops. The mutant freezes fault_count_ss_out at the trip value and keeps window_trip_SS high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.213.AIM.83"
+ }
+]

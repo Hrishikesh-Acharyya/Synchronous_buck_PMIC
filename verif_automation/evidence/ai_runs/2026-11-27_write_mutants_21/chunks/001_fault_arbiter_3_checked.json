@@ -1,0 +1,48 @@
+[
+ {
+  "proposal": {
+   "line": 195,
+   "before": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "    fault_count_run <= 0;",
+    "    fault_count_ss <=0;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  if(!rst_n) begin",
+    "",
+    "    fault_shifter_RUN <= 0;",
+    "    fault_shifter_SS <=0;",
+    "",
+    "  end"
+   ],
+   "category": "reset_init",
+   "description": "The asynchronous reset clears the two shift registers but leaves both fault counts alone, relying on the idle clear to zero them after reset is released.",
+   "reason": "If rst_n is asserted while the converter is running with faulted cycles counted, fault_count_run_out and fault_count_ss_out keep showing the old counts for the whole reset, where they should read 0. They stay that way until the first clock after release, and at power-up they start undefined."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.199.AIM.84"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = run_active && cp_sync && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "other",
+   "description": "The S_RUN window trip is also qualified by the live comparator flag ('overcurrent still present'), so a run window that holds trip_run faulted cycles does not trip while cp_sync is low.",
+   "reason": "In S_RUN, once fault_count_run reaches trip_run, window_trip should assert and stay high. With this fault it is held low whenever cp_sync is low, so an intermittent overcurrent that fills the window trips late, or never trips if cp_sync is low whenever the count is at or above the threshold."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.85"
+ }
+]

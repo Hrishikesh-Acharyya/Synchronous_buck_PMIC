@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "always_comb window_trip    = run_active && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "after": [
+    "always_comb window_trip    = (run_active || ss_active) && (pmic_types_pkg::TRIP_W'(fault_count_run) >= trip_run);"
+   ],
+   "category": "missing_case",
+   "description": "window_trip is gated by 'converter switching' (S_SS or S_RUN) instead of S_RUN only, so the S_RUN window trip is also allowed through soft start.",
+   "reason": "With TRIP_RUN programmed to 0 (trip at any count), window_trip now asserts throughout S_SS, where the run count sits at 0 and the run trip must be held low; in the original it can assert only in S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "fault_arbiter.240.AIM.128"
+ }
+]
