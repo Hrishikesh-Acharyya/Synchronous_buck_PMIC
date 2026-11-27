@@ -1,0 +1,63 @@
+[
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~en_SW | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_SS only the physical switch is checked for disable, so a host disable over SPI during soft start gates en but leaves the FSM ramping in S_SS",
+   "reason": "If spi_enable falls while the FSM is in S_SS (with en_SW still high), en drops through the combinational gating, but the FSM stays in S_SS. ss_active stays high and state_out reads S_SS, and on SS_done the FSM moves to S_RUN instead of S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.46"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~en_SW | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_HICCUP only the physical switch is checked for disable, so a host disable over SPI during the cool-down does not send the FSM to S_OFF and it still retries into S_SS",
+   "reason": "If spi_enable falls during S_HICCUP (with en_SW high), hiccup_active stays high instead of dropping. When hiccup_done arrives, the FSM retries into S_SS, so ss_active and state_out show soft start on a converter the host has disabled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.47"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | UVLO) begin"
+   ],
+   "category": "missing_case",
+   "description": "Input undervoltage in S_RUN is treated as a recoverable brown-out under load and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "If UVLO asserts while regulating in S_RUN, the FSM goes to S_HICCUP instead of S_OFF: hiccup_active rises and state_out reads S_HICCUP. If UVLO has cleared by hiccup_done, the converter retries into S_SS on its own rather than restarting from S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.48"
+ }
+]

@@ -1,0 +1,129 @@
+[
+ {
+  "proposal": {
+   "line": 186,
+   "before": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;"
+   ],
+   "after": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "category": "wrong_event",
+   "description": "An overcurrent window trip in S_RUN re-ramps straight into S_SS instead of first serving the S_HICCUP cool-down",
+   "reason": "When window_trip asserts in S_RUN, the next state is S_SS. ss_active rises instead of hiccup_active, and en stays high, so the converter keeps switching with no cool-down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.188.AIM.9"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = S_OFF;"
+   ],
+   "category": "sequencing",
+   "description": "At the end of the cool-down S_HICCUP returns to S_OFF and relies on S_OFF to restart, instead of retrying directly into S_SS",
+   "reason": "After hiccup_done, state_out shows S_OFF for one clock and ss_active/en rise a clock late. hiccup_active falls without ss_active rising on the same edge."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.208.AIM.10"
+ },
+ {
+  "proposal": {
+   "line": 259,
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (next_state == S_HICCUP);"
+   ],
+   "category": "sequencing",
+   "description": "hiccup_active is decoded from next_state, so it leads the registered S_HICCUP state by one clock",
+   "reason": "hiccup_active rises on the same clock that window_trip or window_trip_SS asserts, while state_out still shows S_RUN or S_SS. It falls on the hiccup_done clock, a clock before the state leaves S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.259.AIM.11"
+ },
+ {
+  "proposal": {
+   "line": 258,
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) & en;"
+   ],
+   "category": "other",
+   "description": "run_active is taken as 'regulating and gate drive on', so the combinational fault gating of en also drops it",
+   "reason": "In S_RUN, when OTP, UVLO, latch_state, latch_assert or loss of g_en asserts, run_active falls on the same clock. In the original it falls on the next clock, with state_out still showing S_RUN in between."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.258.AIM.12"
+ },
+ {
+  "proposal": {
+   "line": 259,
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = ~en_from_state;"
+   ],
+   "category": "missing_case",
+   "description": "hiccup_active is decoded as 'power stage held off by the state', so it is also high in S_OFF",
+   "reason": "Out of reset and whenever the FSM sits in S_OFF, hiccup_active is high although the state is not S_HICCUP. This starts the hiccup timer and strike counter while the converter is off."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.259.AIM.13"
+ },
+ {
+  "proposal": {
+   "line": 275,
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert & ~window_trip & ~window_trip_SS;"
+   ],
+   "category": "other",
+   "description": "The overcurrent window trips are treated as hard fault inputs in the combinational gating of en",
+   "reason": "On the clock where window_trip (in S_RUN) or window_trip_SS (in S_SS) asserts, en goes low while the state is still S_RUN or S_SS. In the original, en stays high until S_HICCUP registers."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.275.AIM.14"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~en_SW | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_RUN only the physical switch is checked for disable: a host disable over SPI gates en but does not send the FSM to S_OFF",
+   "reason": "If spi_enable drops in S_RUN with en_SW high, en goes low but state stays S_RUN and run_active stays high. When spi_enable returns, en comes straight back at full duty without the S_SS re-ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.15"
+ }
+]

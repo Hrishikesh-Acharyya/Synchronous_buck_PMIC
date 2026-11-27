@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | (state == S_HICCUP);"
+   ],
+   "category": "missing_case",
+   "description": "ss_active is decoded as 'a soft-start sequence is under way', so it is also high during the S_HICCUP cool-down that leads into the re-ramp",
+   "reason": "In S_HICCUP the ss_active port is high instead of low. That makes soft_start ramp and fault_arbiter count soft-start faults during the cool-down, so window_trip_SS can fire there and the retry into S_SS starts with a ramp that has already advanced."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.257.AIM.59"
+ },
+ {
+  "proposal": {
+   "line": 258,
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) | (state == S_HICCUP);"
+   ],
+   "category": "missing_case",
+   "description": "run_active treats the hiccup cool-down as a pause inside regulation, so it is also high in S_HICCUP",
+   "reason": "After a window_trip from S_RUN, run_active stays high through the whole S_HICCUP cool-down. soft_start then keeps SS_done and the full ceiling, so the retry is promoted out of S_SS without a fresh ramp. The strike_counter clean-run streak also keeps counting while the gate drive is off."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.258.AIM.60"
+ },
+ {
+  "proposal": {
+   "line": 259,
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) | (state == S_SS);"
+   ],
+   "category": "missing_case",
+   "description": "hiccup_active is decoded as 'a hiccup retry is in progress', so it also covers the re-ramp in S_SS, including the first start from S_OFF",
+   "reason": "Whenever the FSM is in S_SS, hiccup_active is high. hiccup_timer then times a cool-down during soft start and does not clear hiccup_done when S_HICCUP is left for S_SS. strike_counter also sees an S_HICCUP entry on an ordinary start from S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.259.AIM.61"
+ }
+]

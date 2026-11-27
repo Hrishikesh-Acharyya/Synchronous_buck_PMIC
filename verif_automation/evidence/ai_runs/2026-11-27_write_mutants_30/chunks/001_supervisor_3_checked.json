@@ -1,0 +1,124 @@
+[
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_HICCUP latch_assert only blocks the retry instead of forcing S_OFF, as if a strike-latched converter just stayed in the cool-down",
+   "reason": "strike_counter raises latch_assert on entry to S_HICCUP when MAX_STRIKES is reached; the original FSM goes to S_OFF the next clock, while the mutant stays in S_HICCUP with hiccup_active high and state_out = S_HICCUP indefinitely (latch_assert is set-only)."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.39"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~OTP) begin"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature during S_HICCUP is treated as part of the cool-down: the FSM stays in S_HICCUP until OTP clears instead of going to S_OFF",
+   "reason": "With OTP asserted while in S_HICCUP, the original moves to S_OFF on the next clock; the mutant keeps hiccup_active high and state_out at S_HICCUP, then retries into S_SS once OTP falls and hiccup_done is high, without ever passing through S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.40"
+ },
+ {
+  "proposal": {
+   "line": 88,
+   "before": [
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "  g_en = en_SW & (spi_enable | (state != S_OFF));"
+   ],
+   "category": "wrong_event",
+   "description": "The host enable over SPI is treated as a start request checked only in S_OFF, so a host disable while ramping, running or in hiccup is ignored",
+   "reason": "If spi_enable falls while the FSM is in S_SS or S_RUN with en_SW high, the original drops en at once and goes to S_OFF; the mutant keeps en high and stays in its state until the physical switch or a fault turns it off."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.88.AIM.41"
+ },
+ {
+  "proposal": {
+   "line": 258,
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) | ((state == S_SS) & SS_done);"
+   ],
+   "category": "sequencing",
+   "description": "run_active is raised on the clock the ramp reports SS_done, a clock before the FSM has registered S_RUN",
+   "reason": "In S_SS with SS_done high (and no fault), run_active goes high one clock before state_out shows S_RUN. It also pulses high when SS_done and window_trip_SS arrive together and the FSM goes to S_HICCUP instead."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.258.AIM.42"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | ((state == S_HICCUP) & hiccup_done);"
+   ],
+   "category": "sequencing",
+   "description": "ss_active is raised on the clock the cool-down reports hiccup_done, a clock before the FSM has registered the retry into S_SS",
+   "reason": "In S_HICCUP with hiccup_done high, ss_active is high together with hiccup_active one clock before state_out shows S_SS. It also pulses when a hard fault arrives on that clock and sends the FSM to S_OFF instead."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.257.AIM.43"
+ },
+ {
+  "proposal": {
+   "line": 259,
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) | hiccup_done;"
+   ],
+   "category": "sequencing",
+   "description": "hiccup_active is held until the cool-down timer drops hiccup_done, as if leaving S_HICCUP had to wait for the timer's acknowledge",
+   "reason": "After the retry from S_HICCUP to S_SS, hiccup_active stays high while hiccup_done is still high, so it overlaps ss_active in S_SS. In the system this keeps hiccup_timer from ever clearing hiccup_done, so hiccup_active stays high through S_SS and S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.259.AIM.44"
+ }
+]

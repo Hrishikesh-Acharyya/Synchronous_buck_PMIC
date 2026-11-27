@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 141,
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "category": "other",
+   "description": "Start-up from S_OFF tests the gated gate-drive enable en instead of the combined converter enable g_en, confusing the output enable with the enable request",
+   "reason": "In S_OFF en_from_state is 0 so en is always low, and the FSM never leaves S_OFF: with en_SW and spi_enable high and no fault, ss_active, en and state_out stay at S_OFF instead of starting soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.141.AIM.71"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "category": "other",
+   "description": "The disable test in S_HICCUP uses the gated gate-drive enable en instead of the converter enable g_en, so the cool-down's own gate-drive-off reads as a disable",
+   "reason": "en is always low in S_HICCUP, so after a window trip the FSM leaves for S_OFF one clock after entering S_HICCUP, then restarts into S_SS without waiting for hiccup_done: hiccup_active lasts one clock and the cool-down is skipped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.72"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) & en;"
+   ],
+   "category": "sequencing",
+   "description": "ss_active is decoded as 'ramping with the gate drive on', so the combinational fault gating of en also drops it before the FSM leaves S_SS",
+   "reason": "When a hard fault or disable arrives during soft start, ss_active falls on the same clock as en instead of a clock later when the FSM registers S_OFF. The ramp and the soft-start overcurrent window are therefore cleared one clock early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.257.AIM.73"
+ },
+ {
+  "proposal": {
+   "line": 259,
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) & g_en & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "category": "sequencing",
+   "description": "hiccup_active is decoded as 'cool-down still running', so a hard fault or disable drops it combinationally before the FSM leaves S_HICCUP",
+   "reason": "When OTP, UVLO, the latch or a disable arrives during the cool-down, hiccup_active falls on that clock instead of a clock later with the registered move to S_OFF. The hiccup timer and strike counter are therefore released early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.259.AIM.74"
+ }
+]

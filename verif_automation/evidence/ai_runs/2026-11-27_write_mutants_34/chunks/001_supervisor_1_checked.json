@@ -1,0 +1,74 @@
+[
+ {
+  "proposal": {
+   "line": 79,
+   "before": [
+    "always_comb begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Combine the two enables. The physical switch and the host must both allow the",
+    "converter to run; either one alone turns it off.",
+    "*/",
+    "",
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Combine the two enables. The physical switch and the host must both allow the",
+    "converter to run; either one alone turns it off.",
+    "*/",
+    "",
+    "  g_en <= spi_enable & en_SW;"
+   ],
+   "category": "sequencing",
+   "description": "The combined converter enable g_en is registered instead of combinational, so the switch and host enables reach the gate drive and the FSM a clock late",
+   "reason": "If en_SW or spi_enable falls in S_SS or S_RUN, en stays high for one more clock and the FSM registers S_OFF a clock late. A start from S_OFF also moves to S_SS a clock after the enable rises."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.79.AIM.78"
+ },
+ {
+  "proposal": {
+   "line": 265,
+   "before": [
+    "always_comb begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Drive the LM5106 enable. Gated by the fault inputs directly as well as by the",
+    "state, so a trip pulls the gate drive low combinationally, on the same clock,",
+    "instead of a clock later when the FSM has registered S_OFF.",
+    "*/",
+    "",
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Drive the LM5106 enable. Gated by the fault inputs directly as well as by the",
+    "state, so a trip pulls the gate drive low combinationally, on the same clock,",
+    "instead of a clock later when the FSM has registered S_OFF.",
+    "*/",
+    "",
+    "  en <= g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "category": "sequencing",
+   "description": "The LM5106 enable en is registered to give a glitch-free gate drive, so it follows the state and the fault inputs one clock late",
+   "reason": "en rises one clock after the FSM registers S_SS. It stays high for one clock after S_RUN gives way to S_HICCUP on window_trip. After OTP, UVLO, latch_state, latch_assert or a disable, it drops a clock late instead of on the same clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.265.AIM.79"
+ }
+]

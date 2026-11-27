@@ -1,0 +1,188 @@
+[
+ {
+  "proposal": {
+   "line": 161,
+   "before": [
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      else if (window_trip_SS | window_trip) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_SS either overcurrent window trip sends the FSM to S_HICCUP: the run-state trip window_trip is also honoured during soft start",
+   "reason": "In S_SS with window_trip high and window_trip_SS low (no hard fault), the FSM goes to S_HICCUP instead of holding S_SS or going on to S_RUN. hiccup_active and state_out change, and en drops."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.161.AIM.30"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      else if (hiccup_done & ~window_trip) begin"
+   ],
+   "category": "other",
+   "description": "S_HICCUP retries only when the cool-down has elapsed and the run overcurrent trip has also cleared, as if a retry had to wait for the fault to go away",
+   "reason": "In S_HICCUP with hiccup_done high and window_trip still high, the FSM stays in S_HICCUP instead of retrying into S_SS. hiccup_active stays high, ss_active and en stay low, and state_out holds S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.206.AIM.31"
+ },
+ {
+  "proposal": {
+   "line": 186,
+   "before": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end",
+    "      else if (~SS_done) begin",
+    "",
+    "        next_state = S_SS;",
+    "",
+    "      end"
+   ],
+   "category": "missing_case",
+   "description": "S_RUN is treated as valid only while the soft-start handshake SS_done is held, and drops back to S_SS when SS_done falls",
+   "reason": "In S_RUN with no fault and no window trip, SS_done going low moves the FSM to S_SS instead of holding S_RUN. run_active falls, ss_active rises and state_out shows S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.190.AIM.32"
+ },
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    state <= S_OFF;"
+   ],
+   "after": [
+    "    state <= S_HICCUP;"
+   ],
+   "category": "reset_init",
+   "description": "Reset puts the FSM in the S_HICCUP cool-down instead of S_OFF, as if power-up had to wait out a cool-down before the first start",
+   "reason": "After reset, hiccup_active is high and state_out shows S_HICCUP instead of S_OFF. With the converter enabled, the first start waits for hiccup_done instead of going to S_SS on the next clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.104.AIM.33"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = en_from_state;"
+   ],
+   "category": "wrong_event",
+   "description": "ss_active is decoded as 'power stage may switch', so it is also high in S_RUN",
+   "reason": "In S_RUN, ss_active is high together with run_active, when it should be high only in S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.257.AIM.34"
+ },
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | latch_state | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | UVLO) begin"
+   ],
+   "category": "other",
+   "description": "UVLO during soft start is treated as a recoverable inrush brown-out and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "In S_SS, with UVLO high and the converter enabled and no other hard fault, the FSM goes to S_HICCUP instead of S_OFF. hiccup_active rises and state_out shows S_HICCUP for at least one clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.35"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | latch_assert) begin"
+   ],
+   "category": "other",
+   "description": "latch_assert in S_RUN is treated as one more strike and sent to the S_HICCUP cool-down instead of forcing S_OFF",
+   "reason": "In S_RUN, with latch_assert high and no other hard fault, the FSM goes to S_HICCUP instead of S_OFF. hiccup_active rises and state_out shows S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.36"
+ },
+ {
+  "proposal": {
+   "line": 141,
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert & ~window_trip & ~window_trip_SS) begin"
+   ],
+   "category": "other",
+   "description": "Start-up from S_OFF counts the overcurrent window trips as faults that must be absent, reading 'no fault present' as including them",
+   "reason": "In S_OFF, with the converter enabled and no hard fault, but window_trip or window_trip_SS high, the FSM stays in S_OFF instead of going to S_SS. ss_active and en stay low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.141.AIM.37"
+ },
+ {
+  "proposal": {
+   "line": 141,
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert & ~SS_done) begin"
+   ],
+   "category": "sequencing",
+   "description": "Start-up from S_OFF waits for the soft-start handshake SS_done to be low, as if the ramp had to report its reset first",
+   "reason": "In S_OFF, with the converter enabled and no fault but SS_done high, the FSM stays in S_OFF instead of going to S_SS. ss_active and en stay low until SS_done falls."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.141.AIM.38"
+ }
+]

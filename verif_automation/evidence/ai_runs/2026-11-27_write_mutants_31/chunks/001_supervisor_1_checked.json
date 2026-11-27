@@ -1,0 +1,27 @@
+[
+ {
+  "proposal": {
+   "line": 161,
+   "before": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_SS;",
+    "",
+    "      end"
+   ],
+   "category": "other",
+   "description": "An overcurrent window trip during soft start only pauses the promotion to S_RUN and keeps the FSM ramping in S_SS, as if high current while the output capacitor charges were expected, instead of sending the converter into the S_HICCUP cool-down",
+   "reason": "When window_trip_SS rises in S_SS, state_out stays at S_SS, ss_active and en stay high and hiccup_active never rises, so the gate drive keeps switching into the overcurrent. The FSM moves on to S_RUN once the soft-start window count falls below trip_ss while SS_done is high, so no cool-down or strike is ever taken."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.163.AIM.45"
+ }
+]

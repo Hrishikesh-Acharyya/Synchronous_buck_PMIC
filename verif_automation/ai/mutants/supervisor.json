@@ -1,0 +1,1365 @@
+{
+ "mutants": [
+  {
+   "key": 2,
+   "line": 141,
+   "category": "missing_case",
+   "description": "Start-up from S_OFF checks only the enable and none of the hard faults, relying on en being fault-gated",
+   "reason": "With g_en high and OTP, UVLO, latch_state or latch_assert present, the FSM leaves S_OFF for S_SS, then is forced back, so state_out and ss_active toggle OFF/SS every other clock instead of staying in S_OFF.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (g_en) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 3,
+   "line": 141,
+   "category": "other",
+   "description": "S_OFF starts straight into S_RUN when SS_done is still high, skipping the re-ramp",
+   "reason": "If SS_done is high when the converter is enabled from S_OFF, run_active rises and ss_active never does, so the soft-start ramp is skipped, violating the rule that every start re-ramps.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin",
+    "",
+    "        next_state = SS_done ? S_RUN : S_SS;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 4,
+   "line": 236,
+   "category": "sequencing",
+   "description": "The power-stage enable is decoded from next_state instead of the registered state",
+   "reason": "en rises one clock early on start from S_OFF (while state_out is still S_OFF) and drops one clock early on a window trip, so en no longer matches the registered state.",
+   "before": [
+    "  unique case (state)",
+    "    S_OFF:    en_from_state = 1'b0;"
+   ],
+   "after": [
+    "  unique case (next_state)",
+    "    S_OFF:    en_from_state = 1'b0;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 5,
+   "line": 260,
+   "category": "sequencing",
+   "description": "Telemetry state_out shows the next state instead of the present registered state",
+   "reason": "On any transition state_out changes one clock before ss_active/run_active/hiccup_active, e.g. it reads S_SS while still in S_OFF when enable is applied.",
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = next_state;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 6,
+   "line": 258,
+   "category": "missing_case",
+   "description": "run_active is decoded as 'power stage switching' and so is also high in S_SS",
+   "reason": "During soft start run_active and ss_active are both high, instead of run_active being high only in S_RUN.",
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = en_from_state;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 7,
+   "line": 275,
+   "category": "sequencing",
+   "description": "The gate-drive enable relies on the state alone for the hard faults, dropping the combinational fault gating",
+   "reason": "When OTP, UVLO, latch_state or latch_assert asserts in S_SS or S_RUN, en stays high for one more clock until the FSM registers S_OFF, instead of dropping on the same clock.",
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = g_en & en_from_state;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 8,
+   "line": 257,
+   "category": "boundary",
+   "description": "ss_active is dropped as soon as the ramp reports done, a clock before the FSM leaves S_SS",
+   "reason": "On the clock in S_SS where SS_done is high, ss_active is low while state_out is still S_SS; with SS_done held and window_trip_SS asserted, ss_active is low throughout S_SS.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) & ~SS_done;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 9,
+   "line": 186,
+   "category": "wrong_event",
+   "description": "An overcurrent window trip in S_RUN re-ramps straight into S_SS instead of first serving the S_HICCUP cool-down",
+   "reason": "When window_trip asserts in S_RUN, the next state is S_SS. ss_active rises instead of hiccup_active, and en stays high, so the converter keeps switching with no cool-down.",
+   "before": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;"
+   ],
+   "after": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 10,
+   "line": 206,
+   "category": "sequencing",
+   "description": "At the end of the cool-down S_HICCUP returns to S_OFF and relies on S_OFF to restart, instead of retrying directly into S_SS",
+   "reason": "After hiccup_done, state_out shows S_OFF for one clock and ss_active/en rise a clock late. hiccup_active falls without ss_active rising on the same edge.",
+   "before": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = S_OFF;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 11,
+   "line": 259,
+   "category": "sequencing",
+   "description": "hiccup_active is decoded from next_state, so it leads the registered S_HICCUP state by one clock",
+   "reason": "hiccup_active rises on the same clock that window_trip or window_trip_SS asserts, while state_out still shows S_RUN or S_SS. It falls on the hiccup_done clock, a clock before the state leaves S_HICCUP.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (next_state == S_HICCUP);"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 12,
+   "line": 258,
+   "category": "other",
+   "description": "run_active is taken as 'regulating and gate drive on', so the combinational fault gating of en also drops it",
+   "reason": "In S_RUN, when OTP, UVLO, latch_state, latch_assert or loss of g_en asserts, run_active falls on the same clock. In the original it falls on the next clock, with state_out still showing S_RUN in between.",
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) & en;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 13,
+   "line": 259,
+   "category": "missing_case",
+   "description": "hiccup_active is decoded as 'power stage held off by the state', so it is also high in S_OFF",
+   "reason": "Out of reset and whenever the FSM sits in S_OFF, hiccup_active is high although the state is not S_HICCUP. This starts the hiccup timer and strike counter while the converter is off.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = ~en_from_state;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 14,
+   "line": 275,
+   "category": "other",
+   "description": "The overcurrent window trips are treated as hard fault inputs in the combinational gating of en",
+   "reason": "On the clock where window_trip (in S_RUN) or window_trip_SS (in S_SS) asserts, en goes low while the state is still S_RUN or S_SS. In the original, en stays high until S_HICCUP registers.",
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert & ~window_trip & ~window_trip_SS;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 15,
+   "line": 181,
+   "category": "missing_case",
+   "description": "In S_RUN only the physical switch is checked for disable: a host disable over SPI gates en but does not send the FSM to S_OFF",
+   "reason": "If spi_enable drops in S_RUN with en_SW high, en goes low but state stays S_RUN and run_active stays high. When spi_enable returns, en comes straight back at full duty without the S_SS re-ramp.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~en_SW | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 16,
+   "line": 161,
+   "category": "priority",
+   "description": "In S_SS ramp completion outranks the overcurrent window trip: window_trip_SS is only honoured while SS_done is low",
+   "reason": "When fault_arbiter raises window_trip_SS on the same clock that soft_start raises SS_done, the FSM goes to S_RUN instead of S_HICCUP, so run_active rises and hiccup_active stays low, en stays high, and the cool-down is skipped.",
+   "before": [
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      else if (window_trip_SS & ~SS_done) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 17,
+   "line": 156,
+   "category": "priority",
+   "description": "In S_SS an overcurrent window trip outranks a hard fault, so a coincident shutdown is first sent through S_HICCUP",
+   "reason": "If a hard fault (OTP, UVLO, latch, latch_assert or loss of enable) arrives on the same clock as window_trip_SS in S_SS, the FSM enters S_HICCUP instead of S_OFF. hiccup_active and state_out show S_HICCUP for a clock, and strike_counter counts a strike.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if ((~g_en | OTP | latch_state | UVLO | latch_assert) & ~window_trip_SS) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 18,
+   "line": 181,
+   "category": "priority",
+   "description": "In S_RUN the overcurrent window trip outranks a hard fault, so a coincident shutdown goes to S_HICCUP first",
+   "reason": "When a hard fault and window_trip are both high in S_RUN, the FSM enters S_HICCUP instead of S_OFF. hiccup_active and state_out show the cool-down state for at least one clock, and a strike is counted for what should have been a shutdown.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if ((~g_en | latch_state | OTP | UVLO | latch_assert) & ~window_trip) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 19,
+   "line": 201,
+   "category": "priority",
+   "description": "In S_HICCUP the end of the cool-down outranks a hard fault, so a retry into S_SS wins over a shutdown",
+   "reason": "If a hard fault is present on the clock where hiccup_done rises, the FSM retries into S_SS instead of going to S_OFF, so ss_active and state_out show S_SS. If the fault was a one-clock latch_assert pulse, en rises again before latch_state is read back.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if ((~g_en | latch_state | OTP | latch_assert | UVLO) & ~hiccup_done) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 20,
+   "line": 156,
+   "category": "priority",
+   "description": "In S_SS ramp completion outranks the hard faults, so a fault at the end of the ramp still promotes the FSM to S_RUN",
+   "reason": "A hard fault on the clock where SS_done rises sends the FSM to S_RUN instead of S_OFF, so run_active pulses high. If the fault was a one-clock latch_assert, the FSM stays in S_RUN and en comes back at full duty.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if ((~g_en | OTP | latch_state | UVLO | latch_assert) & ~SS_done) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 21,
+   "line": 275,
+   "category": "sequencing",
+   "description": "The combinational en gating uses the physical switch alone, so a host disable over SPI waits for the FSM to reach S_OFF",
+   "reason": "When spi_enable falls in S_SS or S_RUN with en_SW still high, en stays high for one more clock until state registers S_OFF, instead of dropping on the same clock.",
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = en_SW & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 22,
+   "line": 259,
+   "category": "sequencing",
+   "description": "hiccup_active is dropped as soon as the cool-down reports done, a clock before the FSM leaves S_HICCUP",
+   "reason": "On the last clock of S_HICCUP, when hiccup_done is high, the hiccup_active port goes low while state_out still shows S_HICCUP. hiccup_timer then clears its counter and hiccup_done one clock earlier than it should.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) & ~hiccup_done;"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 23,
+   "line": 141,
+   "category": "missing_case",
+   "description": "Start-up from S_OFF checks only the physical switch and forgets the host enable over SPI",
+   "reason": "With en_SW high and spi_enable low, the FSM leaves S_OFF for S_SS, and the S_SS hard-fault check sends it straight back. ss_active and state_out then toggle every clock while the host has the converter disabled.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (en_SW & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29"
+  },
+  {
+   "key": 24,
+   "line": 186,
+   "category": "missing_case",
+   "description": "In S_RUN either overcurrent window trip sends the FSM to S_HICCUP: the soft-start trip window_trip_SS is honoured outside S_SS",
+   "reason": "In S_RUN with no hard faults, a window_trip_SS that stays high (for example a soft-start count held through the run) now moves the FSM to S_HICCUP. hiccup_active rises and en drops, when the FSM should stay in S_RUN.",
+   "before": [
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      else if (window_trip | window_trip_SS) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 25,
+   "line": 181,
+   "category": "other",
+   "description": "Over-temperature in S_RUN is treated as a recoverable fault and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "When OTP rises in S_RUN with enable high, state_out goes to S_HICCUP and hiccup_active pulses high for a clock before the S_HICCUP hard-fault check moves it to S_OFF. It should go to S_OFF directly.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (OTP | window_trip) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 26,
+   "line": 206,
+   "category": "missing_case",
+   "description": "At the end of the cool-down S_HICCUP retries straight into S_RUN when the soft-start handshake SS_done is still high, skipping the re-ramp",
+   "reason": "When hiccup_done arrives with SS_done high and no hard faults, the FSM goes to S_RUN and run_active rises instead of ss_active. This breaks the rule that a retry always re-ramps.",
+   "before": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "      else if (hiccup_done) begin",
+    "",
+    "        next_state = SS_done ? S_RUN : S_SS;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 27,
+   "line": 107,
+   "category": "sequencing",
+   "description": "The state register is clock-enabled by the converter enable, so it freezes instead of loading S_OFF when the enable is lost",
+   "reason": "If en_SW or spi_enable drops in S_RUN, state_out and run_active stay at S_RUN instead of going to S_OFF. When the enable returns, the FSM resumes in S_RUN without a soft-start ramp.",
+   "before": [
+    "  else begin",
+    "",
+    "    state <= next_state;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (g_en) begin",
+    "",
+    "    state <= next_state;",
+    "",
+    "  end"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 28,
+   "line": 240,
+   "category": "sequencing",
+   "description": "The gate drive is re-enabled on the clock hiccup_done rises in S_HICCUP, a clock before the FSM has registered the retry into S_SS",
+   "reason": "In S_HICCUP with enable high and no hard faults, en goes high as soon as hiccup_done rises while state_out still reads S_HICCUP. It should stay low until the FSM is in S_SS.",
+   "before": [
+    "    S_HICCUP: en_from_state = 1'b0;"
+   ],
+   "after": [
+    "    S_HICCUP: en_from_state = hiccup_done;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 29,
+   "line": 237,
+   "category": "sequencing",
+   "description": "The gate drive is enabled in S_OFF as soon as the converter is enabled, a clock before the FSM has registered S_SS",
+   "reason": "In S_OFF, when en_SW and spi_enable are high and no hard fault is present, en goes high on that clock while state_out still reads S_OFF and ss_active is low. The power stage then switches before soft start is active.",
+   "before": [
+    "    S_OFF:    en_from_state = 1'b0;"
+   ],
+   "after": [
+    "    S_OFF:    en_from_state = g_en;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 30,
+   "line": 161,
+   "category": "missing_case",
+   "description": "In S_SS either overcurrent window trip sends the FSM to S_HICCUP: the run-state trip window_trip is also honoured during soft start",
+   "reason": "In S_SS with window_trip high and window_trip_SS low (no hard fault), the FSM goes to S_HICCUP instead of holding S_SS or going on to S_RUN. hiccup_active and state_out change, and en drops.",
+   "before": [
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      else if (window_trip_SS | window_trip) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 31,
+   "line": 206,
+   "category": "other",
+   "description": "S_HICCUP retries only when the cool-down has elapsed and the run overcurrent trip has also cleared, as if a retry had to wait for the fault to go away",
+   "reason": "In S_HICCUP with hiccup_done high and window_trip still high, the FSM stays in S_HICCUP instead of retrying into S_SS. hiccup_active stays high, ss_active and en stay low, and state_out holds S_HICCUP.",
+   "before": [
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      else if (hiccup_done & ~window_trip) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 32,
+   "line": 186,
+   "category": "missing_case",
+   "description": "S_RUN is treated as valid only while the soft-start handshake SS_done is held, and drops back to S_SS when SS_done falls",
+   "reason": "In S_RUN with no fault and no window trip, SS_done going low moves the FSM to S_SS instead of holding S_RUN. run_active falls, ss_active rises and state_out shows S_SS.",
+   "before": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (window_trip) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end",
+    "      else if (~SS_done) begin",
+    "",
+    "        next_state = S_SS;",
+    "",
+    "      end"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 33,
+   "line": 104,
+   "category": "reset_init",
+   "description": "Reset puts the FSM in the S_HICCUP cool-down instead of S_OFF, as if power-up had to wait out a cool-down before the first start",
+   "reason": "After reset, hiccup_active is high and state_out shows S_HICCUP instead of S_OFF. With the converter enabled, the first start waits for hiccup_done instead of going to S_SS on the next clock.",
+   "before": [
+    "    state <= S_OFF;"
+   ],
+   "after": [
+    "    state <= S_HICCUP;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 34,
+   "line": 257,
+   "category": "wrong_event",
+   "description": "ss_active is decoded as 'power stage may switch', so it is also high in S_RUN",
+   "reason": "In S_RUN, ss_active is high together with run_active, when it should be high only in S_SS.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = en_from_state;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 35,
+   "line": 156,
+   "category": "other",
+   "description": "UVLO during soft start is treated as a recoverable inrush brown-out and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "In S_SS, with UVLO high and the converter enabled and no other hard fault, the FSM goes to S_HICCUP instead of S_OFF. hiccup_active rises and state_out shows S_HICCUP for at least one clock.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | latch_state | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 36,
+   "line": 181,
+   "category": "other",
+   "description": "latch_assert in S_RUN is treated as one more strike and sent to the S_HICCUP cool-down instead of forcing S_OFF",
+   "reason": "In S_RUN, with latch_assert high and no other hard fault, the FSM goes to S_HICCUP instead of S_OFF. hiccup_active rises and state_out shows S_HICCUP.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 37,
+   "line": 141,
+   "category": "other",
+   "description": "Start-up from S_OFF counts the overcurrent window trips as faults that must be absent, reading 'no fault present' as including them",
+   "reason": "In S_OFF, with the converter enabled and no hard fault, but window_trip or window_trip_SS high, the FSM stays in S_OFF instead of going to S_SS. ss_active and en stay low.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert & ~window_trip & ~window_trip_SS) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 38,
+   "line": 141,
+   "category": "sequencing",
+   "description": "Start-up from S_OFF waits for the soft-start handshake SS_done to be low, as if the ramp had to report its reset first",
+   "reason": "In S_OFF, with the converter enabled and no fault but SS_done high, the FSM stays in S_OFF instead of going to S_SS. ss_active and en stay low until SS_done falls.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert & ~SS_done) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 39,
+   "line": 201,
+   "category": "missing_case",
+   "description": "In S_HICCUP latch_assert only blocks the retry instead of forcing S_OFF, as if a strike-latched converter just stayed in the cool-down",
+   "reason": "strike_counter raises latch_assert on entry to S_HICCUP when MAX_STRIKES is reached; the original FSM goes to S_OFF the next clock, while the mutant stays in S_HICCUP with hiccup_active high and state_out = S_HICCUP indefinitely (latch_assert is set-only).",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 40,
+   "line": 201,
+   "category": "missing_case",
+   "description": "Over-temperature during S_HICCUP is treated as part of the cool-down: the FSM stays in S_HICCUP until OTP clears instead of going to S_OFF",
+   "reason": "With OTP asserted while in S_HICCUP, the original moves to S_OFF on the next clock; the mutant keeps hiccup_active high and state_out at S_HICCUP, then retries into S_SS once OTP falls and hiccup_done is high, without ever passing through S_OFF.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~OTP) begin"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 42,
+   "line": 258,
+   "category": "sequencing",
+   "description": "run_active is raised on the clock the ramp reports SS_done, a clock before the FSM has registered S_RUN",
+   "reason": "In S_SS with SS_done high (and no fault), run_active goes high one clock before state_out shows S_RUN. It also pulses high when SS_done and window_trip_SS arrive together and the FSM goes to S_HICCUP instead.",
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) | ((state == S_SS) & SS_done);"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 43,
+   "line": 257,
+   "category": "sequencing",
+   "description": "ss_active is raised on the clock the cool-down reports hiccup_done, a clock before the FSM has registered the retry into S_SS",
+   "reason": "In S_HICCUP with hiccup_done high, ss_active is high together with hiccup_active one clock before state_out shows S_SS. It also pulses when a hard fault arrives on that clock and sends the FSM to S_OFF instead.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | ((state == S_HICCUP) & hiccup_done);"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 44,
+   "line": 259,
+   "category": "sequencing",
+   "description": "hiccup_active is held until the cool-down timer drops hiccup_done, as if leaving S_HICCUP had to wait for the timer's acknowledge",
+   "reason": "After the retry from S_HICCUP to S_SS, hiccup_active stays high while hiccup_done is still high, so it overlaps ss_active in S_SS. In the system this keeps hiccup_timer from ever clearing hiccup_done, so hiccup_active stays high through S_SS and S_RUN.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) | hiccup_done;"
+   ],
+   "run": "2026-11-27_write_mutants_30"
+  },
+  {
+   "key": 45,
+   "line": 161,
+   "category": "other",
+   "description": "An overcurrent window trip during soft start only pauses the promotion to S_RUN and keeps the FSM ramping in S_SS, as if high current while the output capacitor charges were expected, instead of sending the converter into the S_HICCUP cool-down",
+   "reason": "When window_trip_SS rises in S_SS, state_out stays at S_SS, ss_active and en stay high and hiccup_active never rises, so the gate drive keeps switching into the overcurrent. The FSM moves on to S_RUN once the soft-start window count falls below trip_ss while SS_done is high, so no cool-down or strike is ever taken.",
+   "before": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_SS;",
+    "",
+    "      end"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 46,
+   "line": 156,
+   "category": "missing_case",
+   "description": "In S_SS only the physical switch is checked for disable, so a host disable over SPI during soft start gates en but leaves the FSM ramping in S_SS",
+   "reason": "If spi_enable falls while the FSM is in S_SS (with en_SW still high), en drops through the combinational gating, but the FSM stays in S_SS. ss_active stays high and state_out reads S_SS, and on SS_done the FSM moves to S_RUN instead of S_OFF.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~en_SW | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 47,
+   "line": 201,
+   "category": "missing_case",
+   "description": "In S_HICCUP only the physical switch is checked for disable, so a host disable over SPI during the cool-down does not send the FSM to S_OFF and it still retries into S_SS",
+   "reason": "If spi_enable falls during S_HICCUP (with en_SW high), hiccup_active stays high instead of dropping. When hiccup_done arrives, the FSM retries into S_SS, so ss_active and state_out show soft start on a converter the host has disabled.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~en_SW | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 48,
+   "line": 181,
+   "category": "missing_case",
+   "description": "Input undervoltage in S_RUN is treated as a recoverable brown-out under load and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "If UVLO asserts while regulating in S_RUN, the FSM goes to S_HICCUP instead of S_OFF: hiccup_active rises and state_out reads S_HICCUP. If UVLO has cleared by hiccup_done, the converter retries into S_SS on its own rather than restarting from S_OFF.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 49,
+   "line": 141,
+   "category": "missing_case",
+   "description": "Start-up from S_OFF checks only the host enable over SPI and forgets the physical switch en_SW",
+   "reason": "With spi_enable high, en_SW low and no fault, the FSM leaves S_OFF for S_SS. The next clock S_SS sees ~g_en and goes back to S_OFF, so ss_active and state_out toggle every clock while the switch is off, but en stays low.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (spi_enable & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 50,
+   "line": 181,
+   "category": "missing_case",
+   "description": "In S_RUN only a host disable over SPI is checked: turning off the physical switch gates en but does not send the FSM to S_OFF",
+   "reason": "Turning en_SW off in S_RUN pulls en low but leaves state_out at S_RUN with run_active high. When the switch comes back on, en goes high again straight into S_RUN with no soft-start ramp.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 51,
+   "line": 275,
+   "category": "sequencing",
+   "description": "The combinational en gating applies only the host enable, so turning off the physical switch waits for the FSM to register S_OFF",
+   "reason": "When en_SW falls in S_SS or S_RUN, en stays high for one more clock until state becomes S_OFF, instead of dropping on the same clock.",
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = spi_enable & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 52,
+   "line": 260,
+   "category": "field",
+   "description": "Telemetry state_out reports S_OFF as soon as a hard fault gates en, instead of the registered present state",
+   "reason": "When OTP, UVLO, latch_state or latch_assert rises in S_SS, S_RUN or S_HICCUP, state_out reads S_OFF one clock before the state register does, while ss_active, run_active or hiccup_active still show the old state.",
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (OTP | UVLO | latch_state | latch_assert) ? S_OFF : state;"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 53,
+   "line": 146,
+   "category": "missing_case",
+   "description": "A start request blocked in S_OFF by OTP or UVLO is treated as a recoverable fault and sent into the S_HICCUP cool-down instead of holding S_OFF",
+   "reason": "If the converter is enabled while OTP or UVLO is high, the FSM switches between S_OFF and S_HICCUP: hiccup_active and state_out pulse every other clock, and each entry counts as a strike, instead of the FSM staying in S_OFF.",
+   "before": [
+    "      else begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (g_en & (OTP | UVLO)) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end",
+    "      else begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end"
+   ],
+   "run": "2026-11-27_write_mutants_31"
+  },
+  {
+   "key": 54,
+   "line": 156,
+   "category": "missing_case",
+   "description": "Over-temperature during soft start is treated as a recoverable start-up stress and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "If OTP rises while the FSM is in S_SS, state_out goes to S_HICCUP and hiccup_active pulses (a strike gets counted) before the FSM reaches S_OFF. It should go straight to S_OFF with hiccup_active staying low.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | OTP) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 55,
+   "line": 156,
+   "category": "missing_case",
+   "description": "In S_SS only a host disable over SPI is checked: turning off the physical switch during soft start gates en but leaves the FSM ramping in S_SS",
+   "reason": "If en_SW falls while in S_SS with spi_enable high, en drops but state_out stays S_SS and ss_active stays high instead of going to S_OFF. The FSM then moves on to S_RUN when SS_done arrives.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 56,
+   "line": 201,
+   "category": "missing_case",
+   "description": "In S_HICCUP only a host disable over SPI is checked: turning off the physical switch during the cool-down does not send the FSM to S_OFF",
+   "reason": "If en_SW falls during S_HICCUP with spi_enable high, the FSM stays in S_HICCUP instead of going to S_OFF, and on hiccup_done it retries into S_SS (state_out S_SS, ss_active high) while the switch is still off.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 57,
+   "line": 201,
+   "category": "wrong_event",
+   "description": "Losing the enable during the cool-down only holds off the retry: the FSM waits in S_HICCUP until it is re-enabled instead of going to S_OFF",
+   "reason": "If en_SW or spi_enable falls in S_HICCUP, state_out stays S_HICCUP and hiccup_active stays high instead of going to S_OFF. When the converter is re-enabled after hiccup_done, it retries straight into S_SS from S_HICCUP.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & g_en) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 58,
+   "line": 201,
+   "category": "missing_case",
+   "description": "Input undervoltage during the cool-down is treated as extending the cool-down: the FSM stays in S_HICCUP until UVLO clears instead of going to S_OFF",
+   "reason": "If UVLO rises in S_HICCUP, state_out stays S_HICCUP and hiccup_active stays high instead of going to S_OFF. Once UVLO clears after hiccup_done, the FSM retries into S_SS directly from S_HICCUP.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 59,
+   "line": 257,
+   "category": "missing_case",
+   "description": "ss_active is decoded as 'a soft-start sequence is under way', so it is also high during the S_HICCUP cool-down that leads into the re-ramp",
+   "reason": "In S_HICCUP the ss_active port is high instead of low. That makes soft_start ramp and fault_arbiter count soft-start faults during the cool-down, so window_trip_SS can fire there and the retry into S_SS starts with a ramp that has already advanced.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | (state == S_HICCUP);"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 60,
+   "line": 258,
+   "category": "missing_case",
+   "description": "run_active treats the hiccup cool-down as a pause inside regulation, so it is also high in S_HICCUP",
+   "reason": "After a window_trip from S_RUN, run_active stays high through the whole S_HICCUP cool-down. soft_start then keeps SS_done and the full ceiling, so the retry is promoted out of S_SS without a fresh ramp. The strike_counter clean-run streak also keeps counting while the gate drive is off.",
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) | (state == S_HICCUP);"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 61,
+   "line": 259,
+   "category": "missing_case",
+   "description": "hiccup_active is decoded as 'a hiccup retry is in progress', so it also covers the re-ramp in S_SS, including the first start from S_OFF",
+   "reason": "Whenever the FSM is in S_SS, hiccup_active is high. hiccup_timer then times a cool-down during soft start and does not clear hiccup_done when S_HICCUP is left for S_SS. strike_counter also sees an S_HICCUP entry on an ordinary start from S_OFF.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) | (state == S_SS);"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 62,
+   "line": 181,
+   "category": "wrong_event",
+   "description": "Losing the enable in S_RUN is handled like an overcurrent trip and sent through S_HICCUP, as if a disable under load had to cool down before turning off",
+   "reason": "Turning the converter off (en_SW or spi_enable low) while in S_RUN now registers S_HICCUP for one clock before S_OFF: hiccup_active pulses high and state_out shows S_HICCUP, which the strike counter and hiccup timer see as a hiccup entry.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | ~g_en) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 63,
+   "line": 156,
+   "category": "missing_case",
+   "description": "During soft start the latch read-back latch_state is treated as an overvoltage overshoot of the ramp, a recoverable event sent to the S_HICCUP cool-down, instead of a hard fault forcing S_OFF",
+   "reason": "If latch_state rises while the FSM is in S_SS, the FSM goes to S_HICCUP for one clock (hiccup_active high, state_out = S_HICCUP, counted as a strike) before S_HICCUP's hard-fault test sends it to S_OFF, instead of going directly to S_OFF.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | latch_state) begin"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 64,
+   "line": 238,
+   "category": "sequencing",
+   "description": "The gate drive in S_SS is decoded as 'ramp still in progress', so it drops on the clock the ramp reports SS_done, before the FSM has registered S_RUN",
+   "reason": "At the end of every soft start, on the one clock where state is still S_SS and soft_start has already raised SS_done, en goes low for one clock before S_RUN turns it back on. The output therefore has a one-clock gate-drive dropout on every hand-over from soft start to regulation.",
+   "before": [
+    "    S_SS:     en_from_state = 1'b1;"
+   ],
+   "after": [
+    "    S_SS:     en_from_state = ~SS_done;"
+   ],
+   "run": "2026-11-27_write_mutants_32"
+  },
+  {
+   "key": 65,
+   "line": 260,
+   "category": "field",
+   "description": "Telemetry state_out reports the hiccup cool-down as S_OFF, because the power stage is off in both, instead of the registered present state",
+   "reason": "Whenever the FSM is in S_HICCUP after an overcurrent window trip, state_out reads S_OFF (2'b00) instead of S_HICCUP (2'b11) for the whole cool-down, while hiccup_active is high.",
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (state == S_HICCUP) ? S_OFF : state;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 66,
+   "line": 181,
+   "category": "missing_case",
+   "description": "In S_RUN the latch read-back latch_state is treated as a recoverable overshoot from a load step and sent to the S_HICCUP cool-down instead of forcing S_OFF",
+   "reason": "When latch_state rises in S_RUN, the FSM registers S_HICCUP: hiccup_active goes high and state_out shows S_HICCUP for a clock before S_HICCUP's own check sends it to S_OFF, instead of going straight to S_OFF.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | latch_state) begin"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 67,
+   "line": 201,
+   "category": "missing_case",
+   "description": "In S_HICCUP the latch read-back latch_state only holds off the retry, as if the latch were left over from the fault being cooled down, instead of forcing S_OFF",
+   "reason": "If latch_state goes high during the cool-down, the FSM stays in S_HICCUP (hiccup_active high, state_out S_HICCUP) instead of going to S_OFF. When the latch clears after hiccup_done, it retries into S_SS on its own.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~latch_state) begin"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 68,
+   "line": 257,
+   "category": "sequencing",
+   "description": "ss_active is raised in S_OFF as soon as the converter is enabled, as a start request to soft start, a clock before the FSM has registered S_SS",
+   "reason": "In S_OFF with en_SW and spi_enable high, ss_active rises a clock before state_out shows S_SS. If a hard fault (OTP, UVLO, latch) blocks start-up, ss_active stays high in S_OFF for as long as the enable is held.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | ((state == S_OFF) & g_en);"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 69,
+   "line": 239,
+   "category": "other",
+   "description": "In S_RUN the gate drive is made to depend on the soft-start handshake SS_done, as if regulation were allowed to switch only while the ramp still reports done",
+   "reason": "In S_RUN with no fault, en follows SS_done: if SS_done falls or is only a pulse, en drops while the FSM stays in S_RUN and run_active stays high.",
+   "before": [
+    "    S_RUN:    en_from_state = 1'b1;"
+   ],
+   "after": [
+    "    S_RUN:    en_from_state = SS_done;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 70,
+   "line": 156,
+   "category": "wrong_event",
+   "description": "Losing the enable during soft start is handled like a soft-start overcurrent trip and sent through S_HICCUP, as if an aborted ramp had to cool down before turning off",
+   "reason": "When en_SW or spi_enable drops in S_SS, the FSM registers S_HICCUP: hiccup_active pulses high and state_out shows S_HICCUP for a clock before S_HICCUP's own check sends it to S_OFF, instead of going straight to S_OFF.",
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | ~g_en) begin"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 71,
+   "line": 141,
+   "category": "other",
+   "description": "Start-up from S_OFF tests the gated gate-drive enable en instead of the combined converter enable g_en, confusing the output enable with the enable request",
+   "reason": "In S_OFF en_from_state is 0 so en is always low, and the FSM never leaves S_OFF: with en_SW and spi_enable high and no fault, ss_active, en and state_out stay at S_OFF instead of starting soft start.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 72,
+   "line": 201,
+   "category": "other",
+   "description": "The disable test in S_HICCUP uses the gated gate-drive enable en instead of the converter enable g_en, so the cool-down's own gate-drive-off reads as a disable",
+   "reason": "en is always low in S_HICCUP, so after a window trip the FSM leaves for S_OFF one clock after entering S_HICCUP, then restarts into S_SS without waiting for hiccup_done: hiccup_active lasts one clock and the cool-down is skipped.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 73,
+   "line": 257,
+   "category": "sequencing",
+   "description": "ss_active is decoded as 'ramping with the gate drive on', so the combinational fault gating of en also drops it before the FSM leaves S_SS",
+   "reason": "When a hard fault or disable arrives during soft start, ss_active falls on the same clock as en instead of a clock later when the FSM registers S_OFF. The ramp and the soft-start overcurrent window are therefore cleared one clock early.",
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) & en;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 74,
+   "line": 259,
+   "category": "sequencing",
+   "description": "hiccup_active is decoded as 'cool-down still running', so a hard fault or disable drops it combinationally before the FSM leaves S_HICCUP",
+   "reason": "When OTP, UVLO, the latch or a disable arrives during the cool-down, hiccup_active falls on that clock instead of a clock later with the registered move to S_OFF. The hiccup timer and strike counter are therefore released early.",
+   "before": [
+    "  hiccup_active = (state == S_HICCUP);"
+   ],
+   "after": [
+    "  hiccup_active = (state == S_HICCUP) & g_en & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 75,
+   "line": 141,
+   "category": "sequencing",
+   "description": "Every start from S_OFF goes through the S_HICCUP cool-down before soft start, as if each restart after a shutdown needed the same off-time as a fault retry",
+   "reason": "When the converter is enabled with no fault present, en stays low and hiccup_active goes high for a whole cool-down interval before S_SS and the gate drive begin. On every start the strike counter also sees S_HICCUP entered.",
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin",
+    "",
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin",
+    "",
+    "        next_state = S_HICCUP;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 77,
+   "line": 260,
+   "category": "sequencing",
+   "description": "Telemetry state_out reports S_RUN as soon as the ramp reports SS_done, instead of the registered present state",
+   "reason": "On the clock SS_done rises in S_SS, state_out reads S_RUN a clock before the FSM registers S_RUN. If window_trip_SS fires on that same clock, state_out shows S_RUN while the FSM goes from S_SS to S_HICCUP.",
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (state == S_SS && SS_done) ? S_RUN : state;"
+   ],
+   "run": "2026-11-27_write_mutants_33"
+  },
+  {
+   "key": 78,
+   "line": 79,
+   "category": "sequencing",
+   "description": "The combined converter enable g_en is registered instead of combinational, so the switch and host enables reach the gate drive and the FSM a clock late",
+   "reason": "If en_SW or spi_enable falls in S_SS or S_RUN, en stays high for one more clock and the FSM registers S_OFF a clock late. A start from S_OFF also moves to S_SS a clock after the enable rises.",
+   "before": [
+    "always_comb begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Combine the two enables. The physical switch and the host must both allow the",
+    "converter to run; either one alone turns it off.",
+    "*/",
+    "",
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Combine the two enables. The physical switch and the host must both allow the",
+    "converter to run; either one alone turns it off.",
+    "*/",
+    "",
+    "  g_en <= spi_enable & en_SW;"
+   ],
+   "run": "2026-11-27_write_mutants_34"
+  },
+  {
+   "key": 79,
+   "line": 265,
+   "category": "sequencing",
+   "description": "The LM5106 enable en is registered to give a glitch-free gate drive, so it follows the state and the fault inputs one clock late",
+   "reason": "en rises one clock after the FSM registers S_SS. It stays high for one clock after S_RUN gives way to S_HICCUP on window_trip. After OTP, UVLO, latch_state, latch_assert or a disable, it drops a clock late instead of on the same clock.",
+   "before": [
+    "always_comb begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Drive the LM5106 enable. Gated by the fault inputs directly as well as by the",
+    "state, so a trip pulls the gate drive low combinationally, on the same clock,",
+    "instead of a clock later when the FSM has registered S_OFF.",
+    "*/",
+    "",
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "always_ff @(posedge clk) begin",
+    "",
+    "/*",
+    "Purpose:",
+    "---",
+    "Drive the LM5106 enable. Gated by the fault inputs directly as well as by the",
+    "state, so a trip pulls the gate drive low combinationally, on the same clock,",
+    "instead of a clock later when the FSM has registered S_OFF.",
+    "*/",
+    "",
+    "  en <= g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "run": "2026-11-27_write_mutants_34"
+  }
+ ],
+ "unit": "supervisor",
+ "file": "rtl-systemverilog/supervisor.sv",
+ "last_key": 79,
+ "withdrawn": [
+  {
+   "key": 41,
+   "line": 88,
+   "category": "wrong_event",
+   "description": "The host enable over SPI is treated as a start request checked only in S_OFF, so a host disable while ramping, running or in hiccup is ignored",
+   "reason": "If spi_enable falls while the FSM is in S_SS or S_RUN with en_SW high, the original drops en at once and goes to S_OFF; the mutant keeps en high and stays in its state until the physical switch or a fault turns it off.",
+   "before": [
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "  g_en = en_SW & (spi_enable | (state != S_OFF));"
+   ],
+   "run": "2026-11-27_write_mutants_30",
+   "withdrawn": "the per-state enable mutants combined: a host (AIM.41) or switch (AIM.76) disable ignored in S_SS, S_RUN and S_HICCUP gives the same wrong state as AIM.46/15/47 or AIM.55/50/56, so any test that kills one of those kills it"
+  },
+  {
+   "key": 76,
+   "line": 88,
+   "category": "wrong_event",
+   "description": "The physical switch en_SW is treated as a start request checked only in S_OFF, so turning it off while ramping, running or in hiccup is ignored",
+   "reason": "In S_SS, S_RUN or S_HICCUP, turning en_SW low no longer pulls en low or sends the FSM to S_OFF. The converter keeps switching, and a hiccup retries into S_SS, until the host disables it over SPI or a hard fault occurs.",
+   "before": [
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "  g_en = spi_enable & (en_SW | (state != S_OFF));"
+   ],
+   "run": "2026-11-27_write_mutants_33",
+   "withdrawn": "the per-state enable mutants combined: a host (AIM.41) or switch (AIM.76) disable ignored in S_SS, S_RUN and S_HICCUP gives the same wrong state as AIM.46/15/47 or AIM.55/50/56, so any test that kills one of those kills it"
+  },
+  {
+   "key": 1,
+   "line": 201,
+   "category": "missing_case",
+   "description": "S_HICCUP has no hard-fault exit: the designer relied on the gate drive already being off and only waits for hiccup_done",
+   "reason": "A hard fault or loss of g_en during the cool-down leaves the FSM in S_HICCUP (hiccup_active high, state_out = S_HICCUP) until hiccup_done, then it goes to S_SS, instead of going to S_OFF at once.",
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (hiccup_done) begin"
+   ],
+   "run": "2026-11-27_write_mutants_29",
+   "withdrawn": "the per-fault S_HICCUP mutants combined: a hard fault or disable that leaves the FSM in S_HICCUP, as AIM.39, AIM.40, AIM.57, AIM.58 and AIM.67 each do for one input, so any test that kills one of those kills it"
+  }
+ ]
+}

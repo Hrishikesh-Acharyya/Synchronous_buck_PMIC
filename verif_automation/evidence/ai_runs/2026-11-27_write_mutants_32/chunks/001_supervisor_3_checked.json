@@ -1,0 +1,73 @@
+[
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | ~g_en) begin"
+   ],
+   "category": "wrong_event",
+   "description": "Losing the enable in S_RUN is handled like an overcurrent trip and sent through S_HICCUP, as if a disable under load had to cool down before turning off",
+   "reason": "Turning the converter off (en_SW or spi_enable low) while in S_RUN now registers S_HICCUP for one clock before S_OFF: hiccup_active pulses high and state_out shows S_HICCUP, which the strike counter and hiccup timer see as a hiccup entry."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.62"
+ },
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | latch_state) begin"
+   ],
+   "category": "missing_case",
+   "description": "During soft start the latch read-back latch_state is treated as an overvoltage overshoot of the ramp, a recoverable event sent to the S_HICCUP cool-down, instead of a hard fault forcing S_OFF",
+   "reason": "If latch_state rises while the FSM is in S_SS, the FSM goes to S_HICCUP for one clock (hiccup_active high, state_out = S_HICCUP, counted as a strike) before S_HICCUP's hard-fault test sends it to S_OFF, instead of going directly to S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.63"
+ },
+ {
+  "proposal": {
+   "line": 238,
+   "before": [
+    "    S_SS:     en_from_state = 1'b1;"
+   ],
+   "after": [
+    "    S_SS:     en_from_state = ~SS_done;"
+   ],
+   "category": "sequencing",
+   "description": "The gate drive in S_SS is decoded as 'ramp still in progress', so it drops on the clock the ramp reports SS_done, before the FSM has registered S_RUN",
+   "reason": "At the end of every soft start, on the one clock where state is still S_SS and soft_start has already raised SS_done, en goes low for one clock before S_RUN turns it back on. The output therefore has a one-clock gate-drive dropout on every hand-over from soft start to regulation."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.238.AIM.64"
+ }
+]

@@ -1,0 +1,92 @@
+{
+ "header": {
+  "date": "2026-11-27",
+  "commit": "0ee549a",
+  "task": "judge_survivors",
+  "survivors_of": "the module records",
+  "agent": "Claude Code (claude -p), read-only",
+  "models": [
+   "claude-opus-5-5"
+  ],
+  "mutants_listed": 12,
+  "sent_to_triage": 12,
+  "judged": 12,
+  "equivalent_high_confidence": 7,
+  "untriaged": 0,
+  "complete": true
+ },
+ "verdicts": {
+  "supervisor.135.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "Every branch of the case on lines 137-222, including the default on line 220, assigns next_state. So the default assignment on line 135 is always overwritten before anything reads it.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.148.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "This else branch only runs when state == S_OFF (line 139). Line 135 has already set next_state = state = S_OFF, so deleting the redundant assignment changes nothing.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.173.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "This branch only runs when state == S_SS (line 154). Line 135 has already set next_state = state = S_SS, so deleting the assignment leaves the same value.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.193.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "This branch only runs when state == S_RUN (line 179). Line 135 has already set next_state = S_RUN, so the deleted assignment was redundant.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.213.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "This branch only runs when state == S_HICCUP (line 199). Line 135 has already set next_state = S_HICCUP, so the deleted assignment was redundant.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.220.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "state_t is a 2-bit enum, and S_OFF/S_SS/S_RUN/S_HICCUP use all four codes (pkg lines 310-313). Reset (line 104) and every next_state assignment load legal values, so the default on line 220 never runs once reset has been applied. The only possible difference is how an X state behaves in simulation before the first reset.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.220.ENM.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "The default branch on line 220 can't be reached: the four enum values cover every 2-bit encoding, and state only ever holds legal values from reset (line 104) or next_state. Its target only matters for an X state in simulation before reset.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.237.CID.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "With the S_OFF item deleted, S_OFF falls into the default on line 241, which also assigns en_from_state = 1'b0. The result is identical.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.238.CIS.1": {
+   "verdict": "plausible",
+   "confidence": "high",
+   "reason": "Relabelling line 238 as S_RUN leaves S_SS with no item of its own, so S_SS takes the default on line 241 (en_from_state = 0). That forces en low during soft start (line 275), which is visible at the en port.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.240.CID.1": {
+   "verdict": "equivalent",
+   "confidence": "high",
+   "reason": "With the S_HICCUP item deleted, S_HICCUP falls into the default on line 241, which also assigns en_from_state = 1'b0. The result is identical.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.241.SDL.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "Lines 237-240 already cover all four 2-bit state encodings, and state only ever holds legal values after reset, so the default on line 241 never runs. Deleting it only creates an inferred latch that is never exercised. The only difference would be how an X state behaves in simulation before reset.",
+   "chunk": "001_supervisor"
+  },
+  "supervisor.241.CST.1": {
+   "verdict": "equivalent",
+   "confidence": "medium",
+   "reason": "The default on line 241 can't be reached: S_OFF/S_SS/S_RUN/S_HICCUP use every 2-bit code, and state is always loaded with a legal value (lines 104, 109). Its constant only matters for an X state in simulation before reset.",
+   "chunk": "001_supervisor"
+  }
+ }
+}

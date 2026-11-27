@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 143,
+   "before": [
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "        next_state = S_HICCUP;"
+   ],
+   "category": "sequencing",
+   "description": "Every start from S_OFF goes through the S_HICCUP cool-down before soft start, as if each restart after a shutdown needed the same off-time as a fault retry",
+   "reason": "When the converter is enabled with no fault present, en stays low and hiccup_active goes high for a whole cool-down interval before S_SS and the gate drive begin. On every start the strike counter also sees S_HICCUP entered."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.143.AIM.75"
+ },
+ {
+  "proposal": {
+   "line": 88,
+   "before": [
+    "  g_en = spi_enable & en_SW;"
+   ],
+   "after": [
+    "  g_en = spi_enable & (en_SW | (state != S_OFF));"
+   ],
+   "category": "wrong_event",
+   "description": "The physical switch en_SW is treated as a start request checked only in S_OFF, so turning it off while ramping, running or in hiccup is ignored",
+   "reason": "In S_SS, S_RUN or S_HICCUP, turning en_SW low no longer pulls en low or sends the FSM to S_OFF. The converter keeps switching, and a hiccup retries into S_SS, until the host disables it over SPI or a hard fault occurs."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.88.AIM.76"
+ },
+ {
+  "proposal": {
+   "line": 260,
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (state == S_SS && SS_done) ? S_RUN : state;"
+   ],
+   "category": "sequencing",
+   "description": "Telemetry state_out reports S_RUN as soon as the ramp reports SS_done, instead of the registered present state",
+   "reason": "On the clock SS_done rises in S_SS, state_out reads S_RUN a clock before the FSM registers S_RUN. If window_trip_SS fires on that same clock, state_out shows S_RUN while the FSM goes from S_SS to S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.260.AIM.77"
+ }
+]

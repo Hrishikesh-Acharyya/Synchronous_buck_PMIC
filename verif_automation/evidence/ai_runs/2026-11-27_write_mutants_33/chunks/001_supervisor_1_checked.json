@@ -1,0 +1,134 @@
+[
+ {
+  "proposal": {
+   "line": 260,
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (state == S_HICCUP) ? S_OFF : state;"
+   ],
+   "category": "field",
+   "description": "Telemetry state_out reports the hiccup cool-down as S_OFF, because the power stage is off in both, instead of the registered present state",
+   "reason": "Whenever the FSM is in S_HICCUP after an overcurrent window trip, state_out reads S_OFF (2'b00) instead of S_HICCUP (2'b11) for the whole cool-down, while hiccup_active is high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.260.AIM.65"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip | latch_state) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_RUN the latch read-back latch_state is treated as a recoverable overshoot from a load step and sent to the S_HICCUP cool-down instead of forcing S_OFF",
+   "reason": "When latch_state rises in S_RUN, the FSM registers S_HICCUP: hiccup_active goes high and state_out shows S_HICCUP for a clock before S_HICCUP's own check sends it to S_OFF, instead of going straight to S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.66"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~latch_state) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_HICCUP the latch read-back latch_state only holds off the retry, as if the latch were left over from the fault being cooled down, instead of forcing S_OFF",
+   "reason": "If latch_state goes high during the cool-down, the FSM stays in S_HICCUP (hiccup_active high, state_out S_HICCUP) instead of going to S_OFF. When the latch clears after hiccup_done, it retries into S_SS on its own."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.67"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS) | ((state == S_OFF) & g_en);"
+   ],
+   "category": "sequencing",
+   "description": "ss_active is raised in S_OFF as soon as the converter is enabled, as a start request to soft start, a clock before the FSM has registered S_SS",
+   "reason": "In S_OFF with en_SW and spi_enable high, ss_active rises a clock before state_out shows S_SS. If a hard fault (OTP, UVLO, latch) blocks start-up, ss_active stays high in S_OFF for as long as the enable is held."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.257.AIM.68"
+ },
+ {
+  "proposal": {
+   "line": 239,
+   "before": [
+    "    S_RUN:    en_from_state = 1'b1;"
+   ],
+   "after": [
+    "    S_RUN:    en_from_state = SS_done;"
+   ],
+   "category": "other",
+   "description": "In S_RUN the gate drive is made to depend on the soft-start handshake SS_done, as if regulation were allowed to switch only while the ramp still reports done",
+   "reason": "In S_RUN with no fault, en follows SS_done: if SS_done falls or is only a pulse, en drops while the FSM stays in S_RUN and run_active stays high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.239.AIM.69"
+ },
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | ~g_en) begin"
+   ],
+   "category": "wrong_event",
+   "description": "Losing the enable during soft start is handled like a soft-start overcurrent trip and sent through S_HICCUP, as if an aborted ramp had to cool down before turning off",
+   "reason": "When en_SW or spi_enable drops in S_SS, the FSM registers S_HICCUP: hiccup_active pulses high and state_out shows S_HICCUP for a clock before S_HICCUP's own check sends it to S_OFF, instead of going straight to S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.70"
+ }
+]

@@ -1,0 +1,206 @@
+[
+ {
+  "proposal": {
+   "line": 161,
+   "before": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_HICCUP;"
+   ],
+   "after": [
+    "      else if (window_trip_SS) begin",
+    "",
+    "        next_state = S_OFF;"
+   ],
+   "category": "wrong_event",
+   "description": "An overcurrent window trip during soft start is treated as a hard fault and sends the FSM to S_OFF instead of into the S_HICCUP cool-down",
+   "reason": "With enable high and no hard faults, a window_trip_SS pulse in S_SS now moves state_out to S_OFF with hiccup_active staying low. The FSM then restarts into S_SS on the next clock and never serves a cool-down."
+  },
+  "accepted": false,
+  "why": "the same edit as supervisor.163.ENM.1"
+ },
+ {
+  "proposal": {
+   "line": 186,
+   "before": [
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      else if (window_trip | window_trip_SS) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_RUN either overcurrent window trip sends the FSM to S_HICCUP: the soft-start trip window_trip_SS is honoured outside S_SS",
+   "reason": "In S_RUN with no hard faults, a window_trip_SS that stays high (for example a soft-start count held through the run) now moves the FSM to S_HICCUP. hiccup_active rises and en drops, when the FSM should stay in S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.186.AIM.24"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (OTP | window_trip) begin"
+   ],
+   "category": "other",
+   "description": "Over-temperature in S_RUN is treated as a recoverable fault and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "When OTP rises in S_RUN with enable high, state_out goes to S_HICCUP and hiccup_active pulses high for a clock before the S_HICCUP hard-fault check moves it to S_OFF. It should go to S_OFF directly."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.25"
+ },
+ {
+  "proposal": {
+   "line": 104,
+   "before": [
+    "    state <= S_HICCUP;"
+   ],
+   "after": [
+    "    state <= S_OFF;"
+   ],
+   "category": "reset_init",
+   "description": "Reset puts the FSM in the S_HICCUP cool-down rather than S_OFF, as if power-up should wait a cool-down before the first start",
+   "reason": "Right after reset, state_out reads S_HICCUP and hiccup_active is high instead of S_OFF. With enable high and no faults, the first start-up then waits for hiccup_done instead of entering S_SS on the next clock."
+  },
+  "accepted": false,
+  "why": "the lines it replaces are not in the file"
+ },
+ {
+  "proposal": {
+   "line": 208,
+   "before": [
+    "        next_state = S_SS;"
+   ],
+   "after": [
+    "        next_state = SS_done ? S_RUN : S_SS;"
+   ],
+   "category": "missing_case",
+   "description": "At the end of the cool-down S_HICCUP retries straight into S_RUN when the soft-start handshake SS_done is still high, skipping the re-ramp",
+   "reason": "When hiccup_done arrives with SS_done high and no hard faults, the FSM goes to S_RUN and run_active rises instead of ss_active. This breaks the rule that a retry always re-ramps."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.208.AIM.26"
+ },
+ {
+  "proposal": {
+   "line": 206,
+   "before": [
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      else if (~window_trip) begin"
+   ],
+   "category": "wrong_event",
+   "description": "S_HICCUP retries when the overcurrent window trip has cleared instead of when the cool-down timer reports hiccup_done",
+   "reason": "In S_HICCUP with window_trip low and hiccup_done not yet high, the FSM leaves for S_SS on the next clock and en rises without the cool-down having elapsed. With window_trip held high, it stays in S_HICCUP even after hiccup_done."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ },
+ {
+  "proposal": {
+   "line": 107,
+   "before": [
+    "  else begin",
+    "",
+    "    state <= next_state;",
+    "",
+    "  end"
+   ],
+   "after": [
+    "  else if (g_en) begin",
+    "",
+    "    state <= next_state;",
+    "",
+    "  end"
+   ],
+   "category": "sequencing",
+   "description": "The state register is clock-enabled by the converter enable, so it freezes instead of loading S_OFF when the enable is lost",
+   "reason": "If en_SW or spi_enable drops in S_RUN, state_out and run_active stay at S_RUN instead of going to S_OFF. When the enable returns, the FSM resumes in S_RUN without a soft-start ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.107.AIM.27"
+ },
+ {
+  "proposal": {
+   "line": 240,
+   "before": [
+    "    S_HICCUP: en_from_state = 1'b0;"
+   ],
+   "after": [
+    "    S_HICCUP: en_from_state = hiccup_done;"
+   ],
+   "category": "sequencing",
+   "description": "The gate drive is re-enabled on the clock hiccup_done rises in S_HICCUP, a clock before the FSM has registered the retry into S_SS",
+   "reason": "In S_HICCUP with enable high and no hard faults, en goes high as soon as hiccup_done rises while state_out still reads S_HICCUP. It should stay low until the FSM is in S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.240.AIM.28"
+ },
+ {
+  "proposal": {
+   "line": 237,
+   "before": [
+    "    S_OFF:    en_from_state = 1'b0;"
+   ],
+   "after": [
+    "    S_OFF:    en_from_state = g_en;"
+   ],
+   "category": "sequencing",
+   "description": "The gate drive is enabled in S_OFF as soon as the converter is enabled, a clock before the FSM has registered S_SS",
+   "reason": "In S_OFF, when en_SW and spi_enable are high and no hard fault is present, en goes high on that clock while state_out still reads S_OFF and ss_active is low. The power stage then switches before soft start is active."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.237.AIM.29"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS) | (state == S_HICCUP);"
+   ],
+   "after": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "category": "missing_case",
+   "description": "ss_active is also raised in S_HICCUP, as if the soft-start block had to be held active through the cool-down",
+   "reason": "While the FSM is in S_HICCUP, ss_active is high together with hiccup_active, although it should be high only in S_SS."
+  },
+  "accepted": false,
+  "why": "the lines it replaces are not in the file"
+ },
+ {
+  "proposal": {
+   "line": 257,
+   "before": [
+    "  ss_active     = (state == S_SS);"
+   ],
+   "after": [
+    "  ss_active     = (next_state == S_SS);"
+   ],
+   "category": "sequencing",
+   "description": "ss_active is decoded from next_state, so it rises a clock before the FSM registers S_SS and falls a clock before it leaves",
+   "reason": "On start-up from S_OFF, or on a retry from S_HICCUP, ss_active goes high while state_out still shows the previous state. It goes low on the clock SS_done or a trip arrives, while state_out still reads S_SS."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNOPTFLAT"
+ }
+]

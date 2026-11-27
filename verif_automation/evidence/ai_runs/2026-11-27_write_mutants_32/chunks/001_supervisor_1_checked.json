@@ -1,0 +1,117 @@
+[
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | UVLO | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (window_trip_SS | OTP) begin"
+   ],
+   "category": "missing_case",
+   "description": "Over-temperature during soft start is treated as a recoverable start-up stress and sent through the S_HICCUP cool-down instead of straight to S_OFF",
+   "reason": "If OTP rises while the FSM is in S_SS, state_out goes to S_HICCUP and hiccup_active pulses (a strike gets counted) before the FSM reaches S_OFF. It should go straight to S_OFF with hiccup_active staying low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.54"
+ },
+ {
+  "proposal": {
+   "line": 156,
+   "before": [
+    "      if (~g_en | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | OTP | latch_state | UVLO | latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_SS only a host disable over SPI is checked: turning off the physical switch during soft start gates en but leaves the FSM ramping in S_SS",
+   "reason": "If en_SW falls while in S_SS with spi_enable high, en drops but state_out stays S_SS and ss_active stays high instead of going to S_OFF. The FSM then moves on to S_RUN when SS_done arrives."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.156.AIM.55"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | latch_state | OTP | latch_assert | UVLO) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_HICCUP only a host disable over SPI is checked: turning off the physical switch during the cool-down does not send the FSM to S_OFF",
+   "reason": "If en_SW falls during S_HICCUP with spi_enable high, the FSM stays in S_HICCUP instead of going to S_OFF, and on hiccup_done it retries into S_SS (state_out S_SS, ss_active high) while the switch is still off."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.56"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & g_en) begin"
+   ],
+   "category": "wrong_event",
+   "description": "Losing the enable during the cool-down only holds off the retry: the FSM waits in S_HICCUP until it is re-enabled instead of going to S_OFF",
+   "reason": "If en_SW or spi_enable falls in S_HICCUP, state_out stays S_HICCUP and hiccup_active stays high instead of going to S_OFF. When the converter is re-enabled after hiccup_done, it retries straight into S_SS from S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.57"
+ },
+ {
+  "proposal": {
+   "line": 201,
+   "before": [
+    "      if (~g_en | latch_state | OTP | latch_assert | UVLO) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done) begin"
+   ],
+   "after": [
+    "      if (~g_en | latch_state | OTP | latch_assert) begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end",
+    "      else if (hiccup_done & ~UVLO) begin"
+   ],
+   "category": "missing_case",
+   "description": "Input undervoltage during the cool-down is treated as extending the cool-down: the FSM stays in S_HICCUP until UVLO clears instead of going to S_OFF",
+   "reason": "If UVLO rises in S_HICCUP, state_out stays S_HICCUP and hiccup_active stays high instead of going to S_OFF. Once UVLO clears after hiccup_done, the FSM retries into S_SS directly from S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.201.AIM.58"
+ }
+]

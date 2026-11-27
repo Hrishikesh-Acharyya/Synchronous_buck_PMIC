@@ -1,0 +1,116 @@
+[
+ {
+  "proposal": {
+   "line": 141,
+   "before": [
+    "      if (g_en & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "after": [
+    "      if (spi_enable & ~latch_state & ~OTP & ~UVLO & ~latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "Start-up from S_OFF checks only the host enable over SPI and forgets the physical switch en_SW",
+   "reason": "With spi_enable high, en_SW low and no fault, the FSM leaves S_OFF for S_SS. The next clock S_SS sees ~g_en and goes back to S_OFF, so ss_active and state_out toggle every clock while the switch is off, but en stays low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.141.AIM.49"
+ },
+ {
+  "proposal": {
+   "line": 181,
+   "before": [
+    "      if (~g_en | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "after": [
+    "      if (~spi_enable | latch_state | OTP | UVLO | latch_assert) begin"
+   ],
+   "category": "missing_case",
+   "description": "In S_RUN only a host disable over SPI is checked: turning off the physical switch gates en but does not send the FSM to S_OFF",
+   "reason": "Turning en_SW off in S_RUN pulls en low but leaves state_out at S_RUN with run_active high. When the switch comes back on, en goes high again straight into S_RUN with no soft-start ramp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.181.AIM.50"
+ },
+ {
+  "proposal": {
+   "line": 275,
+   "before": [
+    "  en = g_en & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "after": [
+    "  en = spi_enable & en_from_state & ~OTP & ~latch_state & ~UVLO & ~latch_assert;"
+   ],
+   "category": "sequencing",
+   "description": "The combinational en gating applies only the host enable, so turning off the physical switch waits for the FSM to register S_OFF",
+   "reason": "When en_SW falls in S_SS or S_RUN, en stays high for one more clock until state becomes S_OFF, instead of dropping on the same clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.275.AIM.51"
+ },
+ {
+  "proposal": {
+   "line": 258,
+   "before": [
+    "  run_active    = (state == S_RUN);"
+   ],
+   "after": [
+    "  run_active    = (state == S_RUN) & ~window_trip;"
+   ],
+   "category": "sequencing",
+   "description": "run_active drops on the clock window_trip fires, a clock before the FSM leaves S_RUN for S_HICCUP",
+   "reason": "When an overcurrent window trip happens in S_RUN, run_active falls one clock early while state_out still reads S_RUN, so the port no longer means 'high only in S_RUN'."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNOPTFLAT"
+ },
+ {
+  "proposal": {
+   "line": 260,
+   "before": [
+    "  state_out     = state;"
+   ],
+   "after": [
+    "  state_out     = (OTP | UVLO | latch_state | latch_assert) ? S_OFF : state;"
+   ],
+   "category": "field",
+   "description": "Telemetry state_out reports S_OFF as soon as a hard fault gates en, instead of the registered present state",
+   "reason": "When OTP, UVLO, latch_state or latch_assert rises in S_SS, S_RUN or S_HICCUP, state_out reads S_OFF one clock before the state register does, while ss_active, run_active or hiccup_active still show the old state."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.260.AIM.52"
+ },
+ {
+  "proposal": {
+   "line": 146,
+   "before": [
+    "      else begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end"
+   ],
+   "after": [
+    "      else if (g_en & (OTP | UVLO)) begin",
+    "",
+    "        next_state = S_HICCUP;",
+    "",
+    "      end",
+    "      else begin",
+    "",
+    "        next_state = S_OFF;",
+    "",
+    "      end"
+   ],
+   "category": "missing_case",
+   "description": "A start request blocked in S_OFF by OTP or UVLO is treated as a recoverable fault and sent into the S_HICCUP cool-down instead of holding S_OFF",
+   "reason": "If the converter is enabled while OTP or UVLO is high, the FSM switches between S_OFF and S_HICCUP: hiccup_active and state_out pulse every other clock, and each entry counts as a strike, instead of the FSM staying in S_OFF."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "supervisor.146.AIM.53"
+ }
+]
