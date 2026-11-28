@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 302,
+   "before": [
+    "                                .base_clks(hiccup_base),"
+   ],
+   "after": [
+    "                                .base_clks(hiccup_base << strike_level),"
+   ],
+   "category": "boundary",
+   "description": "The per-strike doubling of the hiccup cool-down is also applied at the call site, so hiccup_timer gets a base already shifted by strike_level and shifts it again: each strike quadruples the interval instead of doubling it.",
+   "reason": "With the default 5 ms base, the S_HICCUP off-time (En held low) is 20 ms instead of 10 ms after the first strike, and 80 ms instead of 20 ms after the second, before the FSM retries soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.302.AIM.136"
+ },
+ {
+  "proposal": {
+   "line": 355,
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt & cs_n_sync),"
+   ],
+   "category": "protocol",
+   "description": "The slave is selected straight from the unfiltered synchronised CS_n and only the deselect goes through the glitch filter, as if 'selection must be immediate'.",
+   "reason": "A low CS_n blip shorter than the 8-clock filter now reaches spi_slave as a cs_fall and cs_rise with no complete command byte. That counts as an aborted write, so txn_abort pulses and reg_file's bus-error tally goes up where the filtered design would have seen nothing; the host sees it when it reads the tally back over MISO."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.355.AIM.137"
+ }
+]

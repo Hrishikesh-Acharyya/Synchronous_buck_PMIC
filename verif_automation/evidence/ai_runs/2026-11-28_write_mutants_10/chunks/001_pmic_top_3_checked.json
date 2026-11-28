@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 287,
+   "before": [
+    "fault_arbiter u_fault_arbiter ( .clk(clk),"
+   ],
+   "after": [
+    "fault_arbiter #(.BLANK_CLKS(ns_to_clks(LM5106_SHRINK_NS))) u_fault_arbiter ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "fault_arbiter's valley-sample lookback BLANK_CLKS is sized from the LM5106 turn-on shrinkage (7 clocks, 140 ns), as if the blanking had to cover the gate driver's delay, instead of the module's 5-clock (100 ns) default",
+   "reason": "Each per-cycle valley sample at the PWM rising edge now reads CP_trig as it was 7 clocks before turn-on instead of 5. A comparator assertion that starts 5-6 clocks before turn-on is no longer counted, and one that clears in that interval is still counted. This changes when window_trip / window_trip_SS fire, and so the En shutdown into hiccup and the FAULT_COUNT telemetry."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.287.AIM.170"
+ },
+ {
+  "proposal": {
+   "line": 333,
+   "before": [
+    "                        .max_on_counts(max_on_counts),"
+   ],
+   "after": [
+    "                        .max_on_counts(max_on_counts + ON_TIME_W'(ns_to_clks(LM5106_SHRINK_NS))),"
+   ],
+   "category": "other",
+   "description": "pwm_mask's on-time ceiling has the LM5106 turn-on shrinkage added at the call site, so the gate on-time is meant to equal the ceiling, but the shrinkage is then counted twice because MIN_ON_COUNTS already includes it",
+   "reason": "Every PWM_out pulse is now cut 7 clocks later than the ceiling soft_start produces. During soft start the floor pulse is 19 clocks instead of 12 and each ramp step is offset the same way. In S_RUN, pulses of 84-90 clocks pass where the 75% backstop should truncate them."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.333.AIM.171"
+ }
+]

@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 483,
+   "before": [
+    "    timestamp u_timestamp       ("
+   ],
+   "after": [
+    "    timestamp #(.PRESCALE_VAL(ms_to_sw_cycles(1))) u_timestamp       ("
+   ],
+   "category": "boundary",
+   "description": "The fault-log timebase prescaler is set with ms_to_sw_cycles(1) instead of the clk-based package value. The timestamp counts clk ticks, so a 'millisecond' tick comes every 450 clocks (9 us) instead of every 50000.",
+   "reason": "timestamp_ms advances about 111 times too fast. So the TIME_0..2 registers (0x18-0x1A) and the FTIME episode-start bytes (0x1E-0x20) read over SPI report elapsed time far larger than the real milliseconds since reset or since the fault."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.483.AIM.134"
+ },
+ {
+  "proposal": {
+   "line": 491,
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),"
+   ],
+   "after": [
+    "fault_LED #(.LED_BLINK_HALF_CLKS(ms_to_sw_cycles(125))) u_fault_LED       (   .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "The Red_LED1 strike blink half-period is sized in switching cycles (ms_to_sw_cycles(125)), to match the clean-run window it was chosen against. But fault_LED's blink counter counts clk ticks, so it gets 56250 clocks (about 1.1 ms) instead of 125 ms.",
+   "reason": "While strikes are outstanding (strike_level non-zero, no latch), Red_LED1 toggles about every 1.1 ms instead of every 125 ms, so the 4 Hz strike blink at the port becomes roughly 440 Hz."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.491.AIM.135"
+ }
+]

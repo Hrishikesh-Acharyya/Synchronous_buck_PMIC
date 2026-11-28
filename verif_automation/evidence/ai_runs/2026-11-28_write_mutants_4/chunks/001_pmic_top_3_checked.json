@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 294,
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync & Osc_sync),"
+   ],
+   "category": "other",
+   "description": "fault_arbiter's current flag is qualified by the modulator PWM, as if the current comparator were only valid during high-side on-time, though it is a valley comparator sampled in low-side conduction",
+   "reason": "fault_arbiter's sample at pwm_rise reads the comparator from BLANK_CLKS clocks before turn-on, when PWM is low. So every sample is 0, and a sustained CP_trig in S_SS or S_RUN never trips a window or sends the converter into hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.294.AIM.110"
+ },
+ {
+  "proposal": {
+   "line": 435,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's 'converter running' capture scope also covers S_HICCUP, as if the hiccup cool-down were part of the operating episode",
+   "reason": "latch_assert rises one clock after S_HICCUP is entered on the final strike, and OTP/UVLO can assert during the cool-down. With this edit those are logged in FAULT_CAUSE (BIT_LATCH, BIT_OTP, BIT_UVLO) with a fault_time, where the design leaves them out because the converter is stopped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.435.AIM.111"
+ },
+ {
+  "proposal": {
+   "line": 387,
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_from_switch_sync_db & spi_enable),"
+   ],
+   "category": "field",
+   "description": "reg_file's enable-switch status bit reports the combined enable (switch AND host CONTROL enable) instead of the physical switch alone",
+   "reason": "After the host disables the converter over SPI (keyed disable) with the switch still on, STATUS bit 4 reads 0 instead of 1. The host can then no longer tell its own veto from the switch being off."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.387.AIM.112"
+ },
+ {
+  "proposal": {
+   "line": 386,
+   "before": [
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .latch_state(latch_stat_sync_db & ~latch_out),"
+   ],
+   "category": "field",
+   "description": "reg_file's SCR latch status bit shows only externally-originated latch trips, masking the read-back whenever the CPLD's own latch_out is driving, as if it were fault_cause's OVP inference",
+   "reason": "After a strike latch (latch_out high) with the SCR read back set, STATUS bit 3 reads 0 instead of 1. It only reports the latch when it is tripped by the analog side."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.386.AIM.113"
+ }
+]

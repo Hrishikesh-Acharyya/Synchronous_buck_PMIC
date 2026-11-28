@@ -1,0 +1,83 @@
+[
+ {
+  "proposal": {
+   "line": 353,
+   "before": [
+    "                            .rst_n(rst_n),"
+   ],
+   "after": [
+    "                            .rst_n(rst_n & ~cs_n_filt),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave is held in reset whenever the filtered chip select is high, meant to stop noise on a deselected bus from disturbing it, so a transaction's end at CS rise is erased before the slave can judge it",
+   "reason": "When CS rises, the reset asserts on the same clock edge, so spi_slave never registers cs_rise and never pulses integrity_ok or txn_abort. No host write ever commits: CONTROL, SCRATCH and thresholds stay unchanged and the bus-error count stays at zero. Reads still work."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.353.AIM.158"
+ },
+ {
+  "proposal": {
+   "line": 309,
+   "before": [
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "category": "reset_init",
+   "description": "strike_counter is reset whenever the debounced enable switch is off, as if cycling the switch earned a fresh set of strikes, though latch_assert must be cleared only by rst_n together with the physical SCR",
+   "reason": "After a strike latch has tripped, turning the switch off drops the latch_out pin and zeroes strike_level (Red_LED1 blink, STRIKE_LEVEL register) while the SCR stays set. Strikes left over from earlier hiccups are also lost on any switch-off, so the hiccup escalation restarts."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.309.AIM.159"
+ },
+ {
+  "proposal": {
+   "line": 437,
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done | en_switch_rise),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_cause's record is also cleared by a fresh press of the enable switch, taking an 'episode' to mean one power-on run instead of one host read window",
+   "reason": "A host that reads the FAULT_CAUSE/FTIME registers after the user switched the board off and back on finds the record and its start time zeroed. The cause of the shutdown is lost before it was ever read."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.437.AIM.160"
+ },
+ {
+  "proposal": {
+   "line": 248,
+   "before": [
+    "    always_comb begin",
+    "",
+    "        /*",
+    "        Purpose: Edge detection on the physical enable switch signal synced and debounced",
+    "        */",
+    "",
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "",
+    "        /*",
+    "        Purpose: Edge detection on the physical enable switch signal synced and debounced",
+    "        */",
+    "",
+    "        if (!rst_n) en_switch_rise <= 1'b0;",
+    "        else        en_switch_rise <= ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "category": "sequencing",
+   "description": "The switch-press pulse en_switch_rise is registered, so it reaches reg_file one clock after the debounced switch rises instead of on the same clock",
+   "reason": "With a host veto in force, pressing the switch restores spi_enable one clock late. So the supervisor leaves S_OFF and raises En one clock later than the debounced switch allows. A host CONTROL commit landing on the following clock now resolves the same-clock collision the other way."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.248.AIM.161"
+ }
+]

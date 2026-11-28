@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 271,
+   "before": [
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "                        .window_trip(CP_sync),"
+   ],
+   "category": "missing_case",
+   "description": "Supervisor's S_RUN overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so the rolling-window duration filter is bypassed for the FSM",
+   "reason": "In S_RUN, any CP_trig assertion that reaches CP_sync, even a single cycle well below trip_run faulted cycles, moves the FSM to S_HICCUP on the next edge. En drops and a strike is counted where the original keeps running until the window count reaches trip_run."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.271.AIM.144"
+ },
+ {
+  "proposal": {
+   "line": 270,
+   "before": [
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .window_trip_SS(CP_sync),"
+   ],
+   "category": "missing_case",
+   "description": "Supervisor's soft-start overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's soft-start window trip, so the higher soft-start tolerance trip_ss is never applied",
+   "reason": "In S_SS, the first CP_trig excursion, which is expected while the output capacitor charges, sends the FSM to S_HICCUP. En drops and the ramp aborts, where the original only does so once trip_ss faulted cycles have been seen in the window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.270.AIM.145"
+ },
+ {
+  "proposal": {
+   "line": 294,
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(~CP_sync),"
+   ],
+   "category": "other",
+   "description": "The valley-current comparator is taken as active low (open-drain fault convention) at fault_arbiter, so a low CP_trig counts as an overcurrent cycle",
+   "reason": "With CP_trig low (no overcurrent), every switching cycle in S_SS is sampled as faulted, so window_trip_SS fires after trip_ss cycles and the converter hiccups on every start. A real sustained overcurrent (CP_trig high) never trips either window."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.294.AIM.146"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (~UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "category": "other",
+   "description": "The UVLO comparator is read as an 'input good' signal (high when the input rail is above threshold), so its synchronised level is inverted before debouncing",
+   "reason": "With a healthy input (UVLO_trig low), UVLO_sync_db stays asserted. The supervisor never leaves S_OFF, En stays low and Red_LED3 stays lit. An actual undervoltage (UVLO_trig high) releases the flag and lets the converter start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.139.AIM.147"
+ },
+ {
+  "proposal": {
+   "line": 140,
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(~latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "category": "other",
+   "description": "The SCR latch read-back is taken as active low (the anode node pulled down when the SCR fires), so the synchronised read-back is inverted before debouncing",
+   "reason": "With the latch not tripped (latch_stat low), latch_stat_sync_db stays set. The supervisor stays in S_OFF, Red_LED1 is solid and the STATUS latch bit reads set. A real latch trip (latch_stat high) clears it and lets the converter run."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.140.AIM.148"
+ }
+]

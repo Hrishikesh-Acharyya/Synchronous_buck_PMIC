@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 438,
+   "before": [
+    "                                .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                                .timestamp_ms(fault_time),"
+   ],
+   "category": "field",
+   "description": "fault_cause's episode-start snapshot is wired to its own fault_time output instead of the free-running timestamp_ms, a slip between the two adjacent TIMESTAMP_W ports, so the snapshot just reloads the cleared value",
+   "reason": "After a fault episode in S_SS or S_RUN, the host reads the FAULT_TIME bytes over SPI and gets 0 instead of the timestamp at which the episode began. The live TIME registers stay correct because reg_file still takes timestamp_ms."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.438.AIM.143"
+ }
+]

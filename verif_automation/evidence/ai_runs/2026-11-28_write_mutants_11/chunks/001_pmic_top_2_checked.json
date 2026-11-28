@@ -1,0 +1,72 @@
+[
+ {
+  "proposal": {
+   "line": 254,
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db & spi_enable;"
+   ],
+   "category": "missing_case",
+   "description": "The switch-press pulse is taken as a rise of the combined enable (switch AND host CONTROL enable), so it is masked exactly when the host has disabled the converter, which is the one case the press is there to override",
+   "reason": "After a host CONTROL write clears spi_enable, cycling the physical switch no longer raises en_switch_rise, so reg_file does not set spi_enable again and En stays low after the press. In the original, the press brings the converter back up through S_SS."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.254.AIM.176"
+ },
+ {
+  "proposal": {
+   "line": 295,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active & ~SS_done),"
+   ],
+   "category": "sequencing",
+   "description": "fault_arbiter's soft-start scope is limited to the unfinished ramp (S_SS and not SS_done), so on the last S_SS clock it sees neither state active and clears both windows and the CP history",
+   "reason": "On the one clock when SS_done is high in S_SS, window_trip_SS is held low, so a trip landing then sends the FSM to S_RUN instead of S_HICCUP. fault_count_ss is also cleared, so the soft-start fault count that reg_file should show through S_RUN reads 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.295.AIM.177"
+ },
+ {
+  "proposal": {
+   "line": 264,
+   "before": [
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "                        .SS_done(SS_done & ~CP_sync),"
+   ],
+   "category": "other",
+   "description": "The supervisor holds in S_SS after the ramp is done until the live valley-current comparator is clear, treating 'do not hand over to RUN in overcurrent' as a condition of the ramp handshake",
+   "reason": "If CP_trig is high when SS_done asserts, the FSM stays in S_SS instead of going to S_RUN, so PGOOD qualification starts later. Overcurrent is then judged against the more tolerant trip_ss instead of trip_run."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.264.AIM.178"
+ },
+ {
+  "proposal": {
+   "line": 379,
+   "before": [
+    "                          .integrity_OK(spi_integrity_ok),",
+    "                          .txn_abort(spi_abort),"
+   ],
+   "after": [
+    "                          .integrity_OK(spi_integrity_ok & ~cs_n_filt),",
+    "                          .txn_abort(spi_abort & ~cs_n_filt),"
+   ],
+   "category": "protocol",
+   "description": "reg_file's commit and discard strobes are qualified by chip select still asserted, though spi_slave raises both only after CS has risen at the end of the transaction",
+   "reason": "integrity_ok and txn_abort pulse the clock after cs_rise, while cs_n_filt is already high, so no host write ever commits. A CONTROL disable or a threshold change never takes effect, and the bus-error count never increments."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.379.AIM.179"
+ }
+]

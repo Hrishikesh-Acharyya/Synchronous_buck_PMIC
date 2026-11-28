@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 319,
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),"
+   ],
+   "after": [
+    "soft_start #(.MIN_ON_COUNTS(ns_to_clks(MIN_GATE_ON_NS))) u_soft_start ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "soft_start's ramp floor is set from the wanted gate on-time MIN_GATE_ON_NS alone, without the LM5106 turn-on shrinkage, so the floor is 6 clocks instead of 12",
+   "reason": "Whenever the supervisor enters S_SS (first start or a hiccup retry), the first PWM_out pulses are cut off after 6 clocks instead of 12. The ramp then has more steps to climb, so SS_done and the move to S_RUN come later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.319.AIM.126"
+ },
+ {
+  "proposal": {
+   "line": 326,
+   "before": [
+    "                                .cycles_per_step(cycles_per_step),"
+   ],
+   "after": [
+    "                                .cycles_per_step(cycles_per_step - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "soft_start is handed cycles_per_step minus one, an off-by-one fix applied a second time on top of soft_start's own compare against cycles_per_step-1",
+   "reason": "In S_SS the ceiling on PWM_out pulses widens every 15 switching cycles instead of 16 with the default register, so SS_done and the move to S_RUN come early. If the host writes cycles_per_step = 1, the ramp never steps and the FSM stays in soft start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.326.AIM.127"
+ },
+ {
+  "proposal": {
+   "line": 354,
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(sck_filt | sck_sync),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave's SCK rising edge is taken straight from the unfiltered synchronised SCK, so only the falling edge goes through the glitch filter, as if the filter were needed only on release",
+   "reason": "A high glitch on SCK shorter than SPI_FILTER_CLKS, arriving while CS_n is low, now reaches spi_slave as an extra rising edge and clocks in an extra bit. The write then fails its CRC or the read returns shifted data, where the filtered design ignores the glitch."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.354.AIM.128"
+ },
+ {
+  "proposal": {
+   "line": 352,
+   "before": [
+    "    spi_slave u_spi_slave ( .clk(clk),"
+   ],
+   "after": [
+    "    spi_slave #(.SCK_IDLE_TIMEOUT_CLKS(ms_to_sw_cycles(2))) u_spi_slave ( .clk(clk),"
+   ],
+   "category": "sequencing",
+   "description": "spi_slave's 2 ms dead-master SCK idle timeout is converted with ms_to_sw_cycles instead of ms_to_clks, so the slave, which counts clk ticks, times out after 900 clocks (18 us)",
+   "reason": "A transaction where CS_n stays low and SCK pauses for more than 18 us but less than 2 ms (for example a gap between bytes) is aborted. A write in that situation is discarded and a read stops driving MISO, where the 2 ms timeout would let both complete."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.352.AIM.129"
+ },
+ {
+  "proposal": {
+   "line": 469,
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(2**PGOOD_DELAY_W)) u_pgood_gen ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "pgood_gen's qualifying count is set to 2**PGOOD_DELAY_W, following the package's out-of-date note that the counter saturates at all-ones, instead of PGOOD_DELAY_CYCLES",
+   "reason": "In S_RUN with the output rail good, PGOOD and switch_supply assert 4096 switching cycles after qualifying starts instead of 4050, about 100 us later than the 9 ms the design calls for."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.469.AIM.130"
+ }
+]

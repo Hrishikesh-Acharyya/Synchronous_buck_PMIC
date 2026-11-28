@@ -1,0 +1,21 @@
+[
+ {
+  "proposal": {
+   "line": 491,
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "category": "reset_init",
+   "description": "fault_LED is held in reset while the debounced enable switch is off, as if a switched-off board should show a dark front panel. The LEDs must show what is wrong now, in every state.",
+   "reason": "With the enable switch off, a live debounced OTP, UVLO or SCR latch read-back no longer lights Red_LED2, Red_LED3 or Red_LED1. They stay dark until the switch has been on for 20 ms, and the blink timebase restarts on each switch-on."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.492.AIM.208"
+ }
+]

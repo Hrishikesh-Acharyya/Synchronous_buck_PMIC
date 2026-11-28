@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 322,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active & ~SS_done),"
+   ],
+   "category": "sequencing",
+   "description": "soft_start's ramp branch is enabled only while the ramp is unfinished (ss_active and not SS_done), as if a finished ramp no longer needed the S_SS branch, so on the last S_SS clock it falls into the reset-to-floor branch",
+   "reason": "On the clock after SS_done sets, the supervisor is still in S_SS, so soft_start resets max_on_counts to the 12-clock floor and clears SS_done while the FSM moves to S_RUN. soft_start then holds that floor through S_RUN, and PWM_out is cut to the floor on-time for the whole run instead of the max_on_limit ceiling."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.322.AIM.172"
+ },
+ {
+  "proposal": {
+   "line": 290,
+   "before": [
+    "                                .trip_ss(trip_ss),"
+   ],
+   "after": [
+    "                                .trip_ss(trip_ss - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "fault_arbiter is handed the soft-start trip threshold minus one, as if it tripped on count > trip_ss, though it already compares with >=",
+   "reason": "In S_SS, window_trip_SS and the S_SS -> S_HICCUP exit (En dropping) now fire when 27 of the last 32 valley samples are faulted instead of 28. A host-written TRIP_SS is also one cycle short."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.290.AIM.173"
+ },
+ {
+  "proposal": {
+   "line": 428,
+   "before": [
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n & En),"
+   ],
+   "category": "reset_init",
+   "description": "fault_cause is held in reset while the gate driver is disabled, so routine power-downs do not log a fault. This wipes the record on every fault shutdown, which is exactly when it must survive.",
+   "reason": "A fault in S_SS or S_RUN drops En at once (combinationally for OTP, UVLO and latch, or by entering S_HICCUP or S_OFF), so the cause captured on that clock is cleared. FAULT_REG and FAULT_TIME read back zero over SPI after any shutdown, instead of holding the cause until the host reads it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.428.AIM.174"
+ },
+ {
+  "proposal": {
+   "line": 493,
+   "before": [
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .otp_state(OTP_sync_db & (ss_active | run_active)),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's over-temperature input is gated by 'converter running' like fault_cause's capture gate, though the LEDs show what is wrong now and must light in any state",
+   "reason": "When OTP asserts in S_RUN the supervisor goes to S_OFF on the next clock, so Red_LED2 lights for at most a clock and then stays dark while the board is still over-temperature. With OTP present in S_OFF it never lights at all."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.493.AIM.175"
+ }
+]

@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "                         .flag_in(en_from_switch_sync),"
+   ],
+   "after": [
+    "                         .flag_in(en_from_switch_sync & spi_enable),"
+   ],
+   "category": "other",
+   "description": "The 20 ms enable debouncer is fed the combined enable (switch AND host CONTROL enable) instead of the physical switch alone, as if 'the enable' to be debounced were the supervisor's g_en",
+   "reason": "A host CONTROL disable now takes 20 ms to drop En instead of acting on the commit clock. Once the host has disabled the converter, the debounced switch stays low whatever the switch does, so a fresh switch press never makes en_switch_rise and cannot re-assert spi_enable. Only another host enable or the watchdog brings the converter back."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.136.AIM.131"
+ },
+ {
+  "proposal": {
+   "line": 303,
+   "before": [
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active | ss_active),"
+   ],
+   "category": "reset_init",
+   "description": "hiccup_timer is kept armed through the soft-start retry as well as S_HICCUP, as if cool-down plus re-ramp were one episode, so hiccup_done is not cleared on leaving S_HICCUP for S_SS",
+   "reason": "After a cool-down ends and the FSM retries in S_SS, hiccup_done stays high. If that soft start then trips window_trip_SS, the FSM leaves the next S_HICCUP on the next clock and En comes back almost at once instead of after the doubled cool-down. On first power-up the timer also runs during S_SS, so a soft-start trip more than 5 ms after start-up skips its cool-down."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.303.AIM.132"
+ },
+ {
+  "proposal": {
+   "line": 429,
+   "before": [
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .otp_state(OTP_sync_db & En),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's over-temperature input is qualified by the gate-driver enable, meant as 'only faults that interrupted switching', but the supervisor drops En combinationally on OTP itself",
+   "reason": "En is already forced low on the same clock that the debounced OTP asserts, so fault_cause never sees OTP while the converter is in S_SS or S_RUN. An over-temperature shutdown then leaves the OTP bit of the 0x20 fault record clear, and no episode start time is captured for it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.429.AIM.133"
+ }
+]

@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 332,
+   "before": [
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                        .pwm_sync(Osc_sync & ~CP_sync),"
+   ],
+   "category": "other",
+   "description": "The valley-current comparator is mistaken for a peak current limit, so pwm_mask's PWM is cut on any clock where CP_trig is high, a cycle-by-cycle limit the design does not have",
+   "reason": "In S_SS or S_RUN, if CP_trig goes high during a high-side on-time, PWM_out falls at once instead of following the modulator pulse up to the soft_start ceiling. The design only counts CP_trig per cycle in fault_arbiter's window and never truncates a pulse with it."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.332.AIM.162"
+ },
+ {
+  "proposal": {
+   "line": 274,
+   "before": [
+    "                        .hiccup_done(hiccup_done),"
+   ],
+   "after": [
+    "                        .hiccup_done(hiccup_done & ~CP_sync),"
+   ],
+   "category": "sequencing",
+   "description": "The supervisor's hiccup exit also waits for the synchronised valley-current comparator to clear, 'do not retry into a live overcurrent', although the header says a retry always follows hiccup_done",
+   "reason": "If CP_trig stays high through S_HICCUP (a persistent overcurrent or short), the FSM never goes back to S_SS. En stays low, no more strikes build up, and latch_out never asserts. The design instead retries after the cool-down and latches on the third strike."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.274.AIM.163"
+ },
+ {
+  "proposal": {
+   "line": 497,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(run_active ? strike_level : '0),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED shows outstanding strikes only while the supervisor is in S_RUN, taking 'blink through the clean-run window' to mean only that, so Red_LED1 does not blink during the hiccup cool-down or the soft-start retry",
+   "reason": "With strike_level non-zero and no latch, Red_LED1 is held low in S_HICCUP and S_SS. It should follow the 4 Hz blink there, and this shows once the blink timebase has toggled (after 125 ms of run time). It blinks again only after S_RUN is re-entered."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.497.AIM.164"
+ }
+]

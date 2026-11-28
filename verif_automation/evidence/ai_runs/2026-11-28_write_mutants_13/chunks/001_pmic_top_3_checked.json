@@ -1,0 +1,56 @@
+[
+ {
+  "proposal": {
+   "line": 471,
+   "before": [
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                        .pwm_sync(~Osc_sync),"
+   ],
+   "category": "wrong_event",
+   "description": "pgood_gen gets the inverted modulator PWM, so it counts its qualifying cycles at high-side turn-on (the cycle boundary fault_arbiter uses) instead of at the end of each pulse",
+   "reason": "In S_RUN with the rail in window, PGOOD and switch_supply rise on a PWM rising edge instead of a falling one, so the moment they assert moves by the PWM on-time. The PGOOD qualifying count also starts from a different edge after each entry into S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.471.AIM.205"
+ },
+ {
+  "proposal": {
+   "line": 313,
+   "before": [
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .hiccup_active(window_trip | window_trip_SS),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on the overcurrent window trip itself instead of on entry into S_HICCUP, as if 'a strike' were the trip rather than the hiccup it causes",
+   "reason": "strike_level and latch_out change one clock early, on the clock the FSM leaves S_SS/S_RUN rather than the clock after it enters S_HICCUP. A trip on the same clock as a hard fault (OTP, UVLO, switch off) sends the FSM to S_OFF, yet a strike is still counted, so later hiccups are longer and latch_out trips early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.313.AIM.206"
+ },
+ {
+  "proposal": {
+   "line": 350,
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "        if (!rst_n) begin MISO <= 1'b0; end",
+    "        else begin MISO <= sdio_oe & sdio_out; end",
+    "    end"
+   ],
+   "category": "sequencing",
+   "description": "MISO is retimed through an extra clk flop 'to deglitch it', though the header says both terms are already flops and MISO is driven straight from them",
+   "reason": "Every MISO transition during a read comes one clk later than spi_slave's shift edge. On deselect, MISO stays high for one extra clock after sdio_oe has dropped."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.350.AIM.207"
+ }
+]

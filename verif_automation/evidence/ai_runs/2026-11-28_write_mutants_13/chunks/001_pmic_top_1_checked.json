@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 491,
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),"
+   ],
+   "after": [
+    "fault_LED #(.LED_BLINK_HALF_CLKS(ms_to_clks(250))) u_fault_LED (   .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "fault_LED's blink half-period is overridden with the full 250 ms period of the intended 4 Hz blink, so the period is mistaken for the half-period.",
+   "reason": "While strikes are outstanding and no latch is set, Red_LED1 toggles every 250 ms (a 2 Hz blink) instead of every 125 ms. A board recovering through its roughly 1 s clean-run window then shows only two blink cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.491.AIM.197"
+ },
+ {
+  "proposal": {
+   "line": 389,
+   "before": [
+    "                          .cp_state(CP_sync),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync & ~Osc_sync),"
+   ],
+   "category": "field",
+   "description": "The FAULT_FLAGS current-protection status bit is masked while the modulator PWM is high, on the idea that the valley comparator only means something during low-side conduction.",
+   "reason": "A host read of FAULT_FLAGS shows the CP bit clear whenever the synchronised Osc_in is high, even though CP_trig is asserted. With the modulator held high, or a read landing in the on-time, a live overcurrent comparator is not reported."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.389.AIM.198"
+ },
+ {
+  "proposal": {
+   "line": 391,
+   "before": [
+    "                          .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                          .uvlo_state(UVLO_sync_db & (ss_active | run_active)),"
+   ],
+   "category": "missing_case",
+   "description": "reg_file's UVLO status bit is masked outside S_SS and S_RUN, copying fault_cause's 'a routine power-down asserts UVLO' capture rule into the live status register.",
+   "reason": "In S_OFF with the debounced UVLO asserted (for example after reset with the input rail low), FAULT_FLAGS reads UVLO clear even though UVLO is what holds the supervisor off. The host cannot see why the converter will not start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.391.AIM.199"
+ },
+ {
+  "proposal": {
+   "line": 315,
+   "before": [
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .window_trip(window_trip | ~PGOOD_comp_sync),"
+   ],
+   "category": "missing_case",
+   "description": "strike_counter's clean-run streak is also broken whenever the output comparator reports the rail out of window, so 'fault-free running' is taken to need the rail in regulation as well as no overcurrent window trip.",
+   "reason": "In S_RUN with PGOOD_comp low, or dipping now and then, the clean-run counter keeps restarting. strike_level then never clears after clean_run_target cycles: STRIKE_LEVEL stays non-zero, Red_LED1 keeps blinking and the next hiccup cool-down is longer than it should be."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.315.AIM.200"
+ }
+]

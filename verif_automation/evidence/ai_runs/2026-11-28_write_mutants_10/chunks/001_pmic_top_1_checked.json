@@ -1,0 +1,18 @@
+[
+ {
+  "proposal": {
+   "line": 356,
+   "before": [
+    "                            .sdio_in(mosi_filt),"
+   ],
+   "after": [
+    "                            .sdio_in(mosi_sync),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave takes MOSI straight from its synchroniser, bypassing the MOSI glitch filter, as if only the clock and select lines needed filtering, so data no longer has the same 8-clock delay as the filtered SCK it is sampled against",
+   "reason": "The slave samples MOSI on the filtered SCK rise, about 8 clocks after the master's edge, so it now reads MOSI 8 clocks later in the data. A MOSI glitch shorter than SPI_FILTER_CLKS near that sample point, or a MOSI change within about 9 clocks of the master's rising SCK edge (fast SCK or a late data change), is clocked in. The CRC then fails or the wrong data or address is used, and this shows up in what the host reads back and in which writes are committed."
+  },
+  "accepted": false,
+  "why": "make lint already catches it: make lint: UNUSEDSIGNAL"
+ }
+]

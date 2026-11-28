@@ -1,0 +1,181 @@
+[
+ {
+  "proposal": {
+   "line": 369,
+   "before": [
+    "    reg_file u_reg_file ( .clk(clk),"
+   ],
+   "after": [
+    "    reg_file #(.DISABLE_KEY_ID(8'hA7), .WRITE_ACCESS_KEY_ID(8'hD1))",
+    "             u_reg_file ( .clk(clk),"
+   ],
+   "category": "field",
+   "description": "reg_file is instanced with its two magic key bytes swapped: DISABLE_KEY is set to the write-access value 0xA7 and WRITE_ACCESS_KEY to the disable value 0xD1",
+   "reason": "The documented sequence, 0xD1 to DISABLE_KEY then CONTROL bit 0 cleared, no longer arms the disable, so spi_enable and En stay high. 0xD1 at 0x4F no longer unlocks the threshold bank, so a keyed threshold write sets write_rejected and leaves the thresholds unchanged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.369.AIM.209"
+ },
+ {
+  "proposal": {
+   "line": 483,
+   "before": [
+    "    timestamp u_timestamp       ("
+   ],
+   "after": [
+    "    timestamp #(.PRESCALE_VAL(PRESCALE_VAL - 1)) u_timestamp ("
+   ],
+   "category": "boundary",
+   "description": "The timestamp prescaler is handed PRESCALE_VAL minus one, an off-by-one 'fix' made at the call site although timestamp already compares its prescaler with PRESCALE_VAL-1",
+   "reason": "The millisecond tick comes every 49999 clocks instead of 50000, so timestamp_ms runs fast by one clock per tick. TIME_0..2, the fault_time snapshot and the 5 s host watchdog drift, and a read near a tick boundary returns a count one higher than the true elapsed milliseconds."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.483.AIM.210"
+ },
+ {
+  "proposal": {
+   "line": 307,
+   "before": [
+    "",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic latch_assert_q;   // strike_counter's latch_assert, before the output register",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_assert_q)",
+    "                                );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin latch_out <= 1'b0; end",
+    "    else begin latch_out <= latch_assert_q; end",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "latch_out is retimed through an extra output flop 'because it drives the SCR gate', though the header says it is driven straight from strike_counter's latch_assert",
+   "reason": "On the hiccup entry that reaches the strike limit, latch_out rises one clock late. The supervisor, fault_cause and fault_LED, which all read latch_out, also see the CPLD's strike latch a clock later, so the Red_LED1 solid indication is a clock late too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.307.AIM.211"
+ },
+ {
+  "proposal": {
+   "line": 329,
+   "before": [
+    "",
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),",
+    "                        .pwm_out(PWM_out)",
+    "                        );"
+   ],
+   "after": [
+    "logic pwm_mask_out;   // pwm_mask's masked PWM, before the pin register",
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),",
+    "                        .pwm_out(pwm_mask_out)",
+    "                        );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin PWM_out <= 1'b0; end",
+    "    else begin PWM_out <= pwm_mask_out; end",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "The gate PWM gets a second pin register at the top level for glitch-free output, although pwm_mask's output is already a flop",
+   "reason": "Both edges of every PWM_out pulse lag Osc_in by one more clock than designed. This includes the truncated edge where the on-time ceiling cuts a long pulse, so the gate drive runs one clock behind the modulator in S_SS and S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.329.AIM.212"
+ },
+ {
+  "proposal": {
+   "line": 354,
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(sck_filt & sck_sync),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave's SCK falling edge is taken straight from the unfiltered synchronised SCK, so only the rising (sampling) edge goes through the glitch filter, as if only the sample edge needed filtering",
+   "reason": "sck_fall now comes 8 clocks earlier than the filtered rising edge, so MISO changes 160 ns earlier in each bit. A short low glitch on SCK during its high phase now makes a false fall and rise, which shifts an extra bit and corrupts the frame (CRC fail and txn_abort on a write, wrong read data)."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.354.AIM.213"
+ },
+ {
+  "proposal": {
+   "line": 377,
+   "before": [
+    "                          .rd_first(spi_rd_first),"
+   ],
+   "after": [
+    "                          .rd_first(spi_rd_first && (spi_addr >= 7'h18) && (spi_addr <= 7'h1A)),"
+   ],
+   "category": "missing_case",
+   "description": "reg_file's timestamp snapshot is only taken for reads that begin inside the TIME bank (0x18-0x1A), though rd_first must freeze it at the start of any read",
+   "reason": "A burst read that starts below 0x18, for example at STATUS 0x10, and sweeps through 0x18-0x1A returns the snapshot left by an earlier read, or 0 after reset, instead of the current timestamp."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.377.AIM.214"
+ },
+ {
+  "proposal": {
+   "line": 352,
+   "before": [
+    "    spi_slave u_spi_slave ( .clk(clk),"
+   ],
+   "after": [
+    "    spi_slave #(.SCK_IDLE_TIMEOUT_CLKS(ms_to_clks(5000)))",
+    "              u_spi_slave ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "The dead-master SCK idle timeout is given the 5 s host-silence watchdog interval (WD_TIMEOUT_MS) instead of its own 2 ms",
+   "reason": "If the master stops clocking with CS still low, the slave reaches S_DEAD only after 5 s, not 2 ms. During a read MISO keeps showing read data that long, and a stalled write is not poisoned in that time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.352.AIM.215"
+ },
+ {
+  "proposal": {
+   "line": 254,
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db & spi_enable;"
+   ],
+   "category": "priority",
+   "description": "The switch-press pulse is qualified by the host enable, as if a host veto had to outrank the physical switch, so a press is ignored exactly when the host has disabled the converter",
+   "reason": "After a keyed host disable, a fresh press of the enable switch no longer sets spi_enable. En stays low and the supervisor stays in S_OFF until the 5 s watchdog releases the veto."
+  },
+  "accepted": false,
+  "why": "the same edit as pmic_top.254.AIM.176"
+ }
+]

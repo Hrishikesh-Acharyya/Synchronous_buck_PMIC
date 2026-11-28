@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 293,
+   "before": [
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "category": "sequencing",
+   "description": "fault_arbiter's valley-sample cycle boundary is taken from the masked, registered gate PWM_out instead of the synchronised modulator PWM, so each per-cycle CP sample lands one clock after the modulator's turn-on edge",
+   "reason": "pwm_mask registers its output, so PWM_out rises one clock after Osc_sync. The BLANK_CLKS lookback then reads the CP comparator 4 clocks before the modulator edge instead of 5. A CP_trig excursion that sits only in that one-clock band is now counted, or now missed, so the fault counts and the window_trip/window_trip_SS hiccup exits (seen on En) change for the same CP_trig/Osc_in stimulus."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.293.AIM.89"
+ },
+ {
+  "proposal": {
+   "line": 471,
+   "before": [
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                        .pwm_sync(PWM_out),"
+   ],
+   "category": "sequencing",
+   "description": "pgood_gen counts its qualifying switching cycles on falling edges of the masked gate PWM_out instead of the synchronised modulator PWM",
+   "reason": "In S_RUN with the comparator good, the qualify counter now steps on PWM_out falling edges. These lag Osc_sync by one clock when the pulse is not truncated and come earlier when pwm_mask cuts it at the ceiling. So PGOOD and switch_supply assert on a different clock from the one the modulator cycle count gives."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.471.AIM.90"
+ },
+ {
+  "proposal": {
+   "line": 435,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(SS_done),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's 'converter running' scope takes soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS'), so faults during the ramp are outside the episode",
+   "reason": "While in S_SS before the ramp completes, SS_done is low. A window_trip_SS hiccup, or OTP/UVLO/latch faults that end soft start, therefore set no FAULT_CAUSE bit and no fault_time, and a later SPI read of the fault log returns zero. The same faults in S_RUN are still logged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.435.AIM.91"
+ }
+]

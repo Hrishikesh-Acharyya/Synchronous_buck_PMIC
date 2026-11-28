@@ -11,7 +11,7 @@ One record per module, added to by every step run on it and never cut: the AI wr
 | [`input_debounce`](input_debounce.md) | 85 | 16 | 73 | 3 | 2 | 0 | 7 | 0 | 91.8% | 0 | 95.1% | 4 / 1 / 1 | 2026-11-15 f71cb1f |
 | [`input_sync`](input_sync.md) | 27 | 5 | 20 | 7 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 217b430 |
 | [`pgood_gen`](pgood_gen.md) | 90 | 18 | 36 | 12 | 21 | 0 | 21 | 0 | 76.7% | 0 | 80.2% | 8 / 1 / 1 | 2026-11-17 34b8ec6 |
-| [`pmic_top`](pmic_top.md) | 88 | 88 | 0 | 0 | 0 | 0 | 0 | 88 | - | 0 | - | 5 / 0 / 0 | 2026-11-28 3b029b7 |
+| [`pmic_top`](pmic_top.md) | 236 | 236 | 0 | 0 | 0 | 0 | 0 | 236 | - | 0 | - | 18 / 0 / 0 | 2026-11-28 5948cd0 |
 | [`pwm_mask`](pwm_mask.md) | 71 | 11 | 32 | 10 | 7 | 0 | 22 | 0 | 69.0% | 0 | 75.4% | 3 / 1 / 1 | 2026-11-15 e6d9ec9 |
 | [`pwm_stats`](pwm_stats.md) | 123 | 23 | 109 | 10 | 0 | 0 | 4 | 0 | 96.7% | 0 | 97.5% | 6 / 1 / 1 | 2026-11-17 58da85b |
 | [`reset_sync`](reset_sync.md) | 22 | 2 | 17 | 5 | 0 | 0 | 0 | 0 | 100.0% | 0 | 100.0% | 3 / 1 / 0 | 2026-11-14 664452d |

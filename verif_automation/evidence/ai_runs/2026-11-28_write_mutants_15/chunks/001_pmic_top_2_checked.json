@@ -1,0 +1,152 @@
+[
+ {
+  "proposal": {
+   "line": 362,
+   "before": [
+    "                            .rdata(spi_rdata),"
+   ],
+   "after": [
+    "                            .rdata({spi_rdata[0], spi_rdata[1], spi_rdata[2], spi_rdata[3], spi_rdata[4], spi_rdata[5], spi_rdata[6], spi_rdata[7]}),"
+   ],
+   "category": "protocol",
+   "description": "Register read data is bit-reversed before spi_slave, as if the slave shifted MISO out LSB-first, though the bus is MSB-first",
+   "reason": "Every register read the host makes comes back bit-reversed on MISO. For example PMIC_ID 0xB5 reads as 0xAD, and the read CRC no longer covers the bytes the host sees."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.362.AIM.232"
+ },
+ {
+  "proposal": {
+   "line": 398,
+   "before": [
+    "                          .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                          .timestamp_ms({timestamp_ms[7:0], timestamp_ms[15:8], timestamp_ms[TIMESTAMP_W-1:16]}),"
+   ],
+   "category": "field",
+   "description": "The free-running timestamp reaches reg_file with its three bytes in reverse order, so TIME_0 at 0x18 holds the most significant byte instead of the least",
+   "reason": "After the first millisecond tick, a read of TIME_0..TIME_2 returns the timestamp bytes swapped end for end. reg_file's host-silence watchdog also does its arithmetic on this non-monotonic value, so its timeout moves."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.398.AIM.233"
+ },
+ {
+  "proposal": {
+   "line": 399,
+   "before": [
+    "                          .fault_time(fault_time),"
+   ],
+   "after": [
+    "                          .fault_time({fault_time[7:0], fault_time[15:8], fault_time[TIMESTAMP_W-1:16]}),"
+   ],
+   "category": "field",
+   "description": "fault_cause's episode-start time reaches reg_file byte-reversed, so FTIME_0 at 0x1E reports the most significant byte",
+   "reason": "Once a fault has been logged at a nonzero timestamp, reading FTIME_0..FTIME_2 gives the start-time bytes in the wrong order."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.399.AIM.234"
+ },
+ {
+  "proposal": {
+   "line": 397,
+   "before": [
+    "                          .fault_reg(fault_reg),"
+   ],
+   "after": [
+    "                          .fault_reg({fault_reg[0], fault_reg[1], fault_reg[2], fault_reg[3], fault_reg[4]}),"
+   ],
+   "category": "field",
+   "description": "The one-hot fault-cause record is wired to reg_file bit-reversed, as if bit 0 were the highest-priority cause, so OC appears in the OVP position and OVP in the OC position",
+   "reason": "After any logged fault other than OTP, a read of FAULT_CAUSE (0x1D) reports the wrong cause bit. For example, a RUN overcurrent hiccup reads as bit 4 (OVP) instead of bit 0."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.397.AIM.235"
+ },
+ {
+  "proposal": {
+   "line": 395,
+   "before": [
+    "                          .fault_count_run(fault_count_run),",
+    "                          .fault_count_ss(fault_count_ss),"
+   ],
+   "after": [
+    "                          .fault_count_run(5'(fault_count_ss)),",
+    "                          .fault_count_ss(6'(fault_count_run))."
+   ],
+   "category": "field",
+   "description": "The rolling-window counts are cross-wired: FCOUNT_RUN (0x15) reports the soft-start window and FCOUNT_SS (0x16) the RUN window",
+   "reason": "When overcurrent cycles have been counted in S_SS or S_RUN, the host reads that count from the other register, and counts above 31 are truncated in FCOUNT_RUN."
+  },
+  "accepted": false,
+  "why": "not legal code: %Error: pmic_top.sv:396:63: syntax error, unexpected '.', expecting ')'"
+ },
+ {
+  "proposal": {
+   "line": 310,
+   "before": [
+    "                                .max_strikes(max_strikes),"
+   ],
+   "after": [
+    "                                .max_strikes(max_strikes + STRIKE_W'(1)),"
+   ],
+   "category": "boundary",
+   "description": "strike_counter is given the strike limit plus one, as if MAX_STRIKES counted the hiccups allowed before the latching strike rather than the latching strike itself",
+   "reason": "If the host writes MAX_STRIKES to 1 or 2, latch_out asserts one hiccup later than configured. At the default of 3 the sum wraps in STRIKE_W bits, so the latching point moves too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.310.AIM.236"
+ },
+ {
+  "proposal": {
+   "line": 469,
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "logic run_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin run_active_q <= 1'b0; end",
+    "    else begin run_active_q <= run_active; end",
+    "end",
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active_q),"
+   ],
+   "category": "sequencing",
+   "description": "run_active is retimed through a flop before pgood_gen to break the supervisor-to-PGOOD path, so the power-good qualifier lags the FSM by a clock",
+   "reason": "When the supervisor leaves S_RUN on a trip, UVLO, OTP or disable, PGOOD and switch_supply drop one clock after En instead of on the same clock. This breaks the immediate hand-back the header requires."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.469.AIM.237"
+ },
+ {
+  "proposal": {
+   "line": 162,
+   "before": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))"
+   ],
+   "after": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS/2), .RELEASE_CLKS(SPI_FILTER_CLKS/2), .RESET_VALUE(1'b1))"
+   ],
+   "category": "protocol",
+   "description": "The CS_n glitch filter is given half the SPI filter length, as if chip select only had to beat the first SCK edge, against the header's rule that all three SPI filters carry identical parameters",
+   "reason": "A 4-7 clock low glitch on CS_n now selects the slave and is judged as an aborted transaction. A CS rise that closely follows the last SCK edge is also seen before that filtered edge, which cuts the transaction short."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.162.AIM.238"
+ }
+]

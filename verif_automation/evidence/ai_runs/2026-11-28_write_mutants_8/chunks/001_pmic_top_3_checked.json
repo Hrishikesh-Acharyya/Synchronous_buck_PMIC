@@ -1,0 +1,36 @@
+[
+ {
+  "proposal": {
+   "line": 295,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "category": "reset_init",
+   "description": "fault_arbiter's soft-start scope also covers S_HICCUP, as if the cool-down and its soft-start retry were one episode, so the overcurrent windows and the CP history are not cleared during the hiccup",
+   "reason": "fault_arbiter clears its windows only when neither of its state inputs is high, so with this change a hiccup no longer wipes them. After a RUN window trip, the RUN count stays at or above trip_run through the cool-down and the retry ramp, so the converter goes straight back to S_HICCUP (En drops, another strike, and eventually latch_out) on the first clock of S_RUN. After a soft-start trip, window_trip_SS is still high when S_SS is re-entered, so the retry trips again at once."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.295.AIM.156"
+ },
+ {
+  "proposal": {
+   "line": 266,
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_from_switch_sync_db & en_from_switch_sync),"
+   ],
+   "category": "sequencing",
+   "description": "The supervisor's switch enable is ANDed with the raw synchronised switch, following a 'switch-off must act at once' idea, so only the press is debounced and a release or bounce takes effect immediately",
+   "reason": "Turning the switch on still waits the full 20 ms qualification. But when the switch is released, or bounces low for even one clock while the converter is in S_SS or S_RUN, En drops and the FSM goes to S_OFF straight away, not 20 ms later. The reg_file switch status stays at its debounced value the whole time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.266.AIM.157"
+ }
+]

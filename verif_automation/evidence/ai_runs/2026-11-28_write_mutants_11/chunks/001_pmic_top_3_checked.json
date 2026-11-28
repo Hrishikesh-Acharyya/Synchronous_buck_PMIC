@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 325,
+   "before": [
+    "                                .max_on_limit(max_on_limit),"
+   ],
+   "after": [
+    "                                .max_on_limit((max_on_limit < ON_TIME_W'(MAX_ON_COUNTS_DEFAULT)) ? ON_TIME_W'(MAX_ON_COUNTS_DEFAULT) : max_on_limit),"
+   ],
+   "category": "boundary",
+   "description": "soft_start's ramp target is floored at the 75% default ceiling, from the package rule that the digital mask must stay above the analog clamp and never be the primary limiter, so a host-lowered MAX_ON limit is overridden",
+   "reason": "If the host writes MAX_ON (0x53) below 37 counts, the next soft start should end with SS_done at the written ceiling and PWM_out pulses cut there. With this fault the ramp keeps climbing to 37, SS_done asserts later, and PWM_out on-times in S_SS and S_RUN stay wider than the host commanded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.325.AIM.180"
+ },
+ {
+  "proposal": {
+   "line": 290,
+   "before": [
+    "                                .trip_ss(trip_ss),"
+   ],
+   "after": [
+    "                                .trip_ss((trip_ss < trip_run) ? trip_run : trip_ss),"
+   ],
+   "category": "boundary",
+   "description": "fault_arbiter's soft-start trip threshold is floored at the RUN threshold, enforcing the package note that S_SS is 'more tolerant', so a legal host write of trip_ss below trip_run is overridden",
+   "reason": "Suppose the host writes TRIP_SS (0x51) below TRIP_RUN, e.g. 5 against 12. An overcurrent in S_SS with 5 to 11 faulted cycles in the window should raise window_trip_SS and send the FSM to S_HICCUP, dropping En and counting a strike. With this fault the converter keeps soft-starting until 12 faulted cycles."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.290.AIM.181"
+ },
+ {
+  "proposal": {
+   "line": 267,
+   "before": [
+    "                        .spi_enable(spi_enable),"
+   ],
+   "after": [
+    "                        .spi_enable(spi_enable | en_switch_rise),"
+   ],
+   "category": "sequencing",
+   "description": "The supervisor's host enable is ORed with the switch-press pulse at the top level, so a fresh press overrides a host disable on the press clock itself. reg_file already restores spi_enable on the next clock, so the override lands a clock early.",
+   "reason": "Take a host that has disabled the converter over SPI, and then the switch is pressed. The FSM should leave S_OFF, and En rise, one clock after reg_file registers spi_enable high. With this fault both happen one clock earlier, while CONTROL/STATUS still read spi_enable low."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.267.AIM.182"
+ }
+]

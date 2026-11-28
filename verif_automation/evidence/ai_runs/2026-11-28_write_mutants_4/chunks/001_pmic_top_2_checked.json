@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 304,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level + 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "hiccup_timer is handed strike_level plus one, as if it had to anticipate strike_counter's increment on entry to S_HICCUP, so every cool-down is one doubling longer than the strike count calls for",
+   "reason": "strike_counter has already incremented by the time the cool-down runs, so the first hiccup lasts base<<2 (20 ms by default) instead of base<<1 (10 ms), and at strike level 3 the 2-bit sum wraps to the base interval. The time En is held low in S_HICCUP before the retry into S_SS changes on every hiccup."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.304.AIM.106"
+ },
+ {
+  "proposal": {
+   "line": 350,
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = sdio_oe ? sdio_out : 1'bz;"
+   ],
+   "category": "protocol",
+   "description": "MISO is tri-stated outside the read-data phase, following the usual shared-bus SPI slave habit, instead of being driven low as a plain output",
+   "reason": "At every time except spi_slave's S_READ phase (idle, command, address and write phases), MISO floats at Z instead of reading 0. That breaks the header's rule that MISO is a plain output with no tri-state anywhere in the design."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.350.AIM.107"
+ },
+ {
+  "proposal": {
+   "line": 421,
+   "before": [
+    "                            .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                            .pwm_sync(Osc_sync & En),"
+   ],
+   "category": "missing_case",
+   "description": "pwm_stats measures the synchronised modulator PWM only while the gate driver is enabled, though its block comment says it runs unconditionally because duty and period matter as much during a fault",
+   "reason": "In S_OFF and S_HICCUP, or while a hard fault pulls En low, the modulator still toggles Osc_in, but pwm_stats sees a flat line. Its period counter saturates and DUTY_COUNT and PERIOD stop following the modulator, so SPI reads of those registers return stale or all-ones values."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.421.AIM.108"
+ },
+ {
+  "proposal": {
+   "line": 526,
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = PGOOD | pgood_LED;"
+   ],
+   "category": "sequencing",
+   "description": "The housekeeping changeover drive is held on for one extra clock after PGOOD drops, ORed with the registered pgood_LED copy as a glitch hold-off, so the hand-back is no longer immediate",
+   "reason": "switch_supply still rises with PGOOD, but when PGOOD deasserts (the rail leaves its window, or the converter leaves S_RUN) switch_supply stays high one clock longer. At that moment it differs from PGOOD, against the header's rule that it carries the same value with no added delay."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.526.AIM.109"
+ }
+]

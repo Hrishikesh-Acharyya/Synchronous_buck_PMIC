@@ -1447,9 +1447,2578 @@
     "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
    ],
    "run": "2026-11-28_write_mutants"
+  },
+  {
+   "key": 89,
+   "line": 292,
+   "category": "sequencing",
+   "description": "fault_arbiter's valley-sample cycle boundary is taken from the masked, registered gate PWM_out instead of the synchronised modulator PWM, so each per-cycle CP sample lands one clock after the modulator's turn-on edge",
+   "reason": "pwm_mask registers its output, so PWM_out rises one clock after Osc_sync. The BLANK_CLKS lookback then reads the CP comparator 4 clocks before the modulator edge instead of 5. A CP_trig excursion that sits only in that one-clock band is now counted, or now missed, so the fault counts and the window_trip/window_trip_SS hiccup exits (seen on En) change for the same CP_trig/Osc_in stimulus.",
+   "before": [
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 90,
+   "line": 469,
+   "category": "sequencing",
+   "description": "pgood_gen counts its qualifying switching cycles on falling edges of the masked gate PWM_out instead of the synchronised modulator PWM",
+   "reason": "In S_RUN with the comparator good, the qualify counter now steps on PWM_out falling edges. These lag Osc_sync by one clock when the pulse is not truncated and come earlier when pwm_mask cuts it at the ceiling. So PGOOD and switch_supply assert on a different clock from the one the modulator cycle count gives.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(PWM_out),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 91,
+   "line": 434,
+   "category": "missing_case",
+   "description": "fault_cause's 'converter running' scope takes soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS'), so faults during the ramp are outside the episode",
+   "reason": "While in S_SS before the ramp completes, SS_done is low. A window_trip_SS hiccup, or OTP/UVLO/latch faults that end soft start, therefore set no FAULT_CAUSE bit and no fault_time, and a later SPI read of the fault log returns zero. The same faults in S_RUN are still logged.",
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(SS_done),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 92,
+   "line": 354,
+   "category": "protocol",
+   "description": "spi_slave is handed the inverted filtered SCK, as if the bus were CPOL=1 (Mode 3) instead of Mode 0, so it samples MOSI on the master's falling SCK edge and shifts MISO on the rising edge",
+   "reason": "In every SPI transaction the slave samples and shifts on the wrong clock phase, and it sees SCK idling high. Command, address, write data and CRC are taken half a bit late, so register writes are rejected or land wrongly and MISO read data is shifted, which shows on the MISO pin and in the control outputs.",
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(~sck_filt),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 93,
+   "line": 419,
+   "category": "field",
+   "description": "pwm_stats measures the inverted modulator PWM, so DUTY_COUNT reports the low-side (off) time of each cycle instead of the high-side on-time",
+   "reason": "Once the modulator is switching, a host read of DUTY_COUNT (0x13) returns about period minus on-time instead of the on-time, for any duty other than 50%. PREV_PERIOD is now measured falling edge to falling edge, so it still reads about the same in steady state.",
+   "before": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(~Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 94,
+   "line": 292,
+   "category": "wrong_event",
+   "description": "fault_arbiter's per-cycle CP sample is taken at high-side turn-off (the falling PWM edge, near peak current) instead of at turn-on (the valley), mixing up which edge ends low-side conduction",
+   "reason": "In S_SS and S_RUN each window sample, and so each window_trip / window_trip_SS, is taken one on-time away from the valley instant. A CP_trig level that is present at one edge but not the other is counted wrongly, so the time En drops and the FSM enters hiccup moves, and FCOUNT_RUN/FCOUNT_SS read differently.",
+   "before": [
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .fault_count_ss_out(fault_count_ss),",
+    "                                .pwm_sync(~Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 95,
+   "line": 319,
+   "category": "wrong_event",
+   "description": "soft_start counts ramp cycles and widens the ceiling at the PWM turn-on edge instead of after each pulse has ended, so each step lands as a pulse starts",
+   "reason": "During S_SS each ceiling step lands at the rising edge of the cycle that completes the step count, so that pulse already gets the wider ceiling. The masked PWM_out pulses widen one cycle earlier than the design intends, and SS_done (so the move to S_RUN) comes one on-time early.",
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "soft_start u_soft_start ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .pwm_sync(~Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 96,
+   "line": 311,
+   "category": "wrong_event",
+   "description": "strike_counter takes its clean-run cycle boundary from the masked, registered gate PWM_out instead of the synchronised modulator PWM",
+   "reason": "In S_RUN after a hiccup, the clean-run counter now steps when PWM_out falls: one clock late, or early at the on-time ceiling when the pulse is truncated. So the strike_level clear, and the moment Red_LED1 stops blinking, moves off the modulator's cycle boundary that the rest of the design uses.",
+   "before": [
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 97,
+   "line": 321,
+   "category": "reset_init",
+   "description": "soft_start's hold branch covers S_HICCUP as well as S_RUN, so a hiccup does not reset the ramped ceiling and SS_done to the floor; only S_OFF does",
+   "reason": "After a RUN overcurrent sends the FSM into S_HICCUP, the retry enters S_SS still holding SS_done=1 and the full max_on_limit ceiling. The supervisor moves to S_RUN one clock later and PWM_out runs at full on-time without re-ramping, which the header requires every hiccup retry to do.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active | hiccup_active),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 98,
+   "line": 355,
+   "category": "other",
+   "description": "spi_enable, the host's CONTROL run-enable for the converter, is mistaken for an SPI-interface enable and gates the slave's chip select, so a host that disables the converter is locked off the bus",
+   "reason": "After the host writes CONTROL to clear spi_enable, every later SPI transaction is ignored: writes are not applied and MISO stays low on reads. This lasts until a switch press re-asserts spi_enable. In the correct design the bus keeps working while the converter is host-disabled.",
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt | ~spi_enable),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 99,
+   "line": 355,
+   "category": "protocol",
+   "description": "spi_slave is handed the inverted filtered chip select, as if CS were active high, so the idle bus looks selected and a real transaction looks deselected",
+   "reason": "While the master holds CS_n low for a transaction, the slave sees itself deselected, so it shifts in no command, applies no write and never drives read data on MISO. Its framing instead runs while CS_n idles high.",
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(~cs_n_filt),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 100,
+   "line": 330,
+   "category": "other",
+   "description": "pwm_mask's PWM input is gated by the gate-driver enable En, adding the second logic shutdown path that the header explicitly rules out",
+   "reason": "In S_OFF and S_HICCUP, or whenever a fault pulls En low, PWM_out stays low instead of carrying the masked modulator pulses. A fault that drops En mid-pulse also cuts the PWM_out pulse short on that same clock.",
+   "before": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync & En),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 101,
+   "line": 303,
+   "category": "boundary",
+   "description": "hiccup_timer is given strike_level minus one, as if the strike count had not already been incremented on entry to S_HICCUP, so each cool-down is half its intended length",
+   "reason": "The first hiccup re-enables En after one base interval (5 ms by default) instead of two (10 ms), and the second after 10 ms instead of 20 ms. The time S_HICCUP holds the gate driver off before each retry is halved.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 102,
+   "line": 469,
+   "category": "boundary",
+   "description": "pgood_gen's qualifying delay is converted with ms_to_clks, as for the debouncers, although pgood_gen counts switching cycles, so the 9 ms qualification becomes 450000 PWM cycles (about 1 s)",
+   "reason": "After the supervisor enters S_RUN with the output comparator good, PGOOD and switch_supply assert about 1 s later instead of about 9 ms later. pgood_LED is delayed by the same amount.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(ms_to_clks(PGOOD_DELAY_MS))) u_pgood_gen ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_3"
+  },
+  {
+   "key": 103,
+   "line": 332,
+   "category": "field",
+   "description": "In S_RUN, pwm_mask takes its on-time ceiling straight from the host's max_on_limit register instead of the ceiling soft_start ramped to and now holds",
+   "reason": "If the host writes a new MAX_ON_LIMIT while the converter is in S_RUN, PWM_out pulses are cut to the new limit at once. The header says the held ceiling stays until the next ramp. When a lowered limit sits between the old ceiling and the modulator's pulse width, the PWM_out pulse width changes during S_RUN.",
+   "before": [
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),"
+   ],
+   "after": [
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(run_active ? max_on_limit : max_on_counts),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 104,
+   "line": 389,
+   "category": "missing_case",
+   "description": "The FAULT_FLAGS current-protection status bit is masked by the gate-driver enable, on the idea that the valley comparator only means something while the stage is switching",
+   "reason": "While the converter is in S_OFF or S_HICCUP, or out of reset with CP_trig high (it resets high, fail-safe), an SPI read of FAULT_FLAGS returns the CP bit as 0 instead of the live synchronised comparator level.",
+   "before": [
+    "                          .cp_state(CP_sync),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync & En),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 105,
+   "line": 140,
+   "category": "other",
+   "description": "The CPLD's own strike trip latch_out is ORed into the SCR read-back before debouncing, as if the read-back had to follow the CPLD's drive, so the latch read-back no longer reports only the physical SCR",
+   "reason": "After strike_counter asserts latch_out, the latch status bit in reg_file reads set 1 ms later even if the latch_stat pin stays low. Until reset, the debounced latch_state also stays set whatever the pin does.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync | latch_out), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 106,
+   "line": 303,
+   "category": "boundary",
+   "description": "hiccup_timer is handed strike_level plus one, as if it had to anticipate strike_counter's increment on entry to S_HICCUP, so every cool-down is one doubling longer than the strike count calls for",
+   "reason": "strike_counter has already incremented by the time the cool-down runs, so the first hiccup lasts base<<2 (20 ms by default) instead of base<<1 (10 ms), and at strike level 3 the 2-bit sum wraps to the base interval. The time En is held low in S_HICCUP before the retry into S_SS changes on every hiccup.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level + 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 107,
+   "line": 350,
+   "category": "protocol",
+   "description": "MISO is tri-stated outside the read-data phase, following the usual shared-bus SPI slave habit, instead of being driven low as a plain output",
+   "reason": "At every time except spi_slave's S_READ phase (idle, command, address and write phases), MISO floats at Z instead of reading 0. That breaks the header's rule that MISO is a plain output with no tri-state anywhere in the design.",
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = sdio_oe ? sdio_out : 1'bz;"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 108,
+   "line": 419,
+   "category": "missing_case",
+   "description": "pwm_stats measures the synchronised modulator PWM only while the gate driver is enabled, though its block comment says it runs unconditionally because duty and period matter as much during a fault",
+   "reason": "In S_OFF and S_HICCUP, or while a hard fault pulls En low, the modulator still toggles Osc_in, but pwm_stats sees a flat line. Its period counter saturates and DUTY_COUNT and PERIOD stop following the modulator, so SPI reads of those registers return stale or all-ones values.",
+   "before": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "    pwm_stats u_pwm_stats ( .clk(clk),",
+    "                            .rst_n(rst_n),",
+    "                            .pwm_sync(Osc_sync & En),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 109,
+   "line": 526,
+   "category": "sequencing",
+   "description": "The housekeeping changeover drive is held on for one extra clock after PGOOD drops, ORed with the registered pgood_LED copy as a glitch hold-off, so the hand-back is no longer immediate",
+   "reason": "switch_supply still rises with PGOOD, but when PGOOD deasserts (the rail leaves its window, or the converter leaves S_RUN) switch_supply stays high one clock longer. At that moment it differs from PGOOD, against the header's rule that it carries the same value with no added delay.",
+   "before": [
+    "assign switch_supply = PGOOD;"
+   ],
+   "after": [
+    "assign switch_supply = PGOOD | pgood_LED;"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 110,
+   "line": 294,
+   "category": "other",
+   "description": "fault_arbiter's current flag is qualified by the modulator PWM, as if the current comparator were only valid during high-side on-time, though it is a valley comparator sampled in low-side conduction",
+   "reason": "fault_arbiter's sample at pwm_rise reads the comparator from BLANK_CLKS clocks before turn-on, when PWM is low. So every sample is 0, and a sustained CP_trig in S_SS or S_RUN never trips a window or sends the converter into hiccup.",
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync & Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 111,
+   "line": 434,
+   "category": "missing_case",
+   "description": "fault_cause's 'converter running' capture scope also covers S_HICCUP, as if the hiccup cool-down were part of the operating episode",
+   "reason": "latch_assert rises one clock after S_HICCUP is entered on the final strike, and OTP/UVLO can assert during the cool-down. With this edit those are logged in FAULT_CAUSE (BIT_LATCH, BIT_OTP, BIT_UVLO) with a fault_time, where the design leaves them out because the converter is stopped.",
+   "before": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .window_trip_SS(window_trip_SS),",
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 112,
+   "line": 387,
+   "category": "field",
+   "description": "reg_file's enable-switch status bit reports the combined enable (switch AND host CONTROL enable) instead of the physical switch alone",
+   "reason": "After the host disables the converter over SPI (keyed disable) with the switch still on, STATUS bit 4 reads 0 instead of 1. The host can then no longer tell its own veto from the switch being off.",
+   "before": [
+    "                          .en_switch(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                          .en_switch(en_from_switch_sync_db & spi_enable),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 113,
+   "line": 385,
+   "category": "field",
+   "description": "reg_file's SCR latch status bit shows only externally-originated latch trips, masking the read-back whenever the CPLD's own latch_out is driving, as if it were fault_cause's OVP inference",
+   "reason": "After a strike latch (latch_out high) with the SCR read back set, STATUS bit 3 reads 0 instead of 1. It only reports the latch when it is tripped by the analog side.",
+   "before": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db & ~latch_out),"
+   ],
+   "run": "2026-11-28_write_mutants_4"
+  },
+  {
+   "key": 114,
+   "line": 308,
+   "category": "other",
+   "description": "The CPLD's trip drive latch_out is released once the debounced SCR read-back shows the latch set, as if the self-holding SCR needed the drive only until it fired, instead of following strike_counter's set-only latch_assert",
+   "reason": "After a strike latch, latch_out at the port drops about 1 ms after latch_stat reads back high, where it should stay high until reset. Every consumer of latch_assert (supervisor, fault_cause, fault_LED) then sees it clear while the SCR stays set, so the strike latch looks like an external one.",
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic strike_latch;",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(strike_latch)",
+    "                                );",
+    "assign latch_out = strike_latch & ~latch_stat_sync_db;"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 115,
+   "line": 436,
+   "category": "protocol",
+   "description": "fault_cause's clear-on-read also fires on spi_abort, as if any transaction that ended unvalidated also closed the fault-log read window, so a failed write wipes the fault record and its start time",
+   "reason": "Suppose fault causes have been logged and the host then sends a write that is aborted (bad CRC, wrong length or timeout). A later SPI read of FAULT_CAUSE and FTIME returns zero instead of the logged causes and episode-start timestamp.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done | spi_abort),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 116,
+   "line": 372,
+   "category": "protocol",
+   "description": "reg_file's read snapshot of the timestamp is retaken after every read data byte clocked out instead of only on the first data byte of the read",
+   "reason": "In a burst read of TIME_0..TIME_2, the bytes come from different instants. If a millisecond tick (in particular a carry from byte 0 into byte 1 or 2) lands mid-transaction, the host gets a torn timestamp. The design should return one coherent value frozen at the start of the transaction.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first | spi_rd_byte_done),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 117,
+   "line": 355,
+   "category": "protocol",
+   "description": "Chip-select deassert is taken straight from the unfiltered synchronised CS_n, so only selection goes through the glitch filter, as if 'deselect must be immediate'",
+   "reason": "A CS_n glitch high shorter than the 8-clock filter in the middle of a transaction now reaches spi_slave as a cs_rise and aborts it. CS also now rises 8 clocks ahead of the filtered SCK and MOSI, so a master that raises CS within 160 ns of its last SCK edge has its final CRC bit cut off and the write is discarded.",
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt | cs_n_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 118,
+   "line": 309,
+   "category": "boundary",
+   "description": "strike_counter is handed the strike limit minus one, a second off-by-one fix on top of the one strike_counter already makes by comparing with max_strikes-1",
+   "reason": "With the default limit of 3, latch_out (and so the shared SCR latch, Red_LED1 and the S_OFF lockout) trips on the 2nd hiccup entry instead of the 3rd. The two-retries-then-latch sequence becomes one retry.",
+   "before": [
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 119,
+   "line": 139,
+   "category": "other",
+   "description": "The UVLO debouncer is copied from the SPI glitch filters, so input undervoltage qualifies in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release",
+   "reason": "An input-rail sag or changeover transient longer than 160 ns but shorter than 1 ms now asserts UVLO. That drops En, sends the supervisor to S_OFF and lights Red_LED3 on a healthy board. A real UVLO also releases after 160 ns instead of 200 us, so the converter restarts sooner.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 120,
+   "line": 372,
+   "category": "protocol",
+   "description": "reg_file's write strobe is qualified by spi_integrity_ok, as if only validated bytes should reach the register file, though reg_file stages every data byte and validates later at commit",
+   "reason": "integrity_ok pulses only at cs_rise, at least one clock after the last wr_en, so the two never coincide and no write reaches reg_file: SCRATCH, CONTROL disable/enable and every threshold write are lost and read back unchanged after a write with a valid CRC.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en & spi_integrity_ok),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 121,
+   "line": 379,
+   "category": "protocol",
+   "description": "reg_file commits staged writes at the end of any write transaction (integrity_ok or txn_abort), mixing up 'transaction ended' with 'transaction validated'",
+   "reason": "A write frame with a bad CRC or a misaligned CS rise now commits its SCRATCH, CONTROL or threshold bytes. A read-back after a corrupted write shows the new value instead of the old one, and a corrupted armed CONTROL disable stops the converter.",
+   "before": [
+    "                          .integrity_OK(spi_integrity_ok),"
+   ],
+   "after": [
+    "                          .integrity_OK(spi_integrity_ok | spi_abort),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 122,
+   "line": 380,
+   "category": "other",
+   "description": "reg_file's txn_abort is driven on every write-transaction end, valid or not, as if it only meant 'discard the temporaries now', so the bus-error tally also counts good transactions",
+   "reason": "Commits still happen, but BUS_ERR_L/H goes up by one for every valid write too. After a clean write sequence the host reads a non-zero bus-error count where it should read zero.",
+   "before": [
+    "                          .txn_abort(spi_abort),"
+   ],
+   "after": [
+    "                          .txn_abort(spi_abort | spi_integrity_ok),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 123,
+   "line": 436,
+   "category": "reset_init",
+   "description": "fault_cause's clear-on-read is also required to come from a CRC-validated transaction, as if the destructive clear needed write-style validation, though reads never produce integrity_ok",
+   "reason": "fault_reg_read_done fires during a read and integrity_ok only at the end of a write, so FAULT_CAUSE and FTIME are never cleared by the host's read of 0x20. A second read after the fault has gone still returns the old cause and start time.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done & spi_integrity_ok),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 124,
+   "line": 436,
+   "category": "wrong_event",
+   "description": "fault_cause's record is cleared when any read transaction starts (rd_first) as well as after 0x20 is read, taking 'clear on read' to mean 'clear when a read begins'",
+   "reason": "Polling any register, for example STATUS, wipes a logged fault before the host reads it. A sweep starting at 0x1D gets the cause byte but reads FTIME 0x1E-0x20 as zero, because fault_time is cleared on the clock after the first byte loads.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done | spi_rd_first),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 125,
+   "line": 372,
+   "category": "protocol",
+   "description": "reg_file's 'data byte transferred' strobe also counts write data bytes, so a write that releases a byte at 0x20 counts as the host having read the fault record",
+   "reason": "A host write burst that reaches the read-only address 0x20 clears FAULT_CAUSE and FTIME with nothing read. reg_file's own comment says a write releasing a byte must not clear the record, and a later read of 0x1D returns 0 although a fault was logged.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),",
+    "                          .rd_byte_done(spi_rd_byte_done),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),",
+    "                          .rd_byte_done(spi_rd_byte_done | spi_wr_en),"
+   ],
+   "run": "2026-11-28_write_mutants_5"
+  },
+  {
+   "key": 126,
+   "line": 319,
+   "category": "boundary",
+   "description": "soft_start's ramp floor is set from the wanted gate on-time MIN_GATE_ON_NS alone, without the LM5106 turn-on shrinkage, so the floor is 6 clocks instead of 12",
+   "reason": "Whenever the supervisor enters S_SS (first start or a hiccup retry), the first PWM_out pulses are cut off after 6 clocks instead of 12. The ramp then has more steps to climb, so SS_done and the move to S_RUN come later.",
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),"
+   ],
+   "after": [
+    "soft_start #(.MIN_ON_COUNTS(ns_to_clks(MIN_GATE_ON_NS))) u_soft_start ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 127,
+   "line": 325,
+   "category": "boundary",
+   "description": "soft_start is handed cycles_per_step minus one, an off-by-one fix applied a second time on top of soft_start's own compare against cycles_per_step-1",
+   "reason": "In S_SS the ceiling on PWM_out pulses widens every 15 switching cycles instead of 16 with the default register, so SS_done and the move to S_RUN come early. If the host writes cycles_per_step = 1, the ramp never steps and the FSM stays in soft start.",
+   "before": [
+    "                                .max_on_limit(max_on_limit),",
+    "                                .cycles_per_step(cycles_per_step),"
+   ],
+   "after": [
+    "                                .max_on_limit(max_on_limit),",
+    "                                .cycles_per_step(cycles_per_step - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 128,
+   "line": 354,
+   "category": "protocol",
+   "description": "spi_slave's SCK rising edge is taken straight from the unfiltered synchronised SCK, so only the falling edge goes through the glitch filter, as if the filter were needed only on release",
+   "reason": "A high glitch on SCK shorter than SPI_FILTER_CLKS, arriving while CS_n is low, now reaches spi_slave as an extra rising edge and clocks in an extra bit. The write then fails its CRC or the read returns shifted data, where the filtered design ignores the glitch.",
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(sck_filt | sck_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 129,
+   "line": 352,
+   "category": "sequencing",
+   "description": "spi_slave's 2 ms dead-master SCK idle timeout is converted with ms_to_sw_cycles instead of ms_to_clks, so the slave, which counts clk ticks, times out after 900 clocks (18 us)",
+   "reason": "A transaction where CS_n stays low and SCK pauses for more than 18 us but less than 2 ms (for example a gap between bytes) is aborted. A write in that situation is discarded and a read stops driving MISO, where the 2 ms timeout would let both complete.",
+   "before": [
+    "    spi_slave u_spi_slave ( .clk(clk),"
+   ],
+   "after": [
+    "    spi_slave #(.SCK_IDLE_TIMEOUT_CLKS(ms_to_sw_cycles(2))) u_spi_slave ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 130,
+   "line": 469,
+   "category": "boundary",
+   "description": "pgood_gen's qualifying count is set to 2**PGOOD_DELAY_W, following the package's out-of-date note that the counter saturates at all-ones, instead of PGOOD_DELAY_CYCLES",
+   "reason": "In S_RUN with the output rail good, PGOOD and switch_supply assert 4096 switching cycles after qualifying starts instead of 4050, about 100 us later than the 9 ms the design calls for.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(2**PGOOD_DELAY_W)) u_pgood_gen ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 131,
+   "line": 136,
+   "category": "other",
+   "description": "The 20 ms enable debouncer is fed the combined enable (switch AND host CONTROL enable) instead of the physical switch alone, as if 'the enable' to be debounced were the supervisor's g_en",
+   "reason": "A host CONTROL disable now takes 20 ms to drop En instead of acting on the commit clock. Once the host has disabled the converter, the debounced switch stays low whatever the switch does, so a fresh switch press never makes en_switch_rise and cannot re-assert spi_enable. Only another host enable or the watchdog brings the converter back.",
+   "before": [
+    "                         .flag_in(en_from_switch_sync),"
+   ],
+   "after": [
+    "                         .flag_in(en_from_switch_sync & spi_enable),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 132,
+   "line": 302,
+   "category": "reset_init",
+   "description": "hiccup_timer is kept armed through the soft-start retry as well as S_HICCUP, as if cool-down plus re-ramp were one episode, so hiccup_done is not cleared on leaving S_HICCUP for S_SS",
+   "reason": "After a cool-down ends and the FSM retries in S_SS, hiccup_done stays high. If that soft start then trips window_trip_SS, the FSM leaves the next S_HICCUP on the next clock and En comes back almost at once instead of after the doubled cool-down. On first power-up the timer also runs during S_SS, so a soft-start trip more than 5 ms after start-up skips its cool-down.",
+   "before": [
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active | ss_active),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 133,
+   "line": 427,
+   "category": "missing_case",
+   "description": "fault_cause's over-temperature input is qualified by the gate-driver enable, meant as 'only faults that interrupted switching', but the supervisor drops En combinationally on OTP itself",
+   "reason": "En is already forced low on the same clock that the debounced OTP asserts, so fault_cause never sees OTP while the converter is in S_SS or S_RUN. An over-temperature shutdown then leaves the OTP bit of the 0x20 fault record clear, and no episode start time is captured for it.",
+   "before": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db & En),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 134,
+   "line": 483,
+   "category": "boundary",
+   "description": "The fault-log timebase prescaler is set with ms_to_sw_cycles(1) instead of the clk-based package value. The timestamp counts clk ticks, so a 'millisecond' tick comes every 450 clocks (9 us) instead of every 50000.",
+   "reason": "timestamp_ms advances about 111 times too fast. So the TIME_0..2 registers (0x18-0x1A) and the FTIME episode-start bytes (0x1E-0x20) read over SPI report elapsed time far larger than the real milliseconds since reset or since the fault.",
+   "before": [
+    "    timestamp u_timestamp       ("
+   ],
+   "after": [
+    "    timestamp #(.PRESCALE_VAL(ms_to_sw_cycles(1))) u_timestamp       ("
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 135,
+   "line": 491,
+   "category": "boundary",
+   "description": "The Red_LED1 strike blink half-period is sized in switching cycles (ms_to_sw_cycles(125)), to match the clean-run window it was chosen against. But fault_LED's blink counter counts clk ticks, so it gets 56250 clocks (about 1.1 ms) instead of 125 ms.",
+   "reason": "While strikes are outstanding (strike_level non-zero, no latch), Red_LED1 toggles about every 1.1 ms instead of every 125 ms, so the 4 Hz strike blink at the port becomes roughly 440 Hz.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),"
+   ],
+   "after": [
+    "fault_LED #(.LED_BLINK_HALF_CLKS(ms_to_sw_cycles(125))) u_fault_LED       (   .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_6"
+  },
+  {
+   "key": 136,
+   "line": 302,
+   "category": "boundary",
+   "description": "The per-strike doubling of the hiccup cool-down is also applied at the call site, so hiccup_timer gets a base already shifted by strike_level and shifts it again: each strike quadruples the interval instead of doubling it.",
+   "reason": "With the default 5 ms base, the S_HICCUP off-time (En held low) is 20 ms instead of 10 ms after the first strike, and 80 ms instead of 20 ms after the second, before the FSM retries soft start.",
+   "before": [
+    "                                .base_clks(hiccup_base),"
+   ],
+   "after": [
+    "                                .base_clks(hiccup_base << strike_level),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 137,
+   "line": 355,
+   "category": "protocol",
+   "description": "The slave is selected straight from the unfiltered synchronised CS_n and only the deselect goes through the glitch filter, as if 'selection must be immediate'.",
+   "reason": "A low CS_n blip shorter than the 8-clock filter now reaches spi_slave as a cs_fall and cs_rise with no complete command byte. That counts as an aborted write, so txn_abort pulses and reg_file's bus-error tally goes up where the filtered design would have seen nothing; the host sees it when it reads the tally back over MISO.",
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt & cs_n_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 138,
+   "line": 350,
+   "category": "protocol",
+   "description": "MISO is also cut by the unfiltered synchronised CS_n, so read data drops at once on a deselect (or a CS glitch) instead of following spi_slave's S_READ phase on the filtered chip select",
+   "reason": "During a read, MISO goes low about SPI_FILTER_CLKS clocks before sdio_oe falls after CS_n rises. A CS_n glitch shorter than the filter, which spi_slave ignores, now forces MISO low in the middle of a read data bit.",
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = sdio_oe & sdio_out & ~cs_n_sync;"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 139,
+   "line": 384,
+   "category": "sequencing",
+   "description": "reg_file's STATUS power-good bit is fed fault_LED's registered pgood_LED copy instead of PGOOD itself, so telemetry lags the changeover by a clock",
+   "reason": "A STATUS read whose snapshot falls on the clock where PGOOD changes (PGOOD qualifies, or drops on a rail dip or on leaving S_RUN) returns the old PGOOD value. That disagrees with the PGOOD and switch_supply pins.",
+   "before": [
+    "                          .sup_state(sup_state),",
+    "                          .pgood(PGOOD),"
+   ],
+   "after": [
+    "                          .sup_state(sup_state),",
+    "                          .pgood(pgood_LED),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 140,
+   "line": 385,
+   "category": "field",
+   "description": "reg_file's SCR latch status bit ORs in the CPLD's own trip drive latch_out, as if 'latch set' meant 'either source driving it', instead of reporting the debounced physical read-back alone",
+   "reason": "After a strike latch, the latch status bit reads 1 as soon as latch_out asserts, before the SCR read-back has debounced. It stays 1 even if the SCR never fires, so STATUS no longer shows only the read-back the supervisor acts on.",
+   "before": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .pgood(PGOOD),",
+    "                          .latch_state(latch_stat_sync_db | latch_out),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 141,
+   "line": 472,
+   "category": "sequencing",
+   "description": "pgood_gen's 'regulating' qualifier is also ANDed with the gate-driver enable, as if PGOOD had to drop with the combinational fault gating of En rather than when the supervisor leaves S_RUN",
+   "reason": "When OTP, UVLO or a latch trip asserts in S_RUN, PGOOD and switch_supply now fall on the same clock as En instead of one clock later, when run_active falls. The qualify counter is also cleared one clock earlier.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active & En),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 142,
+   "line": 311,
+   "category": "boundary",
+   "description": "strike_counter is handed the clean-run target minus one, taking the counter to count from zero to target-1, although it clears strikes when clean_counter equals the target itself",
+   "reason": "After a hiccup and a retry into S_RUN, strike_level (and the Red_LED1 strike blink) clears after clean_run_target-1 fault-free switching cycles instead of clean_run_target. The strike level is visible over SPI and on Red_LED1.",
+   "before": [
+    "                                .clean_run_target(clean_run_target),"
+   ],
+   "after": [
+    "                                .clean_run_target(clean_run_target - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 143,
+   "line": 437,
+   "category": "field",
+   "description": "fault_cause's episode-start snapshot is wired to its own fault_time output instead of the free-running timestamp_ms, a slip between the two adjacent TIMESTAMP_W ports, so the snapshot just reloads the cleared value",
+   "reason": "After a fault episode in S_SS or S_RUN, the host reads the FAULT_TIME bytes over SPI and gets 0 instead of the timestamp at which the episode began. The live TIME registers stay correct because reg_file still takes timestamp_ms.",
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),",
+    "                                .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done),",
+    "                                .timestamp_ms(fault_time),"
+   ],
+   "run": "2026-11-28_write_mutants_7"
+  },
+  {
+   "key": 144,
+   "line": 270,
+   "category": "missing_case",
+   "description": "Supervisor's S_RUN overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so the rolling-window duration filter is bypassed for the FSM",
+   "reason": "In S_RUN, any CP_trig assertion that reaches CP_sync, even a single cycle well below trip_run faulted cycles, moves the FSM to S_HICCUP on the next edge. En drops and a strike is counted where the original keeps running until the window count reaches trip_run.",
+   "before": [
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 145,
+   "line": 269,
+   "category": "missing_case",
+   "description": "Supervisor's soft-start overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's soft-start window trip, so the higher soft-start tolerance trip_ss is never applied",
+   "reason": "In S_SS, the first CP_trig excursion, which is expected while the output capacitor charges, sends the FSM to S_HICCUP. En drops and the ramp aborts, where the original only does so once trip_ss faulted cycles have been seen in the window.",
+   "before": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 146,
+   "line": 294,
+   "category": "other",
+   "description": "The valley-current comparator is taken as active low (open-drain fault convention) at fault_arbiter, so a low CP_trig counts as an overcurrent cycle",
+   "reason": "With CP_trig low (no overcurrent), every switching cycle in S_SS is sampled as faulted, so window_trip_SS fires after trip_ss cycles and the converter hiccups on every start. A real sustained overcurrent (CP_trig high) never trips either window.",
+   "before": [
+    "                                .cp_sync(CP_sync),"
+   ],
+   "after": [
+    "                                .cp_sync(~CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 147,
+   "line": 139,
+   "category": "other",
+   "description": "The UVLO comparator is read as an 'input good' signal (high when the input rail is above threshold), so its synchronised level is inverted before debouncing",
+   "reason": "With a healthy input (UVLO_trig low), UVLO_sync_db stays asserted. The supervisor never leaves S_OFF, En stays low and Red_LED3 stays lit. An actual undervoltage (UVLO_trig high) releases the flag and lets the converter start.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (~UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 148,
+   "line": 140,
+   "category": "other",
+   "description": "The SCR latch read-back is taken as active low (the anode node pulled down when the SCR fires), so the synchronised read-back is inverted before debouncing",
+   "reason": "With the latch not tripped (latch_stat low), latch_stat_sync_db stays set. The supervisor stays in S_OFF, Red_LED1 is solid and the STATUS latch bit reads set. A real latch trip (latch_stat high) clears it and lets the converter run.",
+   "before": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_latch_stat_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(~latch_stat_sync), .flag_out(latch_stat_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 149,
+   "line": 138,
+   "category": "other",
+   "description": "The over-temperature comparator is read as active low (the open-drain thermal-warning convention), so its synchronised level is inverted before debouncing",
+   "reason": "With OTP_trig low (normal temperature), OTP_sync_db asserts after the 1 ms qualification. The supervisor then stays in S_OFF with En low and Red_LED2 lit, and a real over-temperature (OTP_trig high) is what lets it start.",
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(~OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 150,
+   "line": 472,
+   "category": "other",
+   "description": "The output-rail window comparator is taken as an active-low power-fail output, so pgood_gen is handed its inverted synchronised level",
+   "reason": "In S_RUN with PGOOD_comp high (rail in regulation), PGOOD and switch_supply stay low. With the comparator low (rail out of window), PGOOD asserts once the qualifying cycles have passed, so the changeover moves onto a rail that has failed.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "                        .pgood_comp(~PGOOD_comp_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 151,
+   "line": 136,
+   "category": "other",
+   "description": "The physical enable switch is treated as active low (a switch to ground with a pull-up), so its synchronised level is inverted before the 20 ms debouncer",
+   "reason": "With en_from_switch low (switch off), the debounced enable asserts after 20 ms and the supervisor starts the converter (En high, soft start). Turning the switch on shuts it down. reg_file's switch status bit and the press edge detector are inverted too.",
+   "before": [
+    "                         .flag_in(en_from_switch_sync),"
+   ],
+   "after": [
+    "                         .flag_in(~en_from_switch_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 152,
+   "line": 288,
+   "category": "boundary",
+   "description": "fault_arbiter is handed the RUN trip threshold minus one, as if it tripped on count > trip_run, though it already compares with >=",
+   "reason": "In S_RUN, a window holding 11 faulted valley samples out of 16 (one below the default TRIP_RUN of 12) raises window_trip. The supervisor goes to S_HICCUP and a strike is counted, where the design keeps running.",
+   "before": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 153,
+   "line": 483,
+   "category": "reset_init",
+   "description": "The fault-log timestamp is held in reset whenever the gate driver is disabled, reading 'time since start of convertor' as time since the converter was enabled, though the timestamp must free-run in every state and be cleared only by rst_n",
+   "reason": "In S_OFF and S_HICCUP, and on the very clock a hard fault drops En, timestamp_ms is held at zero. The live TIME registers read 0 while the converter is off, and fault_cause's episode-start snapshot of a shutdown fault records 0 instead of the elapsed time.",
+   "before": [
+    "    timestamp u_timestamp       (",
+    "                                    .clk(clk),",
+    "                                    .rst_n(rst_n),"
+   ],
+   "after": [
+    "    timestamp u_timestamp       (",
+    "                                    .clk(clk),",
+    "                                    .rst_n(rst_n & En),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 154,
+   "line": 96,
+   "category": "other",
+   "description": "Master_PWM from the modulator is taken as active low (as if it were the low-side drive command), so it is inverted before its synchroniser",
+   "reason": "Every block then sees the off-time as the on-time. pwm_mask passes PWM_out high while Osc_in is low, the valley CP sample and the cycle boundaries move to the opposite edge, and DUTY_COUNT reports the complement of the real duty.",
+   "before": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "after": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(~Osc_in), .sync_out(Osc_sync));"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 155,
+   "line": 302,
+   "category": "boundary",
+   "description": "hiccup_timer is handed hiccup_base minus one, an off-by-one 'fix' for its counter matching at the target, which shortens every cool-down by 2**strike_level clocks",
+   "reason": "After each entry into S_HICCUP, hiccup_done rises and the supervisor re-enters S_SS (En high) 2**strike_level clocks earlier than the programmed base shifted by the strike level.",
+   "before": [
+    "                                .base_clks(hiccup_base),"
+   ],
+   "after": [
+    "                                .base_clks(hiccup_base - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 156,
+   "line": 294,
+   "category": "reset_init",
+   "description": "fault_arbiter's soft-start scope also covers S_HICCUP, as if the cool-down and its soft-start retry were one episode, so the overcurrent windows and the CP history are not cleared during the hiccup",
+   "reason": "fault_arbiter clears its windows only when neither of its state inputs is high, so with this change a hiccup no longer wipes them. After a RUN window trip, the RUN count stays at or above trip_run through the cool-down and the retry ramp, so the converter goes straight back to S_HICCUP (En drops, another strike, and eventually latch_out) on the first clock of S_RUN. After a soft-start trip, window_trip_SS is still high when S_SS is re-entered, so the retry trips again at once.",
+   "before": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 157,
+   "line": 266,
+   "category": "sequencing",
+   "description": "The supervisor's switch enable is ANDed with the raw synchronised switch, following a 'switch-off must act at once' idea, so only the press is debounced and a release or bounce takes effect immediately",
+   "reason": "Turning the switch on still waits the full 20 ms qualification. But when the switch is released, or bounces low for even one clock while the converter is in S_SS or S_RUN, En drops and the FSM goes to S_OFF straight away, not 20 ms later. The reg_file switch status stays at its debounced value the whole time.",
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),"
+   ],
+   "after": [
+    "                        .en_SW(en_from_switch_sync_db & en_from_switch_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_8"
+  },
+  {
+   "key": 158,
+   "line": 352,
+   "category": "protocol",
+   "description": "spi_slave is held in reset whenever the filtered chip select is high, meant to stop noise on a deselected bus from disturbing it, so a transaction's end at CS rise is erased before the slave can judge it",
+   "reason": "When CS rises, the reset asserts on the same clock edge, so spi_slave never registers cs_rise and never pulses integrity_ok or txn_abort. No host write ever commits: CONTROL, SCRATCH and thresholds stay unchanged and the bus-error count stays at zero. Reads still work.",
+   "before": [
+    "    spi_slave u_spi_slave ( .clk(clk),",
+    "                            .rst_n(rst_n),"
+   ],
+   "after": [
+    "    spi_slave u_spi_slave ( .clk(clk),",
+    "                            .rst_n(rst_n & ~cs_n_filt),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 159,
+   "line": 308,
+   "category": "reset_init",
+   "description": "strike_counter is reset whenever the debounced enable switch is off, as if cycling the switch earned a fresh set of strikes, though latch_assert must be cleared only by rst_n together with the physical SCR",
+   "reason": "After a strike latch has tripped, turning the switch off drops the latch_out pin and zeroes strike_level (Red_LED1 blink, STRIKE_LEVEL register) while the SCR stays set. Strikes left over from earlier hiccups are also lost on any switch-off, so the hiccup escalation restarts.",
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 160,
+   "line": 436,
+   "category": "wrong_event",
+   "description": "fault_cause's record is also cleared by a fresh press of the enable switch, taking an 'episode' to mean one power-on run instead of one host read window",
+   "reason": "A host that reads the FAULT_CAUSE/FTIME registers after the user switched the board off and back on finds the record and its start time zeroed. The cause of the shutdown is lost before it was ever read.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done | en_switch_rise),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 161,
+   "line": 248,
+   "category": "sequencing",
+   "description": "The switch-press pulse en_switch_rise is registered, so it reaches reg_file one clock after the debounced switch rises instead of on the same clock",
+   "reason": "With a host veto in force, pressing the switch restores spi_enable one clock late. So the supervisor leaves S_OFF and raises En one clock later than the debounced switch allows. A host CONTROL commit landing on the following clock now resolves the same-clock collision the other way.",
+   "before": [
+    "    always_comb begin",
+    "",
+    "        /*",
+    "        Purpose: Edge detection on the physical enable switch signal synced and debounced",
+    "        */",
+    "",
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "",
+    "        /*",
+    "        Purpose: Edge detection on the physical enable switch signal synced and debounced",
+    "        */",
+    "",
+    "        if (!rst_n) en_switch_rise <= 1'b0;",
+    "        else        en_switch_rise <= ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 162,
+   "line": 330,
+   "category": "other",
+   "description": "The valley-current comparator is mistaken for a peak current limit, so pwm_mask's PWM is cut on any clock where CP_trig is high, a cycle-by-cycle limit the design does not have",
+   "reason": "In S_SS or S_RUN, if CP_trig goes high during a high-side on-time, PWM_out falls at once instead of following the modulator pulse up to the soft_start ceiling. The design only counts CP_trig per cycle in fault_arbiter's window and never truncates a pulse with it.",
+   "before": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync & ~CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 163,
+   "line": 274,
+   "category": "sequencing",
+   "description": "The supervisor's hiccup exit also waits for the synchronised valley-current comparator to clear, 'do not retry into a live overcurrent', although the header says a retry always follows hiccup_done",
+   "reason": "If CP_trig stays high through S_HICCUP (a persistent overcurrent or short), the FSM never goes back to S_SS. En stays low, no more strikes build up, and latch_out never asserts. The design instead retries after the cool-down and latches on the third strike.",
+   "before": [
+    "                        .hiccup_done(hiccup_done),"
+   ],
+   "after": [
+    "                        .hiccup_done(hiccup_done & ~CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 164,
+   "line": 496,
+   "category": "missing_case",
+   "description": "fault_LED shows outstanding strikes only while the supervisor is in S_RUN, taking 'blink through the clean-run window' to mean only that, so Red_LED1 does not blink during the hiccup cool-down or the soft-start retry",
+   "reason": "With strike_level non-zero and no latch, Red_LED1 is held low in S_HICCUP and S_SS. It should follow the 4 Hz blink there, and this shows once the blink timebase has toggled (after 125 ms of run time). It blinks again only after S_RUN is re-entered.",
+   "before": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(run_active ? strike_level : '0),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 165,
+   "line": 483,
+   "category": "reset_init",
+   "description": "The fault-log timestamp is restarted each time the host finishes reading the fault record (fault_reg_read_done), taking the timestamp to be time since the last episode, though it must free-run from rst_n",
+   "reason": "Once the host has read through FTIME_2 (0x20), the TIME_0..2 registers read near zero instead of the time since reset. Every later fault_time snapshot is also measured from that read, not from start-up.",
+   "before": [
+    "    timestamp u_timestamp       (",
+    "                                    .clk(clk),",
+    "                                    .rst_n(rst_n),"
+   ],
+   "after": [
+    "    timestamp u_timestamp       (",
+    "                                    .clk(clk),",
+    "                                    .rst_n(rst_n & ~fault_reg_read_done),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 166,
+   "line": 369,
+   "category": "reset_init",
+   "description": "reg_file is held in reset while the debounced enable switch is off, as if switching off were a full reset of the host configuration",
+   "reason": "Host writes to thresholds, CONTROL or SCRATCH are lost while the switch is off. Turning the switch off after configuring puts trip_run, trip_ss, max_strikes, max_on_limit and the rest back to their package defaults, and clears a host disable veto (spi_enable back to 1).",
+   "before": [
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n),"
+   ],
+   "after": [
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 167,
+   "line": 269,
+   "category": "other",
+   "description": "The supervisor's over-temperature input ORs the undebounced synchronised OTP flag with the debounced one ('trip at once, debounce only the release'), so the 1 ms assert qualification no longer applies to the FSM",
+   "reason": "An OTP_trig glitch of only a few clocks pulls En low combinationally and sends the FSM to S_OFF, so the converter restarts through soft start. The design rides through glitches shorter than 1 ms.",
+   "before": [
+    "                        .OTP(OTP_sync_db),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db | OTP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 168,
+   "line": 321,
+   "category": "wrong_event",
+   "description": "soft_start's ramp runs through the hiccup cool-down as well as S_SS, as if cool-down plus retry were one ramp period, so the ceiling keeps widening while the gate driver is off",
+   "reason": "The modulator keeps switching during S_HICCUP, so the ceiling (and SS_done) climbs during the cool-down. The retry then starts above MIN_ON_COUNTS, or the FSM leaves S_SS for S_RUN at once, and PWM_out pulses are wide right after re-enable instead of re-ramping from the floor.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "run": "2026-11-28_write_mutants_9"
+  },
+  {
+   "key": 169,
+   "line": 96,
+   "category": "other",
+   "description": "Master_PWM goes through the short symmetric SPI glitch filter after its synchroniser, as if switch-node pickup on the modulator line needed the same 160 ns filter as SCK, so every block's cycle reference is delayed and short pulses are swallowed",
+   "reason": "PWM_out now lags Osc_in by 8 more clocks than it should. Any modulator high or low pulse shorter than 8 clocks (160 ns) disappears from PWM_out and from the cycle counts in fault_arbiter, soft_start, pgood_gen and pwm_stats, which also changes the DUTY_COUNT and period telemetry for narrow pulses.",
+   "before": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "after": [
+    "logic Osc_sync_raw;",
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync_raw));",
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))",
+    "u_osc_filt (.clk(clk), .rst_n(rst_n), .flag_in(Osc_sync_raw), .flag_out(Osc_sync));"
+   ],
+   "run": "2026-11-28_write_mutants_10"
+  },
+  {
+   "key": 170,
+   "line": 287,
+   "category": "boundary",
+   "description": "fault_arbiter's valley-sample lookback BLANK_CLKS is sized from the LM5106 turn-on shrinkage (7 clocks, 140 ns), as if the blanking had to cover the gate driver's delay, instead of the module's 5-clock (100 ns) default",
+   "reason": "Each per-cycle valley sample at the PWM rising edge now reads CP_trig as it was 7 clocks before turn-on instead of 5. A comparator assertion that starts 5-6 clocks before turn-on is no longer counted, and one that clears in that interval is still counted. This changes when window_trip / window_trip_SS fire, and so the En shutdown into hiccup and the FAULT_COUNT telemetry.",
+   "before": [
+    "fault_arbiter u_fault_arbiter ( .clk(clk),"
+   ],
+   "after": [
+    "fault_arbiter #(.BLANK_CLKS(ns_to_clks(LM5106_SHRINK_NS))) u_fault_arbiter ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_10"
+  },
+  {
+   "key": 171,
+   "line": 332,
+   "category": "other",
+   "description": "pwm_mask's on-time ceiling has the LM5106 turn-on shrinkage added at the call site, so the gate on-time is meant to equal the ceiling, but the shrinkage is then counted twice because MIN_ON_COUNTS already includes it",
+   "reason": "Every PWM_out pulse is now cut 7 clocks later than the ceiling soft_start produces. During soft start the floor pulse is 19 clocks instead of 12 and each ramp step is offset the same way. In S_RUN, pulses of 84-90 clocks pass where the 75% backstop should truncate them.",
+   "before": [
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),"
+   ],
+   "after": [
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts + ON_TIME_W'(ns_to_clks(LM5106_SHRINK_NS))),"
+   ],
+   "run": "2026-11-28_write_mutants_10"
+  },
+  {
+   "key": 172,
+   "line": 321,
+   "category": "sequencing",
+   "description": "soft_start's ramp branch is enabled only while the ramp is unfinished (ss_active and not SS_done), as if a finished ramp no longer needed the S_SS branch, so on the last S_SS clock it falls into the reset-to-floor branch",
+   "reason": "On the clock after SS_done sets, the supervisor is still in S_SS, so soft_start resets max_on_counts to the 12-clock floor and clears SS_done while the FSM moves to S_RUN. soft_start then holds that floor through S_RUN, and PWM_out is cut to the floor on-time for the whole run instead of the max_on_limit ceiling.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .ss_active(ss_active & ~SS_done),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 173,
+   "line": 288,
+   "category": "boundary",
+   "description": "fault_arbiter is handed the soft-start trip threshold minus one, as if it tripped on count > trip_ss, though it already compares with >=",
+   "reason": "In S_SS, window_trip_SS and the S_SS -> S_HICCUP exit (En dropping) now fire when 27 of the last 32 valley samples are faulted instead of 28. A host-written TRIP_SS is also one cycle short.",
+   "before": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss - 1'b1),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 174,
+   "line": 426,
+   "category": "reset_init",
+   "description": "fault_cause is held in reset while the gate driver is disabled, so routine power-downs do not log a fault. This wipes the record on every fault shutdown, which is exactly when it must survive.",
+   "reason": "A fault in S_SS or S_RUN drops En at once (combinationally for OTP, UVLO and latch, or by entering S_HICCUP or S_OFF), so the cause captured on that clock is cleared. FAULT_REG and FAULT_TIME read back zero over SPI after any shutdown, instead of holding the cause until the host reads it.",
+   "before": [
+    "     fault_cause u_fault_cause (",
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "     fault_cause u_fault_cause (",
+    "                                .clk(clk),",
+    "                                .rst_n(rst_n & En),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 175,
+   "line": 491,
+   "category": "missing_case",
+   "description": "fault_LED's over-temperature input is gated by 'converter running' like fault_cause's capture gate, though the LEDs show what is wrong now and must light in any state",
+   "reason": "When OTP asserts in S_RUN the supervisor goes to S_OFF on the next clock, so Red_LED2 lights for at most a clock and then stays dark while the board is still over-temperature. With OTP present in S_OFF it never lights at all.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db & (ss_active | run_active)),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 176,
+   "line": 254,
+   "category": "missing_case",
+   "description": "The switch-press pulse is taken as a rise of the combined enable (switch AND host CONTROL enable), so it is masked exactly when the host has disabled the converter, which is the one case the press is there to override",
+   "reason": "After a host CONTROL write clears spi_enable, cycling the physical switch no longer raises en_switch_rise, so reg_file does not set spi_enable again and En stays low after the press. In the original, the press brings the converter back up through S_SS.",
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db & spi_enable;"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 177,
+   "line": 294,
+   "category": "sequencing",
+   "description": "fault_arbiter's soft-start scope is limited to the unfinished ramp (S_SS and not SS_done), so on the last S_SS clock it sees neither state active and clears both windows and the CP history",
+   "reason": "On the one clock when SS_done is high in S_SS, window_trip_SS is held low, so a trip landing then sends the FSM to S_RUN instead of S_HICCUP. fault_count_ss is also cleared, so the soft-start fault count that reg_file should show through S_RUN reads 0.",
+   "before": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .cp_sync(CP_sync),",
+    "                                .ss_active(ss_active & ~SS_done),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 178,
+   "line": 264,
+   "category": "other",
+   "description": "The supervisor holds in S_SS after the ramp is done until the live valley-current comparator is clear, treating 'do not hand over to RUN in overcurrent' as a condition of the ramp handshake",
+   "reason": "If CP_trig is high when SS_done asserts, the FSM stays in S_SS instead of going to S_RUN, so PGOOD qualification starts later. Overcurrent is then judged against the more tolerant trip_ss instead of trip_run.",
+   "before": [
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "                        .SS_done(SS_done & ~CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 179,
+   "line": 379,
+   "category": "protocol",
+   "description": "reg_file's commit and discard strobes are qualified by chip select still asserted, though spi_slave raises both only after CS has risen at the end of the transaction",
+   "reason": "integrity_ok and txn_abort pulse the clock after cs_rise, while cs_n_filt is already high, so no host write ever commits. A CONTROL disable or a threshold change never takes effect, and the bus-error count never increments.",
+   "before": [
+    "                          .integrity_OK(spi_integrity_ok),",
+    "                          .txn_abort(spi_abort),"
+   ],
+   "after": [
+    "                          .integrity_OK(spi_integrity_ok & ~cs_n_filt),",
+    "                          .txn_abort(spi_abort & ~cs_n_filt),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 180,
+   "line": 324,
+   "category": "boundary",
+   "description": "soft_start's ramp target is floored at the 75% default ceiling, from the package rule that the digital mask must stay above the analog clamp and never be the primary limiter, so a host-lowered MAX_ON limit is overridden",
+   "reason": "If the host writes MAX_ON (0x53) below 37 counts, the next soft start should end with SS_done at the written ceiling and PWM_out pulses cut there. With this fault the ramp keeps climbing to 37, SS_done asserts later, and PWM_out on-times in S_SS and S_RUN stay wider than the host commanded.",
+   "before": [
+    "                                .max_on_counts(max_on_counts),",
+    "                                .max_on_limit(max_on_limit),"
+   ],
+   "after": [
+    "                                .max_on_counts(max_on_counts),",
+    "                                .max_on_limit((max_on_limit < ON_TIME_W'(MAX_ON_COUNTS_DEFAULT)) ? ON_TIME_W'(MAX_ON_COUNTS_DEFAULT) : max_on_limit),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 181,
+   "line": 288,
+   "category": "boundary",
+   "description": "fault_arbiter's soft-start trip threshold is floored at the RUN threshold, enforcing the package note that S_SS is 'more tolerant', so a legal host write of trip_ss below trip_run is overridden",
+   "reason": "Suppose the host writes TRIP_SS (0x51) below TRIP_RUN, e.g. 5 against 12. An overcurrent in S_SS with 5 to 11 faulted cycles in the window should raise window_trip_SS and send the FSM to S_HICCUP, dropping En and counting a strike. With this fault the converter keeps soft-starting until 12 faulted cycles.",
+   "before": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss(trip_ss),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n),",
+    "                                .trip_run(trip_run),",
+    "                                .trip_ss((trip_ss < trip_run) ? trip_run : trip_ss),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 182,
+   "line": 266,
+   "category": "sequencing",
+   "description": "The supervisor's host enable is ORed with the switch-press pulse at the top level, so a fresh press overrides a host disable on the press clock itself. reg_file already restores spi_enable on the next clock, so the override lands a clock early.",
+   "reason": "Take a host that has disabled the converter over SPI, and then the switch is pressed. The FSM should leave S_OFF, and En rise, one clock after reg_file registers spi_enable high. With this fault both happen one clock earlier, while CONTROL/STATUS still read spi_enable low.",
+   "before": [
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable),"
+   ],
+   "after": [
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable | en_switch_rise),"
+   ],
+   "run": "2026-11-28_write_mutants_11"
+  },
+  {
+   "key": 183,
+   "line": 384,
+   "category": "missing_case",
+   "description": "reg_file is told the supervisor is in S_OFF whenever the gate driver is disabled, as if 'off' meant 'not switching', so S_HICCUP is reported and treated as S_OFF",
+   "reason": "During a hiccup cool-down STATUS[1:0] reads 00 instead of 11. reg_file's S_OFF-only gate (off_ok) also opens, so the host can change hiccup_base, cycles_per_step and clean_run_target while the hiccup timer and strike counter are live, a write that is rejected (write_rejected set) in the original.",
+   "before": [
+    "                          .sup_state(sup_state),"
+   ],
+   "after": [
+    "                          .sup_state(En ? sup_state : S_OFF),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 184,
+   "line": 372,
+   "category": "missing_case",
+   "description": "reg_file's 'change only in S_OFF' rule, meant for three threshold registers, is applied at the top level to the whole host write strobe, so no host write lands outside S_OFF",
+   "reason": "With the converter in S_SS, S_RUN or S_HICCUP, a keyed CONTROL disable, a SCRATCH write and a live-threshold write such as TRIP_RUN are all dropped: En stays high, SCRATCH reads back its old value, and write_rejected is not set, although a good-CRC transaction commits each of these in the original.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en && (sup_state == S_OFF)),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 185,
+   "line": 324,
+   "category": "boundary",
+   "description": "soft_start is handed the host on-time limit minus the ramp floor, as if MAX_ON were the span the ramp climbs above MIN_ON_COUNTS rather than the final ceiling itself",
+   "reason": "At the default limit the ramp ends, and S_RUN holds, at 71 clocks instead of 83, so PWM_out truncates modulator pulses longer than about 64% duty. If the host writes MAX_ON at the 12-count floor, the target becomes 0 and PWM_out is masked entirely after soft start.",
+   "before": [
+    "                                .max_on_counts(max_on_counts),",
+    "                                .max_on_limit(max_on_limit),"
+   ],
+   "after": [
+    "                                .max_on_counts(max_on_counts),",
+    "                                .max_on_limit(max_on_limit - ON_TIME_W'(MIN_ON_COUNTS)),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 186,
+   "line": 491,
+   "category": "missing_case",
+   "description": "fault_LED's UVLO indication is masked unless the converter is in S_SS or S_RUN. This borrows fault_cause's 'a routine power-down asserts UVLO' capture rule, but the LEDs must show what is wrong now, in every state.",
+   "reason": "With UVLO_trig asserted while the supervisor is in S_OFF or S_HICCUP, for example at power-up on a low input rail, Red_LED3 stays dark instead of lighting. A UVLO that hits in S_RUN lights it for only one clock before the FSM leaves S_RUN.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .otp_state(OTP_sync_db),",
+    "                                .uvlo_state(UVLO_sync_db & (ss_active | run_active)),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 187,
+   "line": 254,
+   "category": "priority",
+   "description": "The switch-press pulse is suppressed while the host enable is still set, as if it were only needed to lift a veto already in place. reg_file's rule that the physical switch wins a same-clock collision with a host disable is lost.",
+   "reason": "When the debounced switch rises on the same clock that a validated CONTROL disable commits, spi_enable is still 1, so the press is masked and the disable lands. The converter stays off (En low, STATUS bit 5 clear) instead of the press keeping it enabled.",
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db & ~spi_enable;"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 188,
+   "line": 473,
+   "category": "sequencing",
+   "description": "pgood_gen's 'regulating' qualifier also drops on the RUN window trip. The aim is to hand the rail back the moment an overcurrent is detected, but PGOOD should follow the supervisor's exit from S_RUN.",
+   "reason": "On a RUN overcurrent window trip, PGOOD and switch_supply fall on the trip clock, one clock before the supervisor leaves S_RUN for S_HICCUP, and the qualifying count is cleared a clock early.",
+   "before": [
+    "                        .run_active(run_active),",
+    "                        .PGOOD(PGOOD)"
+   ],
+   "after": [
+    "                        .run_active(run_active & ~window_trip),",
+    "                        .PGOOD(PGOOD)"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 189,
+   "line": 497,
+   "category": "other",
+   "description": "The overcurrent window trips are folded into fault_LED's running indication, a second path that fault_LED's header deliberately leaves out because the supervisor's state change already turns off the green LED.",
+   "reason": "On a soft-start or RUN window trip, Green_LED turns off one clock earlier than when it follows the supervisor's exit to S_HICCUP.",
+   "before": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active & ~window_trip_SS),",
+    "                                .run_active(run_active & ~window_trip),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 190,
+   "line": 300,
+   "category": "boundary",
+   "description": "hiccup_timer's cool-down counter is sized from the default 5 ms base instead of the largest legal host-written base (HICCUP_BASE_MAX_CLKS), which is the sizing mistake the package warns against",
+   "reason": "Suppose the host writes a hiccup base above about 10.5 ms, which is legal up to 20 ms. On a strike of 1 or more, base<<strike_level then overflows the 20-bit target and wraps to a smaller value, so the cool-down ends early and En comes back on before the commanded interval.",
+   "before": [
+    "hiccup_timer u_hiccup_timer ( .clk(clk),"
+   ],
+   "after": [
+    "hiccup_timer #(.TIMER_W($clog2((HICCUP_BASE_DEFAULT_CLKS << (MAX_STRIKES_DEFAULT-1)) + 1)))",
+    "u_hiccup_timer ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 191,
+   "line": 432,
+   "category": "missing_case",
+   "description": "fault_cause's RUN overcurrent input is wired to the soft-start window trip, so both of its overcurrent inputs carry window_trip_SS and a RUN window trip is never logged",
+   "reason": "When an overcurrent window trip in S_RUN sends the converter into hiccup, the overcurrent bit of FAULT_CAUSE is not set and no episode timestamp is latched. A host read then shows an empty or incomplete fault record. Soft-start trips are still logged.",
+   "before": [
+    "                                .latch_assert(latch_out),",
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_out),",
+    "                                .window_trip(window_trip_SS),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 192,
+   "line": 391,
+   "category": "field",
+   "description": "reg_file's STRIKE_LEVEL telemetry is zeroed once the CPLD's strike latch has tripped, copying fault_LED's 'latch outranks strikes' priority into the register map. strike_counter deliberately keeps the count readable after latching.",
+   "reason": "Once the third hiccup trips latch_out, a host read of STRIKE_LEVEL returns 0 instead of the accumulated count of 3. Before the latch trips the value read is unchanged.",
+   "before": [
+    "                          .uvlo_state(UVLO_sync_db),",
+    "                          .strike_level(strike_level),"
+   ],
+   "after": [
+    "                          .uvlo_state(UVLO_sync_db),",
+    "                          .strike_level(latch_out ? '0 : strike_level),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 193,
+   "line": 396,
+   "category": "field",
+   "description": "reg_file's FCOUNT_SS telemetry is gated by S_SS, mirroring the way fault_arbiter gates window_trip_SS by its own state. But the soft-start count is meant to stay frozen, and readable, through S_RUN.",
+   "reason": "Suppose some valley-current cycles are counted during soft start without tripping. A host that reads FCOUNT_SS in S_RUN then gets 0 instead of the frozen soft-start count fault_arbiter still holds.",
+   "before": [
+    "                          .fault_count_ss(fault_count_ss),"
+   ],
+   "after": [
+    "                          .fault_count_ss(ss_active ? fault_count_ss : '0),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 194,
+   "line": 388,
+   "category": "missing_case",
+   "description": "The switch-press pulse that restores the host enable is ignored while a debounced OTP or UVLO is live, as if a press should only re-enable a board that is able to start.",
+   "reason": "Take a host that has cleared CONTROL's enable. If the user toggles the switch on during over-temperature or undervoltage, spi_enable is not restored. When the fault clears, the converter stays in S_OFF and CONTROL still reads disabled, where it should restart.",
+   "before": [
+    "                          .en_switch_rise(en_switch_rise),"
+   ],
+   "after": [
+    "                          .en_switch_rise(en_switch_rise & ~OTP_sync_db & ~UVLO_sync_db),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 195,
+   "line": 139,
+   "category": "wrong_event",
+   "description": "UVLO is only qualified while the gate driver is enabled. This borrows the 'a routine power-down asserts UVLO' rule to ignore UVLO when not switching, so the debounced UVLO the FSM sees drops in S_OFF.",
+   "reason": "With UVLO_trig held high and the board enabled, UVLO_sync_db releases 200 us after shutdown. The supervisor then leaves S_OFF for S_SS into an undervoltage input and cycles on and off. Red_LED3 also goes dark in S_OFF while UVLO is still asserted.",
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync & En), .flag_out(UVLO_sync_db));"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 196,
+   "line": 436,
+   "category": "reset_init",
+   "description": "fault_cause's clear-on-read is suppressed while the converter is in S_SS or S_RUN, meant to avoid wiping an episode still in progress. The record and its fault_time then survive a host read that should close the read window.",
+   "reason": "Say a fault has been recorded and the host reads the record through 0x20 while the converter is running. The cause byte and the FTIME bytes are not cleared, so the next read returns the stale causes and the old episode-start time, where it should return a fresh, empty record.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done & ~(ss_active | run_active)),"
+   ],
+   "run": "2026-11-28_write_mutants_12"
+  },
+  {
+   "key": 197,
+   "line": 491,
+   "category": "boundary",
+   "description": "fault_LED's blink half-period is overridden with the full 250 ms period of the intended 4 Hz blink, so the period is mistaken for the half-period.",
+   "reason": "While strikes are outstanding and no latch is set, Red_LED1 toggles every 250 ms (a 2 Hz blink) instead of every 125 ms. A board recovering through its roughly 1 s clean-run window then shows only two blink cycles.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),"
+   ],
+   "after": [
+    "fault_LED #(.LED_BLINK_HALF_CLKS(ms_to_clks(250))) u_fault_LED (   .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 198,
+   "line": 389,
+   "category": "field",
+   "description": "The FAULT_FLAGS current-protection status bit is masked while the modulator PWM is high, on the idea that the valley comparator only means something during low-side conduction.",
+   "reason": "A host read of FAULT_FLAGS shows the CP bit clear whenever the synchronised Osc_in is high, even though CP_trig is asserted. With the modulator held high, or a read landing in the on-time, a live overcurrent comparator is not reported.",
+   "before": [
+    "                          .cp_state(CP_sync),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync & ~Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 199,
+   "line": 389,
+   "category": "missing_case",
+   "description": "reg_file's UVLO status bit is masked outside S_SS and S_RUN, copying fault_cause's 'a routine power-down asserts UVLO' capture rule into the live status register.",
+   "reason": "In S_OFF with the debounced UVLO asserted (for example after reset with the input rail low), FAULT_FLAGS reads UVLO clear even though UVLO is what holds the supervisor off. The host cannot see why the converter will not start.",
+   "before": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),",
+    "                          .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),",
+    "                          .uvlo_state(UVLO_sync_db & (ss_active | run_active)),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 200,
+   "line": 313,
+   "category": "missing_case",
+   "description": "strike_counter's clean-run streak is also broken whenever the output comparator reports the rail out of window, so 'fault-free running' is taken to need the rail in regulation as well as no overcurrent window trip.",
+   "reason": "In S_RUN with PGOOD_comp low, or dipping now and then, the clean-run counter keeps restarting. strike_level then never clears after clean_run_target cycles: STRIKE_LEVEL stays non-zero, Red_LED1 keeps blinking and the next hiccup cool-down is longer than it should be.",
+   "before": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip | ~PGOOD_comp_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 201,
+   "line": 472,
+   "category": "other",
+   "description": "pgood_gen treats a live valley-current comparator as 'rail not good', so any CP_trig assertion in S_RUN clears the power-good qualification",
+   "reason": "In S_RUN with the output comparator good, any clock with the synchronised CP_trig high, even far below the window trip count, drops PGOOD and switch_supply at once. They then stay low for the full 9 ms requalification, though the supervisor never leaves S_RUN.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync & ~CP_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 202,
+   "line": 472,
+   "category": "missing_case",
+   "description": "pgood_gen is qualified on S_RUN with no strikes outstanding, as if the housekeeping rail must not be handed to a converter still proving itself after a hiccup",
+   "reason": "After a hiccup retry reaches S_RUN with a good rail, PGOOD and switch_supply stay low through the whole clean-run window and only qualify after strike_counter clears strike_level. Unmutated, they assert after the 9 ms qualification.",
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active & (strike_level == '0)),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 203,
+   "line": 308,
+   "category": "other",
+   "description": "The debounced over-temperature flag is added as a second CPLD trip source into the shared SCR latch, as if OTP were a hard fault to latch, instead of latch_out following strike_counter's latch_assert alone",
+   "reason": "A debounced OTP drives latch_out high in any state, with no strikes counted. The supervisor and fault_LED then see latch_assert, so Red_LED1 goes solid and fault_cause logs a LATCH cause where only OTP should show.",
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic strike_latch_assert;",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(strike_latch_assert)",
+    "                                );",
+    "assign latch_out = strike_latch_assert | OTP_sync_db;"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 204,
+   "line": 497,
+   "category": "missing_case",
+   "description": "fault_LED's running indication is suppressed while strikes are outstanding, so Green_LED is not lit together with the blinking Red_LED1 during the clean-run window",
+   "reason": "After a hiccup, Green_LED stays dark through the retry's soft start and S_RUN until strike_level is cleared. fault_LED's header requires green to be lit alongside the strike blink while the board runs and proves itself.",
+   "before": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level),",
+    "                                .ss_active(ss_active & (strike_level == '0)),",
+    "                                .run_active(run_active & (strike_level == '0)),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 205,
+   "line": 469,
+   "category": "wrong_event",
+   "description": "pgood_gen gets the inverted modulator PWM, so it counts its qualifying cycles at high-side turn-on (the cycle boundary fault_arbiter uses) instead of at the end of each pulse",
+   "reason": "In S_RUN with the rail in window, PGOOD and switch_supply rise on a PWM rising edge instead of a falling one, so the moment they assert moves by the PWM on-time. The PGOOD qualifying count also starts from a different edge after each entry into S_RUN.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(~Osc_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 206,
+   "line": 312,
+   "category": "wrong_event",
+   "description": "strike_counter counts a strike on the overcurrent window trip itself instead of on entry into S_HICCUP, as if 'a strike' were the trip rather than the hiccup it causes",
+   "reason": "strike_level and latch_out change one clock early, on the clock the FSM leaves S_SS/S_RUN rather than the clock after it enters S_HICCUP. A trip on the same clock as a hard fault (OTP, UVLO, switch off) sends the FSM to S_OFF, yet a strike is still counted, so later hiccups are longer and latch_out trips early.",
+   "before": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),"
+   ],
+   "after": [
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(window_trip | window_trip_SS),"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 207,
+   "line": 350,
+   "category": "sequencing",
+   "description": "MISO is retimed through an extra clk flop 'to deglitch it', though the header says both terms are already flops and MISO is driven straight from them",
+   "reason": "Every MISO transition during a read comes one clk later than spi_slave's shift edge. On deselect, MISO stays high for one extra clock after sdio_oe has dropped.",
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "        if (!rst_n) begin MISO <= 1'b0; end",
+    "        else begin MISO <= sdio_oe & sdio_out; end",
+    "    end"
+   ],
+   "run": "2026-11-28_write_mutants_13"
+  },
+  {
+   "key": 208,
+   "line": 491,
+   "category": "reset_init",
+   "description": "fault_LED is held in reset while the debounced enable switch is off, as if a switched-off board should show a dark front panel. The LEDs must show what is wrong now, in every state.",
+   "reason": "With the enable switch off, a live debounced OTP, UVLO or SCR latch read-back no longer lights Red_LED2, Red_LED3 or Red_LED1. They stay dark until the switch has been on for 20 ms, and the blink timebase restarts on each switch-on.",
+   "before": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n),"
+   ],
+   "after": [
+    "fault_LED u_fault_LED       (   .clk(clk),",
+    "                                .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 209,
+   "line": 369,
+   "category": "field",
+   "description": "reg_file is instanced with its two magic key bytes swapped: DISABLE_KEY is set to the write-access value 0xA7 and WRITE_ACCESS_KEY to the disable value 0xD1",
+   "reason": "The documented sequence, 0xD1 to DISABLE_KEY then CONTROL bit 0 cleared, no longer arms the disable, so spi_enable and En stay high. 0xD1 at 0x4F no longer unlocks the threshold bank, so a keyed threshold write sets write_rejected and leaves the thresholds unchanged.",
+   "before": [
+    "    reg_file u_reg_file ( .clk(clk),"
+   ],
+   "after": [
+    "    reg_file #(.DISABLE_KEY_ID(8'hA7), .WRITE_ACCESS_KEY_ID(8'hD1))",
+    "             u_reg_file ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 210,
+   "line": 483,
+   "category": "boundary",
+   "description": "The timestamp prescaler is handed PRESCALE_VAL minus one, an off-by-one 'fix' made at the call site although timestamp already compares its prescaler with PRESCALE_VAL-1",
+   "reason": "The millisecond tick comes every 49999 clocks instead of 50000, so timestamp_ms runs fast by one clock per tick. TIME_0..2, the fault_time snapshot and the 5 s host watchdog drift, and a read near a tick boundary returns a count one higher than the true elapsed milliseconds.",
+   "before": [
+    "    timestamp u_timestamp       ("
+   ],
+   "after": [
+    "    timestamp #(.PRESCALE_VAL(PRESCALE_VAL - 1)) u_timestamp ("
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 211,
+   "line": 307,
+   "category": "sequencing",
+   "description": "latch_out is retimed through an extra output flop 'because it drives the SCR gate', though the header says it is driven straight from strike_counter's latch_assert",
+   "reason": "On the hiccup entry that reaches the strike limit, latch_out rises one clock late. The supervisor, fault_cause and fault_LED, which all read latch_out, also see the CPLD's strike latch a clock later, so the Red_LED1 solid indication is a clock late too.",
+   "before": [
+    "",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic latch_assert_q;   // strike_counter's latch_assert, before the output register",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_assert_q)",
+    "                                );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin latch_out <= 1'b0; end",
+    "    else begin latch_out <= latch_assert_q; end",
+    "end"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 212,
+   "line": 329,
+   "category": "sequencing",
+   "description": "The gate PWM gets a second pin register at the top level for glitch-free output, although pwm_mask's output is already a flop",
+   "reason": "Both edges of every PWM_out pulse lag Osc_in by one more clock than designed. This includes the truncated edge where the on-time ceiling cuts a long pulse, so the gate drive runs one clock behind the modulator in S_SS and S_RUN.",
+   "before": [
+    "",
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),",
+    "                        .pwm_out(PWM_out)",
+    "                        );"
+   ],
+   "after": [
+    "logic pwm_mask_out;   // pwm_mask's masked PWM, before the pin register",
+    "pwm_mask u_pwm_mask ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .max_on_counts(max_on_counts),",
+    "                        .pwm_out(pwm_mask_out)",
+    "                        );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin PWM_out <= 1'b0; end",
+    "    else begin PWM_out <= pwm_mask_out; end",
+    "end"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 213,
+   "line": 354,
+   "category": "protocol",
+   "description": "spi_slave's SCK falling edge is taken straight from the unfiltered synchronised SCK, so only the rising (sampling) edge goes through the glitch filter, as if only the sample edge needed filtering",
+   "reason": "sck_fall now comes 8 clocks earlier than the filtered rising edge, so MISO changes 160 ns earlier in each bit. A short low glitch on SCK during its high phase now makes a false fall and rise, which shifts an extra bit and corrupts the frame (CRC fail and txn_abort on a write, wrong read data).",
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(sck_filt & sck_sync),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 214,
+   "line": 372,
+   "category": "missing_case",
+   "description": "reg_file's timestamp snapshot is only taken for reads that begin inside the TIME bank (0x18-0x1A), though rd_first must freeze it at the start of any read",
+   "reason": "A burst read that starts below 0x18, for example at STATUS 0x10, and sweeps through 0x18-0x1A returns the snapshot left by an earlier read, or 0 after reset, instead of the current timestamp.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first && (spi_addr >= 7'h18) && (spi_addr <= 7'h1A)),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 215,
+   "line": 352,
+   "category": "boundary",
+   "description": "The dead-master SCK idle timeout is given the 5 s host-silence watchdog interval (WD_TIMEOUT_MS) instead of its own 2 ms",
+   "reason": "If the master stops clocking with CS still low, the slave reaches S_DEAD only after 5 s, not 2 ms. During a read MISO keeps showing read data that long, and a stalled write is not poisoned in that time.",
+   "before": [
+    "    spi_slave u_spi_slave ( .clk(clk),"
+   ],
+   "after": [
+    "    spi_slave #(.SCK_IDLE_TIMEOUT_CLKS(ms_to_clks(5000)))",
+    "              u_spi_slave ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 216,
+   "line": 397,
+   "category": "field",
+   "description": "reg_file's FAULT_TIME registers are given the age of the episode (timestamp_ms minus the episode-start snapshot) instead of the episode-start time itself, reading 'timestamp of the fault' as 'time since the fault'",
+   "reason": "A host reading FTIME_0..2 after a logged fault gets a value that grows with every read instead of the frozen start time. With no fault logged (fault_time cleared to 0) it reads the live timestamp instead of zero.",
+   "before": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),",
+    "                          .fault_time(fault_time),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),",
+    "                          .fault_time(timestamp_ms - fault_time),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 217,
+   "line": 496,
+   "category": "field",
+   "description": "fault_LED's 'strikes outstanding' is taken to mean strikes remaining before the latch (max_strikes - strike_level) instead of strikes accumulated",
+   "reason": "After reset, with no strikes and the default nonzero strike limit, Red_LED1 blinks although nothing has happened. Once the accumulated count reaches the limit the blink stops unless a latch makes the LED solid.",
+   "before": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .latch_assert(latch_out),",
+    "                                .strike_level(max_strikes - strike_level),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 218,
+   "line": 308,
+   "category": "other",
+   "description": "The CPLD's trip drive latch_out is held on while the debounced SCR read-back is set, as if the gate drive had to sustain the SCR, instead of following strike_counter's latch_assert alone",
+   "reason": "When the analog OVP fires the SCR, latch_out goes high and stays high until reset, though the CPLD never tripped. fault_cause then sees latch_assert set and stops logging the event as OVP.",
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic sc_latch_assert;",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(sc_latch_assert)",
+    "                                );",
+    "assign latch_out = sc_latch_assert | latch_stat_sync_db;"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 219,
+   "line": 273,
+   "category": "missing_case",
+   "description": "The supervisor ignores input undervoltage during soft start, as if input-rail sag from the start-up inrush were expected and had to be blanked",
+   "reason": "If a debounced UVLO occurs in S_SS, En stays high and the FSM does not go to S_OFF. The converter keeps switching until it reaches S_RUN, although the header says UVLO forces S_OFF from every state.",
+   "before": [
+    "                        .UVLO(UVLO_sync_db),"
+   ],
+   "after": [
+    "                        .UVLO(UVLO_sync_db & ~ss_active),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 220,
+   "line": 372,
+   "category": "protocol",
+   "description": "Host write data is bit-reversed before reg_file, as if spi_slave assembled bytes LSB-first, though the bus is MSB-first",
+   "reason": "Every host write lands bit-reversed. A threshold write sets the wrong value, and the key bytes no longer match (0xA7 arrives as 0xE5), so unlock and disable writes fail. Reads are not affected.",
+   "before": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),"
+   ],
+   "after": [
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata({<<{spi_wdata}}),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 221,
+   "line": 300,
+   "category": "sequencing",
+   "description": "The hiccup_done handshake from hiccup_timer is registered once more at the top level before the supervisor, so the cool-down end is acted on one clock late",
+   "reason": "Each hiccup cool-down lasts one clock longer than base << strike_level, so En rises again for the soft-start retry one clock later than it should.",
+   "before": [
+    "hiccup_timer u_hiccup_timer ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),",
+    "                                .hiccup_done(hiccup_done)",
+    "                                );"
+   ],
+   "after": [
+    "logic hiccup_done_tmr;",
+    "hiccup_timer u_hiccup_timer ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),",
+    "                                .hiccup_done(hiccup_done_tmr)",
+    "                                );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) hiccup_done <= 1'b0;",
+    "    else        hiccup_done <= hiccup_done_tmr;",
+    "end"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 222,
+   "line": 269,
+   "category": "priority",
+   "description": "A completed ramp outranks a soft-start overcurrent trip: window_trip_SS is masked by SS_done at the supervisor, so a same-clock trip hands over to S_RUN instead of hiccuping",
+   "reason": "If window_trip_SS asserts on the clock SS_done rises, the FSM goes to S_RUN with En held high instead of to S_HICCUP. The trip is lost, because window_trip_SS is only produced in S_SS, so there is no hiccup and no strike.",
+   "before": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS & ~SS_done),"
+   ],
+   "run": "2026-11-28_write_mutants_14"
+  },
+  {
+   "key": 223,
+   "line": 263,
+   "category": "sequencing",
+   "description": "soft_start's SS_done handshake is registered once more at the top level before the supervisor, so the end of the ramp is acted on one clock late",
+   "reason": "Every S_SS to S_RUN changeover happens one clock later, so run_active, PGOOD qualification and the Green_LED/state telemetry move a clock. After a quick S_RUN to S_OFF to S_SS sequence, the stale registered SS_done can also send a fresh soft start straight to S_RUN without ramping.",
+   "before": [
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "logic SS_done_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) SS_done_q <= 1'b0;",
+    "    else        SS_done_q <= SS_done;",
+    "end",
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done_q),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 224,
+   "line": 263,
+   "category": "sequencing",
+   "description": "fault_arbiter's RUN window trip is retimed through a flop before the supervisor to break the counter-compare path, so the S_RUN to S_HICCUP exit lands one clock after the trip",
+   "reason": "When the RUN overcurrent window trips, En stays high and the gate keeps switching for one extra clock. The hiccup entry, the strike increment and the cool-down start all happen a clock later.",
+   "before": [
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),",
+    "                        .rst_n(rst_n),",
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),",
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "logic window_trip_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) window_trip_q <= 1'b0;",
+    "    else        window_trip_q <= window_trip;",
+    "end",
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),",
+    "                        .rst_n(rst_n),",
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),",
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip_q),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 225,
+   "line": 368,
+   "category": "sequencing",
+   "description": "spi_slave's combinational rd_first is registered before reg_file as an ordinary strobe, so the read snapshot is taken one clock after the first read byte has already been loaded",
+   "reason": "In a read that starts in the TIME bank, the first byte is served from the previous read's timestamp snapshot instead of the live value. The following bytes come from the new snapshot, so a multi-byte TIME read tears.",
+   "before": [
+    "",
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n),",
+    "",
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),"
+   ],
+   "after": [
+    "",
+    "    logic rd_first_q;",
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "        if (!rst_n) rd_first_q <= 1'b0;",
+    "        else        rd_first_q <= spi_rd_first;",
+    "    end",
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n),",
+    "",
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(rd_first_q),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 226,
+   "line": 397,
+   "category": "field",
+   "description": "FAULT_CAUSE is read through a priority encoder that keeps only the highest set cause bit, from reading 'priority is encoded in bit position' as 'report the top cause only', though the record is a one-hot OR accumulation",
+   "reason": "When an episode records two causes, for example OTP and UVLO both live while running, a host read of 0x1D shows only the higher bit instead of both.",
+   "before": [
+    "                          .fault_reg(fault_reg),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg & ~((fault_reg >> 1) | (fault_reg >> 2) | (fault_reg >> 3) | (fault_reg >> 4))),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 227,
+   "line": 389,
+   "category": "field",
+   "description": "The FAULT_FLAGS over-temperature bit ORs in fault_cause's recorded OTP cause, making the live status flag sticky like the fault record",
+   "reason": "After an over-temperature in S_SS/S_RUN has cleared, FAULT_FLAGS bit 1 still reads 1 until the host reads 0x20 and the record clears, instead of following the debounced OTP flag.",
+   "before": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                          .cp_state(CP_sync),",
+    "                          .otp_state(OTP_sync_db | fault_reg[2]),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 228,
+   "line": 436,
+   "category": "field",
+   "description": "The fault record is also cleared by a write to FAULT_CAUSE (0x1D), applying the write-1-to-clear convention to a register that is read-only and clears on read",
+   "reason": "A host write burst that touches 0x1D wipes fault_reg and fault_time, even though that address is read-only and the write is rejected, so the next read of the record comes back empty.",
+   "before": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .run_active(run_active),",
+    "                                .fault_reg_read_done(fault_reg_read_done | (spi_wr_en && (spi_addr == 7'h1D))),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 229,
+   "line": 269,
+   "category": "missing_case",
+   "description": "The supervisor ignores over-temperature during S_HICCUP, on the idea that the cool-down already holds the gate off and the retry will catch it",
+   "reason": "An OTP that asserts during a hiccup cool-down leaves the FSM in S_HICCUP instead of sending it to S_OFF. The state read back over SPI and the restart timing change: the retry follows hiccup_done instead of the OTP release.",
+   "before": [
+    "                        .OTP(OTP_sync_db),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db & ~hiccup_active),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 230,
+   "line": 469,
+   "category": "boundary",
+   "description": "pgood_gen's qualifying count is given the delay in milliseconds (PGOOD_DELAY_MS = 9) where it expects switching cycles, so a unit conversion is left out",
+   "reason": "PGOOD and switch_supply assert after 9 good switching cycles (about 20 us) in S_RUN instead of 4050 (9 ms), so the housekeeping rail is handed over before the output has settled.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(PGOOD_DELAY_MS)) u_pgood_gen ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 231,
+   "line": 319,
+   "category": "boundary",
+   "description": "soft_start's ramp floor is given the summed floor in nanoseconds (240) without ns_to_clks, so a value in ns is used as a clk count",
+   "reason": "The truncated floor (112 counts) is above the 83-count limit. Every soft start clamps to the limit and asserts SS_done on its first clock with no ramp, and outside S_SS/S_RUN pwm_mask's ceiling is 112 counts instead of 12.",
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),"
+   ],
+   "after": [
+    "soft_start #(.MIN_ON_COUNTS(LM5106_SHRINK_NS + MIN_GATE_ON_NS)) u_soft_start ( .clk(clk),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 232,
+   "line": 358,
+   "category": "protocol",
+   "description": "Register read data is bit-reversed before spi_slave, as if the slave shifted MISO out LSB-first, though the bus is MSB-first",
+   "reason": "Every register read the host makes comes back bit-reversed on MISO. For example PMIC_ID 0xB5 reads as 0xAD, and the read CRC no longer covers the bytes the host sees.",
+   "before": [
+    "                            .sdio_oe(sdio_oe),",
+    "                            .addr(spi_addr),",
+    "                            .wr_en(spi_wr_en),",
+    "                            .wdata(spi_wdata),",
+    "                            .rdata(spi_rdata),"
+   ],
+   "after": [
+    "                            .sdio_oe(sdio_oe),",
+    "                            .addr(spi_addr),",
+    "                            .wr_en(spi_wr_en),",
+    "                            .wdata(spi_wdata),",
+    "                            .rdata({spi_rdata[0], spi_rdata[1], spi_rdata[2], spi_rdata[3], spi_rdata[4], spi_rdata[5], spi_rdata[6], spi_rdata[7]}),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 233,
+   "line": 397,
+   "category": "field",
+   "description": "The free-running timestamp reaches reg_file with its three bytes in reverse order, so TIME_0 at 0x18 holds the most significant byte instead of the least",
+   "reason": "After the first millisecond tick, a read of TIME_0..TIME_2 returns the timestamp bytes swapped end for end. reg_file's host-silence watchdog also does its arithmetic on this non-monotonic value, so its timeout moves.",
+   "before": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms({timestamp_ms[7:0], timestamp_ms[15:8], timestamp_ms[TIMESTAMP_W-1:16]}),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 234,
+   "line": 397,
+   "category": "field",
+   "description": "fault_cause's episode-start time reaches reg_file byte-reversed, so FTIME_0 at 0x1E reports the most significant byte",
+   "reason": "Once a fault has been logged at a nonzero timestamp, reading FTIME_0..FTIME_2 gives the start-time bytes in the wrong order.",
+   "before": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),",
+    "                          .fault_time(fault_time),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg),",
+    "                          .timestamp_ms(timestamp_ms),",
+    "                          .fault_time({fault_time[7:0], fault_time[15:8], fault_time[TIMESTAMP_W-1:16]}),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 235,
+   "line": 397,
+   "category": "field",
+   "description": "The one-hot fault-cause record is wired to reg_file bit-reversed, as if bit 0 were the highest-priority cause, so OC appears in the OVP position and OVP in the OC position",
+   "reason": "After any logged fault other than OTP, a read of FAULT_CAUSE (0x1D) reports the wrong cause bit. For example, a RUN overcurrent hiccup reads as bit 4 (OVP) instead of bit 0.",
+   "before": [
+    "                          .fault_reg(fault_reg),"
+   ],
+   "after": [
+    "                          .fault_reg({fault_reg[0], fault_reg[1], fault_reg[2], fault_reg[3], fault_reg[4]}),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 236,
+   "line": 309,
+   "category": "boundary",
+   "description": "strike_counter is given the strike limit plus one, as if MAX_STRIKES counted the hiccups allowed before the latching strike rather than the latching strike itself",
+   "reason": "If the host writes MAX_STRIKES to 1 or 2, latch_out asserts one hiccup later than configured. At the default of 3 the sum wraps in STRIKE_W bits, so the latching point moves too.",
+   "before": [
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),"
+   ],
+   "after": [
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes + STRIKE_W'(1)),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 237,
+   "line": 469,
+   "category": "sequencing",
+   "description": "run_active is retimed through a flop before pgood_gen to break the supervisor-to-PGOOD path, so the power-good qualifier lags the FSM by a clock",
+   "reason": "When the supervisor leaves S_RUN on a trip, UVLO, OTP or disable, PGOOD and switch_supply drop one clock after En instead of on the same clock. This breaks the immediate hand-back the header requires.",
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "logic run_active_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) begin run_active_q <= 1'b0; end",
+    "    else begin run_active_q <= run_active; end",
+    "end",
+    "pgood_gen u_pgood_gen ( .clk(clk),",
+    "                        .rst_n(rst_n),",
+    "                        .pwm_sync(Osc_sync),",
+    "                        .pgood_comp(PGOOD_comp_sync),",
+    "                        .run_active(run_active_q),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 238,
+   "line": 162,
+   "category": "protocol",
+   "description": "The CS_n glitch filter is given half the SPI filter length, as if chip select only had to beat the first SCK edge, against the header's rule that all three SPI filters carry identical parameters",
+   "reason": "A 4-7 clock low glitch on CS_n now selects the slave and is judged as an aborted transaction. A CS rise that closely follows the last SCK edge is also seen before that filtered edge, which cuts the transaction short.",
+   "before": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b1))"
+   ],
+   "after": [
+    "    input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS/2), .RELEASE_CLKS(SPI_FILTER_CLKS/2), .RESET_VALUE(1'b1))"
+   ],
+   "run": "2026-11-28_write_mutants_15"
+  },
+  {
+   "key": 239,
+   "line": 325,
+   "category": "other",
+   "description": "The per-strike doubling meant for the hiccup cool-down is also applied to soft_start's ramp rate, so each strike doubles the switching cycles held at every ceiling step of the retry ramp",
+   "reason": "The first ramp after reset is unchanged (strike_level 0). On a soft-start retry after a hiccup, the ceiling rises half as fast at strike 1 and a quarter as fast at strike 2. PWM_out pulses stay truncated for longer, and SS_done, the S_RUN entry, PGOOD, switch_supply and Green_LED all come later.",
+   "before": [
+    "                                .max_on_limit(max_on_limit),",
+    "                                .cycles_per_step(cycles_per_step),"
+   ],
+   "after": [
+    "                                .max_on_limit(max_on_limit),",
+    "                                .cycles_per_step(cycles_per_step << strike_level),"
+   ],
+   "run": "2026-11-28_write_mutants_15"
   }
  ],
  "unit": "pmic_top",
  "file": "rtl-systemverilog/pmic_top.sv",
- "last_key": 88
+ "last_key": 239
 }

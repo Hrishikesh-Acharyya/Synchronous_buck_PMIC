@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 354,
+   "before": [
+    "                            .sck(sck_filt),"
+   ],
+   "after": [
+    "                            .sck(~sck_filt),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave is handed the inverted filtered SCK, as if the bus were CPOL=1 (Mode 3) instead of Mode 0, so it samples MOSI on the master's falling SCK edge and shifts MISO on the rising edge",
+   "reason": "In every SPI transaction the slave samples and shifts on the wrong clock phase, and it sees SCK idling high. Command, address, write data and CRC are taken half a bit late, so register writes are rejected or land wrongly and MISO read data is shifted, which shows on the MISO pin and in the control outputs."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.354.AIM.92"
+ },
+ {
+  "proposal": {
+   "line": 421,
+   "before": [
+    "                            .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                            .pwm_sync(~Osc_sync),"
+   ],
+   "category": "field",
+   "description": "pwm_stats measures the inverted modulator PWM, so DUTY_COUNT reports the low-side (off) time of each cycle instead of the high-side on-time",
+   "reason": "Once the modulator is switching, a host read of DUTY_COUNT (0x13) returns about period minus on-time instead of the on-time, for any duty other than 50%. PREV_PERIOD is now measured falling edge to falling edge, so it still reads about the same in steady state."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.421.AIM.93"
+ },
+ {
+  "proposal": {
+   "line": 293,
+   "before": [
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .pwm_sync(~Osc_sync),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_arbiter's per-cycle CP sample is taken at high-side turn-off (the falling PWM edge, near peak current) instead of at turn-on (the valley), mixing up which edge ends low-side conduction",
+   "reason": "In S_SS and S_RUN each window sample, and so each window_trip / window_trip_SS, is taken one on-time away from the valley instant. A CP_trig level that is present at one edge but not the other is counted wrongly, so the time En drops and the FSM enters hiccup moves, and FCOUNT_RUN/FCOUNT_SS read differently."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.293.AIM.94"
+ },
+ {
+  "proposal": {
+   "line": 321,
+   "before": [
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .pwm_sync(~Osc_sync),"
+   ],
+   "category": "wrong_event",
+   "description": "soft_start counts ramp cycles and widens the ceiling at the PWM turn-on edge instead of after each pulse has ended, so each step lands as a pulse starts",
+   "reason": "During S_SS each ceiling step lands at the rising edge of the cycle that completes the step count, so that pulse already gets the wider ceiling. The masked PWM_out pulses widen one cycle earlier than the design intends, and SS_done (so the move to S_RUN) comes one on-time early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.321.AIM.95"
+ },
+ {
+  "proposal": {
+   "line": 312,
+   "before": [
+    "                                .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                                .pwm_sync(PWM_out),"
+   ],
+   "category": "wrong_event",
+   "description": "strike_counter takes its clean-run cycle boundary from the masked, registered gate PWM_out instead of the synchronised modulator PWM",
+   "reason": "In S_RUN after a hiccup, the clean-run counter now steps when PWM_out falls: one clock late, or early at the on-time ceiling when the pulse is truncated. So the strike_level clear, and the moment Red_LED1 stops blinking, moves off the modulator's cycle boundary that the rest of the design uses."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.312.AIM.96"
+ },
+ {
+  "proposal": {
+   "line": 323,
+   "before": [
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .run_active(run_active | hiccup_active),"
+   ],
+   "category": "reset_init",
+   "description": "soft_start's hold branch covers S_HICCUP as well as S_RUN, so a hiccup does not reset the ramped ceiling and SS_done to the floor; only S_OFF does",
+   "reason": "After a RUN overcurrent sends the FSM into S_HICCUP, the retry enters S_SS still holding SS_done=1 and the full max_on_limit ceiling. The supervisor moves to S_RUN one clock later and PWM_out runs at full on-time without re-ramping, which the header requires every hiccup retry to do."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.323.AIM.97"
+ }
+]

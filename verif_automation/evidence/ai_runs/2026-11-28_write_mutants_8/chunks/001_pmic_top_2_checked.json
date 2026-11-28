@@ -1,0 +1,121 @@
+[
+ {
+  "proposal": {
+   "line": 138,
+   "before": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_OTP_sync_db (.clk(clk), .rst_n(rst_n), .flag_in(~OTP_sync), .flag_out(OTP_sync_db));"
+   ],
+   "category": "other",
+   "description": "The over-temperature comparator is read as active low (the open-drain thermal-warning convention), so its synchronised level is inverted before debouncing",
+   "reason": "With OTP_trig low (normal temperature), OTP_sync_db asserts after the 1 ms qualification. The supervisor then stays in S_OFF with En low and Red_LED2 lit, and a real over-temperature (OTP_trig high) is what lets it start."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.138.AIM.149"
+ },
+ {
+  "proposal": {
+   "line": 472,
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "                        .pgood_comp(~PGOOD_comp_sync),"
+   ],
+   "category": "other",
+   "description": "The output-rail window comparator is taken as an active-low power-fail output, so pgood_gen is handed its inverted synchronised level",
+   "reason": "In S_RUN with PGOOD_comp high (rail in regulation), PGOOD and switch_supply stay low. With the comparator low (rail out of window), PGOOD asserts once the qualifying cycles have passed, so the changeover moves onto a rail that has failed."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.472.AIM.150"
+ },
+ {
+  "proposal": {
+   "line": 136,
+   "before": [
+    "                         .flag_in(en_from_switch_sync),"
+   ],
+   "after": [
+    "                         .flag_in(~en_from_switch_sync),"
+   ],
+   "category": "other",
+   "description": "The physical enable switch is treated as active low (a switch to ground with a pull-up), so its synchronised level is inverted before the 20 ms debouncer",
+   "reason": "With en_from_switch low (switch off), the debounced enable asserts after 20 ms and the supervisor starts the converter (En high, soft start). Turning the switch on shuts it down. reg_file's switch status bit and the press edge detector are inverted too."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.136.AIM.151"
+ },
+ {
+  "proposal": {
+   "line": 289,
+   "before": [
+    "                                .trip_run(trip_run),"
+   ],
+   "after": [
+    "                                .trip_run(trip_run - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "fault_arbiter is handed the RUN trip threshold minus one, as if it tripped on count > trip_run, though it already compares with >=",
+   "reason": "In S_RUN, a window holding 11 faulted valley samples out of 16 (one below the default TRIP_RUN of 12) raises window_trip. The supervisor goes to S_HICCUP and a strike is counted, where the design keeps running."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.289.AIM.152"
+ },
+ {
+  "proposal": {
+   "line": 485,
+   "before": [
+    "                                    .rst_n(rst_n),"
+   ],
+   "after": [
+    "                                    .rst_n(rst_n & En),"
+   ],
+   "category": "reset_init",
+   "description": "The fault-log timestamp is held in reset whenever the gate driver is disabled, reading 'time since start of convertor' as time since the converter was enabled, though the timestamp must free-run in every state and be cleared only by rst_n",
+   "reason": "In S_OFF and S_HICCUP, and on the very clock a hard fault drops En, timestamp_ms is held at zero. The live TIME registers read 0 while the converter is off, and fault_cause's episode-start snapshot of a shutdown fault records 0 instead of the elapsed time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.485.AIM.153"
+ },
+ {
+  "proposal": {
+   "line": 96,
+   "before": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "after": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(~Osc_in), .sync_out(Osc_sync));"
+   ],
+   "category": "other",
+   "description": "Master_PWM from the modulator is taken as active low (as if it were the low-side drive command), so it is inverted before its synchroniser",
+   "reason": "Every block then sees the off-time as the on-time. pwm_mask passes PWM_out high while Osc_in is low, the valley CP sample and the cycle boundaries move to the opposite edge, and DUTY_COUNT reports the complement of the real duty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.96.AIM.154"
+ },
+ {
+  "proposal": {
+   "line": 302,
+   "before": [
+    "                                .base_clks(hiccup_base),"
+   ],
+   "after": [
+    "                                .base_clks(hiccup_base - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "hiccup_timer is handed hiccup_base minus one, an off-by-one 'fix' for its counter matching at the target, which shortens every cool-down by 2**strike_level clocks",
+   "reason": "After each entry into S_HICCUP, hiccup_done rises and the supervisor re-enters S_SS (En high) 2**strike_level clocks earlier than the programmed base shifted by the strike level."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.302.AIM.155"
+ }
+]

@@ -1,0 +1,70 @@
+[
+ {
+  "proposal": {
+   "line": 485,
+   "before": [
+    "                                    .rst_n(rst_n),"
+   ],
+   "after": [
+    "                                    .rst_n(rst_n & ~fault_reg_read_done),"
+   ],
+   "category": "reset_init",
+   "description": "The fault-log timestamp is restarted each time the host finishes reading the fault record (fault_reg_read_done), taking the timestamp to be time since the last episode, though it must free-run from rst_n",
+   "reason": "Once the host has read through FTIME_2 (0x20), the TIME_0..2 registers read near zero instead of the time since reset. Every later fault_time snapshot is also measured from that read, not from start-up."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.485.AIM.165"
+ },
+ {
+  "proposal": {
+   "line": 370,
+   "before": [
+    "                          .rst_n(rst_n),"
+   ],
+   "after": [
+    "                          .rst_n(rst_n & en_from_switch_sync_db),"
+   ],
+   "category": "reset_init",
+   "description": "reg_file is held in reset while the debounced enable switch is off, as if switching off were a full reset of the host configuration",
+   "reason": "Host writes to thresholds, CONTROL or SCRATCH are lost while the switch is off. Turning the switch off after configuring puts trip_run, trip_ss, max_strikes, max_on_limit and the rest back to their package defaults, and clears a host disable veto (spi_enable back to 1)."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.370.AIM.166"
+ },
+ {
+  "proposal": {
+   "line": 269,
+   "before": [
+    "                        .OTP(OTP_sync_db),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db | OTP_sync),"
+   ],
+   "category": "other",
+   "description": "The supervisor's over-temperature input ORs the undebounced synchronised OTP flag with the debounced one ('trip at once, debounce only the release'), so the 1 ms assert qualification no longer applies to the FSM",
+   "reason": "An OTP_trig glitch of only a few clocks pulls En low combinationally and sends the FSM to S_OFF, so the converter restarts through soft start. The design rides through glitches shorter than 1 ms."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.269.AIM.167"
+ },
+ {
+  "proposal": {
+   "line": 322,
+   "before": [
+    "                                .ss_active(ss_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active | hiccup_active),"
+   ],
+   "category": "wrong_event",
+   "description": "soft_start's ramp runs through the hiccup cool-down as well as S_SS, as if cool-down plus retry were one ramp period, so the ceiling keeps widening while the gate driver is off",
+   "reason": "The modulator keeps switching during S_HICCUP, so the ceiling (and SS_done) climbs during the cool-down. The retry then starts above MIN_ON_COUNTS, or the FSM leaves S_SS for S_RUN at once, and PWM_out pulses are wide right after re-enable instead of re-ramping from the floor."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.322.AIM.168"
+ }
+]

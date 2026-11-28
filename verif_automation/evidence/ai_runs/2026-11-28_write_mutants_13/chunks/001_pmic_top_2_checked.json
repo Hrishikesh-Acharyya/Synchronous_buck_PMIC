@@ -1,0 +1,94 @@
+[
+ {
+  "proposal": {
+   "line": 472,
+   "before": [
+    "                        .pgood_comp(PGOOD_comp_sync),"
+   ],
+   "after": [
+    "                        .pgood_comp(PGOOD_comp_sync & ~CP_sync),"
+   ],
+   "category": "other",
+   "description": "pgood_gen treats a live valley-current comparator as 'rail not good', so any CP_trig assertion in S_RUN clears the power-good qualification",
+   "reason": "In S_RUN with the output comparator good, any clock with the synchronised CP_trig high, even far below the window trip count, drops PGOOD and switch_supply at once. They then stay low for the full 9 ms requalification, though the supervisor never leaves S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.472.AIM.201"
+ },
+ {
+  "proposal": {
+   "line": 473,
+   "before": [
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .run_active(run_active & (strike_level == '0)),"
+   ],
+   "category": "missing_case",
+   "description": "pgood_gen is qualified on S_RUN with no strikes outstanding, as if the housekeeping rail must not be handed to a converter still proving itself after a hiccup",
+   "reason": "After a hiccup retry reaches S_RUN with a good rail, PGOOD and switch_supply stay low through the whole clean-run window and only qualify after strike_counter clears strike_level. Unmutated, they assert after the 9 ms qualification."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.473.AIM.202"
+ },
+ {
+  "proposal": {
+   "line": 308,
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic strike_latch_assert;",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(strike_latch_assert)",
+    "                                );",
+    "assign latch_out = strike_latch_assert | OTP_sync_db;"
+   ],
+   "category": "other",
+   "description": "The debounced over-temperature flag is added as a second CPLD trip source into the shared SCR latch, as if OTP were a hard fault to latch, instead of latch_out following strike_counter's latch_assert alone",
+   "reason": "A debounced OTP drives latch_out high in any state, with no strikes counted. The supervisor and fault_LED then see latch_assert, so Red_LED1 goes solid and fault_cause logs a LATCH cause where only OTP should show."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.308.AIM.203"
+ },
+ {
+  "proposal": {
+   "line": 498,
+   "before": [
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active & (strike_level == '0)),",
+    "                                .run_active(run_active & (strike_level == '0)),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's running indication is suppressed while strikes are outstanding, so Green_LED is not lit together with the blinking Red_LED1 during the clean-run window",
+   "reason": "After a hiccup, Green_LED stays dark through the retry's soft start and S_RUN until strike_level is cleared. fault_LED's header requires green to be lit alongside the strike blink while the board runs and proves itself."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.498.AIM.204"
+ }
+]

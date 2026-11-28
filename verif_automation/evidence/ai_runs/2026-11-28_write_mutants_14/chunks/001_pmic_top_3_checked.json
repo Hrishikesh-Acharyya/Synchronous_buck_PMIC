@@ -1,0 +1,160 @@
+[
+ {
+  "proposal": {
+   "line": 399,
+   "before": [
+    "                          .fault_time(fault_time),"
+   ],
+   "after": [
+    "                          .fault_time(timestamp_ms - fault_time),"
+   ],
+   "category": "field",
+   "description": "reg_file's FAULT_TIME registers are given the age of the episode (timestamp_ms minus the episode-start snapshot) instead of the episode-start time itself, reading 'timestamp of the fault' as 'time since the fault'",
+   "reason": "A host reading FTIME_0..2 after a logged fault gets a value that grows with every read instead of the frozen start time. With no fault logged (fault_time cleared to 0) it reads the live timestamp instead of zero."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.399.AIM.216"
+ },
+ {
+  "proposal": {
+   "line": 497,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(max_strikes - strike_level),"
+   ],
+   "category": "field",
+   "description": "fault_LED's 'strikes outstanding' is taken to mean strikes remaining before the latch (max_strikes - strike_level) instead of strikes accumulated",
+   "reason": "After reset, with no strikes and the default nonzero strike limit, Red_LED1 blinks although nothing has happened. Once the accumulated count reaches the limit the blink stops unless a latch makes the LED solid."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.497.AIM.217"
+ },
+ {
+  "proposal": {
+   "line": 308,
+   "before": [
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(latch_out)",
+    "                                );"
+   ],
+   "after": [
+    "logic sc_latch_assert;",
+    "strike_counter u_strike_counter ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .max_strikes(max_strikes),",
+    "                                .clean_run_target(clean_run_target),",
+    "                                .pwm_sync(Osc_sync),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .run_active(run_active),",
+    "                                .window_trip(window_trip),",
+    "                                .strike_level(strike_level),",
+    "                                .latch_assert(sc_latch_assert)",
+    "                                );",
+    "assign latch_out = sc_latch_assert | latch_stat_sync_db;"
+   ],
+   "category": "other",
+   "description": "The CPLD's trip drive latch_out is held on while the debounced SCR read-back is set, as if the gate drive had to sustain the SCR, instead of following strike_counter's latch_assert alone",
+   "reason": "When the analog OVP fires the SCR, latch_out goes high and stays high until reset, though the CPLD never tripped. fault_cause then sees latch_assert set and stops logging the event as OVP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.308.AIM.218"
+ },
+ {
+  "proposal": {
+   "line": 273,
+   "before": [
+    "                        .UVLO(UVLO_sync_db),"
+   ],
+   "after": [
+    "                        .UVLO(UVLO_sync_db & ~ss_active),"
+   ],
+   "category": "missing_case",
+   "description": "The supervisor ignores input undervoltage during soft start, as if input-rail sag from the start-up inrush were expected and had to be blanked",
+   "reason": "If a debounced UVLO occurs in S_SS, En stays high and the FSM does not go to S_OFF. The converter keeps switching until it reaches S_RUN, although the header says UVLO forces S_OFF from every state."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.273.AIM.219"
+ },
+ {
+  "proposal": {
+   "line": 375,
+   "before": [
+    "                          .wdata(spi_wdata),"
+   ],
+   "after": [
+    "                          .wdata({<<{spi_wdata}}),"
+   ],
+   "category": "protocol",
+   "description": "Host write data is bit-reversed before reg_file, as if spi_slave assembled bytes LSB-first, though the bus is MSB-first",
+   "reason": "Every host write lands bit-reversed. A threshold write sets the wrong value, and the key bytes no longer match (0xA7 arrives as 0xE5), so unlock and disable writes fail. Reads are not affected."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.375.AIM.220"
+ },
+ {
+  "proposal": {
+   "line": 300,
+   "before": [
+    "hiccup_timer u_hiccup_timer ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),",
+    "                                .hiccup_done(hiccup_done)",
+    "                                );"
+   ],
+   "after": [
+    "logic hiccup_done_tmr;",
+    "hiccup_timer u_hiccup_timer ( .clk(clk),",
+    "                                .rst_n(rst_n),",
+    "                                .base_clks(hiccup_base),",
+    "                                .hiccup_active(hiccup_active),",
+    "                                .strike_level(strike_level),",
+    "                                .hiccup_done(hiccup_done_tmr)",
+    "                                );",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) hiccup_done <= 1'b0;",
+    "    else        hiccup_done <= hiccup_done_tmr;",
+    "end"
+   ],
+   "category": "sequencing",
+   "description": "The hiccup_done handshake from hiccup_timer is registered once more at the top level before the supervisor, so the cool-down end is acted on one clock late",
+   "reason": "Each hiccup cool-down lasts one clock longer than base << strike_level, so En rises again for the soft-start retry one clock later than it should."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.300.AIM.221"
+ },
+ {
+  "proposal": {
+   "line": 270,
+   "before": [
+    "                        .window_trip_SS(window_trip_SS),"
+   ],
+   "after": [
+    "                        .window_trip_SS(window_trip_SS & ~SS_done),"
+   ],
+   "category": "priority",
+   "description": "A completed ramp outranks a soft-start overcurrent trip: window_trip_SS is masked by SS_done at the supervisor, so a same-clock trip hands over to S_RUN instead of hiccuping",
+   "reason": "If window_trip_SS asserts on the clock SS_done rises, the FSM goes to S_RUN with En held high instead of to S_HICCUP. The trip is lost, because window_trip_SS is only produced in S_SS, so there is no hiccup and no strike."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.270.AIM.222"
+ }
+]

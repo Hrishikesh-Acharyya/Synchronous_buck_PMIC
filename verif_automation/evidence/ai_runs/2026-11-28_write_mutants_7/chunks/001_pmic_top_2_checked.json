@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 350,
+   "before": [
+    "    assign MISO = sdio_oe & sdio_out;"
+   ],
+   "after": [
+    "    assign MISO = sdio_oe & sdio_out & ~cs_n_sync;"
+   ],
+   "category": "protocol",
+   "description": "MISO is also cut by the unfiltered synchronised CS_n, so read data drops at once on a deselect (or a CS glitch) instead of following spi_slave's S_READ phase on the filtered chip select",
+   "reason": "During a read, MISO goes low about SPI_FILTER_CLKS clocks before sdio_oe falls after CS_n rises. A CS_n glitch shorter than the filter, which spi_slave ignores, now forces MISO low in the middle of a read data bit."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.350.AIM.138"
+ },
+ {
+  "proposal": {
+   "line": 385,
+   "before": [
+    "                          .pgood(PGOOD),"
+   ],
+   "after": [
+    "                          .pgood(pgood_LED),"
+   ],
+   "category": "sequencing",
+   "description": "reg_file's STATUS power-good bit is fed fault_LED's registered pgood_LED copy instead of PGOOD itself, so telemetry lags the changeover by a clock",
+   "reason": "A STATUS read whose snapshot falls on the clock where PGOOD changes (PGOOD qualifies, or drops on a rail dip or on leaving S_RUN) returns the old PGOOD value. That disagrees with the PGOOD and switch_supply pins."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.385.AIM.139"
+ },
+ {
+  "proposal": {
+   "line": 386,
+   "before": [
+    "                          .latch_state(latch_stat_sync_db),"
+   ],
+   "after": [
+    "                          .latch_state(latch_stat_sync_db | latch_out),"
+   ],
+   "category": "field",
+   "description": "reg_file's SCR latch status bit ORs in the CPLD's own trip drive latch_out, as if 'latch set' meant 'either source driving it', instead of reporting the debounced physical read-back alone",
+   "reason": "After a strike latch, the latch status bit reads 1 as soon as latch_out asserts, before the SCR read-back has debounced. It stays 1 even if the SCR never fires, so STATUS no longer shows only the read-back the supervisor acts on."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.386.AIM.140"
+ },
+ {
+  "proposal": {
+   "line": 473,
+   "before": [
+    "                        .run_active(run_active),"
+   ],
+   "after": [
+    "                        .run_active(run_active & En),"
+   ],
+   "category": "sequencing",
+   "description": "pgood_gen's 'regulating' qualifier is also ANDed with the gate-driver enable, as if PGOOD had to drop with the combinational fault gating of En rather than when the supervisor leaves S_RUN",
+   "reason": "When OTP, UVLO or a latch trip asserts in S_RUN, PGOOD and switch_supply now fall on the same clock as En instead of one clock later, when run_active falls. The qualify counter is also cleared one clock earlier."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.473.AIM.141"
+ },
+ {
+  "proposal": {
+   "line": 311,
+   "before": [
+    "                                .clean_run_target(clean_run_target),"
+   ],
+   "after": [
+    "                                .clean_run_target(clean_run_target - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "strike_counter is handed the clean-run target minus one, taking the counter to count from zero to target-1, although it clears strikes when clean_counter equals the target itself",
+   "reason": "After a hiccup and a retry into S_RUN, strike_level (and the Red_LED1 strike blink) clears after clean_run_target-1 fault-free switching cycles instead of clean_run_target. The strike level is visible over SPI and on Red_LED1."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.311.AIM.142"
+ }
+]

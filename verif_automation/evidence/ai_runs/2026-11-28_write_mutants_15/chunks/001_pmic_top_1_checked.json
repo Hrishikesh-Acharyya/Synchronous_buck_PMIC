@@ -1,0 +1,206 @@
+[
+ {
+  "proposal": {
+   "line": 263,
+   "before": [
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),"
+   ],
+   "after": [
+    "logic SS_done_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) SS_done_q <= 1'b0;",
+    "    else        SS_done_q <= SS_done;",
+    "end",
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done_q),"
+   ],
+   "category": "sequencing",
+   "description": "soft_start's SS_done handshake is registered once more at the top level before the supervisor, so the end of the ramp is acted on one clock late",
+   "reason": "Every S_SS to S_RUN changeover happens one clock later, so run_active, PGOOD qualification and the Green_LED/state telemetry move a clock. After a quick S_RUN to S_OFF to S_SS sequence, the stale registered SS_done can also send a fresh soft start straight to S_RUN without ramping."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.263.AIM.223"
+ },
+ {
+  "proposal": {
+   "line": 263,
+   "before": [
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),",
+    "                        .rst_n(rst_n),",
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),",
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip),"
+   ],
+   "after": [
+    "logic window_trip_q;",
+    "always_ff @(posedge clk or negedge rst_n) begin",
+    "    if (!rst_n) window_trip_q <= 1'b0;",
+    "    else        window_trip_q <= window_trip;",
+    "end",
+    "supervisor u_supervisor ( .clk(clk),",
+    "                        .SS_done(SS_done),",
+    "                        .rst_n(rst_n),",
+    "                        .en_SW(en_from_switch_sync_db),",
+    "                        .spi_enable(spi_enable),",
+    "                        .latch_state(latch_stat_sync_db),",
+    "                        .OTP(OTP_sync_db),",
+    "                        .window_trip_SS(window_trip_SS),",
+    "                        .window_trip(window_trip_q),"
+   ],
+   "category": "sequencing",
+   "description": "fault_arbiter's RUN window trip is retimed through a flop before the supervisor to break the counter-compare path, so the S_RUN to S_HICCUP exit lands one clock after the trip",
+   "reason": "When the RUN overcurrent window trips, En stays high and the gate keeps switching for one extra clock. The hiccup entry, the strike increment and the cool-down start all happen a clock later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.263.AIM.224"
+ },
+ {
+  "proposal": {
+   "line": 368,
+   "before": [
+    "",
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n),",
+    "",
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(spi_rd_first),"
+   ],
+   "after": [
+    "",
+    "    logic rd_first_q;",
+    "    always_ff @(posedge clk or negedge rst_n) begin",
+    "        if (!rst_n) rd_first_q <= 1'b0;",
+    "        else        rd_first_q <= spi_rd_first;",
+    "    end",
+    "    reg_file u_reg_file ( .clk(clk),",
+    "                          .rst_n(rst_n),",
+    "",
+    "                          // host access port",
+    "                          .addr(spi_addr),",
+    "                          .wr_en(spi_wr_en),",
+    "                          .wdata(spi_wdata),",
+    "                          .rdata(spi_rdata),",
+    "                          .rd_first(rd_first_q),"
+   ],
+   "category": "sequencing",
+   "description": "spi_slave's combinational rd_first is registered before reg_file as an ordinary strobe, so the read snapshot is taken one clock after the first read byte has already been loaded",
+   "reason": "In a read that starts in the TIME bank, the first byte is served from the previous read's timestamp snapshot instead of the live value. The following bytes come from the new snapshot, so a multi-byte TIME read tears."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.369.AIM.225"
+ },
+ {
+  "proposal": {
+   "line": 397,
+   "before": [
+    "                          .fault_reg(fault_reg),"
+   ],
+   "after": [
+    "                          .fault_reg(fault_reg & ~((fault_reg >> 1) | (fault_reg >> 2) | (fault_reg >> 3) | (fault_reg >> 4))),"
+   ],
+   "category": "field",
+   "description": "FAULT_CAUSE is read through a priority encoder that keeps only the highest set cause bit, from reading 'priority is encoded in bit position' as 'report the top cause only', though the record is a one-hot OR accumulation",
+   "reason": "When an episode records two causes, for example OTP and UVLO both live while running, a host read of 0x1D shows only the higher bit instead of both."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.397.AIM.226"
+ },
+ {
+  "proposal": {
+   "line": 390,
+   "before": [
+    "                          .otp_state(OTP_sync_db),"
+   ],
+   "after": [
+    "                          .otp_state(OTP_sync_db | fault_reg[2]),"
+   ],
+   "category": "field",
+   "description": "The FAULT_FLAGS over-temperature bit ORs in fault_cause's recorded OTP cause, making the live status flag sticky like the fault record",
+   "reason": "After an over-temperature in S_SS/S_RUN has cleared, FAULT_FLAGS bit 1 still reads 1 until the host reads 0x20 and the record clears, instead of following the debounced OTP flag."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.390.AIM.227"
+ },
+ {
+  "proposal": {
+   "line": 437,
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done | (spi_wr_en && (spi_addr == 7'h1D))),"
+   ],
+   "category": "field",
+   "description": "The fault record is also cleared by a write to FAULT_CAUSE (0x1D), applying the write-1-to-clear convention to a register that is read-only and clears on read",
+   "reason": "A host write burst that touches 0x1D wipes fault_reg and fault_time, even though that address is read-only and the write is rejected, so the next read of the record comes back empty."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.437.AIM.228"
+ },
+ {
+  "proposal": {
+   "line": 269,
+   "before": [
+    "                        .OTP(OTP_sync_db),"
+   ],
+   "after": [
+    "                        .OTP(OTP_sync_db & ~hiccup_active),"
+   ],
+   "category": "missing_case",
+   "description": "The supervisor ignores over-temperature during S_HICCUP, on the idea that the cool-down already holds the gate off and the retry will catch it",
+   "reason": "An OTP that asserts during a hiccup cool-down leaves the FSM in S_HICCUP instead of sending it to S_OFF. The state read back over SPI and the restart timing change: the retry follows hiccup_done instead of the OTP release."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.269.AIM.229"
+ },
+ {
+  "proposal": {
+   "line": 469,
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(PGOOD_DELAY_MS)) u_pgood_gen ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "pgood_gen's qualifying count is given the delay in milliseconds (PGOOD_DELAY_MS = 9) where it expects switching cycles, so a unit conversion is left out",
+   "reason": "PGOOD and switch_supply assert after 9 good switching cycles (about 20 us) in S_RUN instead of 4050 (9 ms), so the housekeeping rail is handed over before the output has settled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.469.AIM.230"
+ },
+ {
+  "proposal": {
+   "line": 319,
+   "before": [
+    "soft_start u_soft_start ( .clk(clk),"
+   ],
+   "after": [
+    "soft_start #(.MIN_ON_COUNTS(LM5106_SHRINK_NS + MIN_GATE_ON_NS)) u_soft_start ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "soft_start's ramp floor is given the summed floor in nanoseconds (240) without ns_to_clks, so a value in ns is used as a clk count",
+   "reason": "The truncated floor (112 counts) is above the 83-count limit. Every soft start clamps to the limit and asserts SS_done on its first clock with no ramp, and outside S_SS/S_RUN pwm_mask's ceiling is 112 counts instead of 12."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.319.AIM.231"
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "proposal": {
+   "line": 96,
+   "before": [
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync));"
+   ],
+   "after": [
+    "logic Osc_sync_raw;",
+    "input_sync u_osc_sync (.clk(clk), .rst_n(rst_n), .async_in(Osc_in), .sync_out(Osc_sync_raw));",
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS), .RESET_VALUE(1'b0))",
+    "u_osc_filt (.clk(clk), .rst_n(rst_n), .flag_in(Osc_sync_raw), .flag_out(Osc_sync));"
+   ],
+   "category": "other",
+   "description": "Master_PWM goes through the short symmetric SPI glitch filter after its synchroniser, as if switch-node pickup on the modulator line needed the same 160 ns filter as SCK, so every block's cycle reference is delayed and short pulses are swallowed",
+   "reason": "PWM_out now lags Osc_in by 8 more clocks than it should. Any modulator high or low pulse shorter than 8 clocks (160 ns) disappears from PWM_out and from the cycle counts in fault_arbiter, soft_start, pgood_gen and pwm_stats, which also changes the DUTY_COUNT and period telemetry for narrow pulses."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.96.AIM.169"
+ }
+]

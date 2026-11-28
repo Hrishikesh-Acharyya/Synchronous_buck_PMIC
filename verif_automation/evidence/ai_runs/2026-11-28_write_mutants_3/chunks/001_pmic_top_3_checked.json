@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 355,
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt | ~spi_enable),"
+   ],
+   "category": "other",
+   "description": "spi_enable, the host's CONTROL run-enable for the converter, is mistaken for an SPI-interface enable and gates the slave's chip select, so a host that disables the converter is locked off the bus",
+   "reason": "After the host writes CONTROL to clear spi_enable, every later SPI transaction is ignored: writes are not applied and MISO stays low on reads. This lasts until a switch press re-asserts spi_enable. In the correct design the bus keeps working while the converter is host-disabled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.355.AIM.98"
+ },
+ {
+  "proposal": {
+   "line": 355,
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(~cs_n_filt),"
+   ],
+   "category": "protocol",
+   "description": "spi_slave is handed the inverted filtered chip select, as if CS were active high, so the idle bus looks selected and a real transaction looks deselected",
+   "reason": "While the master holds CS_n low for a transaction, the slave sees itself deselected, so it shifts in no command, applies no write and never drives read data on MISO. Its framing instead runs while CS_n idles high."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.355.AIM.99"
+ },
+ {
+  "proposal": {
+   "line": 332,
+   "before": [
+    "                        .pwm_sync(Osc_sync),"
+   ],
+   "after": [
+    "                        .pwm_sync(Osc_sync & En),"
+   ],
+   "category": "other",
+   "description": "pwm_mask's PWM input is gated by the gate-driver enable En, adding the second logic shutdown path that the header explicitly rules out",
+   "reason": "In S_OFF and S_HICCUP, or whenever a fault pulls En low, PWM_out stays low instead of carrying the masked modulator pulses. A fault that drops En mid-pulse also cuts the PWM_out pulse short on that same clock."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.332.AIM.100"
+ },
+ {
+  "proposal": {
+   "line": 304,
+   "before": [
+    "                                .strike_level(strike_level),"
+   ],
+   "after": [
+    "                                .strike_level(strike_level - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "hiccup_timer is given strike_level minus one, as if the strike count had not already been incremented on entry to S_HICCUP, so each cool-down is half its intended length",
+   "reason": "The first hiccup re-enables En after one base interval (5 ms by default) instead of two (10 ms), and the second after 10 ms instead of 20 ms. The time S_HICCUP holds the gate driver off before each retry is halved."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.304.AIM.101"
+ },
+ {
+  "proposal": {
+   "line": 469,
+   "before": [
+    "pgood_gen u_pgood_gen ( .clk(clk),"
+   ],
+   "after": [
+    "pgood_gen #(.PGOOD_DELAY_CYCLES(ms_to_clks(PGOOD_DELAY_MS))) u_pgood_gen ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "pgood_gen's qualifying delay is converted with ms_to_clks, as for the debouncers, although pgood_gen counts switching cycles, so the 9 ms qualification becomes 450000 PWM cycles (about 1 s)",
+   "reason": "After the supervisor enters S_RUN with the output comparator good, PGOOD and switch_supply assert about 1 s later instead of about 9 ms later. pgood_LED is delayed by the same amount."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.469.AIM.102"
+ }
+]

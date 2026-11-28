@@ -1,0 +1,104 @@
+[
+ {
+  "proposal": {
+   "line": 374,
+   "before": [
+    "                          .wr_en(spi_wr_en),"
+   ],
+   "after": [
+    "                          .wr_en(spi_wr_en & spi_integrity_ok),"
+   ],
+   "category": "protocol",
+   "description": "reg_file's write strobe is qualified by spi_integrity_ok, as if only validated bytes should reach the register file, though reg_file stages every data byte and validates later at commit",
+   "reason": "integrity_ok pulses only at cs_rise, at least one clock after the last wr_en, so the two never coincide and no write reaches reg_file: SCRATCH, CONTROL disable/enable and every threshold write are lost and read back unchanged after a write with a valid CRC."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.374.AIM.120"
+ },
+ {
+  "proposal": {
+   "line": 379,
+   "before": [
+    "                          .integrity_OK(spi_integrity_ok),"
+   ],
+   "after": [
+    "                          .integrity_OK(spi_integrity_ok | spi_abort),"
+   ],
+   "category": "protocol",
+   "description": "reg_file commits staged writes at the end of any write transaction (integrity_ok or txn_abort), mixing up 'transaction ended' with 'transaction validated'",
+   "reason": "A write frame with a bad CRC or a misaligned CS rise now commits its SCRATCH, CONTROL or threshold bytes. A read-back after a corrupted write shows the new value instead of the old one, and a corrupted armed CONTROL disable stops the converter."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.379.AIM.121"
+ },
+ {
+  "proposal": {
+   "line": 380,
+   "before": [
+    "                          .txn_abort(spi_abort),"
+   ],
+   "after": [
+    "                          .txn_abort(spi_abort | spi_integrity_ok),"
+   ],
+   "category": "other",
+   "description": "reg_file's txn_abort is driven on every write-transaction end, valid or not, as if it only meant 'discard the temporaries now', so the bus-error tally also counts good transactions",
+   "reason": "Commits still happen, but BUS_ERR_L/H goes up by one for every valid write too. After a clean write sequence the host reads a non-zero bus-error count where it should read zero."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.380.AIM.122"
+ },
+ {
+  "proposal": {
+   "line": 437,
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done & spi_integrity_ok),"
+   ],
+   "category": "reset_init",
+   "description": "fault_cause's clear-on-read is also required to come from a CRC-validated transaction, as if the destructive clear needed write-style validation, though reads never produce integrity_ok",
+   "reason": "fault_reg_read_done fires during a read and integrity_ok only at the end of a write, so FAULT_CAUSE and FTIME are never cleared by the host's read of 0x20. A second read after the fault has gone still returns the old cause and start time."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.437.AIM.123"
+ },
+ {
+  "proposal": {
+   "line": 437,
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done | spi_rd_first),"
+   ],
+   "category": "wrong_event",
+   "description": "fault_cause's record is cleared when any read transaction starts (rd_first) as well as after 0x20 is read, taking 'clear on read' to mean 'clear when a read begins'",
+   "reason": "Polling any register, for example STATUS, wipes a logged fault before the host reads it. A sweep starting at 0x1D gets the cause byte but reads FTIME 0x1E-0x20 as zero, because fault_time is cleared on the clock after the first byte loads."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.437.AIM.124"
+ },
+ {
+  "proposal": {
+   "line": 378,
+   "before": [
+    "                          .rd_byte_done(spi_rd_byte_done),"
+   ],
+   "after": [
+    "                          .rd_byte_done(spi_rd_byte_done | spi_wr_en),"
+   ],
+   "category": "protocol",
+   "description": "reg_file's 'data byte transferred' strobe also counts write data bytes, so a write that releases a byte at 0x20 counts as the host having read the fault record",
+   "reason": "A host write burst that reaches the read-only address 0x20 clears FAULT_CAUSE and FTIME with nothing read. reg_file's own comment says a write releasing a byte must not clear the record, and a later read of 0x1D returns 0 although a fault was logged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.378.AIM.125"
+ }
+]

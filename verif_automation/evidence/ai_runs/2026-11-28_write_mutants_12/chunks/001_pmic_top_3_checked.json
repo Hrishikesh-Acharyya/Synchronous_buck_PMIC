@@ -1,0 +1,87 @@
+[
+ {
+  "proposal": {
+   "line": 392,
+   "before": [
+    "                          .strike_level(strike_level),"
+   ],
+   "after": [
+    "                          .strike_level(latch_out ? '0 : strike_level),"
+   ],
+   "category": "field",
+   "description": "reg_file's STRIKE_LEVEL telemetry is zeroed once the CPLD's strike latch has tripped, copying fault_LED's 'latch outranks strikes' priority into the register map. strike_counter deliberately keeps the count readable after latching.",
+   "reason": "Once the third hiccup trips latch_out, a host read of STRIKE_LEVEL returns 0 instead of the accumulated count of 3. Before the latch trips the value read is unchanged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.392.AIM.192"
+ },
+ {
+  "proposal": {
+   "line": 396,
+   "before": [
+    "                          .fault_count_ss(fault_count_ss),"
+   ],
+   "after": [
+    "                          .fault_count_ss(ss_active ? fault_count_ss : '0),"
+   ],
+   "category": "field",
+   "description": "reg_file's FCOUNT_SS telemetry is gated by S_SS, mirroring the way fault_arbiter gates window_trip_SS by its own state. But the soft-start count is meant to stay frozen, and readable, through S_RUN.",
+   "reason": "Suppose some valley-current cycles are counted during soft start without tripping. A host that reads FCOUNT_SS in S_RUN then gets 0 instead of the frozen soft-start count fault_arbiter still holds."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.396.AIM.193"
+ },
+ {
+  "proposal": {
+   "line": 388,
+   "before": [
+    "                          .en_switch_rise(en_switch_rise),"
+   ],
+   "after": [
+    "                          .en_switch_rise(en_switch_rise & ~OTP_sync_db & ~UVLO_sync_db),"
+   ],
+   "category": "missing_case",
+   "description": "The switch-press pulse that restores the host enable is ignored while a debounced OTP or UVLO is live, as if a press should only re-enable a board that is able to start.",
+   "reason": "Take a host that has cleared CONTROL's enable. If the user toggles the switch on during over-temperature or undervoltage, spi_enable is not restored. When the fault clears, the converter stays in S_OFF and CONTROL still reads disabled, where it should restart."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.388.AIM.194"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync & En), .flag_out(UVLO_sync_db));"
+   ],
+   "category": "wrong_event",
+   "description": "UVLO is only qualified while the gate driver is enabled. This borrows the 'a routine power-down asserts UVLO' rule to ignore UVLO when not switching, so the debounced UVLO the FSM sees drops in S_OFF.",
+   "reason": "With UVLO_trig held high and the board enabled, UVLO_sync_db releases 200 us after shutdown. The supervisor then leaves S_OFF for S_SS into an undervoltage input and cycles on and off. Red_LED3 also goes dark in S_OFF while UVLO is still asserted."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.139.AIM.195"
+ },
+ {
+  "proposal": {
+   "line": 437,
+   "before": [
+    "                                .fault_reg_read_done(fault_reg_read_done),"
+   ],
+   "after": [
+    "                                .fault_reg_read_done(fault_reg_read_done & ~(ss_active | run_active)),"
+   ],
+   "category": "reset_init",
+   "description": "fault_cause's clear-on-read is suppressed while the converter is in S_SS or S_RUN, meant to avoid wiping an episode still in progress. The record and its fault_time then survive a host read that should close the read window.",
+   "reason": "Say a fault has been recorded and the host reads the record through 0x20 while the converter is running. The cause byte and the FTIME bytes are not cleared, so the next read returns the stale causes and the old episode-start time, where it should return a fresh, empty record."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.437.AIM.196"
+ }
+]

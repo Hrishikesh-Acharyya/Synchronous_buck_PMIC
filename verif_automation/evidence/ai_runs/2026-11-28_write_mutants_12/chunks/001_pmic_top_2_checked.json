@@ -1,0 +1,37 @@
+[
+ {
+  "proposal": {
+   "line": 300,
+   "before": [
+    "hiccup_timer u_hiccup_timer ( .clk(clk),"
+   ],
+   "after": [
+    "hiccup_timer #(.TIMER_W($clog2((HICCUP_BASE_DEFAULT_CLKS << (MAX_STRIKES_DEFAULT-1)) + 1)))",
+    "u_hiccup_timer ( .clk(clk),"
+   ],
+   "category": "boundary",
+   "description": "hiccup_timer's cool-down counter is sized from the default 5 ms base instead of the largest legal host-written base (HICCUP_BASE_MAX_CLKS), which is the sizing mistake the package warns against",
+   "reason": "Suppose the host writes a hiccup base above about 10.5 ms, which is legal up to 20 ms. On a strike of 1 or more, base<<strike_level then overflows the 20-bit target and wraps to a smaller value, so the cool-down ends early and En comes back on before the commanded interval."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.300.AIM.190"
+ },
+ {
+  "proposal": {
+   "line": 433,
+   "before": [
+    "                                .window_trip(window_trip),"
+   ],
+   "after": [
+    "                                .window_trip(window_trip_SS),"
+   ],
+   "category": "missing_case",
+   "description": "fault_cause's RUN overcurrent input is wired to the soft-start window trip, so both of its overcurrent inputs carry window_trip_SS and a RUN window trip is never logged",
+   "reason": "When an overcurrent window trip in S_RUN sends the converter into hiccup, the overcurrent bit of FAULT_CAUSE is not set and no episode timestamp is latched. A host read then shows an empty or incomplete fault record. Soft-start trips are still logged."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.433.AIM.191"
+ }
+]

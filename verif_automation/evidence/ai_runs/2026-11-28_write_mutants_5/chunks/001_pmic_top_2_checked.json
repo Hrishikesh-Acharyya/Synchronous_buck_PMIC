@@ -1,0 +1,53 @@
+[
+ {
+  "proposal": {
+   "line": 355,
+   "before": [
+    "                            .cs_n(cs_n_filt),"
+   ],
+   "after": [
+    "                            .cs_n(cs_n_filt | cs_n_sync),"
+   ],
+   "category": "protocol",
+   "description": "Chip-select deassert is taken straight from the unfiltered synchronised CS_n, so only selection goes through the glitch filter, as if 'deselect must be immediate'",
+   "reason": "A CS_n glitch high shorter than the 8-clock filter in the middle of a transaction now reaches spi_slave as a cs_rise and aborts it. CS also now rises 8 clocks ahead of the filtered SCK and MOSI, so a master that raises CS within 160 ns of its last SCK edge has its final CRC bit cut off and the write is discarded."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.355.AIM.117"
+ },
+ {
+  "proposal": {
+   "line": 310,
+   "before": [
+    "                                .max_strikes(max_strikes),"
+   ],
+   "after": [
+    "                                .max_strikes(max_strikes - 1'b1),"
+   ],
+   "category": "boundary",
+   "description": "strike_counter is handed the strike limit minus one, a second off-by-one fix on top of the one strike_counter already makes by comparing with max_strikes-1",
+   "reason": "With the default limit of 3, latch_out (and so the shared SCR latch, Red_LED1 and the S_OFF lockout) trips on the 2nd hiccup entry instead of the 3rd. The two-retries-then-latch sequence becomes one retry."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.310.AIM.118"
+ },
+ {
+  "proposal": {
+   "line": 139,
+   "before": [
+    "input_debounce u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "after": [
+    "input_debounce #(.ASSERT_CLKS(SPI_FILTER_CLKS), .RELEASE_CLKS(SPI_FILTER_CLKS)) u_UVLO_sync_db (.clk(clk), .rst_n(rst_n), .flag_in (UVLO_sync), .flag_out(UVLO_sync_db));"
+   ],
+   "category": "other",
+   "description": "The UVLO debouncer is copied from the SPI glitch filters, so input undervoltage qualifies in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release",
+   "reason": "An input-rail sag or changeover transient longer than 160 ns but shorter than 1 ms now asserts UVLO. That drops En, sends the supervisor to S_OFF and lights Red_LED3 on a healthy board. A real UVLO also releases after 160 ns instead of 200 us, so the converter restarts sooner."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.139.AIM.119"
+ }
+]

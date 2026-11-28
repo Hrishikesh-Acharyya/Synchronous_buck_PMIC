@@ -1,0 +1,74 @@
+[
+ {
+  "proposal": {
+   "line": 494,
+   "before": [
+    "                                .uvlo_state(UVLO_sync_db),"
+   ],
+   "after": [
+    "                                .uvlo_state(UVLO_sync_db & (ss_active | run_active)),"
+   ],
+   "category": "missing_case",
+   "description": "fault_LED's UVLO indication is masked unless the converter is in S_SS or S_RUN. This borrows fault_cause's 'a routine power-down asserts UVLO' capture rule, but the LEDs must show what is wrong now, in every state.",
+   "reason": "With UVLO_trig asserted while the supervisor is in S_OFF or S_HICCUP, for example at power-up on a low input rail, Red_LED3 stays dark instead of lighting. A UVLO that hits in S_RUN lights it for only one clock before the FSM leaves S_RUN."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.494.AIM.186"
+ },
+ {
+  "proposal": {
+   "line": 254,
+   "before": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db;"
+   ],
+   "after": [
+    "        en_switch_rise = ~en_from_switch_sync_db_d & en_from_switch_sync_db & ~spi_enable;"
+   ],
+   "category": "priority",
+   "description": "The switch-press pulse is suppressed while the host enable is still set, as if it were only needed to lift a veto already in place. reg_file's rule that the physical switch wins a same-clock collision with a host disable is lost.",
+   "reason": "When the debounced switch rises on the same clock that a validated CONTROL disable commits, spi_enable is still 1, so the press is masked and the disable lands. The converter stays off (En low, STATUS bit 5 clear) instead of the press keeping it enabled."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.254.AIM.187"
+ },
+ {
+  "proposal": {
+   "line": 473,
+   "before": [
+    "                        .run_active(run_active),",
+    "                        .PGOOD(PGOOD)"
+   ],
+   "after": [
+    "                        .run_active(run_active & ~window_trip),",
+    "                        .PGOOD(PGOOD)"
+   ],
+   "category": "sequencing",
+   "description": "pgood_gen's 'regulating' qualifier also drops on the RUN window trip. The aim is to hand the rail back the moment an overcurrent is detected, but PGOOD should follow the supervisor's exit from S_RUN.",
+   "reason": "On a RUN overcurrent window trip, PGOOD and switch_supply fall on the trip clock, one clock before the supervisor leaves S_RUN for S_HICCUP, and the qualifying count is cleared a clock early."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.473.AIM.188"
+ },
+ {
+  "proposal": {
+   "line": 498,
+   "before": [
+    "                                .ss_active(ss_active),",
+    "                                .run_active(run_active),"
+   ],
+   "after": [
+    "                                .ss_active(ss_active & ~window_trip_SS),",
+    "                                .run_active(run_active & ~window_trip),"
+   ],
+   "category": "other",
+   "description": "The overcurrent window trips are folded into fault_LED's running indication, a second path that fault_LED's header deliberately leaves out because the supervisor's state change already turns off the green LED.",
+   "reason": "On a soft-start or RUN window trip, Green_LED turns off one clock earlier than when it follows the supervisor's exit to S_HICCUP."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.498.AIM.189"
+ }
+]

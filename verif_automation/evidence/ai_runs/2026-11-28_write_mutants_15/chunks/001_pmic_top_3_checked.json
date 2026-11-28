@@ -1,0 +1,19 @@
+[
+ {
+  "proposal": {
+   "line": 326,
+   "before": [
+    "                                .cycles_per_step(cycles_per_step),"
+   ],
+   "after": [
+    "                                .cycles_per_step(cycles_per_step << strike_level),"
+   ],
+   "category": "other",
+   "description": "The per-strike doubling meant for the hiccup cool-down is also applied to soft_start's ramp rate, so each strike doubles the switching cycles held at every ceiling step of the retry ramp",
+   "reason": "The first ramp after reset is unchanged (strike_level 0). On a soft-start retry after a hiccup, the ceiling rises half as fast at strike 1 and a quarter as fast at strike 2. PWM_out pulses stay truncated for longer, and SS_done, the S_RUN entry, PGOOD, switch_supply and Green_LED all come later."
+  },
+  "accepted": true,
+  "why": null,
+  "id": "pmic_top.326.AIM.239"
+ }
+]

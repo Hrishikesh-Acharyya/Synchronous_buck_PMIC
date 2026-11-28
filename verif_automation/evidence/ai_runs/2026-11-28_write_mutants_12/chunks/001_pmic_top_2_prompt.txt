@@ -1,0 +1,347 @@
+# Task: write mutants
+
+You are helping with mutation testing of a hardware design written in
+SystemVerilog. A mutant is the design with one small fault put into it on
+purpose. Each mutant is then simulated against the module's testbench: if the
+testbench still passes, the behaviour that fault broke is not being checked.
+
+A program already makes the mechanical mutants - one operator swapped, one
+constant changed, one statement deleted (the list is below). It cannot make a
+fault that needs an understanding of what the module is for. Those are yours
+to write.
+
+## What you are given
+
+- This file.
+- The name of **one module** and its file, and how many mutants are asked
+  for.
+- The mechanical operators, so that you do not repeat them.
+- The mutants already written for this module, and the proposals a program
+  has already refused (with the check each failed), so that you do not repeat
+  those either.
+- Read access to the RTL in `rtl-systemverilog/` and to the project's
+  documents. Read the module's own file in full first - its header states
+  what it must do, and every block has a Purpose comment. Read
+  `pkg/pmic_types_pkg.sv` for constants and types, and the modules that
+  drive or read this one when a fault's effect depends on them.
+
+You cannot edit files, run commands or simulations, or reach the network, and
+you do not need to: you return the mutants as data, and a program checks and
+stores them. The testbenches and checkers are deliberately not readable. A
+mutant is a fault a designer could have made, written from the design alone -
+not one aimed at what the tests happen to miss.
+
+## What a good mutant is
+
+A fault that:
+
+1. **a designer could really have made** while writing or changing this
+   module - a rule misremembered, one case forgotten, an event confused with
+   a similar one;
+2. **changes what the module does at its ports**, in some state it can
+   reach, for some input sequence its header allows - say which, in `reason`;
+3. **needs the design's meaning to write**. If one mechanical operator on
+   one token makes the same fault, do not write it;
+4. is still **legal code that lint accepts**: every signal still driven and
+   still used, no width changed, no latch made.
+
+Kinds of fault to look for - use these as `category`:
+
+| Category | The fault |
+|---|---|
+| `wrong_event` | something is captured, counted or cleared on the wrong event, or in the wrong state: a snapshot taken at the end of a transaction instead of its start, a counter cleared on entry instead of exit |
+| `missing_case` | a rule that forgets one state, one address, one mode or one source: a write-reject rule that lets one register through, a fault source left out of a summary bit |
+| `priority` | two conditions answered in the wrong order: an `if` / `else if` chain reordered, a later assignment that should lose winning |
+| `boundary` | a limit wrong for one case only: saturating one count early, wrapping instead of saturating, a threshold compared with the wrong one of two limits |
+| `protocol` | the serial interface's framing: bit order, which clock phase a bit is taken on, the bit or byte count that ends a field, what an aborted transaction leaves behind |
+| `field` | a register's contents mapped wrongly: bytes of a multi-byte value in the wrong order, a field read from the live value instead of the snapshot, a read-only bit made writable |
+| `sequencing` | right value, wrong clock: a flag raised one clock early or late, a stale value used, a handshake that does not wait |
+| `reset_init` | state that is not put back: a register missing from one of several clear conditions, a value that survives a re-entry it should not |
+| `other` | a design-aware fault that fits none of these |
+
+## What not to write
+
+- An edit that only changes a comment, spacing or a name.
+- An edit to the module's ports, its header parameters, or the width of any
+  declaration.
+- An edit that leaves a signal undriven or unused, or assigns a signal from
+  two blocks - lint rejects those before any test runs. Lint also rejects a
+  flop whose asynchronous reset is made synchronous, or dropped from its
+  sensitivity list.
+- An edit that one mechanical operator already makes, in any spelling. In
+  particular: replacing the whole value of one assignment by a constant 0 or
+  1 is STK, and inverting it is VNG - `x <= 1'b0` in place of `x <= y` is
+  STK's mutant even though STK writes it `'0`.
+- A different circuit. Replacing a synchroniser by an edge detector, a
+  latch or a filter is not a slip a designer makes while writing a
+  synchroniser; it is another design.
+- Two mutants that are the same fault written twice.
+- A fault that cannot change anything at the ports. If you cannot say what
+  changes and when, leave it out.
+
+## The form of a mutant
+
+One mutant is **one edit to one place**: some consecutive whole lines of the
+file replaced by other lines.
+
+- `line` - the number of the first line you replace, as the Read tool shows
+  it.
+- `before` - those lines, copied exactly from the file, one string per line,
+  in order. Whole lines. At most 12.
+- `after` - the lines that take their place. At most 16. Keep the house
+  layout: `begin` / `end` on every block, the same indentation as the lines
+  around it.
+- Change as little as the fault needs: at most 6 lines may differ between
+  `before` and `after`. Lines you include only for context must be identical
+  in both.
+- `description` - one line saying what the fault is, in the design's terms:
+  "FCOUNT_RUN is cleared by a write to FCOUNT_SS", not "changed line 512".
+- `reason` - one or two sentences: which behaviour at the ports changes, and
+  in which situation.
+
+## Rules
+
+1. Write the number of mutants asked for if the module has that many
+   distinct design-aware faults in it. A small module may not: fewer good
+   mutants are better than the number made up with weak ones.
+2. Spread them over the module - every block that holds a decision, not
+   five variations on one line.
+3. Each mutant stands alone: it is applied to the unmodified file, never on
+   top of another.
+4. Judge the module with the parameter values this design uses (the defaults
+   in its header and the package).
+5. Do not explain or summarise outside the structured answer.
+
+## The module
+
+`pmic_top`, in `rtl-systemverilog/pmic_top.sv`. Write up to 20 mutants.
+
+## The mechanical operators
+
+These are already made for this module (153 mutants). Do not write an edit that one of them makes.
+
+- ROR: relational: boundary (< <-> <=, > <-> >=), direction (< <-> >, <= <-> >=), equality (== <-> !=)
+- LCR: logical connective: && <-> ||, binary & <-> |, binary ^ -> |
+- CTD: a term dropped from a condition: a && b -> a, and -> b (also ||, and binary & and |)
+- CTN: a term of a condition negated: a && b -> !a && b, and a && !b (a polarity mix-up)
+- AOR: arithmetic: binary + <-> -
+- SHF: shift direction: << <-> >>
+- CND: negate an if condition: if (c) -> if (!(c))
+- CSK: an if condition stuck: if (c) -> if (1'b1), and -> if (1'b0)
+- UOD: drop a unary negation: !x -> x, ~x -> x
+- RDX: reduction swapped: &x <-> |x (all bits set <-> any bit set)
+- TRN: swap the branches of a ?: - c ? a : b -> c ? b : a
+- CST: constant: 1'b0 <-> 1'b1, '0 <-> '1, any other integer literal +1 and -1
+- ENM: an enum constant replaced by the next member of its enum (an FSM state, say)
+- DLY: a signal swapped with its one-clock-delayed copy: x <-> x_d
+- BSL: wrong bit or field: a constant select moved by one - x[3] -> x[2], x[6:4] -> x[7:5]
+- CIS: the labels of two adjacent case items swapped
+- CID: one case item deleted, so its value takes the default branch (a forgotten decode)
+- CCS: the first two elements of a concatenation swapped: {a, b} -> {b, a}
+- SIB: a signal swapped with a sibling of the same type whose name differs in one part: temp_0 <-> temp_1, trip_run <-> trip_ss (a copy-paste slip)
+- STK: an assignment's value stuck at all-zeros, and at all-ones
+- VNG: an assignment's value inverted: x <= y -> x <= ~(y)
+- EDG: a flop clocked on the other edge: posedge clk <-> negedge clk
+- BDL: a whole multi-statement block emptied (the body of an if, or of a case item)
+- SDL: delete one procedural assignment statement
+- EDL: delete an else branch
+- ICS: wrong wire: two same-type inputs, or two same-type outputs, of one instance swapped, or the same input of two instances of one module swapped
+
+## Mutants already written for this module
+
+- line 267: Supervisor's latch read-back is wired to the CPLD's own trip drive latch_out instead of the debounced SCR read-back latch_stat_sync_db
+- line 269: Supervisor's OTP input takes the synchronised but undebounced OTP flag, bypassing input_debounce
+- line 491: fault_LED's UVLO indication is fed from the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on
+- line 254: The switch edge detector fires on the falling edge of the debounced switch (release) instead of the rising edge (press)
+- line 526: switch_supply follows the raw synchronised output comparator instead of the qualified PGOOD from pgood_gen
+- line 499: fault_LED's power-good input is wired to the synchronised comparator instead of the qualified PGOOD
+- line 427: fault_cause's SCR read-back input is wired to the CPLD's own trip latch_out, so it can no longer tell an external latch from a strike latch
+- line 419: pwm_stats measures the masked PWM_out instead of the synchronised modulator PWM
+- line 133: The enable switch debouncer gets the fault-flag asymmetric release time (assert/5, 4 ms) instead of the symmetric 20 ms
+- line 139: The UVLO debouncer is given the enable's fail-safe-low reset value instead of fault-asserted high, so it disagrees with its high-resetting synchroniser
+- line 96: The PWM synchroniser gets the fault inputs' fail-safe-high reset value, as if the PWM were a fault flag
+- line 157: The SCK filter is instanced with the fault-flag debounce defaults instead of the short symmetric SPI_FILTER_CLKS
+- line 350: MISO idles high outside the read-data phase (open-drain pull-up convention) instead of held low
+- line 266: Supervisor's enable input takes the switch-press edge pulse en_switch_rise instead of the debounced switch level
+- line 254: Switch-press edge detector compares the delayed debounced copy with the synchronised but undebounced switch
+- line 287: CP_trig goes through the fault-flag input_debounce like OTP and UVLO, though the header says fault_arbiter's rolling window is its only filter
+- line 469: PGOOD_comp is debounced before pgood_gen, so the deassert the header requires to be immediate is delayed by the debounce release time
+- line 472: pgood_gen is qualified on the gate-driver enable En instead of run_active, so soft-start counts as running
+- line 313: strike_counter's clean-run streak is gated on En instead of run_active, so it is not broken by soft-start time
+- line 303: Hiccup back-off is scaled by the configured strike limit max_strikes instead of the current strike_level
+- line 384: reg_file's status PGOOD bit reports the synchronised output comparator instead of the qualified PGOOD
+- line 389: reg_file's over-temperature status bit takes the undebounced OTP flag, unlike the debounced one the supervisor acts on
+- line 385: reg_file's latch status bit reports the CPLD's own trip drive latch_out instead of the SCR latch read-back
+- line 434: fault_cause's capture gate takes the gate-driver enable En as 'running' instead of the supervisor's run_active, so a hard fault in S_RUN is never logged
+- line 294: fault_arbiter's run window is qualified on the gate-driver enable En instead of run_active, so soft-start samples go into the RUN window
+- line 138: OTP debouncer copied from the enable-switch instance above it: symmetric 20 ms qualification instead of the fault-flag default of 1 ms assert and 200 us release
+- line 389: The FAULT_FLAGS register's current-protection bit reports the RUN overcurrent window trip instead of the live synchronised CP comparator
+- line 242: The switch-press edge detector's delayed copy is taken from the undebounced synchronised switch instead of the debounced one it is compared with
+- line 313: strike_counter's clean-run streak is gated on the qualified PGOOD instead of run_active, so 'clean running' is taken to mean 'rail in regulation'
+- line 271: Supervisor's latch_assert input is wired to the debounced SCR read-back instead of strike_counter's own trip latch_out, so the CPLD's strike latch is no longer a hard fault to the FSM
+- line 526: switch_supply is driven from the registered pgood_LED indicator copy instead of PGOOD itself, adding a clock to the changeover hand-back
+- line 472: pgood_gen is qualified on soft_start's SS_done ('ramp finished') instead of the supervisor's run_active
+- line 139: UVLO debouncer's asymmetry is reversed (fast 200 us assert, slow 1 ms release), the usual 'trip fast, clear slow' rule misapplied where the header wants assert to be the longer qualification
+- line 140: The latch read-back debouncer is given the short symmetric SPI glitch-filter length (8 clocks) instead of the fault-flag 1 ms / 200 us qualification
+- line 294: fault_arbiter's RUN window is enabled by the qualified PGOOD instead of run_active, so overcurrent in S_RUN is only counted while the rail is in regulation
+- line 387: reg_file's enable-switch status bit is fed from the gate-driver enable En instead of the debounced switch level
+- line 319: soft_start counts its ramp steps on falling edges of the masked PWM_out instead of the synchronised modulator PWM, so each step lands when pwm_mask truncates the pulse rather than after the pulse ends
+- line 427: fault_cause's latch_assert input is fed from the debounced SCR read-back instead of the CPLD's own trip latch_out, so the OVP inference (latch set with latch_assert clear) can never be true
+- line 312: strike_counter counts a strike on every entry into soft start (each retry, and the first power-up) instead of on each entry into S_HICCUP
+- line 497: fault_LED's soft-start input is wired to soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS')
+- line 434: fault_cause's episode scope is wired to hiccup_active instead of ss_active, so it counts S_HICCUP as running and leaves S_SS out
+- line 254: The switch-press detector fires on any change of the debounced switch (press and release) instead of on the press only
+- line 526: The housekeeping changeover drive is gated by the gate-driver enable as well as PGOOD, so it no longer carries the same value as PGOOD
+- line 321: soft_start's ramp branch is enabled by the gate-driver enable En instead of ss_active, so the ramp and clamp logic also runs through S_RUN
+- line 294: fault_arbiter's soft-start gate is wired to the gate-driver enable En, so window_trip_SS is not limited to S_SS and can assert in S_RUN from the frozen soft-start count
+- line 269: Supervisor's soft-start overcurrent input is wired to the RUN window trip, so the S_SS -> S_HICCUP exit is driven by a trip that fault_arbiter only raises in S_RUN
+- line 433: fault_cause's soft-start overcurrent cause is fed from the RUN window trip, so an overcurrent hiccup out of S_SS is not logged
+- line 321: soft_start holds its ramped ceiling while PGOOD is asserted instead of while the supervisor is in S_RUN, so 'running' is taken to mean 'rail qualified good'
+- line 427: fault_cause logs the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on
+- line 312: strike_counter counts a strike on every gate-driver shutdown (En falling, or low at reset) instead of on each entry into S_HICCUP
+- line 432: fault_cause logs the overcurrent cause from the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so a single valley-current excursion counts as an overcurrent fault
+- line 313: strike_counter breaks its clean-run streak on any CP comparator assertion instead of on the window trip, so 'fault-free' is taken to mean no overcurrent cycle at all
+- line 496: fault_LED's strikes-outstanding input is wired to the configured strike limit max_strikes instead of the accumulated strike_level
+- line 497: fault_LED's running input takes the qualified PGOOD instead of run_active, so the green LED treats 'rail in regulation' as 'running'
+- line 497: fault_LED's soft-start input is wired to hiccup_active, so the green 'running' LED covers the hiccup cool-down instead of soft start
+- line 321: soft_start's hold branch is keyed on its own SS_done ('ramp finished') instead of S_RUN, so once a ramp completes it is never reset to the floor
+- line 266: Supervisor's enable input takes the synchronised but undebounced switch, bypassing the 20 ms symmetric switch debouncer
+- line 273: Supervisor's UVLO input takes the synchronised but undebounced UVLO flag, so input-rail sags shorter than the 1 ms assert qualification shut the converter down
+- line 267: Supervisor's SCR latch read-back takes the synchronised but undebounced latch_stat, unlike the debounced copy the header routes to it
+- line 294: fault_arbiter's current flag is wired to the raw CP_trig pin instead of its synchronised copy, while its cycle boundary still comes from the synchronised PWM
+- line 330: pwm_mask is fed the raw Osc_in pin instead of the synchronised PWM that every other block uses for the cycle
+- line 391: reg_file's strike-level status is fed the configured strike limit max_strikes instead of the accumulated strike_level
+- line 389: reg_file's UVLO status bit reports the undebounced synchronised UVLO flag instead of the debounced copy the supervisor acts on
+- line 387: reg_file's enable-switch status bit is fed the undebounced synchronised switch instead of the debounced level that gates the supervisor
+- line 427: fault_cause logs over-temperature from the undebounced synchronised OTP flag instead of the debounced copy the supervisor acts on
+- line 491: fault_LED's over-temperature indication is fed the undebounced synchronised OTP flag instead of the debounced one
+- line 491: fault_LED's latch indication takes the CPLD's own trip latch_out instead of the SCR read-back, so an external (OVP) latch trip is not shown
+- line 491: fault_LED's latch_assert input is fed the debounced SCR read-back instead of strike_counter's latch_out, so the CPLD's own strike latch is not shown until the SCR read-back follows
+- line 162: The CS_n glitch filter is instanced with the fault-flag debounce defaults (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS
+- line 270: Supervisor's S_RUN overcurrent exit is wired to the soft-start window trip window_trip_SS, so a RUN window trip never sends the FSM from S_RUN to S_HICCUP
+- line 264: Supervisor leaves soft start only when the ramp is done and the output comparator also reports the rail in window, as if 'soft start finished' meant 'output is up'
+- line 434: fault_cause's capture gate takes the qualified PGOOD as 'running' instead of run_active, so a fault in S_RUN before PGOOD has qualified, or during a rail dip, is not logged
+- line 397: reg_file's live TIME registers are fed fault_cause's episode-start snapshot fault_time instead of the free-running timestamp_ms
+- line 427: fault_cause infers OVP from the synchronised but undebounced SCR read-back instead of the debounced copy the supervisor and LEDs act on
+- line 138: OTP debouncer is given the enable's fail-safe-low reset value, so over-temperature reads clear out of reset while its synchroniser resets high
+- line 132: The enable-switch debounce time is converted with ms_to_sw_cycles instead of ms_to_clks, so the debouncer, which counts clk ticks, gets 9000 clocks (180 us) instead of 20 ms
+- line 385: reg_file's SCR latch status bit takes the synchronised but undebounced latch_stat instead of the debounced copy the supervisor acts on
+- line 387: reg_file's enable-switch status bit is fed the switch-press edge pulse en_switch_rise instead of the debounced switch level
+- line 491: fault_LED's latch indication is fed the synchronised but undebounced SCR read-back instead of the debounced copy
+- line 140: The latch read-back debouncer is given the enable's fail-safe-low reset value, so the SCR latch reads clear out of reset although its synchroniser resets high
+- line 138: The OTP debouncer's asymmetry is reversed: 200 us to assert and 1 ms to release, the 'trip fast, clear slow' habit applied where the design wants assert to be the longer qualification
+- line 163: The MOSI glitch filter is instanced with the fault-flag debounce times (1 ms high, 200 us low) instead of the short symmetric SPI_FILTER_CLKS, so it no longer matches the SCK filter
+- line 139: The UVLO debouncer is copied from the enable-switch instance above it, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release
+- line 140: The SCR latch read-back debouncer has its asymmetry reversed: it asserts after 200 us and releases after 1 ms, the 'trip fast, clear slow' habit applied where the fault flags want assert to be the longer qualification
+- line 350: MISO is enabled whenever the slave is selected (CS_n low), the usual 4-wire convention, instead of only during the read-data phase (S_READ)
+- line 312: strike_counter counts a strike when the hiccup cool-down finishes (hiccup_done) instead of when S_HICCUP is entered
+- line 140: The SCR latch read-back debouncer is copied from the enable-switch instance, so it gets the symmetric 20 ms switch qualification instead of the fault-flag default of 1 ms assert and 200 us release
+- line 138: The OTP debouncer is copied from the SPI glitch filters, so over-temperature is qualified in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release
+- line 292: fault_arbiter's valley-sample cycle boundary is taken from the masked, registered gate PWM_out instead of the synchronised modulator PWM, so each per-cycle CP sample lands one clock after the modulator's turn-on edge
+- line 469: pgood_gen counts its qualifying switching cycles on falling edges of the masked gate PWM_out instead of the synchronised modulator PWM
+- line 434: fault_cause's 'converter running' scope takes soft_start's SS_done ('ramp finished') instead of the supervisor's ss_active ('in S_SS'), so faults during the ramp are outside the episode
+- line 354: spi_slave is handed the inverted filtered SCK, as if the bus were CPOL=1 (Mode 3) instead of Mode 0, so it samples MOSI on the master's falling SCK edge and shifts MISO on the rising edge
+- line 419: pwm_stats measures the inverted modulator PWM, so DUTY_COUNT reports the low-side (off) time of each cycle instead of the high-side on-time
+- line 292: fault_arbiter's per-cycle CP sample is taken at high-side turn-off (the falling PWM edge, near peak current) instead of at turn-on (the valley), mixing up which edge ends low-side conduction
+- line 319: soft_start counts ramp cycles and widens the ceiling at the PWM turn-on edge instead of after each pulse has ended, so each step lands as a pulse starts
+- line 311: strike_counter takes its clean-run cycle boundary from the masked, registered gate PWM_out instead of the synchronised modulator PWM
+- line 321: soft_start's hold branch covers S_HICCUP as well as S_RUN, so a hiccup does not reset the ramped ceiling and SS_done to the floor; only S_OFF does
+- line 355: spi_enable, the host's CONTROL run-enable for the converter, is mistaken for an SPI-interface enable and gates the slave's chip select, so a host that disables the converter is locked off the bus
+- line 355: spi_slave is handed the inverted filtered chip select, as if CS were active high, so the idle bus looks selected and a real transaction looks deselected
+- line 330: pwm_mask's PWM input is gated by the gate-driver enable En, adding the second logic shutdown path that the header explicitly rules out
+- line 303: hiccup_timer is given strike_level minus one, as if the strike count had not already been incremented on entry to S_HICCUP, so each cool-down is half its intended length
+- line 469: pgood_gen's qualifying delay is converted with ms_to_clks, as for the debouncers, although pgood_gen counts switching cycles, so the 9 ms qualification becomes 450000 PWM cycles (about 1 s)
+- line 332: In S_RUN, pwm_mask takes its on-time ceiling straight from the host's max_on_limit register instead of the ceiling soft_start ramped to and now holds
+- line 389: The FAULT_FLAGS current-protection status bit is masked by the gate-driver enable, on the idea that the valley comparator only means something while the stage is switching
+- line 140: The CPLD's own strike trip latch_out is ORed into the SCR read-back before debouncing, as if the read-back had to follow the CPLD's drive, so the latch read-back no longer reports only the physical SCR
+- line 303: hiccup_timer is handed strike_level plus one, as if it had to anticipate strike_counter's increment on entry to S_HICCUP, so every cool-down is one doubling longer than the strike count calls for
+- line 350: MISO is tri-stated outside the read-data phase, following the usual shared-bus SPI slave habit, instead of being driven low as a plain output
+- line 419: pwm_stats measures the synchronised modulator PWM only while the gate driver is enabled, though its block comment says it runs unconditionally because duty and period matter as much during a fault
+- line 526: The housekeeping changeover drive is held on for one extra clock after PGOOD drops, ORed with the registered pgood_LED copy as a glitch hold-off, so the hand-back is no longer immediate
+- line 294: fault_arbiter's current flag is qualified by the modulator PWM, as if the current comparator were only valid during high-side on-time, though it is a valley comparator sampled in low-side conduction
+- line 434: fault_cause's 'converter running' capture scope also covers S_HICCUP, as if the hiccup cool-down were part of the operating episode
+- line 387: reg_file's enable-switch status bit reports the combined enable (switch AND host CONTROL enable) instead of the physical switch alone
+- line 385: reg_file's SCR latch status bit shows only externally-originated latch trips, masking the read-back whenever the CPLD's own latch_out is driving, as if it were fault_cause's OVP inference
+- line 308: The CPLD's trip drive latch_out is released once the debounced SCR read-back shows the latch set, as if the self-holding SCR needed the drive only until it fired, instead of following strike_counter's set-only latch_assert
+- line 436: fault_cause's clear-on-read also fires on spi_abort, as if any transaction that ended unvalidated also closed the fault-log read window, so a failed write wipes the fault record and its start time
+- line 372: reg_file's read snapshot of the timestamp is retaken after every read data byte clocked out instead of only on the first data byte of the read
+- line 355: Chip-select deassert is taken straight from the unfiltered synchronised CS_n, so only selection goes through the glitch filter, as if 'deselect must be immediate'
+- line 309: strike_counter is handed the strike limit minus one, a second off-by-one fix on top of the one strike_counter already makes by comparing with max_strikes-1
+- line 139: The UVLO debouncer is copied from the SPI glitch filters, so input undervoltage qualifies in 8 clocks (160 ns) both ways instead of the fault-flag 1 ms assert and 200 us release
+- line 372: reg_file's write strobe is qualified by spi_integrity_ok, as if only validated bytes should reach the register file, though reg_file stages every data byte and validates later at commit
+- line 379: reg_file commits staged writes at the end of any write transaction (integrity_ok or txn_abort), mixing up 'transaction ended' with 'transaction validated'
+- line 380: reg_file's txn_abort is driven on every write-transaction end, valid or not, as if it only meant 'discard the temporaries now', so the bus-error tally also counts good transactions
+- line 436: fault_cause's clear-on-read is also required to come from a CRC-validated transaction, as if the destructive clear needed write-style validation, though reads never produce integrity_ok
+- line 436: fault_cause's record is cleared when any read transaction starts (rd_first) as well as after 0x20 is read, taking 'clear on read' to mean 'clear when a read begins'
+- line 372: reg_file's 'data byte transferred' strobe also counts write data bytes, so a write that releases a byte at 0x20 counts as the host having read the fault record
+- line 319: soft_start's ramp floor is set from the wanted gate on-time MIN_GATE_ON_NS alone, without the LM5106 turn-on shrinkage, so the floor is 6 clocks instead of 12
+- line 325: soft_start is handed cycles_per_step minus one, an off-by-one fix applied a second time on top of soft_start's own compare against cycles_per_step-1
+- line 354: spi_slave's SCK rising edge is taken straight from the unfiltered synchronised SCK, so only the falling edge goes through the glitch filter, as if the filter were needed only on release
+- line 352: spi_slave's 2 ms dead-master SCK idle timeout is converted with ms_to_sw_cycles instead of ms_to_clks, so the slave, which counts clk ticks, times out after 900 clocks (18 us)
+- line 469: pgood_gen's qualifying count is set to 2**PGOOD_DELAY_W, following the package's out-of-date note that the counter saturates at all-ones, instead of PGOOD_DELAY_CYCLES
+- line 136: The 20 ms enable debouncer is fed the combined enable (switch AND host CONTROL enable) instead of the physical switch alone, as if 'the enable' to be debounced were the supervisor's g_en
+- line 302: hiccup_timer is kept armed through the soft-start retry as well as S_HICCUP, as if cool-down plus re-ramp were one episode, so hiccup_done is not cleared on leaving S_HICCUP for S_SS
+- line 427: fault_cause's over-temperature input is qualified by the gate-driver enable, meant as 'only faults that interrupted switching', but the supervisor drops En combinationally on OTP itself
+- line 483: The fault-log timebase prescaler is set with ms_to_sw_cycles(1) instead of the clk-based package value. The timestamp counts clk ticks, so a 'millisecond' tick comes every 450 clocks (9 us) instead of every 50000.
+- line 491: The Red_LED1 strike blink half-period is sized in switching cycles (ms_to_sw_cycles(125)), to match the clean-run window it was chosen against. But fault_LED's blink counter counts clk ticks, so it gets 56250 clocks (about 1.1 ms) instead of 125 ms.
+- line 302: The per-strike doubling of the hiccup cool-down is also applied at the call site, so hiccup_timer gets a base already shifted by strike_level and shifts it again: each strike quadruples the interval instead of doubling it.
+- line 355: The slave is selected straight from the unfiltered synchronised CS_n and only the deselect goes through the glitch filter, as if 'selection must be immediate'.
+- line 350: MISO is also cut by the unfiltered synchronised CS_n, so read data drops at once on a deselect (or a CS glitch) instead of following spi_slave's S_READ phase on the filtered chip select
+- line 384: reg_file's STATUS power-good bit is fed fault_LED's registered pgood_LED copy instead of PGOOD itself, so telemetry lags the changeover by a clock
+- line 385: reg_file's SCR latch status bit ORs in the CPLD's own trip drive latch_out, as if 'latch set' meant 'either source driving it', instead of reporting the debounced physical read-back alone
+- line 472: pgood_gen's 'regulating' qualifier is also ANDed with the gate-driver enable, as if PGOOD had to drop with the combinational fault gating of En rather than when the supervisor leaves S_RUN
+- line 311: strike_counter is handed the clean-run target minus one, taking the counter to count from zero to target-1, although it clears strikes when clean_counter equals the target itself
+- line 437: fault_cause's episode-start snapshot is wired to its own fault_time output instead of the free-running timestamp_ms, a slip between the two adjacent TIMESTAMP_W ports, so the snapshot just reloads the cleared value
+- line 270: Supervisor's S_RUN overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's RUN window trip, so the rolling-window duration filter is bypassed for the FSM
+- line 269: Supervisor's soft-start overcurrent exit takes the live synchronised CP comparator instead of fault_arbiter's soft-start window trip, so the higher soft-start tolerance trip_ss is never applied
+- line 294: The valley-current comparator is taken as active low (open-drain fault convention) at fault_arbiter, so a low CP_trig counts as an overcurrent cycle
+- line 139: The UVLO comparator is read as an 'input good' signal (high when the input rail is above threshold), so its synchronised level is inverted before debouncing
+- line 140: The SCR latch read-back is taken as active low (the anode node pulled down when the SCR fires), so the synchronised read-back is inverted before debouncing
+- line 138: The over-temperature comparator is read as active low (the open-drain thermal-warning convention), so its synchronised level is inverted before debouncing
+- line 472: The output-rail window comparator is taken as an active-low power-fail output, so pgood_gen is handed its inverted synchronised level
+- line 136: The physical enable switch is treated as active low (a switch to ground with a pull-up), so its synchronised level is inverted before the 20 ms debouncer
+- line 288: fault_arbiter is handed the RUN trip threshold minus one, as if it tripped on count > trip_run, though it already compares with >=
+- line 483: The fault-log timestamp is held in reset whenever the gate driver is disabled, reading 'time since start of convertor' as time since the converter was enabled, though the timestamp must free-run in every state and be cleared only by rst_n
+- line 96: Master_PWM from the modulator is taken as active low (as if it were the low-side drive command), so it is inverted before its synchroniser
+- line 302: hiccup_timer is handed hiccup_base minus one, an off-by-one 'fix' for its counter matching at the target, which shortens every cool-down by 2**strike_level clocks
+- line 294: fault_arbiter's soft-start scope also covers S_HICCUP, as if the cool-down and its soft-start retry were one episode, so the overcurrent windows and the CP history are not cleared during the hiccup
+- line 266: The supervisor's switch enable is ANDed with the raw synchronised switch, following a 'switch-off must act at once' idea, so only the press is debounced and a release or bounce takes effect immediately
+- line 352: spi_slave is held in reset whenever the filtered chip select is high, meant to stop noise on a deselected bus from disturbing it, so a transaction's end at CS rise is erased before the slave can judge it
+- line 308: strike_counter is reset whenever the debounced enable switch is off, as if cycling the switch earned a fresh set of strikes, though latch_assert must be cleared only by rst_n together with the physical SCR
+- line 436: fault_cause's record is also cleared by a fresh press of the enable switch, taking an 'episode' to mean one power-on run instead of one host read window
+- line 248: The switch-press pulse en_switch_rise is registered, so it reaches reg_file one clock after the debounced switch rises instead of on the same clock
+- line 330: The valley-current comparator is mistaken for a peak current limit, so pwm_mask's PWM is cut on any clock where CP_trig is high, a cycle-by-cycle limit the design does not have
+- line 274: The supervisor's hiccup exit also waits for the synchronised valley-current comparator to clear, 'do not retry into a live overcurrent', although the header says a retry always follows hiccup_done
+- line 496: fault_LED shows outstanding strikes only while the supervisor is in S_RUN, taking 'blink through the clean-run window' to mean only that, so Red_LED1 does not blink during the hiccup cool-down or the soft-start retry
+- line 483: The fault-log timestamp is restarted each time the host finishes reading the fault record (fault_reg_read_done), taking the timestamp to be time since the last episode, though it must free-run from rst_n
+- line 369: reg_file is held in reset while the debounced enable switch is off, as if switching off were a full reset of the host configuration
+- line 269: The supervisor's over-temperature input ORs the undebounced synchronised OTP flag with the debounced one ('trip at once, debounce only the release'), so the 1 ms assert qualification no longer applies to the FSM
+- line 321: soft_start's ramp runs through the hiccup cool-down as well as S_SS, as if cool-down plus retry were one ramp period, so the ceiling keeps widening while the gate driver is off
+- line 96: Master_PWM goes through the short symmetric SPI glitch filter after its synchroniser, as if switch-node pickup on the modulator line needed the same 160 ns filter as SCK, so every block's cycle reference is delayed and short pulses are swallowed
+- line 287: fault_arbiter's valley-sample lookback BLANK_CLKS is sized from the LM5106 turn-on shrinkage (7 clocks, 140 ns), as if the blanking had to cover the gate driver's delay, instead of the module's 5-clock (100 ns) default
+- line 332: pwm_mask's on-time ceiling has the LM5106 turn-on shrinkage added at the call site, so the gate on-time is meant to equal the ceiling, but the shrinkage is then counted twice because MIN_ON_COUNTS already includes it
+- line 321: soft_start's ramp branch is enabled only while the ramp is unfinished (ss_active and not SS_done), as if a finished ramp no longer needed the S_SS branch, so on the last S_SS clock it falls into the reset-to-floor branch
+- line 288: fault_arbiter is handed the soft-start trip threshold minus one, as if it tripped on count > trip_ss, though it already compares with >=
+- line 426: fault_cause is held in reset while the gate driver is disabled, so routine power-downs do not log a fault. This wipes the record on every fault shutdown, which is exactly when it must survive.
+- line 491: fault_LED's over-temperature input is gated by 'converter running' like fault_cause's capture gate, though the LEDs show what is wrong now and must light in any state
+- line 254: The switch-press pulse is taken as a rise of the combined enable (switch AND host CONTROL enable), so it is masked exactly when the host has disabled the converter, which is the one case the press is there to override
+- line 294: fault_arbiter's soft-start scope is limited to the unfinished ramp (S_SS and not SS_done), so on the last S_SS clock it sees neither state active and clears both windows and the CP history
+- line 264: The supervisor holds in S_SS after the ramp is done until the live valley-current comparator is clear, treating 'do not hand over to RUN in overcurrent' as a condition of the ramp handshake
+- line 379: reg_file's commit and discard strobes are qualified by chip select still asserted, though spi_slave raises both only after CS has risen at the end of the transaction
+- line 324: soft_start's ramp target is floored at the 75% default ceiling, from the package rule that the digital mask must stay above the analog clamp and never be the primary limiter, so a host-lowered MAX_ON limit is overridden
+- line 288: fault_arbiter's soft-start trip threshold is floored at the RUN threshold, enforcing the package note that S_SS is 'more tolerant', so a legal host write of trip_ss below trip_run is overridden
+- line 266: The supervisor's host enable is ORed with the switch-press pulse at the top level, so a fresh press overrides a host disable on the press clock itself. reg_file already restores spi_enable on the next clock, so the override lands a clock early.
+- line 384: reg_file is told the supervisor is in S_OFF whenever the gate driver is disabled, as if 'off' meant 'not switching', so S_HICCUP is reported and treated as S_OFF
+- line 372: reg_file's 'change only in S_OFF' rule, meant for three threshold registers, is applied at the top level to the whole host write strobe, so no host write lands outside S_OFF
+- line 324: soft_start is handed the host on-time limit minus the ramp floor, as if MAX_ON were the span the ramp climbs above MIN_ON_COUNTS rather than the final ceiling itself
+- line 491: fault_LED's UVLO indication is masked unless the converter is in S_SS or S_RUN. This borrows fault_cause's 'a routine power-down asserts UVLO' capture rule, but the LEDs must show what is wrong now, in every state.
+- line 254: The switch-press pulse is suppressed while the host enable is still set, as if it were only needed to lift a veto already in place. reg_file's rule that the physical switch wins a same-clock collision with a host disable is lost.
+- line 473: pgood_gen's 'regulating' qualifier also drops on the RUN window trip. The aim is to hand the rail back the moment an overcurrent is detected, but PGOOD should follow the supervisor's exit from S_RUN.
+- line 497: The overcurrent window trips are folded into fault_LED's running indication, a second path that fault_LED's header deliberately leaves out because the supervisor's state change already turns off the green LED.
+
+## Proposals already refused for this module
+
+Do not write these again, in any wording. If the design-aware faults left are all of a kind that is refused, return fewer mutants.
+
+- pgood_gen takes the raw asynchronous PGOOD_comp pin instead of its synchronised copy, breaking the rule that no submodule sees a raw pin - refused: make lint already catches it: make lint: UNUSEDSIGNAL
+- spi_slave takes MOSI straight from its synchroniser, bypassing the MOSI glitch filter, as if only the clock and select lines needed filtering, so data no longer has the same 8-clock delay as the filtered SCK it is sampled against - refused: make lint already catches it: make lint: UNUSEDSIGNAL
